@@ -20,3 +20,8 @@ GET     /api/annotations/:id           controllers.AnnotationController.getAnnot
 
 GET     /api/places                    controllers.PlaceController.listAll
 GET     /api/places/:id                controllers.PlaceController.getPlace(id: String)
+
+# Auth
+GET     /api/login                     controllers.admin.AuthController.login
+POST    /api/login                     controllers.admin.AuthController.authenticate
+GET     /api/logout                    controllers.admin.AuthController.logout

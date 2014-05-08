@@ -1,0 +1,19 @@
+@(form: Form[(String,String)])(implicit flash: Flash)
+
+<h1>Sign in</h1>
+@helper.form(controllers.admin.routes.AuthController.authenticate) {  
+  @form.globalError.map { error => <div class="alert alert-error">@error.message</div> }
+  @flash.get("success").map { message => <div class="alert alert-info">@message</div> }
+    
+  <label>Username</label>
+  <div class="input">
+    <input type="text" name="username" placeholder="Username" autocomplete="off" id="username" value="@form("username").value">
+  </div>
+  
+  <label>Password</label>
+  <div class="input">
+    <input type="password" name="password" id="password" autocomplete="off" placeholder="Password">
+  </div>
+  
+  <p><button class="btn btn-primary" type="submit" id="loginbutton">Login</button></p>  
+}
