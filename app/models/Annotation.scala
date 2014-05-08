@@ -27,8 +27,7 @@ object Annotations {
   
   def create()(implicit s: Session) = query.ddl.create
   
-  def insert(annotation: Annotation)(implicit s: Session) = 
-    query.insert(annotation)
+  def insert(annotations: Seq[Annotation])(implicit s: Session) = query.insertAll(annotations:_*)
   
   def update(annotation: Annotation)(implicit s: Session) = 
     query.where(_.uuid === annotation.uuid).update(annotation)
