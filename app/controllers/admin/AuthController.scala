@@ -1,9 +1,11 @@
 package controllers.admin
 
 import play.api.Play
+import play.api.Play.current
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.mvc.{ Controller, Action }
+import play.api.mvc.{ Session => PlaySession, _ }
+import play.api.db.slick._
 
 object AuthController extends Controller {
   
@@ -38,4 +40,18 @@ object AuthController extends Controller {
     )
   }
 
+}
+
+trait Secured {
+  
+  private def username(request: RequestHeader) = request.session.get(Security.username)
+  
+  private def onUnauthorized(request: RequestHeader) = Results.Forbidden("Not Authorized.")
+
+  def adminAction(f: => String => DBSessionRequest[AnyContent] => SimpleResult) = {
+    Security.Authenticated(username, onUnauthorized) { username =>
+      DBAction(BodyParsers.parse.anyContent)(rs => f(username)(rs))
+    }
+  }
+  
 }

@@ -3,7 +3,7 @@
 # ~~~~
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file                  controllers.Assets.at(path="/public", file)
+GET     /api/static/*file              controllers.Assets.at(path="/public", file)
 
 # API Routes
 GET     /api/datasets                  controllers.DatasetController.listAll
@@ -25,3 +25,7 @@ GET     /api/places/:id                controllers.PlaceController.getPlace(id: 
 GET     /api/login                     controllers.admin.AuthController.login
 POST    /api/login                     controllers.admin.AuthController.authenticate
 GET     /api/logout                    controllers.admin.AuthController.logout
+
+# Admin
+GET     /api/admin/datasets            controllers.admin.DatasetAdminController.index
+POST    /api/admin/datasets            controllers.admin.DatasetAdminController.uploadDataset
