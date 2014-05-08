@@ -2,8 +2,21 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-GET     /                           controllers.Application.index
-
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.at(path="/public", file)
+GET     /assets/*file                  controllers.Assets.at(path="/public", file)
+
+# API Routes
+GET     /api/datasets                  controllers.DatasetController.listAll
+GET     /api/datasets/:id              controllers.DatasetController.getDataset(id: String)
+GET     /api/datasets/:id/things       controllers.DatasetController.listAnnotatedThings(id: String)
+
+GET     /api/things                    controllers.AnnotatedThingController.listAll
+GET     /api/things/:id                controllers.AnnotatedThingController.getAnnotatedThing(id: String)
+GET     /api/things/:id/places         controllers.AnnotatedThingController.listPlaces(id: String)
+GET     /api/things/:id/annotations    controllers.AnnotatedThingController.listAnnotations(id: String)
+
+GET     /api/annotations               controllers.AnnotationController.listAll
+GET     /api/annotations/:id           controllers.AnnotationController.getAnnotation(id: java.util.UUID)
+
+GET     /api/places                    controllers.PlaceController.listAll
+GET     /api/places/:id                controllers.PlaceController.getPlace(id: String)
