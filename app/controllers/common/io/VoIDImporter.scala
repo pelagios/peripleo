@@ -12,6 +12,7 @@ import play.api.Logger
 import play.api.libs.Files._
 import play.api.mvc.MultipartFormData._
 import play.api.mvc.RequestHeader
+import java.sql.Date
 
 object VoIDImporter {
   
@@ -39,8 +40,9 @@ object VoIDImporter {
         }
       
       Logger.info("Importing dataset '" + dataset.title + "' with ID " + id)
-      Datasets.insert(Dataset(id, dataset.title, dataset.publisher, dataset.license, uri, 
-        dataset.description, dataset.homepage, dataset.datadumps.headOption))
+      Datasets.insert(Dataset(id, dataset.title, dataset.publisher, dataset.license,
+        new Date(System.currentTimeMillis), uri, dataset.description, dataset.homepage, 
+        dataset.datadumps.headOption, None))
     })
   }
   

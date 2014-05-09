@@ -3,6 +3,7 @@ package models
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
+import java.sql.Date
 
 /** Dataset case class.
   *  
@@ -22,6 +23,9 @@ case class Dataset(
     /** dcterms:license **/
     license: String, 
     
+    /** time the dataset was created in the system **/
+    created: Date,
+    
     /** URL of the VoID file (unless imported via file upload) **/
     voidURI: Option[String], 
     
@@ -32,7 +36,10 @@ case class Dataset(
     homepage: Option[String],
     
     /** void:dataDump **/
-    datadump: Option[String])
+    datadump: Option[String],
+    
+    /** time the dataset was last modified in the system **/
+    modified: Option[Date])
 
 /** Dataset database table **/
 class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
@@ -45,6 +52,8 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   
   def license = column[String]("license", O.NotNull)
   
+  def created = column[Date]("created", O.NotNull)
+  
   def voidURI = column[String]("void_uri", O.Nullable)
   
   def description = column[String]("description", O.Nullable)
@@ -53,7 +62,10 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   
   def datadump = column[String]("datadump", O.Nullable)
   
-  def * = (id, title, publisher, license, voidURI.?, description.?, homepage.?, datadump.?) <> (Dataset.tupled, Dataset.unapply)
+  def modified = column[Date]("modified", O.Nullable)
+  
+  def * = (id, title, publisher, license, created, voidURI.?, description.?, 
+    homepage.?, datadump.?, modified.?) <> (Dataset.tupled, Dataset.unapply)
   
 }
 

@@ -32,6 +32,9 @@
             <th>ID</th>
             <th>Title</th>
             <th>Publisher</th>
+            <th>Created</th>
+            <th>Modified</th>
+            <th>Annotations</th>
             <th>VoID</th>
             <th>Dump File</th>
             <th></th> <!-- Actions -->
@@ -40,9 +43,12 @@
         <tbody>
           @for(dataset <- datasets.items) {
           	<tr>
-          	  <td><a href="@routes.DatasetController.getDataset(dataset.id)">@dataset.id</a></td>
+          	  <td><a href="@routes.DatasetController.getDataset(dataset.id)">@{dataset.id.substring(0, 8)}...</a></td>
               <td>@dataset.title</td>
               <td>@dataset.publisher</td>
+              <td>@dataset.created</td>
+              <td class="center">@dataset.modified.getOrElse("-")</td>
+              <td></td>
               <td>
                 @if(dataset.voidURI.isDefined) {                	
                   <a class="icon" href="@dataset.voidURI.get">&#xf0c1;</a>
@@ -53,9 +59,9 @@
               </td>
               <td class="right">
                 @if(dataset.datadump.isDefined) {
-                  <button class="button small" title="Fetch from URL">Fetch from URL</span></button>
-                  <button class="button small" title="Upload RDF Datadump">Upload Dump</button>
+                  <button class="button small"><span class="icon">&#xf0ac;</span>&nbsp; Update through VoID</span></button>
                 }
+                <button class="button small"><span class="icon">&#xf016;</span>&nbsp; Import File</button>
                 <button class="button small red" title="Drop Dataset"><span class="icon">&#xf05e;</span></button>
               </td>
             </tr>
