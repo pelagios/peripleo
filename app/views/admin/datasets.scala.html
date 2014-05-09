@@ -34,6 +34,7 @@
             <th>Publisher</th>
             <th>VoID</th>
             <th>Dump File</th>
+            <th></th> <!-- Actions -->
           </tr>
         </thead>
         <tbody>
@@ -43,11 +44,20 @@
               <td>@dataset.title</td>
               <td>@dataset.publisher</td>
               <td>
-                @if(dataset.voidURI.isDefined) {
+                @if(dataset.voidURI.isDefined) {                	
                   <a class="icon" href="@dataset.voidURI.get">&#xf0c1;</a>
                 }
               </td>
-              <td><a href="@dataset.datadump">@dataset.datadump</a></td>
+              <td>
+                <a href="@dataset.datadump">@dataset.datadump</a>
+              </td>
+              <td class="right">
+                @if(dataset.datadump.isDefined) {
+                  <button class="button small" title="Fetch from URL">Fetch Data</span></button>
+                  <button class="button small" title="Upload RDF Datadump">Upload Data</button>
+                }
+                <button class="button small red" title="Drop Dataset"><span class="icon">&#xf05e;</span></button>
+              </td>
             </tr>
           }
         </tbody>
