@@ -7,28 +7,26 @@
   </head>
   
   <body>
-  
-    @flash.get("error").map { message =>
-      <h2>Something's wrong with your uploaded file.</h2>
-      <div class="error">
-        @Html(message)
+    <div id="content">
+      @flash.get("error").map { message =>
+        <h2>Something's wrong with your uploaded file.</h2>
+        <div class="error">@Html(message)</div>
+      }
+      
+      @flash.get("success").map { message =>
+        <div class="success">@message</div>
+      }
+      
+      <div id="admin-actions">
+        <button class="button big upload icon" data-input="upload-void">&#xf093;</button>
+        <h4>Upload VoID Dataset Description</h4>
       </div>
-    }
-      
-    @flash.get("success").map { message =>
-      <div class="success">
-        @message
-      </div>
-    }
-      
-    <div id="admin-actions">
-      <button class="upload icon" data-input="upload-documents">&#xf093;</button>
-      <h4>Upload Documents (CSV)</h4>
-      
+    
       @helper.form(action = controllers.admin.routes.DatasetAdminController.uploadDataset(), 'enctype -> "multipart/form-data") {
-        <input type="file" id="upload-documents" name="csv" accept=".csv">
+        <input type="file" id="upload-void" name="void">
       }
     </div>
+    
     @tags.jsUpload()
   </body>
 </html>

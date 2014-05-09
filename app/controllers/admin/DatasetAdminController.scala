@@ -1,8 +1,7 @@
 package controllers.admin
 
-import controllers.common.io.CSVImporter
+import controllers.common.io.VoIDImporter
 import play.api.mvc.Controller
-import scala.io.Source
 
 object DatasetAdminController extends Controller with Secured {
 
@@ -14,11 +13,10 @@ object DatasetAdminController extends Controller with Secured {
     val formData = session.request.body.asMultipartFormData
     if (formData.isDefined) {
       try {
-        val f = formData.get.file("csv")
+        val f = formData.get.file("void")
         if (f.isDefined) {
-          val importer = new CSVImporter()
-          importer.importRecogitoCSV(Source.fromFile(f.get.ref.file))(session.dbSession)
-          Redirect(routes.DatasetAdminController.index).flashing("success" -> { "Uploaded CSV." })
+          VoIDImporter.importVoID(f.get)(session.dbSession, session.request)
+          Redirect(routes.DatasetAdminController.index).flashing("success" -> { "New Dataset Created." })
         } else {
           BadRequest
         }
