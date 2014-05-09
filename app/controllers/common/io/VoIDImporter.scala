@@ -1,18 +1,16 @@
 package controllers.common.io
 
-import java.io.File
 import models._
+import java.io.FileInputStream
+import java.security.MessageDigest
+import java.math.BigInteger
 import org.pelagios.Scalagios
 import org.openrdf.rio.RDFFormat
-import play.api.Play.current
+import org.openrdf.rio.UnsupportedRDFormatException
 import play.api.db.slick._
 import play.api.Logger
 import play.api.libs.Files._
 import play.api.mvc.MultipartFormData._
-import org.openrdf.rio.UnsupportedRDFormatException
-import java.io.FileInputStream
-import java.security.MessageDigest
-import java.math.BigInteger
 import play.api.mvc.RequestHeader
 
 object VoIDImporter {
@@ -30,6 +28,7 @@ object VoIDImporter {
     }
     
     // If we don't have a base URI for the VoID file, we'll use our own namespace as fallback
+    // Not 100% the Sesame parser actually makes use of it... but we're keeping things sane nonetheless
     val baseURI = uri.getOrElse(controllers.routes.DatasetController.listAll.absoluteURL(false)(r))
     Scalagios.readVoID(new FileInputStream(file.ref.file), baseURI, format).foreach(dataset => {
       val id =

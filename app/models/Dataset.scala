@@ -27,8 +27,12 @@ object Datasets {
   def insert(dataset: Dataset)(implicit s: Session) = query.insert(dataset)
   
   def update(dataset: Dataset)(implicit s: Session) = query.where(_.id === dataset.id).update(dataset)
-  
-  def listAll()(implicit s: Session): Seq[Dataset] = query.list
+ 
+  def listAll(offset: Int = 0, limit: Int = 20)(implicit s: Session): Page[Dataset] = {
+    val total = countAll()
+    val result = query.drop(offset).take(limit).list
+    Page(result, offset, limit, total)
+  }
   
   def countAll()(implicit s: Session): Int = Query(query.length).first
   
