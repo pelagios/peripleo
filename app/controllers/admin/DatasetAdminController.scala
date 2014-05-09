@@ -30,4 +30,9 @@ object DatasetAdminController extends Controller with Secured {
     }
   }
   
+  def deleteDataset(id: String) = adminAction { username => implicit session =>
+    Datasets.delete(id)
+    Status(200)
+  }
+  
 }

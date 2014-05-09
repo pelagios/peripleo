@@ -29,3 +29,4 @@ GET     /api/logout                    controllers.admin.AuthController.logout
 # Admin
 GET     /api/admin/datasets            controllers.admin.DatasetAdminController.index
 POST    /api/admin/datasets            controllers.admin.DatasetAdminController.uploadDataset
+DELETE  /api/admin/datasets/:id        controllers.admin.DatasetAdminController.deleteDataset(id: String)

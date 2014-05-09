@@ -77,5 +77,8 @@ object Datasets {
   
   def findById(id: String)(implicit s: Session): Option[Dataset] = 
     query.where(_.id === id).firstOption
+    
+  def delete(id: String)(implicit s: Session) =
+    query.where(_.id === id).delete
  
 }
