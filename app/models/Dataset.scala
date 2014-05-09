@@ -4,8 +4,37 @@ import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
-case class Dataset(id: String, title: String, publisher: String)
+/** Dataset case class.
+  *  
+  * @author Rainer Simon <rainer.simon@ait.ac.at>
+  */
+case class Dataset(
+    
+    /** Internal ID in the API **/
+    id: String,
+    
+    /** dcterms:title **/
+    title: String, 
+    
+    /** dcterms:publisher **/
+    publisher: String, 
+    
+    /** dcterms:license **/
+    license: String, 
+    
+    /** URL of the VoID file (unless imported via file upload) **/
+    voidURI: Option[String], 
+    
+    /** dcterms:description **/
+    description: Option[String],
+    
+    /** foaf:homepage **/
+    homepage: Option[String],
+    
+    /** void:dataDump **/
+    datadump: Option[String])
 
+/** Dataset database table **/
 class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
 
   def id = column[String]("id", O.PrimaryKey)
@@ -14,7 +43,17 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   
   def publisher = column[String]("publisher", O.NotNull)
   
-  def * = (id, title, publisher) <> (Dataset.tupled, Dataset.unapply)
+  def license = column[String]("license", O.NotNull)
+  
+  def voidURI = column[String]("void_uri", O.Nullable)
+  
+  def description = column[String]("description", O.Nullable)
+  
+  def homepage = column[String]("homepage", O.Nullable)
+  
+  def datadump = column[String]("datadump", O.Nullable)
+  
+  def * = (id, title, publisher, license, voidURI.?, description.?, homepage.?, datadump.?) <> (Dataset.tupled, Dataset.unapply)
   
 }
 
