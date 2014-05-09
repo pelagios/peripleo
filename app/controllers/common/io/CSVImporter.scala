@@ -20,9 +20,11 @@ class CSVImporter {
     
     AnnotatedThings.insert(AnnotatedThing(meta.get("title").get, meta.get("title").get, None))
     
+    /*
     val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields =>
       Annotation(UUID.randomUUID, meta.get("title").get, fields(header.indexOf("gazetteer_uri"))))
     Annotations.insert(annotations)
+    */
   }
 
   private def toMap(meta: Seq[String]): Map[String, String] = {

@@ -1,4 +1,4 @@
-@(datasets: Page[Dataset])(implicit flash: Flash)
+@(datasets: Page[Dataset])(implicit flash: Flash, s: play.api.db.slick.Config.driver.simple.Session)
 <html>
   <head>
     <title>Pelagios API » Admin » Datasets</title>
@@ -48,7 +48,7 @@
               <td>@dataset.publisher</td>
               <td>@dataset.created</td>
               <td class="center">@dataset.modified.getOrElse("-")</td>
-              <td></td>
+              <td class="center">@Annotations.countByDataset(dataset.id)</td>
               <td>
                 @if(dataset.voidURI.isDefined) {                	
                   <a class="icon" href="@dataset.voidURI.get">&#xf0c1;</a>

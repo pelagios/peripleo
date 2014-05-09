@@ -16,6 +16,8 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   def * = (id, title, isPartOfId.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
   
+  /** Foreign key constraints **/
+  
   def isPartOf = foreignKey("is_part_of_fk", isPartOfId, AnnotatedThings.query)(_.id)
   
 }
