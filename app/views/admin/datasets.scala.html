@@ -1,4 +1,4 @@
-@()(implicit flash: Flash)
+@(datasets: Page[Dataset])(implicit flash: Flash)
 <html>
   <head>
     <title>Pelagios API » Admin » Datasets</title>
@@ -25,6 +25,33 @@
       @helper.form(action = controllers.admin.routes.DatasetAdminController.uploadDataset(), 'enctype -> "multipart/form-data") {
         <input type="file" id="upload-void" name="void">
       }
+      
+      <table class="list">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Publisher</th>
+            <th>VoID</th>
+            <th>Dump File</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(dataset <- datasets.items) {
+          	<tr>
+          	  <td><a href="@routes.DatasetController.getDataset(dataset.id)">@dataset.id</a></td>
+              <td>@dataset.title</td>
+              <td>@dataset.publisher</td>
+              <td>
+                @if(dataset.voidURI.isDefined) {
+                  <a class="icon" href="@dataset.voidURI.get">&#xf0c1;</a>
+                }
+              </td>
+              <td><a href="@dataset.datadump">@dataset.datadump</a></td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
     
     @tags.jsUpload()

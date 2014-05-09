@@ -1,12 +1,14 @@
 package controllers.admin
 
 import controllers.common.io.VoIDImporter
+import models.Datasets
+import play.api.db.slick._
 import play.api.mvc.Controller
 
 object DatasetAdminController extends Controller with Secured {
 
   def index = adminAction { username => implicit session =>
-    Ok(views.html.admin.datasets())
+    Ok(views.html.admin.datasets(Datasets.listAll()))
   }
   
   def uploadDataset = adminAction { username => implicit session =>
