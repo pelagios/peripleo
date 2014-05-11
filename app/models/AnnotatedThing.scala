@@ -4,21 +4,29 @@ import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
-case class AnnotatedThing(id: String, title: String, isPartOf: Option[String])
+case class AnnotatedThing(id: String, dataset: String, title: String, isPartOf: Option[String])
 
 class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_things") {
 
   def id = column[String]("id", O.PrimaryKey)
   
+  def datasetId = column[String]("dataset", O.NotNull)
+  
   def title = column[String]("title", O.NotNull)
   
   def isPartOfId = column[String]("is_part_of", O.Nullable)
   
-  def * = (id, title, isPartOfId.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
+  def * = (id, datasetId, title, isPartOfId.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
   
   /** Foreign key constraints **/
   
+  def datasetFk = foreignKey("dataset_fk", datasetId, Datasets.query)(_.id)
+  
   def isPartOf = foreignKey("is_part_of_fk", isPartOfId, AnnotatedThings.query)(_.id)
+  
+  /** Indices **/
+  
+  def datasetIdx = index("dataset_idx", datasetId, unique = false)
   
 }
 

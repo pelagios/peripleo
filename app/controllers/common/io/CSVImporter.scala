@@ -6,25 +6,29 @@ import models._
 import play.api.db.slick._
 import scala.io.Source
 
-class CSVImporter {
+class CSVImporter extends BaseImporter {
   
   private val SEPARATOR = ";"
     
   private val SPLIT_REGEX = "(?<!\\\\)" + Pattern.quote(SEPARATOR)
 
-  def importRecogitoCSV(source: Source)(implicit s: Session) = {
+  def importRecogitoCSV(source: Source, dataset: Dataset)(implicit s: Session) = {
     val data = source.getLines.toSeq
     
     val meta = toMap(data.takeWhile(_.startsWith("#")))  
     val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
     
-    AnnotatedThings.insert(AnnotatedThing(meta.get("title").get, meta.get("title").get, None))
+    // Recogito CSVs contain exactly one annotated thing
+    val annotatedThing = AnnotatedThing(md5(dataset.id + " " + meta.get("title").get), 
+      dataset.id, meta.get("title").get, None)
+        
+    AnnotatedThings.insert(annotatedThing)
     
-    /*
+    // TODO - should we re-use UUIDs out of Recogito?
     val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields =>
-      Annotation(UUID.randomUUID, meta.get("title").get, fields(header.indexOf("gazetteer_uri"))))
+      Annotation(UUID.randomUUID(), dataset.id, annotatedThing.id, fields(header.indexOf("gazetteer_uri"))))
+      
     Annotations.insert(annotations)
-    */
   }
 
   private def toMap(meta: Seq[String]): Map[String, String] = {
