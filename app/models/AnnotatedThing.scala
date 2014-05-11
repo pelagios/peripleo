@@ -26,7 +26,7 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   /** Indices **/
   
-  def datasetIdx = index("dataset_idx", datasetId, unique = false)
+  def datasetIdx = index("idx_things_by_dataset", datasetId, unique = false)
   
 }
 

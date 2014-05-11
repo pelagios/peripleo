@@ -4,6 +4,7 @@ import controllers.common.io.VoIDImporter
 import models.Datasets
 import play.api.db.slick._
 import play.api.mvc.Controller
+import play.api.libs.json.Json
 
 object DatasetAdminController extends Controller with Secured {
 
@@ -33,6 +34,10 @@ object DatasetAdminController extends Controller with Secured {
   def deleteDataset(id: String) = adminAction { username => implicit session =>
     Datasets.delete(id)
     Status(200)
+  }
+  
+  def uploadAnnotations(id: String) = adminAction { username => implicit session => 
+    Ok(Json.parse("{ \"message\":\"Upload to " + id + "\"}"))
   }
   
 }
