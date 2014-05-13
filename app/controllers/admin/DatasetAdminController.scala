@@ -1,6 +1,6 @@
 package controllers.admin
 
-import controllers.common.io.{ CSVImporter, VoIDImporter }
+import controllers.common.io.{ CSVImporter, PelagiosOAImporter, VoIDImporter }
 import models.Datasets
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile
@@ -13,6 +13,7 @@ import play.api.libs.json.Json
 object DatasetAdminController extends Controller with Secured {
   
   private val UTF8 = "UTF-8"
+  private val CSV = "csv"
   
   /** Generic boiler plate code needed for file upload **/
   private def processUpload(formFieldName: String, requestWithSession: DBSessionRequest[AnyContent], action: FilePart[TemporaryFile] => SimpleResult) = {
@@ -56,7 +57,10 @@ object DatasetAdminController extends Controller with Secured {
     processUpload("annotations", requestWithSession, { filepart => {
       val dataset = Datasets.findById(id)
       if (dataset.isDefined) {
-        CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get)
+        if (filepart.filename.endsWith(CSV))
+          CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get)
+        else
+          PelagiosOAImporter.importPelagiosAnnotations(filepart, dataset.get)
         Redirect(routes.DatasetAdminController.index).flashing("success" -> { "Annotations imported." })
       } else {
         NotFound

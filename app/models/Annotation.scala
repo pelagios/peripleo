@@ -61,7 +61,7 @@ object Annotations {
     
   def findByAnnotatedThing(id: String, offset: Int = 0, limit: Int = 20)(implicit s: Session): Page[Annotation] = {
     val total = countByAnnotatedThing(id)
-    val result = query.drop(offset).take(limit).list
+    val result = query.where(_.annotatedThingId === id).drop(offset).take(limit).list
     Page(result, offset, limit, total)
   }
   
