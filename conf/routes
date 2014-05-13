@@ -3,31 +3,31 @@
 # ~~~~
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /api/static/*file              controllers.Assets.at(path="/public", file)
+GET     /api-v3/static/*file              controllers.Assets.at(path="/public", file)
 
 # API Routes
-GET     /api/datasets                         controllers.DatasetController.listAll
-GET     /api/datasets/:id                     controllers.DatasetController.getDataset(id: String)
-GET     /api/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String)
+GET     /api-v3/datasets                         controllers.DatasetController.listAll
+GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
+GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String)
 
-GET     /api/items                            controllers.AnnotatedThingController.listAll
-GET     /api/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
-GET     /api/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String)
-GET     /api/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String)
+GET     /api-v3/items                            controllers.AnnotatedThingController.listAll
+GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
+GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String)
+GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String)
 
-GET     /api/annotations                      controllers.AnnotationController.listAll
-GET     /api/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
+GET     /api-v3/annotations                      controllers.AnnotationController.listAll
+GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
 
-GET     /api/places                           controllers.PlaceController.listAll
-GET     /api/places/:id                       controllers.PlaceController.getPlace(id: String)
+GET     /api-v3/places                           controllers.PlaceController.listAll
+GET     /api-v3/places/:id                       controllers.PlaceController.getPlace(id: String)
 
 # Auth
-GET     /api/login                            controllers.admin.AuthController.login
-POST    /api/login                            controllers.admin.AuthController.authenticate
-GET     /api/logout                           controllers.admin.AuthController.logout
+GET     /api-v3/login                            controllers.admin.AuthController.login
+POST    /api-v3/login                            controllers.admin.AuthController.authenticate
+GET     /api-v3/logout                           controllers.admin.AuthController.logout
 
 # Admin
-GET     /api/admin/datasets                   controllers.admin.DatasetAdminController.index
-POST    /api/admin/datasets                   controllers.admin.DatasetAdminController.uploadDataset
-DELETE  /api/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
-POST    /api/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
+GET     /api-v3/admin/datasets                   controllers.admin.DatasetAdminController.index
+POST    /api-v3/admin/datasets                   controllers.admin.DatasetAdminController.uploadDataset
+DELETE  /api-v3/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
+POST    /api-v3/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
