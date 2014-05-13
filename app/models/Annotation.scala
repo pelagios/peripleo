@@ -58,5 +58,14 @@ object Annotations {
     
   def countByDataset(id: String)(implicit s: Session): Int =
     Query(query.where(_.datasetId === id).length).first
+    
+  def findByAnnotatedThing(id: String, offset: Int = 0, limit: Int = 20)(implicit s: Session): Page[Annotation] = {
+    val total = countByAnnotatedThing(id)
+    val result = query.drop(offset).take(limit).list
+    Page(result, offset, limit, total)
+  }
+  
+  def countByAnnotatedThing(id: String)(implicit s: Session): Int =
+    Query(query.where(_.annotatedThingId === id).length).first
  
 }

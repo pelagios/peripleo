@@ -53,5 +53,14 @@ object AnnotatedThings {
   
   def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
     query.where(_.id === id).firstOption
+    
+  def findByDataset(id: String, offset: Int = 0, limit: Int = 20)(implicit s: Session): Page[AnnotatedThing] = {
+    val total = countByDataset(id)
+    val result = query.where(_.datasetId === id).drop(offset).take(limit).list
+    Page(result, offset, limit, total)
+  }
+  
+  def countByDataset(id: String)(implicit s: Session): Int =
+    Query(query.where(_.datasetId === id).length).first
  
 }
