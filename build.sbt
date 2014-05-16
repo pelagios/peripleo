@@ -19,6 +19,8 @@ libraryDependencies ++= Seq(
   "org.openrdf.sesame" % "sesame-rio-n3" % "2.7.5",
   "org.openrdf.sesame" % "sesame-rio-rdfxml" % "2.7.5",
   "com.vividsolutions" % "jts" % "1.13",
-  "org.geotools" % "gt-geojson" % "10.0"
+  "org.geotools" % "gt-geojson" % "10.0",
+  "org.apache.lucene" % "lucene-analyzers-common" % "4.7.0",
+  "org.apache.lucene" % "lucene-queryparser" % "4.7.0"
 )   
 

@@ -29,7 +29,7 @@ class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") {
   
   def datasetIdx = index("idx_annotations_by_dataset", datasetId, unique = false)
   
-  def annotatedThingIdx = index("idx_annotateds_by_thing", annotatedThingId, unique = false)
+  def annotatedThingIdx = index("idx_annotations_by_thing", annotatedThingId, unique = false)
   
 }
 
