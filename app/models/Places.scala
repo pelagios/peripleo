@@ -29,7 +29,7 @@ class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places
   
 }
 
-private[models] case class PlacesByThing(id: Option[Int], gazetteerURI: String, annotatedThing: String, count: Int)
+private[models] case class PlacesByThing(id: Option[Int], gazetteerURI: String, dataset: String, annotatedThing: String, count: Int)
 
 class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") {
 
@@ -37,21 +37,27 @@ class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_
   
   def gazetteerURI = column[String]("gazetteer_uri", O.NotNull)
   
+  def datasetId = column[String]("dataset", O.NotNull)
+  
   def annotatedThingId = column[String]("annotated_thing", O.NotNull)
  
   def count = column[Int]("count", O.NotNull)
   
-  def * = (id.?, gazetteerURI, annotatedThingId, count) <> (PlacesByThing.tupled, PlacesByThing.unapply)
+  def * = (id.?, gazetteerURI, datasetId, annotatedThingId, count) <> (PlacesByThing.tupled, PlacesByThing.unapply)
   
   /** Foreign key constraints **/
+  
+  def datasetFk = foreignKey("dataset_fk", datasetId, Datasets.query)(_.id)
   
   def annotatedThingFk = foreignKey("annotated_thing_fk", annotatedThingId, AnnotatedThings.query)(_.id)
   
   /** Indices **/
   
-  def gazetterUriIdx = index("idx_places_by_thing", gazetteerURI, unique = false)
+  def gazetterUriIdx = index("idx_places_by_dataset_and_thing", gazetteerURI, unique = false)
   
-  def annotatedThingIdx = index("idx_things_by_place", annotatedThingId, unique = false)
+  def datasetIdx = index("idx_datasets_by_place_and_thing", datasetId, unique = false)
+  
+  def annotatedThingIdx = index("idx_things_by_place_and_dataset", annotatedThingId, unique = false)
   
 }
 
@@ -66,16 +72,32 @@ object Places {
     queryByThing.ddl.create
   }
   
-  def findDatasetsByPlace(gazetteerURI: String): Seq[Dataset] =
-    Seq.empty[Dataset]
+  def updateWith(annotations: Seq[Annotation])(implicit s: Session) = {
+    // TODO when inserting annotations, both aggregation tables need to be updated
+  }
   
-  def findThingsByPlaceAndDataset(gazetteerURI: String, datasetId: String): Seq[AnnotatedThing]  =
-    Seq.empty[AnnotatedThing]
+  def findDatasetsByPlace(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] = {
+    val query = for {
+      placesByDataset <- queryByDataset.where(_.gazetteerURI === gazetteerURI)   
+      dataset <- Datasets.query if placesByDataset.datasetId === dataset.id
+    } yield (dataset, placesByDataset.count)
+    
+    query.list
+  }
   
-  def findPlacesByDataset(id: String): Seq[String] =
-    Seq.empty[String]
+  def findThingsByPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Seq[(AnnotatedThing, Int)] = {
+    val query = for {
+      placesByThing <- queryByThing.where(_.gazetteerURI === gazetteerURI).where(_.datasetId === datasetId)   
+      annotatedThing <- AnnotatedThings.query if placesByThing.annotatedThingId === annotatedThing.id
+    } yield (annotatedThing, placesByThing.count)
+    
+    query.list    
+  }
   
-  def findPlacesByThing(id: String): Seq[String] = 
-    Seq.empty[String]
+  def findPlacesByDataset(id: String)(implicit s: Session): Seq[(String, Int)] =
+    queryByDataset.where(_.datasetId === id).map(row => (row.gazetteerURI, row.count)).list
+  
+  def findPlacesByThing(id: String)(implicit s: Session): Seq[(String, Int)] = 
+    queryByThing.where(_.annotatedThingId === id).map(row => (row.gazetteerURI, row.count)).list
   
 }
