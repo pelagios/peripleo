@@ -42,7 +42,7 @@ object AnnotatedThings {
   def update(thing: AnnotatedThing)(implicit s: Session) = 
     query.where(_.id === thing.id).update(thing)
   
-  def listAll(offset: Int = 0, limit: Int = 20)(implicit s: Session): Page[AnnotatedThing] = {
+  def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
     val total = countAll()
     val result = query.drop(offset).take(limit).list
     Page(result, offset, limit, total)
@@ -54,7 +54,7 @@ object AnnotatedThings {
   def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
     query.where(_.id === id).firstOption
     
-  def findByDataset(id: String, offset: Int = 0, limit: Int = 20)(implicit s: Session): Page[AnnotatedThing] = {
+  def findByDataset(id: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
     val total = countByDataset(id)
     val result = query.where(_.datasetId === id).drop(offset).take(limit).list
     Page(result, offset, limit, total)

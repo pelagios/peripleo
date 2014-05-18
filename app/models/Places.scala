@@ -73,18 +73,36 @@ object Places {
   }
   
   def purge(datasetId: String, annotatedThingId: Option[String] = None)(implicit s: Session) = {
-    // TODO if only datasetId is specified, remove all references from both tables
-    
-    // TODO if datasetId and annotatedThingId is specified, remove all references to the
-    // thing, and update the counts for the dataset
+    if (annotatedThingId.isDefined) {
+      // TODO if annotatedThingId is specified, remove references to the thing & update the dataset counts
+    } else {
+      queryByDataset.where(_.datasetId === datasetId).delete  
+    }
   }
   
   def update(datasetId: String, annotatedThingId: Option[String] = None)(implicit s: Session) = {
-    // TODO if only datasetId is specified: (1) drop references if they exist, (2) recompute references
-    // based on the annotation counts
-    
-    // TODO if both datasetId and thingId is specified: (1) drop references to the thing, (2) recompute
-    // references to the thing, (3) recompute references for the dataset
+    if (annotatedThingId.isDefined) {
+      // TODO if both datasetId and thingId is specified: (1) drop references to the thing, (2) recompute
+      // references to the thing, (3) recompute references for the dataset
+    } else {
+      // Purge all existing entries
+      purge(datasetId)
+      
+      // Load all annotations for this dataset from the DB
+      val annotations = Annotations.findByDataset(datasetId).items
+      
+      // Compute per-dataset stats and insert
+      val placesInDataset = annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
+        .map { case (gazetteerUri, count) => PlacesByDataset(None, datasetId, gazetteerUri, count) }
+      queryByDataset.insertAll(placesInDataset:_*)
+      
+      // Compute per-thing stats and insert
+      val placesByAnnotatedThing = annotations.groupBy(_.annotatedThing).toSeq.flatMap { case (thingId, annotations) => {
+        annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
+          .map { case (gazetteerUri, count) => PlacesByThing(None, datasetId, thingId, gazetteerUri, count)}
+      }}
+      queryByThing.insertAll(placesByAnnotatedThing:_*)
+    }
   }
   
   def findDatasetsByPlace(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] = {
