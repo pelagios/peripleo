@@ -72,37 +72,26 @@ object Places {
     queryByThing.ddl.create
   }
   
-  def purge(datasetId: String, annotatedThingId: Option[String] = None)(implicit s: Session) = {
-    if (annotatedThingId.isDefined) {
-      // TODO if annotatedThingId is specified, remove references to the thing & update the dataset counts
-    } else {
-      queryByDataset.where(_.datasetId === datasetId).delete  
-    }
-  }
+  def purgeForDataset(id: String)(implicit s: Session) =
+    queryByDataset.where(_.datasetId === id).delete  
   
-  def update(datasetId: String, annotatedThingId: Option[String] = None)(implicit s: Session) = {
-    if (annotatedThingId.isDefined) {
-      // TODO if both datasetId and thingId is specified: (1) drop references to the thing, (2) recompute
-      // references to the thing, (3) recompute references for the dataset
-    } else {
-      // Purge all existing entries
-      purge(datasetId)
+  def recomputeForDataset(id: String)(implicit s: Session) = {
+    purgeForDataset(id)
       
-      // Load all annotations for this dataset from the DB
-      val annotations = Annotations.findByDataset(datasetId).items
+    // Load all annotations for this dataset from the DB
+    val annotations = Annotations.findByDataset(id).items
       
-      // Compute per-dataset stats and insert
-      val placesInDataset = annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
-        .map { case (gazetteerUri, count) => PlacesByDataset(None, datasetId, gazetteerUri, count) }
-      queryByDataset.insertAll(placesInDataset:_*)
+    // Compute per-dataset stats and insert
+    val placesInDataset = annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
+      .map { case (gazetteerUri, count) => PlacesByDataset(None, id, gazetteerUri, count) }
+    queryByDataset.insertAll(placesInDataset:_*)
       
-      // Compute per-thing stats and insert
-      val placesByAnnotatedThing = annotations.groupBy(_.annotatedThing).toSeq.flatMap { case (thingId, annotations) => {
-        annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
-          .map { case (gazetteerUri, count) => PlacesByThing(None, datasetId, thingId, gazetteerUri, count)}
-      }}
-      queryByThing.insertAll(placesByAnnotatedThing:_*)
-    }
+    // Compute per-thing stats and insert
+    val placesByAnnotatedThing = annotations.groupBy(_.annotatedThing).toSeq.flatMap { case (thingId, annotations) => {
+      annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
+        .map { case (gazetteerUri, count) => PlacesByThing(None, id, thingId, gazetteerUri, count)}
+    }}
+    queryByThing.insertAll(placesByAnnotatedThing:_*)
   }
   
   def findDatasetsByPlace(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] = {
