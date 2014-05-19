@@ -14,21 +14,14 @@ object AnnotatedThingController extends Controller {
   implicit private val serializeUUID = Writes { uuid: UUID => JsString(uuid.toString) } // UUIDs are not supported out of the box
   implicit private val serializeAnnotation = Json.writes[Annotation]
   
+  import controllers.common.io.JSONWriter._
+  
   implicit private val serializePlacesPerThing = new Writes[Page[(String, Int)]] {
     def writes(page: Page[(String, Int)]) = Json.obj(
       "total" -> page.total,
       "offset" -> page.offset,
       "limit" -> page.limit,
-      "items" -> page.items.map { case (gazetteerURI, count) => {
-        val centroid = Global.index.findByURI(gazetteerURI).flatMap(_.getCentroid)
-        
-        Json.obj(
-          "gazetteer_uri" -> gazetteerURI,
-          "count" -> count,
-          "lat" -> centroid.map(_.y),
-          "lng" -> centroid.map(_.x)
-        )}
-      }
+      "items" -> page.items.map { case (gazetteerURI, count) => Json.toJson(Global.index.findByURI(gazetteerURI)) }
     )
   }
   

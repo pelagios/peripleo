@@ -3,15 +3,12 @@ package controllers
 import models._
 import play.api.db.slick._
 import play.api.mvc.Controller
+import controllers.common.io.JSONWriter._
 import play.api.libs.json.Json
 import play.api.libs.json.Writes
 import global.Global
 
 object DatasetController extends Controller {
-  
-  // Implicit JSON serializers
-  implicit private val serializeDataset = Json.writes[Dataset]
-  implicit private val serializeAnnotatedThing = Json.writes[AnnotatedThing]
   
   implicit private val serializePlacesPerThing = new Writes[Page[(String, Int)]] {
     def writes(page: Page[(String, Int)]) = Json.obj(
