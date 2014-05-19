@@ -72,29 +72,32 @@ object Places {
     queryByThing.ddl.create
   }
   
-  private[models] def purgeForDataset(id: String)(implicit s: Session) =
-    queryByDataset.where(_.datasetId === id).delete  
+  private[models] def purge(datasetId: String)(implicit s: Session) =
+    queryByDataset.where(_.datasetId === datasetId).delete  
   
-  private[models] def recomputeForDataset(id: String)(implicit s: Session) = {
-    purgeForDataset(id)
+  private[models] def recompute(datasetId: String)(implicit s: Session) = {
+    purge(datasetId)
       
     // Load all annotations for this dataset from the DB
-    val annotations = Annotations.findByDataset(id).items
+    val annotations = Annotations.findByDataset(datasetId).items
       
     // Compute per-dataset stats and insert
     val placesInDataset = annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
-      .map { case (gazetteerUri, count) => PlacesByDataset(None, id, gazetteerUri, count) }
+      .map { case (gazetteerUri, count) => PlacesByDataset(None, datasetId, gazetteerUri, count) }
     queryByDataset.insertAll(placesInDataset:_*)
       
     // Compute per-thing stats and insert
     val placesByAnnotatedThing = annotations.groupBy(_.annotatedThing).toSeq.flatMap { case (thingId, annotations) => {
       annotations.groupBy(_.gazetterURI).mapValues(_.size).toSeq
-        .map { case (gazetteerUri, count) => PlacesByThing(None, id, thingId, gazetteerUri, count)}
+        .map { case (gazetteerUri, count) => PlacesByThing(None, datasetId, thingId, gazetteerUri, count)}
     }}
     queryByThing.insertAll(placesByAnnotatedThing:_*)
   }
   
-  def findDatasetsByPlace(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] = {
+  def countDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Int =
+    Query(queryByDataset.where(_.gazetteerURI === gazetteerURI).length).first
+  
+  def findDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] = {
     val query = for {
       placesByDataset <- queryByDataset.where(_.gazetteerURI === gazetteerURI)   
       dataset <- Datasets.query if placesByDataset.datasetId === dataset.id
@@ -103,19 +106,33 @@ object Places {
     query.list
   }
   
-  def findThingsByPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Seq[(AnnotatedThing, Int)] = {
+  def countThingsForPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Int =
+    Query(queryByThing.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI).length).first
+  
+  def findThingsForPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Seq[(AnnotatedThing, Int)] = {
     val query = for {
-      placesByThing <- queryByThing.where(_.gazetteerURI === gazetteerURI).where(_.datasetId === datasetId)   
+      placesByThing <- queryByThing.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI)   
       annotatedThing <- AnnotatedThings.query if placesByThing.annotatedThingId === annotatedThing.id
     } yield (annotatedThing, placesByThing.count)
     
     query.list    
   }
   
-  def findPlacesByDataset(id: String)(implicit s: Session): Seq[(String, Int)] =
-    queryByDataset.where(_.datasetId === id).map(row => (row.gazetteerURI, row.count)).list
+  def countPlacesInDataset(datasetId: String)(implicit s: Session): Int =
+    Query(queryByDataset.where(_.datasetId === datasetId).length).first
+ 
+  def findPlacesInDataset(datasetId: String)(implicit s: Session): Seq[(String, Int)] =
+    queryByDataset.where(_.datasetId === datasetId).map(row => (row.gazetteerURI, row.count)).list
   
-  def findPlacesByThing(id: String)(implicit s: Session): Seq[(String, Int)] = 
-    queryByThing.where(_.annotatedThingId === id).map(row => (row.gazetteerURI, row.count)).list
+  def countPlacesForThing(thingId: String)(implicit s: Session): Int =
+    Query(queryByThing.where(_.annotatedThingId === thingId).length).first
+    
+  def findPlacesForThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(String, Int)] = {
+    val total = countPlacesForThing(thingId)
+    val result = queryByThing.where(_.annotatedThingId === thingId).drop(offset).take(limit)
+      .map(row => (row.gazetteerURI, row.count)).list 
+      
+    Page(result, offset, limit, total)
+  }
   
 }

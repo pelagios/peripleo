@@ -44,7 +44,7 @@ object Annotations {
     query.insertAll(annotations:_*)
     
     // Update place index stats for affected datasets
-    annotations.groupBy(_.dataset).keys.foreach(Places.recomputeForDataset(_))
+    annotations.groupBy(_.dataset).keys.foreach(Places.recompute(_))
   }
   
   def update(annotation: Annotation)(implicit s: Session) = 
