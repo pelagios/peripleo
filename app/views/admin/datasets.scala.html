@@ -7,7 +7,7 @@
   </head>
   
   <body>
-    <div id="content">
+    <div id="content">    
       @flash.get("error").map { message =>
         <h2>Something's wrong with your uploaded file.</h2>
         <div class="error">@Html(message)</div>

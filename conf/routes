@@ -9,6 +9,7 @@ GET     /api-v3/static/*file              controllers.Assets.at(path="/public", 
 GET     /api-v3/datasets                         controllers.DatasetController.listAll
 GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
 GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String)
+GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String)
 
 GET     /api-v3/items                            controllers.AnnotatedThingController.listAll
 GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
@@ -31,3 +32,6 @@ GET     /api-v3/admin/datasets                   controllers.admin.DatasetAdminC
 POST    /api-v3/admin/datasets                   controllers.admin.DatasetAdminController.uploadDataset
 DELETE  /api-v3/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
 POST    /api-v3/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
+
+# Experimental features
+GET     /api-v3/labs/heatmap                     controllers.labs.Heatmap.index(dataset: Option[String], item: Option[String])

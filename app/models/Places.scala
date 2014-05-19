@@ -72,8 +72,10 @@ object Places {
     queryByThing.ddl.create
   }
   
-  private[models] def purge(datasetId: String)(implicit s: Session) =
-    queryByDataset.where(_.datasetId === datasetId).delete  
+  private[models] def purge(datasetId: String)(implicit s: Session) = {
+    queryByDataset.where(_.datasetId === datasetId).delete
+    queryByThing.where(_.datasetId === datasetId).delete
+  }
   
   private[models] def recompute(datasetId: String)(implicit s: Session) = {
     purge(datasetId)
@@ -121,8 +123,13 @@ object Places {
   def countPlacesInDataset(datasetId: String)(implicit s: Session): Int =
     Query(queryByDataset.where(_.datasetId === datasetId).length).first
  
-  def findPlacesInDataset(datasetId: String)(implicit s: Session): Seq[(String, Int)] =
-    queryByDataset.where(_.datasetId === datasetId).map(row => (row.gazetteerURI, row.count)).list
+  def findPlacesInDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(String, Int)] = {
+    val total = countPlacesInDataset(datasetId)
+    val result = queryByDataset.where(_.datasetId === datasetId).drop(offset).take(limit)
+      .map(row => (row.gazetteerURI, row.count)).list
+    
+    Page(result, offset, limit, total)
+  }
   
   def countPlacesForThing(thingId: String)(implicit s: Session): Int =
     Query(queryByThing.where(_.annotatedThingId === thingId).length).first
