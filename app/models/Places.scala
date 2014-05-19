@@ -72,10 +72,10 @@ object Places {
     queryByThing.ddl.create
   }
   
-  def purgeForDataset(id: String)(implicit s: Session) =
+  private[models] def purgeForDataset(id: String)(implicit s: Session) =
     queryByDataset.where(_.datasetId === id).delete  
   
-  def recomputeForDataset(id: String)(implicit s: Session) = {
+  private[models] def recomputeForDataset(id: String)(implicit s: Session) = {
     purgeForDataset(id)
       
     // Load all annotations for this dataset from the DB

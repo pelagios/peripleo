@@ -39,7 +39,13 @@ object Annotations {
   
   def create()(implicit s: Session) = query.ddl.create
   
-  def insert(annotations: Seq[Annotation])(implicit s: Session) = query.insertAll(annotations:_*)
+  def insert(annotations: Seq[Annotation])(implicit s: Session) = {
+    // Insert annotations
+    query.insertAll(annotations:_*)
+    
+    // Update place index stats for affected datasets
+    annotations.groupBy(_.dataset).keys.foreach(Places.recomputeForDataset(_))
+  }
   
   def update(annotation: Annotation)(implicit s: Session) = 
     query.where(_.uuid === annotation.uuid).update(annotation)
