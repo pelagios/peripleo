@@ -15,23 +15,27 @@ import java.sql.Date
   */
 object JSONWrites {
   
-  
-  /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
-  implicit val placeWrites: Writes[GazetteerURI] = (
+  /** Writes a place **/
+  implicit val placeWrites: Writes[Place] = (
     (JsPath \ "gazetteer_uri").write[String] ~
-    (JsPath \ "title").writeNullable[String] ~
+    (JsPath \ "title").write[String] ~
     (JsPath \ "centroid_lat").writeNullable[Double] ~
     (JsPath \ "centroid_lng").writeNullable[Double]
-  )(uri => { 
-      val place = Global.index.findByURI(uri.uri)
-      val centroid = place.flatMap(_.getCentroid)
-      (uri.uri, 
-       place.map(_.title),
-       centroid.map(_.y),
-       centroid.map(_.x))})
- 
-       
-  /** Writes a (Place, Occurrence-Count) pair **/
+  )(place => (
+      place.uri,
+      place.title,
+      place.getCentroid.map(_.y),
+      place.getCentroid.map(_.x)))
+  
+      
+  /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
+  implicit val gazetteerURIWrites: Writes[GazetteerURI] = (
+    (JsPath \ "gazetteer_uri").write[String] ~
+    (JsPath).writeNullable[Place]
+  )(uri => (uri.uri, Global.index.findByURI(uri.uri))) 
+
+      
+  /** Writes a pair (Place, Occurrence-Count) **/
   implicit val placeCountWrites: Writes[(GazetteerURI, Int)] = (
       (JsPath).write[GazetteerURI] ~
       (JsPath \ "occurrence_count").write[Int]
@@ -100,9 +104,13 @@ object JSONWrites {
   /** Writes a page of items **/
   implicit def pageWrites[A](implicit fmt: Writes[A]): Writes[Page[A]] = (
     (JsPath \ "total").write[Long] ~
-    (JsPath \ "offset").write[Int] ~
-    (JsPath \ "limit").write[Int] ~
+    (JsPath \ "offset").writeNullable[Int] ~
+    (JsPath \ "limit").writeNullable[Long] ~
     (JsPath \ "items").write[Seq[A]]
-  )(page => (page.total, page.offset, page.limit, page.items))
+  )(page => (
+      page.total, 
+      { if (page.offset > 0) Some(page.offset) else None },
+      { if (page.limit < Int.MaxValue) Some(page.limit) else None },
+      page.items))
 
 }

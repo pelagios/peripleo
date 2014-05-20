@@ -20,7 +20,7 @@ GET     /api-v3/annotations                      controllers.AnnotationControlle
 GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID, prettyPrint: Option[Boolean])
 
 GET     /api-v3/places                           controllers.PlaceController.listAll(prettyPrint: Option[Boolean])
-GET     /api-v3/places/:id                       controllers.PlaceController.getPlace(id: String, prettyPrint: Option[Boolean])
+GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String, prettyPrint: Option[Boolean])
 
 # Auth
 GET     /api-v3/login                            controllers.admin.AuthController.login

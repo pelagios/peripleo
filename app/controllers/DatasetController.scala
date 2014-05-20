@@ -14,7 +14,7 @@ object DatasetController extends AbstractAPIController {
   def getDataset(id: String, prettyPrint: Option[Boolean]) = DBAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined)
-      jsonOk(Json.toJson(dataset), prettyPrint)
+      jsonOk(Json.toJson(dataset.get), prettyPrint)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
