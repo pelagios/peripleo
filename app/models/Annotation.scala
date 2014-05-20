@@ -1,12 +1,14 @@
 package models
 
+import java.util.UUID
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
-import java.util.UUID
 
+/** Annotation model entity **/
 case class Annotation(uuid: UUID, dataset: String, annotatedThing: String, gazetteerURI: GazetteerURI)
 
+/** Annotation DB table **/
 class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") with HasGazetteerURIColumn {
 
   def uuid = column[UUID]("uuid", O.PrimaryKey)
@@ -33,6 +35,7 @@ class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") with H
   
 }
 
+/** Queries **/
 object Annotations {
   
   private[models] val query = TableQuery[Annotations]
@@ -50,34 +53,34 @@ object Annotations {
   def update(annotation: Annotation)(implicit s: Session) = 
     query.where(_.uuid === annotation.uuid).update(annotation)
   
-  def listAll(offset: Int = 0, limit: Int = 20)(implicit s: Session): Page[Annotation] = {
+  def countAll()(implicit s: Session): Int = 
+    Query(query.length).first
+
+  def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
     val total = countAll()
     val result = query.drop(offset).take(limit).list
     Page(result, offset, limit, total)
   }
-  
-  def countAll()(implicit s: Session): Int = 
-    Query(query.length).first
-  
+    
   def findByUUID(uuid: UUID)(implicit s: Session): Option[Annotation] = 
     query.where(_.uuid === uuid).firstOption
     
-  def countByDataset(id: String)(implicit s: Session): Int =
-    Query(query.where(_.datasetId === id).length).first
+  def countByDataset(datasetId: String)(implicit s: Session): Int =
+    Query(query.where(_.datasetId === datasetId).length).first
     
   def findByDataset(id: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
     val total = countByDataset(id)
     val result = query.where(_.datasetId === id).drop(offset).take(limit).list
     Page(result, offset, limit, total)
   }
-    
-  def findByAnnotatedThing(id: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
-    val total = countByAnnotatedThing(id)
-    val result = query.where(_.annotatedThingId === id).drop(offset).take(limit).list
+ 
+  def countByAnnotatedThing(thingId: String)(implicit s: Session): Int =
+    Query(query.where(_.annotatedThingId === thingId).length).first
+
+  def findByAnnotatedThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
+    val total = countByAnnotatedThing(thingId)
+    val result = query.where(_.annotatedThingId === thingId).drop(offset).take(limit).list
     Page(result, offset, limit, total)
   }
   
-  def countByAnnotatedThing(id: String)(implicit s: Session): Int =
-    Query(query.where(_.annotatedThingId === id).length).first
- 
 }

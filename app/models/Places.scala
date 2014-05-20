@@ -3,6 +3,7 @@ package models
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
+/** Helper entity to speed up 'how many places are in dataset XY'-type queries **/
 private[models] case class PlacesByDataset(id: Option[Int], dataset: String, gazetteerURI: GazetteerURI, count: Int)
 
 private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") with HasGazetteerURIColumn {
@@ -29,6 +30,7 @@ private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDatas
   
 }
 
+/** Helper entity to speed up 'how many places are in annotated item XY'-type queries **/
 private[models] case class PlacesByThing(id: Option[Int], dataset: String, annotatedThing: String, gazetteerURI: GazetteerURI, count: Int)
 
 private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") with HasGazetteerURIColumn {
@@ -61,6 +63,7 @@ private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](
   
 }
 
+/** Queries **/
 object Places extends HasGazetteerURIColumn {
   
   private val queryByDataset = TableQuery[PlacesByDatasetTable]

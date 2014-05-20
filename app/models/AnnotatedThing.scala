@@ -4,8 +4,10 @@ import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
+/** AnnotatedThing model entity **/
 case class AnnotatedThing(id: String, dataset: String, title: String, isPartOf: Option[String])
 
+/** AnnotatedThing DB table **/
 class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_things") {
 
   def id = column[String]("id", O.PrimaryKey)
@@ -30,6 +32,7 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
 }
 
+/** Queries **/
 object AnnotatedThings {
   
   private[models] val query = TableQuery[AnnotatedThings]
@@ -42,25 +45,25 @@ object AnnotatedThings {
   def update(thing: AnnotatedThing)(implicit s: Session) = 
     query.where(_.id === thing.id).update(thing)
   
+  def countAll()(implicit s: Session): Int = 
+    Query(query.length).first
+    
   def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
     val total = countAll()
     val result = query.drop(offset).take(limit).list
     Page(result, offset, limit, total)
   }
   
-  def countAll()(implicit s: Session): Int = 
-    Query(query.length).first
-  
   def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
     query.where(_.id === id).firstOption
-    
-  def findByDataset(id: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
-    val total = countByDataset(id)
-    val result = query.where(_.datasetId === id).drop(offset).take(limit).list
+
+  def countByDataset(datasetId: String)(implicit s: Session): Int =
+    Query(query.where(_.datasetId === datasetId).length).first
+
+  def findByDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
+    val total = countByDataset(datasetId)
+    val result = query.where(_.datasetId === datasetId).drop(offset).take(limit).list
     Page(result, offset, limit, total)
   }
   
-  def countByDataset(id: String)(implicit s: Session): Int =
-    Query(query.where(_.datasetId === id).length).first
- 
 }
