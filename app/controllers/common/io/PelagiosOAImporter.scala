@@ -22,16 +22,18 @@ object PelagiosOAImporter extends AbstractImporter {
     val baseURI = controllers.routes.DatasetController.listAll(None).absoluteURL(false)(r)
     val annotatedThings = Scalagios.readAnnotations(new FileInputStream(file.ref.file), baseURI, format)
     Logger.info("Importing " + annotatedThings.size + " annotated things with " + annotatedThings.flatMap(_.annotations).size + " annotations")
-    annotatedThings.foreach(thing => {
+    
+    val annotations = annotatedThings.flatMap(thing => {
       
       // TODO add support for annotated things with multi-level hierarchy
       
       val thingId = md5(thing.uri)
       AnnotatedThings.insert(AnnotatedThing(thingId, dataset.id, thing.title, None))
-      
-      val annotations = thing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, new GazetteerURI(a.place.head)))
-      Annotations.insert(annotations)
+     
+      thing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, new GazetteerURI(a.place.head)))
     })
+    
+    Annotations.insert(annotations.toSeq)
   }
   
 }
