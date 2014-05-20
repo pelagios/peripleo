@@ -43,7 +43,7 @@
         <tbody>
           @for(dataset <- datasets.items) {
           	<tr>
-          	  <td><a href="@routes.DatasetController.getDataset(dataset.id)">@{dataset.id.substring(0, 8)}...</a></td>
+          	  <td><a href="@routes.DatasetController.getDataset(dataset.id, None)">@{dataset.id.substring(0, 8)}...</a></td>
               <td>@dataset.title</td>
               <td>@dataset.publisher</td>
               <td>@dataset.created</td>

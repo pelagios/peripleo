@@ -19,7 +19,7 @@ object PelagiosOAImporter extends BaseImporter {
     
     // If we don't have a base URI for the VoID file, we'll use our own namespace as fallback
     // Not 100% the Sesame parser actually makes use of it... but we're keeping things sane nonetheless
-    val baseURI = controllers.routes.DatasetController.listAll.absoluteURL(false)(r)
+    val baseURI = controllers.routes.DatasetController.listAll(None).absoluteURL(false)(r)
     val annotatedThings = Scalagios.readAnnotations(new FileInputStream(file.ref.file), baseURI, format)
     Logger.info("Importing " + annotatedThings.size + " annotated things with " + annotatedThings.flatMap(_.annotations).size + " annotations")
     annotatedThings.foreach(thing => {

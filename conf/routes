@@ -6,21 +6,21 @@
 GET     /api-v3/static/*file              controllers.Assets.at(path="/public", file)
 
 # API Routes
-GET     /api-v3/datasets                         controllers.DatasetController.listAll
-GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
-GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String)
-GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String)
+GET     /api-v3/datasets                         controllers.DatasetController.listAll(prettyPrint: Option[Boolean])
+GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String, prettyPrint: Option[Boolean])
+GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, prettyPrint: Option[Boolean])
+GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, prettyPrint: Option[Boolean])
 
-GET     /api-v3/items                            controllers.AnnotatedThingController.listAll
-GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
-GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String)
-GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String)
+GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(prettyPrint: Option[Boolean])
+GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String, prettyPrint: Option[Boolean])
+GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, prettyPrint: Option[Boolean])
+GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String, prettyPrint: Option[Boolean])
 
-GET     /api-v3/annotations                      controllers.AnnotationController.listAll
-GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
+GET     /api-v3/annotations                      controllers.AnnotationController.listAll(prettyPrint: Option[Boolean])
+GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID, prettyPrint: Option[Boolean])
 
-GET     /api-v3/places                           controllers.PlaceController.listAll
-GET     /api-v3/places/:id                       controllers.PlaceController.getPlace(id: String)
+GET     /api-v3/places                           controllers.PlaceController.listAll(prettyPrint: Option[Boolean])
+GET     /api-v3/places/:id                       controllers.PlaceController.getPlace(id: String, prettyPrint: Option[Boolean])
 
 # Auth
 GET     /api-v3/login                            controllers.admin.AuthController.login
