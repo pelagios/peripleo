@@ -19,11 +19,17 @@ object JSONWrites {
   implicit val placeWrites: Writes[Place] = (
     (JsPath \ "gazetteer_uri").write[String] ~
     (JsPath \ "title").write[String] ~
+    (JsPath \ "place_category").writeNullable[String] ~
+    (JsPath \ "names").write[Seq[String]] ~
+    (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "centroid_lat").writeNullable[Double] ~
     (JsPath \ "centroid_lng").writeNullable[Double]
   )(place => (
       place.uri,
       place.title,
+      place.category.map(_.toString),
+      place.names.map(_.chars),
+      place.descriptions.headOption.map(_.chars),
       place.getCentroid.map(_.y),
       place.getCentroid.map(_.x)))
   
