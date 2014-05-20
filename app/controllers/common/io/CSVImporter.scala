@@ -24,8 +24,12 @@ object CSVImporter extends AbstractImporter {
         
     AnnotatedThings.insert(annotatedThing)
     
-    val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields =>
-      Annotation(UUID.fromString(fields(header.indexOf("uuid"))), dataset.id, annotatedThing.id, GazetteerURI(fields(header.indexOf("gazetteer_uri")))))
+    val uuidIdx = header.indexOf("uuid")
+    val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
+      Annotation(
+          { if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID },
+          dataset.id, annotatedThing.id, GazetteerURI(fields(header.indexOf("gazetteer_uri"))))      
+    })
       
     Annotations.insert(annotations)
   }
