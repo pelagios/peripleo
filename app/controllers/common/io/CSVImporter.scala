@@ -24,9 +24,8 @@ object CSVImporter extends AbstractImporter {
         
     AnnotatedThings.insert(annotatedThing)
     
-    // TODO - should we re-use UUIDs out of Recogito?
     val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields =>
-      Annotation(UUID.randomUUID(), dataset.id, annotatedThing.id, GazetteerURI(fields(header.indexOf("gazetteer_uri")))))
+      Annotation(UUID.fromString(fields(header.indexOf("uuid"))), dataset.id, annotatedThing.id, GazetteerURI(fields(header.indexOf("gazetteer_uri")))))
       
     Annotations.insert(annotations)
   }

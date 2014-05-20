@@ -8,7 +8,8 @@ import org.openrdf.rio.UnsupportedRDFormatException
 abstract class AbstractImporter {
   
   private val MD5 = "MD5"
-    
+   
+  /** Utility method that returns the RDF format corresponding to a particular file extension **/
   protected def getFormat(filename: String): RDFFormat = filename match {
     case f if f.endsWith("rdf") => RDFFormat.RDFXML
     case f if f.endsWith("ttl") => RDFFormat.TURTLE
