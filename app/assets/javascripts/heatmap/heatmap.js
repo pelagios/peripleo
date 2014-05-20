@@ -14,8 +14,8 @@ function loadHeatmap(dataURL) {
   $.getJSON(dataURL, function(data) {
     var latlngs = [];
     $.each(data.items, function(idx, place) {
-      if (place.lat && place.lng)
-        latlngs.push([place.lat, place.lng]);
+      if (place.centroid_lat && place.centroid_lng)
+        latlngs.push([place.centroid_lat, place.centroid_lng]);
     });    
     L.heatLayer(latlngs, { max: 1.5, maxZoom: 0, radius: 5, blur: 6 }).addTo(map);
   });

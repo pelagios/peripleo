@@ -29,7 +29,7 @@ object DatasetController extends Controller {
   }
   
   def listPlaces(id: String) = DBAction { implicit session =>
-    val places = Places.findPlacesInDataset(id).items
+    val places = Places.findPlacesInDataset(id)
     Ok(Json.prettyPrint(Json.toJson(places)))
   } 
   
