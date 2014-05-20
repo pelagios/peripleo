@@ -125,7 +125,7 @@ object Places extends HasGazetteerURIColumn {
  
   def findPlacesInDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerURI, Int)] = {
     val total = countPlacesInDataset(datasetId)
-    val result = queryByDataset.where(_.datasetId === datasetId).drop(offset).take(limit)
+    val result = queryByDataset.where(_.datasetId === datasetId).sortBy(_.count.desc).drop(offset).take(limit)
       .map(row => (row.gazetteerURI, row.count)).list
     
     Page(result, offset, limit, total)
@@ -136,7 +136,7 @@ object Places extends HasGazetteerURIColumn {
     
   def findPlacesForThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerURI, Int)] = {
     val total = countPlacesForThing(thingId)
-    val result = queryByThing.where(_.annotatedThingId === thingId).drop(offset).take(limit)
+    val result = queryByThing.where(_.annotatedThingId === thingId).sortBy(_.count.desc).drop(offset).take(limit)
       .map(row => (row.gazetteerURI, row.count)).list
       
     Page(result, offset, limit, total)
