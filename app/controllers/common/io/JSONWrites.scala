@@ -38,7 +38,7 @@ object JSONWrites {
   implicit val gazetteerURIWrites: Writes[GazetteerURI] = (
     (JsPath \ "gazetteer_uri").write[String] ~
     (JsPath).writeNullable[Place]
-  )(uri => (uri.uri, Global.index.findByURI(uri.uri))) 
+  )(uri => (uri.uri, Global.gazetteer.findByURI(uri.uri))) 
 
       
   /** Writes a pair (Place, Occurrence-Count) **/

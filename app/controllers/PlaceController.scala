@@ -12,7 +12,7 @@ object PlaceController extends AbstractAPIController {
   }  
   
   def getPlace(uri: String, prettyPrint: Option[Boolean]) = Action {
-    val place = Global.index.findByURI(uri)
+    val place = Global.gazetteer.findByURI(uri)
     if (place.isDefined)
       jsonOk(Json.toJson(place.get), prettyPrint)
     else

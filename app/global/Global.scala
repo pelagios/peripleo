@@ -12,14 +12,14 @@ import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
 
-/** Play Global object **/
 object Global extends GlobalSettings {
   
   private val GAZETTEER_DIR = "gazetteer"
   
   private val INDEX_DIR = "index"
   
-  lazy val index = {
+  /** Initializes the gazetteer index **/
+  lazy val gazetteer = {
     val idx = PlaceIndex.open(INDEX_DIR)
     if (idx.isEmpty) {
       Logger.info("Building new index")
@@ -46,6 +46,7 @@ object Global extends GlobalSettings {
   }
 
   override def onStart(app: Application): Unit = {
+    // Initializes the database schema
     DB.withSession { implicit session: Session =>
       if (MTable.getTables("annotated_things").list().isEmpty) {
         Logger.info("DB table 'annotated_things' does not exist - creating")
