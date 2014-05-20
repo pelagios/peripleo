@@ -11,7 +11,7 @@ import play.api.mvc.MultipartFormData.FilePart
 import org.openrdf.rio.RDFFormat
 import org.pelagios.Scalagios
 
-object PelagiosOAImporter extends BaseImporter {
+object PelagiosOAImporter extends AbstractImporter {
 
   def importPelagiosAnnotations(file: FilePart[TemporaryFile], dataset: Dataset)(implicit s: Session, r: RequestHeader) = {
     Logger.info("Reading Pelagios annotations from RDF: " + file.filename) 

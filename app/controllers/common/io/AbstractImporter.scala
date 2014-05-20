@@ -5,7 +5,7 @@ import java.security.MessageDigest
 import org.openrdf.rio.RDFFormat
 import org.openrdf.rio.UnsupportedRDFormatException
 
-abstract class BaseImporter {
+abstract class AbstractImporter {
   
   private val MD5 = "MD5"
     

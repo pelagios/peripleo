@@ -10,7 +10,7 @@ import play.api.libs.Files.TemporaryFile
 import play.api.mvc.RequestHeader
 import play.api.mvc.MultipartFormData.FilePart
 
-object VoIDImporter extends BaseImporter {
+object VoIDImporter extends AbstractImporter {
   
   def importVoID(file: FilePart[TemporaryFile], uri: Option[String] = None)(implicit s: Session, r: RequestHeader) = {
     Logger.info("Importing VoID file: " + file.filename)

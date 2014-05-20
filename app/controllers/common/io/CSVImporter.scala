@@ -6,7 +6,7 @@ import models._
 import play.api.db.slick._
 import scala.io.Source
 
-object CSVImporter extends BaseImporter {
+object CSVImporter extends AbstractImporter {
   
   private val SEPARATOR = ";"
     
