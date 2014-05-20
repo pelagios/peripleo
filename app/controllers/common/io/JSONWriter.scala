@@ -7,17 +7,23 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import java.sql.Date
+import global.Global
 
 object JSONWriter {
   
-  /*
-  implicit def pageWrites[A](fmt: Writes[A]): Writes[Page[A]] = (
-    (JsPath \ "total").write[Long] ~
-    (JsPath \ "offset").write[Int] ~
-    (JsPath \ "limit").write[Int]
-  )(page => (page.total, page.offset, page.limit))
-  */
-  
+  implicit val placeWrites: Writes[GazetteerURI] = (
+    (JsPath \ "gazetteer_uri").write[String] ~
+    (JsPath \ "title").writeNullable[String]
+  )(uri => { 
+      val place = Global.index.findByURI(uri.uri)
+      (uri.uri, 
+       place.map(_.title))})
+ 
+  implicit val placeCountWrites: Writes[(GazetteerURI, Int)] = (
+      (JsPath).write[GazetteerURI] ~
+      (JsPath \ "count").write[Int]
+  )(t  => (t._1, t._2))     
+       
   implicit def datasetWrites(implicit s: Session): Writes[Dataset] = (
     (JsPath \ "id").write[String] ~
     (JsPath \ "title").write[String] ~
@@ -63,18 +69,24 @@ object JSONWriter {
       Places.countPlacesForThing(thing.id)))
   
       
+  implicit val annotationWrites: Writes[Annotation] = (
+    (JsPath \ "uuid").write[String] ~
+    (JsPath \ "in_dataset").write[String] ~
+    (JsPath \ "annotated_item").write[String] ~
+    (JsPath \ "place").write[GazetteerURI]
+  )(a => (
+      a.uuid.toString,
+      a.dataset,
+      a.annotatedThing,
+      a.gazetteerURI))
+       
       
-  implicit val placeWrites: Writes[Place] = (
-    (JsPath \ "title").write[String] ~
-    (JsPath \ "gazetteer_uri").write[String] ~
-    (JsPath \ "names").write[Seq[String]] ~
-    (JsPath \ "lat").writeNullable[Double] ~
-    (JsPath \ "long").writeNullable[Double]
-  )(place => (
-      place.title, 
-      place.uri,
-      place.names.map(_.chars),
-      place.getCentroid.map(_.y),
-      place.getCentroid.map(_.x)))
+      
+  implicit def pageWrites[A](implicit fmt: Writes[A]): Writes[Page[A]] = (
+    (JsPath \ "total").write[Long] ~
+    (JsPath \ "offset").write[Int] ~
+    (JsPath \ "limit").write[Int] ~
+    (JsPath \ "items").write[Seq[A]]
+  )(page => (page.total, page.offset, page.limit, page.items))
 
 }

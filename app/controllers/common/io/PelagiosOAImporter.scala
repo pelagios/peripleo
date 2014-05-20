@@ -29,7 +29,7 @@ object PelagiosOAImporter extends BaseImporter {
       val thingId = md5(thing.uri)
       AnnotatedThings.insert(AnnotatedThing(thingId, dataset.id, thing.title, None))
       
-      val annotations = thing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, a.place.head))
+      val annotations = thing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, new GazetteerURI(a.place.head)))
       Annotations.insert(annotations)
     })
   }

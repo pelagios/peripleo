@@ -5,9 +5,9 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 import java.util.UUID
 
-case class Annotation(uuid: UUID, dataset: String, annotatedThing: String, gazetterURI: String)
+case class Annotation(uuid: UUID, dataset: String, annotatedThing: String, gazetteerURI: GazetteerURI)
 
-class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") {
+class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") with HasGazetteerURIColumn {
 
   def uuid = column[UUID]("uuid", O.PrimaryKey)
   
@@ -15,7 +15,7 @@ class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") {
   
   def annotatedThingId = column[String]("annotated_thing", O.NotNull)
   
-  def gazetteerURI = column[String]("gazetteer_uri", O.NotNull)
+  def gazetteerURI = column[GazetteerURI]("gazetteer_uri", O.NotNull)
   
   def * = (uuid, datasetId, annotatedThingId, gazetteerURI) <> (Annotation.tupled, Annotation.unapply)
   
