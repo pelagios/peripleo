@@ -44,22 +44,58 @@
     </div>
     
     <div id="content">
+      <div class="row"><h2>Most Frequently Referenced Places</h2></div>
       <div class="row">
+        <table id="top-n-places">
+        </table>
+        
         <div id="map">
         </div>
       </div>
     </div>
     
     <script>
-    (function() {
+    (function() {      
+      var maxReferences,
+          meterTemplate = 
+            '<tr>' +
+            '  <td class="place-title">@@title@@</td>' +
+            '  <td class="place-count">' +
+            '    <div class="meter">' +
+            '      <div class="bar" style="width:@@width@@%;"></div><span>@@occurrences@@</span>' +
+            '    </div>' +
+            '  </td>'+ 
+            '</tr>';
+            
       // Format numbers
       $.each($('.number'), function(idx, el) {
         var formatted = numeral($(el).text()).format('0,0');
         $(el).html(formatted);
-      });
+      }); 
       
-      // Render heatmap
-      Heatmap('map', '@routes.DatasetController.listPlaces(dataset.id, None)');
+      // Helper function to show the next N places in the 'top places' list
+      var showNext = function(places, shown, n) {
+        for (var i=shown, j=shown + n; i<j; i++) {
+          console.log(places[i]);
+          var occurrences = places[i].number_of_occurrences;
+          var html = meterTemplate
+            .replace('@@title@@', places[i].title)
+            .replace('@@width@@', (occurrences / maxReferences) * 100)
+            .replace('@@occurrences@@', occurrences);
+          $('#top-n-places').append(html);
+        }
+      };
+      
+      // Load places
+      $.getJSON('@routes.DatasetController.listPlaces(dataset.id, None)', function(data) {
+        maxReferences = data.items[0].number_of_occurrences;
+        
+        // List top 5 places
+        showNext(data.items, 0, 8);
+        
+        // Draw heatmap
+        var heatmap = new Heatmap('map', data.items);
+      });  
     })();
     </script>
   </body>
