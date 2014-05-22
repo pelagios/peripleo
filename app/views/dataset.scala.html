@@ -1,0 +1,29 @@
+@(dataset: Dataset)
+<html>
+  <head>
+    <title>Datset &raquo; @dataset.title</title>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/main.css")"/>
+  </head>
+  <body>
+    <div id="header">
+      <div id="header-menu">
+        <div class="row">
+          <span class="pelagios-logo">PELAGIOS API</span> 
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Datasets</a></li>
+            <li><a href="#">Places</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div id="header-body">
+        <div class="row">
+          <h1>@dataset.title</h1>
+          <h2>by @dataset.publisher @dataset.homepage.map { url => <a title="Homepage" target="_blank" href="@url" class="icon">&#xf14c;</a> }</h2>
+          @dataset.description.map { description => <p class="description">@description</p> }
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

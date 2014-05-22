@@ -29,7 +29,7 @@ object JSONWrites {
       place.title,
       place.category.map(_.toString),
       place.names.map(_.chars),
-      place.descriptions.headOption.map(_.chars),
+      place.descriptions.headOption.map(literal => literal.chars + literal.lang.map("@" + _).getOrElse("")),
       place.getCentroid.map(_.y),
       place.getCentroid.map(_.x)))
   
@@ -44,7 +44,7 @@ object JSONWrites {
   /** Writes a pair (Place, Occurrence-Count) **/
   implicit val placeCountWrites: Writes[(GazetteerURI, Int)] = (
       (JsPath).write[GazetteerURI] ~
-      (JsPath \ "occurrence_count").write[Int]
+      (JsPath \ "number_of_occurrences").write[Int]
   )(t  => (t._1, t._2))     
        
   
@@ -56,12 +56,13 @@ object JSONWrites {
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "license").write[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
-    (JsPath \ "created").write[Long] ~
-    (JsPath \ "modified").writeNullable[Long] ~
-    (JsPath \ "void_location").writeNullable[String] ~
-    (JsPath \ "datadump_location").writeNullable[String] ~
-    (JsPath \ "annotation_count").write[Int]  ~
-    (JsPath \ "unique_place_count").write[Int]
+    (JsPath \ "created_at").write[Long] ~
+    (JsPath \ "modified_at").writeNullable[Long] ~
+    (JsPath \ "void_url").writeNullable[String] ~
+    (JsPath \ "datadump_url").writeNullable[String] ~
+    (JsPath \ "number_of_items").write[Int] ~
+    (JsPath \ "number_of_annotations").write[Int]  ~
+    (JsPath \ "number_of_unique_places").write[Int]
   )(dataset => (
       dataset.id,
       dataset.title,
@@ -73,6 +74,7 @@ object JSONWrites {
       dataset.modified.map(_.getTime),
       dataset.voidURI,
       dataset.datadump,
+      AnnotatedThings.countByDataset(dataset.id),
       Annotations.countByDataset(dataset.id),
       Places.countPlacesInDataset(dataset.id)))
 
@@ -83,8 +85,8 @@ object JSONWrites {
     (JsPath \ "title").write[String] ~
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "is_part_of").writeNullable[String] ~
-    (JsPath \ "annotation_count").write[Int] ~ 
-    (JsPath \ "unique_place_count").write[Int]
+    (JsPath \ "number_of_annotations").write[Int] ~ 
+    (JsPath \ "number_of_unique_places").write[Int]
   )(thing => (
       thing.id,
       thing.title,

@@ -5,7 +5,7 @@
 # Map static resources from the /public folder to the /assets URL path
 GET     /api-v3/static/*file              controllers.Assets.at(path="/public", file)
 
-# API Routes
+# API routes
 GET     /api-v3/datasets                         controllers.DatasetController.listAll(prettyPrint: Option[Boolean])
 GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String, prettyPrint: Option[Boolean])
 GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, prettyPrint: Option[Boolean])
@@ -21,6 +21,9 @@ GET     /api-v3/annotations/:id                  controllers.AnnotationControlle
 
 GET     /api-v3/places                           controllers.PlaceController.listAll(prettyPrint: Option[Boolean])
 GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String, prettyPrint: Option[Boolean])
+
+# HTML view routes
+GET     /api-v3/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
 
 # Auth
 GET     /api-v3/login                            controllers.admin.AuthController.login
