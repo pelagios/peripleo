@@ -2,9 +2,13 @@
 <html>
   <head>
     <title>Dataset &raquo; @dataset.title</title>
-    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/main.css")"/>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/main.css")"/>   
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/heatmap.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -39,18 +43,23 @@
       </div>
     </div>
     
-    <div class="content">
+    <div id="content">
       <div class="row">
-        <h3></h3>
+        <div id="map">
+        </div>
       </div>
     </div>
     
     <script>
     (function() {
+      // Format numbers
       $.each($('.number'), function(idx, el) {
         var formatted = numeral($(el).text()).format('0,0');
         $(el).html(formatted);
       });
+      
+      // Render heatmap
+      Heatmap('map', '@routes.DatasetController.listPlaces(dataset.id, None)');
     })();
     </script>
   </body>
