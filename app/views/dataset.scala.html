@@ -1,8 +1,10 @@
-@(dataset: Dataset)
+@(dataset: Dataset, things: Int, places: Int, annotations: Int)
 <html>
   <head>
     <title>Datset &raquo; @dataset.title</title>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/main.css")"/>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -20,10 +22,36 @@
       <div id="header-body">
         <div class="row">
           <h1>@dataset.title</h1>
-          <h2>by @dataset.publisher @dataset.homepage.map { url => <a title="Homepage" target="_blank" href="@url" class="icon">&#xf14c;</a> }</h2>
+          <h2>
+            @if(dataset.homepage.isDefined) {
+              by <a href="@dataset.homepage.get">@dataset.publisher</a>
+            } else {
+              by @dataset.publisher 
+            }
+          </h2>
           @dataset.description.map { description => <p class="description">@description</p> }
+          <p class="stats">
+            <span><em class="number">@things</em> items with</span>
+            <span><em class="number">@annotations</em> references to</span>
+            <span><em class="number">@places</em> unique places</span>
+          </p>
         </div>
       </div>
     </div>
+    
+    <div class="content">
+      <div class="row">
+        <h3></h3>
+      </div>
+    </div>
+    
+    <script>
+    (function() {
+      $.each($('.number'), function(idx, el) {
+        var formatted = numeral($(el).text()).format('0,0');
+        $(el).html(formatted);
+      });
+    })();
+    </script>
   </body>
 </html>
