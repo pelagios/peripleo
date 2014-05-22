@@ -36,5 +36,3 @@ POST    /api-v3/admin/datasets                   controllers.admin.DatasetAdminC
 DELETE  /api-v3/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
 POST    /api-v3/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
 
-# Experimental features
-GET     /api-v3/labs/heatmap                     controllers.labs.Heatmap.index(dataset: Option[String], item: Option[String])
