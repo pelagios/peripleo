@@ -8,6 +8,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.simplePagination.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/heatmap.js")"></script>
   </head>
   <body>
@@ -52,6 +53,10 @@
         <div id="map">
         </div>
       </div>
+      
+      <div class="row">
+        <h2>Items</h2>
+        <div class="pagination"></div>
     </div>
     
     <script>
@@ -67,16 +72,9 @@
             '  </td>'+ 
             '</tr>';
             
-      // Format numbers
-      $.each($('.number'), function(idx, el) {
-        var formatted = numeral($(el).text()).format('0,0');
-        $(el).html(formatted);
-      }); 
-      
       // Helper function to show the next N places in the 'top places' list
       var showNext = function(places, shown, n) {
         for (var i=shown, j=shown + n; i<j; i++) {
-          console.log(places[i]);
           var occurrences = places[i].number_of_occurrences;
           var html = meterTemplate
             .replace('@@title@@', places[i].title)
@@ -85,6 +83,31 @@
           $('#top-n-places').append(html);
         }
       };
+      
+      // Helper function to load a page of items
+      var loadItems = function(offset, callback) {
+        $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id, None)', function(data) {
+          callback(data);
+        });        
+      };      
+                  
+      // Format numbers
+      $.each($('.number'), function(idx, el) {
+        var formatted = numeral($(el).text()).format('0,0');
+        $(el).html(formatted);
+      }); 
+
+      // Load items
+      loadItems(0, function(data) {
+        $('.pagination').pagination({
+          items: 100,
+          itemsOnPage: 10,
+          hrefTextPrefix: '#item-page-',
+          onPageClick: function(pageNumber, event) {
+            // TODO load next
+          }
+        })
+      });
       
       // Load places
       $.getJSON('@routes.DatasetController.listPlaces(dataset.id, None)', function(data) {
@@ -95,7 +118,7 @@
         
         // Draw heatmap
         var heatmap = new Heatmap('map', data.items);
-      });  
+      });
     })();
     </script>
   </body>
