@@ -153,12 +153,40 @@
   }
 
   #map {
-    position:absolute;
-    top:0;
-    right:0;
+    float:right;
     width:360px;
     height:240px;
     border:1px solid #999;
+    margin-bottom:30px;
   }
+  
+  #items-list {
+    clear:both;
+    padding-top:20px;
+    
+    h2, .pagination { display:inline-block; }
+    
+    .pagination {
+      position:relative;
+      top:6px;
+      margin-left:20px;
+    }
+  
+    table {
+      margin:0;
+      padding:0;
+      clear:both;
+      width:100%;
+      
+      tr {
+        padding:8px 0;
+      }
+      
+      .left { text-align:left; }
+      .center { text-align:center; }
+      
+    } /* table */
+    
+  } /* #items-list */
 
 } /* #content */

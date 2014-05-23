@@ -47,16 +47,23 @@
     <div id="content">
       <div class="row"><h2>Most Frequently Referenced Places</h2></div>
       <div class="row">
-        <table id="top-n-places">
-        </table>
-        
-        <div id="map">
-        </div>
+        <div id="map"></div>
+        <table id="top-n-places"></table>
       </div>
       
-      <div class="row">
-        <h2>Items</h2>
+      <div class="row" id="items-list">
+        <h2>Items in this Dataset</h2>
         <div class="pagination"></div>
+        <table>
+          <thead>
+            <tr>
+              <th class="left">Title</th>
+              <th class="center">Place References</th>
+              <th class="center">Unique Places</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
     </div>
     
     <script>
@@ -85,8 +92,17 @@
       };
       
       // Helper function to load a page of items
-      var loadItems = function(offset, callback) {
-        $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id, None)', function(data) {
+      var loadItems = function(offset, pagesize, callback) {
+        $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id, None, None, None)?offset=' + offset + '&limit=' + pagesize, function(data) {
+          var table = $('#items-list table tbody');
+          $.each(data.items, function(idx, item) {
+            console.log(item);
+            table.append('<tr>' + 
+                           '<td>' + item.title + '</td>' +
+                           '<td class="center">' + item.number_of_annotations + '</td>' +
+                           '<td class="center">' + item.number_of_unique_places + '</td>' +
+                         '</tr>');
+          });
           callback(data);
         });        
       };      
@@ -98,10 +114,10 @@
       }); 
 
       // Load items
-      loadItems(0, function(data) {
+      loadItems(0, 20, function(data) {
         $('.pagination').pagination({
-          items: 100,
-          itemsOnPage: 10,
+          items: data.total,
+          itemsOnPage: 20,
           hrefTextPrefix: '#item-page-',
           onPageClick: function(pageNumber, event) {
             // TODO load next
@@ -110,7 +126,7 @@
       });
       
       // Load places
-      $.getJSON('@routes.DatasetController.listPlaces(dataset.id, None)', function(data) {
+      $.getJSON('@routes.DatasetController.listPlaces(dataset.id, Some(0), Some(Int.MaxValue), None)', function(data) {
         maxReferences = data.items[0].number_of_occurrences;
         
         // List top 5 places
