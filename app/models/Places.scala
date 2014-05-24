@@ -2,6 +2,7 @@ package models
 
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
+import global.Global
 
 /** Helper entity to speed up 'how many places are in dataset XY'-type queries **/
 private[models] case class PlacesByDataset(id: Option[Int], dataset: String, gazetteerURI: GazetteerURI, count: Int)
@@ -87,13 +88,17 @@ object Places extends HasGazetteerURIColumn {
     val annotations = Annotations.findByDataset(datasetId).items
       
     // Compute per-dataset stats and insert
-    val placesInDataset = annotations.groupBy(_.gazetteerURI).mapValues(_.size).toSeq
+    val placesInDataset = annotations.groupBy(_.gazetteerURI)
+      .filterKeys(uri => Global.gazetteer.findByURI(uri.uri).isDefined) // We restrict to places in the gazetteer
+      .mapValues(_.size).toSeq 
       .map { case (gazetteerUri, count) => PlacesByDataset(None, datasetId, gazetteerUri, count) }
     queryByDataset.insertAll(placesInDataset:_*)
       
     // Compute per-thing stats and insert
     val placesByAnnotatedThing = annotations.groupBy(_.annotatedThing).toSeq.flatMap { case (thingId, annotations) => {
-      annotations.groupBy(_.gazetteerURI).mapValues(_.size).toSeq
+      annotations.groupBy(_.gazetteerURI)
+        .filterKeys(uri => Global.gazetteer.findByURI(uri.uri).isDefined) // We restrict to places in the gazetteer
+        .mapValues(_.size).toSeq
         .map { case (gazetteerUri, count) => PlacesByThing(None, datasetId, thingId, gazetteerUri, count)}
     }}
     queryByThing.insertAll(placesByAnnotatedThing:_*)
