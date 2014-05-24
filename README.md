@@ -5,6 +5,9 @@ This is the latest incarnation of the Pelagios API, developed during the course 
 is work in progress.
 
 ## For Developers
+
+__Note: A development version of the API (which includes a small sample dataset to play with) is at
+[http://pelagios.org/api-v3/datasets](http://pelagios.org/api-v3/datasets).__
  
 The primary entities served through the API are __Datasets__, __Items__ and __Places__. The API is read-only,
 so HTTP GET requests are the only ones accepted. JSON is currently the only response format. Append __prettyPrint=true__ 
@@ -62,3 +65,12 @@ List all places in the system (paginated)
     GET     /api-v3/places/:uri
     
 Get the place with the specified URI (be sure to URL-escape the URI!)
+
+## HTML Views
+
+The API will also provide 'human-readable output' - i.e. HTML pages with the same information that
+appears in the JSON responses. This work is just getting started. See
+
+[http://pelagios.org/api-v3/pages/datasets/42362e18923860b43ed4c048f16274f7](http://pelagios.org/api-v3/pages/datasets/42362e18923860b43ed4c048f16274f7)
+
+for an example.
