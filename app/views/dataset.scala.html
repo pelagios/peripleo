@@ -95,15 +95,17 @@
       var loadItems = function(offset, pagesize, callback) {
         $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id, None, None, None)?offset=' + offset + '&limit=' + pagesize, function(data) {
           var table = $('#items-list table tbody');
+          table.html('');
           $.each(data.items, function(idx, item) {
-            console.log(item);
             table.append('<tr>' + 
                            '<td>' + item.title + '</td>' +
                            '<td class="center">' + item.number_of_annotations + '</td>' +
                            '<td class="center">' + item.number_of_unique_places + '</td>' +
                          '</tr>');
           });
-          callback(data);
+          
+          if (callback)
+            callback(data);
         });        
       };      
                   
@@ -114,13 +116,16 @@
       }); 
 
       // Load items
-      loadItems(0, 20, function(data) {
+      var pagesize = 20;
+      
+      loadItems(0, pagesize, function(data) {
         $('.pagination').pagination({
           items: data.total,
-          itemsOnPage: 20,
+          itemsOnPage: pagesize,
           hrefTextPrefix: '#item-page-',
           onPageClick: function(pageNumber, event) {
-            // TODO load next
+            var offset = (pageNumber - 1) * pagesize;
+            loadItems(offset, pagesize);
           }
         })
       });
