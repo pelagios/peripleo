@@ -2,12 +2,13 @@
 
 This is the latest incarnation of the Pelagios API, developed during the course of the 
 [Pelagios 3 Project](http://pelagios-project.blogspot.co.uk). V3 of the Pelagios API
-is work in progress.
+is work in progress (which translates as "not everything works just yet").
+
+__A development version of the API (which includes a small sample dataset to play with) is 
+available at [http://pelagios.org/api-v3/datasets](http://pelagios.org/api-v3/datasets).__
 
 ## For Developers
 
-__Note: A development version of the API (which includes a small sample dataset to play with) is at
-[http://pelagios.org/api-v3/datasets](http://pelagios.org/api-v3/datasets).__
  
 The primary entities served through the API are __Datasets__, __Items__ and __Places__. The API is read-only,
 so HTTP GET requests are the only ones accepted. JSON is currently the only response format. Append __prettyPrint=true__ 
