@@ -13,7 +13,7 @@ object HomepageController extends Controller {
   
   def search(query: String) = DBAction { implicit session =>
     val results = Global.index.search(query, 50)
-    results.foreach(result => Logger.info(result.title))
+    results.items.foreach(result => Logger.info(result.title))
     Ok("")
   }
 

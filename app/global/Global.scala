@@ -14,16 +14,16 @@ import scala.slick.jdbc.meta.MTable
 import global.index.ObjectIndex
 
 object Global extends GlobalSettings {
-  
-  private val GAZETTEER_DIR = "gazetteer"
-  
+    
+  private val GAZETTER_DATA_DIR = "gazetteer"
+    
   private val INDEX_DIR = "index"
     
   lazy val DEFAULT_PAGE_SIZE = Play.current.configuration.getInt("default.page.size").getOrElse(20)
   
   /** Initializes the gazetteer index **/
   lazy val gazetteer = {
-    val idx = PlaceIndex.open(INDEX_DIR)
+    val idx = PlaceIndex.open(INDEX_DIR + "/gazetteer")
     if (idx.isEmpty) {
       Logger.info("Building new index")
       
@@ -33,9 +33,9 @@ object Global extends GlobalSettings {
       dumps.foreach(f => {
         Logger.info("Loading gazetteer dump: " + f)
         val is = if (f.endsWith(".gz"))
-            new GZIPInputStream(new FileInputStream(new File(GAZETTEER_DIR, f)))
+            new GZIPInputStream(new FileInputStream(new File(GAZETTER_DATA_DIR, f)))
           else
-            new FileInputStream(new File(GAZETTEER_DIR, f))
+            new FileInputStream(new File(GAZETTER_DATA_DIR, f))
         
         val places = Scalagios.readPlaces(is, "http://pelagios.org/", RDFFormat.TURTLE).toSeq
         val names = places.flatMap(_.names)
@@ -49,7 +49,7 @@ object Global extends GlobalSettings {
   }
   
   /** Initializes the object index **/
-  lazy val index = ObjectIndex.open("foo")
+  lazy val index = ObjectIndex.open(INDEX_DIR + "/objects")
 
   override def onStart(app: Application): Unit = {
     // Initializes the database schema

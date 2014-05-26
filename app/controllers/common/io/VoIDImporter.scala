@@ -9,6 +9,7 @@ import play.api.Logger
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.RequestHeader
 import play.api.mvc.MultipartFormData.FilePart
+import global.Global
 
 object VoIDImporter extends AbstractImporter {
   
@@ -28,9 +29,13 @@ object VoIDImporter extends AbstractImporter {
         }
       
       Logger.info("Importing dataset '" + dataset.title + "' with ID " + id)
-      Datasets.insert(Dataset(id, dataset.title, dataset.publisher, dataset.license,
+     
+      val datasetEntity = Dataset(id, dataset.title, dataset.publisher, dataset.license,
         new Date(System.currentTimeMillis), uri, dataset.description, dataset.homepage, 
-        dataset.datadumps.headOption, None))
+        dataset.datadumps.headOption, None)
+        
+      Datasets.insert(datasetEntity)
+      Global.index.addDataset(datasetEntity)
     })
   }
   

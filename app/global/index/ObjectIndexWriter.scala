@@ -6,9 +6,9 @@ import models.{ AnnotatedThing, Dataset }
 
 trait ObjectIndexWriter extends ObjectIndexBase {
 
-  def addDatasets(datasets: Iterable[Dataset]) = {
+  def addDataset(dataset: Dataset) = {
     val writer = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_47, analyzer))
-    datasets.foreach(dataset => writer.addDocument(IndexedObject(dataset)))
+    writer.addDocument(IndexedObject(dataset))
     writer.close()
   }
   
@@ -16,6 +16,14 @@ trait ObjectIndexWriter extends ObjectIndexBase {
     val writer = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_47, analyzer))
     writer.addDocument(IndexedObject(thing))
     writer.close()
+  }
+  
+  def deleteDataset(id: String) = {
+    
+  }
+  
+  def deleteAnnotatedThing(id: String) = {
+    
   }
   
 }

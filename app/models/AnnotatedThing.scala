@@ -3,7 +3,6 @@ package models
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
-import global.Global
 
 /** AnnotatedThing model entity **/
 case class AnnotatedThing(id: String, dataset: String, title: String, isPartOf: Option[String])
@@ -40,10 +39,7 @@ object AnnotatedThings {
   
   def create()(implicit s: Session) = query.ddl.create
   
-  def insert(thing: AnnotatedThing)(implicit s: Session) = {
-    query.insert(thing)
-    Global.index.addAnnotatedThing(thing)
-  }
+  def insert(thing: AnnotatedThing)(implicit s: Session) = query.insert(thing)
   
   def update(thing: AnnotatedThing)(implicit s: Session) = 
     query.where(_.id === thing.id).update(thing)

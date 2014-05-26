@@ -10,6 +10,7 @@ import play.api.mvc.RequestHeader
 import play.api.mvc.MultipartFormData.FilePart
 import org.openrdf.rio.RDFFormat
 import org.pelagios.Scalagios
+import global.Global
 
 object PelagiosOAImporter extends AbstractImporter {
 
@@ -23,14 +24,16 @@ object PelagiosOAImporter extends AbstractImporter {
     val annotatedThings = Scalagios.readAnnotations(new FileInputStream(file.ref.file), baseURI, format)
     Logger.info("Importing " + annotatedThings.size + " annotated things with " + annotatedThings.flatMap(_.annotations).size + " annotations")
     
-    val annotations = annotatedThings.flatMap(thing => {
+    val annotations = annotatedThings.flatMap(oaThing => {
       
       // TODO add support for annotated things with multi-level hierarchy
       
-      val thingId = md5(thing.uri)
-      AnnotatedThings.insert(AnnotatedThing(thingId, dataset.id, thing.title, None))
+      val thingId = md5(oaThing.uri)
+      val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, None)
+      AnnotatedThings.insert(thing)
+      Global.index.addAnnotatedThing(thing)
      
-      thing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, new GazetteerURI(a.place.head)))
+      oaThing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, new GazetteerURI(a.place.head)))
     })
     
     Annotations.insert(annotations.toSeq)
