@@ -1,0 +1,29 @@
+@()
+<html>
+  <head>
+    <title>Pelagios API - Home</title>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/main.css")"/>   
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+  </head>
+  <body>
+    <div id="header">
+      <div id="header-menu">
+        <div class="row">
+          <span class="pelagios-logo">PELAGIOS API</span> 
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#">Datasets</a></li>
+            <li><a href="#">Places</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <div id="content">
+      <form method="GET" action="@controllers.pages.routes.HomepageController.index()/search">
+        <input type="text" name="query">
+      </form>
+    </div>
+  </body>
+</html>

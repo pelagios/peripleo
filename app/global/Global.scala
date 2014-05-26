@@ -11,6 +11,7 @@ import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
+import global.index.ObjectIndex
 
 object Global extends GlobalSettings {
   
@@ -46,6 +47,9 @@ object Global extends GlobalSettings {
     }
     idx
   }
+  
+  /** Initializes the object index **/
+  lazy val index = ObjectIndex.open("foo")
 
   override def onStart(app: Application): Unit = {
     // Initializes the database schema

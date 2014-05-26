@@ -6,10 +6,12 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.util.Version
 import org.apache.lucene.search.SearcherManager
 import org.apache.lucene.search.SearcherFactory
+import org.apache.lucene.index.IndexWriter
+import org.apache.lucene.index.IndexWriterConfig
 
 private[index] class ObjectIndexBase(directory: File) {
 
-  private val index = FSDirectory.open(directory)
+  protected val index = FSDirectory.open(directory)
   
   protected val searcherManager = new SearcherManager(index, new SearcherFactory())
   
@@ -34,5 +36,19 @@ object ObjectIndex {
   val FIELD_DESCRIPTION = "description"
     
   val FIELD_OBJECT_TYPE = "type"
+    
+  def open(directory: String): ObjectIndex = {
+    val dir = new File(directory)
+    if (!dir.exists) {
+      // Initialize with an empty index
+      dir.mkdirs()
+      
+      val writer = new IndexWriter(FSDirectory.open(dir), 
+          new IndexWriterConfig(Version.LUCENE_47, new StandardAnalyzer(Version.LUCENE_47)))
+      writer.close()
+    }
+    
+    new ObjectIndex(dir)
+  }
  
 }
