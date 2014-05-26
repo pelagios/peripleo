@@ -1,0 +1,6 @@
+<script type="text/javascript">
+  $.each($('.number'), function(idx, el) {
+    var formatted = numeral($(el).text()).format('0,0');
+    $(el).html(formatted);
+  });
+</script>

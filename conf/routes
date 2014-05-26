@@ -23,9 +23,10 @@ GET     /api-v3/places                           controllers.PlaceController.lis
 GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String, prettyPrint: Option[Boolean])
 
 # HTML view routes
-GET     /api-v3/pages                            controllers.pages.HomepageController.index
-GET     /api-v3/pages/search                     controllers.pages.HomepageController.search(query: String)
 GET     /api-v3/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
+GET     /api-v3/search                           controllers.pages.HomepageController.search
+GET     /api-v3/                                 controllers.pages.HomepageController.index 
+GET     /api-v3                                  controllers.pages.HomepageController.index
 
 # Auth
 GET     /api-v3/login                            controllers.admin.AuthController.login

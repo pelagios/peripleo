@@ -1,4 +1,4 @@
-@()
+@(datasets: Int, items: Int, places: Int)
 <html>
   <head>
     <title>Pelagios API - Home</title>
@@ -21,9 +21,20 @@
     </div>
     
     <div id="content">
-      <form method="GET" action="@controllers.pages.routes.HomepageController.index()/search">
-        <input type="text" name="query">
-      </form>
+      <div class="row">
+        @helper.form(action = controllers.pages.routes.HomepageController.search()) {
+          <input type="text" name="query">
+          <input type="submit" value="Find!">
+        }
+      </div>
+      
+      <div class="row">
+        <div id="stats">
+          Search <em class="number">@places</em> places and <em class="number">@items</em> items in <em class="number">@datasets</em> datasets.
+        </div>
+      </div>
     </div>
+    
+    @tags.jsFormatNumbers()
   </body>
 </html>

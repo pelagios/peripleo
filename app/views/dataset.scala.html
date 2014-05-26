@@ -108,13 +108,7 @@
           if (callback)
             callback(data);
         });        
-      };      
-                  
-      // Format numbers
-      $.each($('.number'), function(idx, el) {
-        var formatted = numeral($(el).text()).format('0,0');
-        $(el).html(formatted);
-      }); 
+      };
 
       // Load items
       var pagesize = 20;
@@ -143,5 +137,7 @@
       });
     })();
     </script>
+          
+    @tags.jsFormatNumbers();
   </body>
 </html>
