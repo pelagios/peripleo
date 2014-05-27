@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 import models._
 import play.api.db.slick._
 import scala.io.Source
+import global.Global
 
 object CSVImporter extends AbstractImporter {
   
@@ -23,6 +24,7 @@ object CSVImporter extends AbstractImporter {
       dataset.id, meta.get("title").get, None)
         
     AnnotatedThings.insert(annotatedThing)
+    Global.index.addAnnotatedThing(annotatedThing)
     
     val uuidIdx = header.indexOf("uuid")
     val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
