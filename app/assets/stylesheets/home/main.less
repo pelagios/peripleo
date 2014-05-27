@@ -1,2 +1,62 @@
 @import "../globals.less";
 @import "../base-layout.less";
+
+#header {
+
+  #header-body {
+    text-align:center;
+    padding-top:60px;
+    padding-bottom:60px;	
+    
+    form {
+     margin:30px 0 40px 0;
+     
+     .form-container {
+       margin:0 auto;
+       display:inline-block;
+     
+       input[type="text"] {
+         float:left;
+         font-size:15px;
+         display:block;
+         width:300px;
+         margin:0;
+         border-style:solid;
+         border-width:1px 0 1px 1px;
+         border-color:#727272 #ccc #ccc #727272;
+         padding:8px;
+         outline:none;
+         height:31px;
+         .rounded-corners-left(5px); 
+       }
+     
+       input[type="submit"] {
+         display:block;
+         text-align:center;
+         width:60px;
+         float:left;
+         height:31px;
+         margin:1px 0 0 0;
+         background-color:#799fca;
+         color:#fff;
+         border-width:1px 1px 1px 0;
+         border-style:solid;
+         border-color:#98b4d4 #516985 #516985 #98b4d4;
+         cursor:pointer;
+         .rounded-corners-right(5px); 
+       }
+       
+     } /* .form-container */
+     
+     .form-container:after {
+       content:" ";
+       display:block; 
+       height:0; 
+       clear:both;
+     }
+     
+    } /* form */
+    
+  } /* #header-body */
+  
+} /* #header */

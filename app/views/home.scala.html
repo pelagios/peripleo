@@ -18,20 +18,26 @@
           </ul>
         </div>
       </div>
+      
+      <div id="header-body">
+        <div class="row">
+          @helper.form(action = controllers.pages.routes.HomepageController.search()) {
+          	<div class="form-container">
+              <input type="text" name="query" autocomplete="off">
+              <input type="submit" value="Find!">
+            </div>
+          }
+          
+          <p class="stats">
+            Search <em class="number">@places</em> places and <em class="number">@items</em> items in <em class="number">@datasets</em> datasets.
+          </p>
+        </div>
+      </div>
     </div>
     
     <div id="content">
       <div class="row">
-        @helper.form(action = controllers.pages.routes.HomepageController.search()) {
-          <input type="text" name="query">
-          <input type="submit" value="Find!">
-        }
-      </div>
-      
-      <div class="row">
-        <div id="stats">
-          Search <em class="number">@places</em> places and <em class="number">@items</em> items in <em class="number">@datasets</em> datasets.
-        </div>
+
       </div>
     </div>
     
