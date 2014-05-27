@@ -13,8 +13,6 @@ class IndexedObject private[index] (doc: Document) {
 
   val description: String = doc.get(ObjectIndex.FIELD_DESCRIPTION)
   
-  val objectType: ObjectType.Value = ObjectType.withName(doc.get(ObjectIndex.FIELD_OBJECT_TYPE))
-  
 }
 
 object IndexedObject {
@@ -29,8 +27,6 @@ object IndexedObject {
   }
   
   def apply(thing: AnnotatedThing) = {
-    val objectType = new CategoryPath(ObjectIndex.FIELD_OBJECT_TYPE, ObjectIndex.CATEGORY_ANNOTATED_THING)
-    
     val doc = new Document()
     doc.add(new StringField(ObjectIndex.FIELD_ID, thing.id, Field.Store.YES))
     doc.add(new TextField(ObjectIndex.FIELD_TITLE, thing.title, Field.Store.YES))

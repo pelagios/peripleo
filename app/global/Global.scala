@@ -49,7 +49,7 @@ object Global extends GlobalSettings {
   }
   
   /** Initializes the object index **/
-  lazy val index = ObjectIndex.open(INDEX_DIR + "/objects")
+  lazy val index = ObjectIndex.open(INDEX_DIR + "/objects", INDEX_DIR + "/taxonomy")
 
   override def onStart(app: Application): Unit = {
     // Initializes the database schema

@@ -7,9 +7,6 @@ import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter
 import org.apache.lucene.facet.FacetsConfig
 
 trait ObjectIndexWriter extends ObjectIndexBase {
-  
-  private final val config = new FacetsConfig();
-  config.setHierarchical(ObjectIndex.FIELD_OBJECT_TYPE, false)
 
   def addDataset(dataset: Dataset) = {
     val indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_48, analyzer))
