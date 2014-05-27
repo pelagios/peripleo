@@ -2,81 +2,59 @@
 @import "../pagination.less";
 @import "../base-layout.less";
 
-#content {
+#dataset-list {
+  border-collapse:collapse;
   
-  #top-n-places {
-    padding-bottom:30px;
+  tr {
+    border-bottom:1px solid #ccc;
+    color:#323232;
   
-    .place-title {
-      text-align:right;
-      padding:5px 8px;
-    }
-  
-    .place-count {
-      width:320px;
+    td {
+      vertical-align:top;
+      line-height:140%;
+      padding-bottom:15px;
+    
+      h3 {
+        margin:0;
+        padding:0;
       
-      .meter {
-        width:240px;
-        white-space:nowrap;
-        margin-bottom:1px;
-        
-        .bar {
-          .rounded-corners(3px);
-          .gradient(#5483bd, #4a6b93);
-          .box-shadow(2px, 2px, 4px, rgba(0, 0, 0, 0.4));
-          display:inline-block;
-          height:10px;
-          background-color:#2a4c77;
+        a {
+          color:#7f7f7f;
+          text-decoration:none;
+          font-size:16px;
+          font-weight:bold;
         }
-        
-        span {
-          display:inline-block;
-          height:10px;
-          margin-left:8px;
-        }
-          
-      } /* .meter */
-    
-    } /* .place-count */
-    
-    
-  }
-
-  #map {
-    float:right;
-    width:360px;
-    height:240px;
-    border:1px solid #999;
-    margin-bottom:30px;
-  }
-  
-  #items-list {
-    clear:both;
-    padding-top:20px;
-    
-    h2, .pagination { display:inline-block; }
-    
-    .pagination {
-      position:relative;
-      top:6px;
-      margin-left:20px;
-    }
-  
-    table {
-      margin:0;
-      padding:0;
-      clear:both;
-      width:100%;
       
-      tr {
-        padding:8px 0;
+      } /* h3 */
+    
+      h4 {
+        margin:0;
+        padding:0;
+        font-size:13px;
+        font-weight:normal;
+      } /* h4 */
+      
+      .license img {
+        padding-top:8px;
+      }
+  
+    } /* td */
+    
+    td.stats {
+      white-space: nowrap;
+      padding-left:10px;
+      font-size:11px;
+      
+      em {
+        font-size:16px;
+        font-weight:bold;
+        font-style:normal;
       }
       
-      .left { text-align:left; }
-      .center { text-align:center; }
-      
-    } /* table */
+    }
     
-  } /* #items-list */
+  } /* tr */
+  
+} /* #dataset-list */
 
-} /* #content */
+

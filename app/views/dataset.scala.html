@@ -2,14 +2,15 @@
 <html>
   <head>
     <title>Dataset &raquo; @dataset.title</title>
-    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/main.css")"/>   
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/dataset/main.css")"/>   
     <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.simplePagination.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.simplePagination.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/heatmap.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -17,12 +18,12 @@
         <div class="row">
           <span class="pelagios-logo">PELAGIOS API</span> 
           <ul>
-            <li><a href="#">Home</a></li>
+            <li><a href="@controllers.pages.routes.HomepageController.index">Home</a></li>
             <li><a href="#">Datasets</a></li>
             <li><a href="#">Places</a></li>
           </ul>
-        </div>
-      </div>
+        </div> <!-- .row -->
+      </div> <!-- #header-menu -->
       
       <div id="header-body">
         <div class="row">
@@ -40,9 +41,9 @@
             <span><em class="number">@annotations</em> references to</span>
             <span><em class="number">@places</em> unique places</span>
           </p>
-        </div>
-      </div>
-    </div>
+        </div> <!-- .row -->
+      </div> <!-- #header-body -->
+    </div> <!-- #header -->
     
     <div id="content">
       <div class="row"><h2>Most Frequently Referenced Places</h2></div>
@@ -64,8 +65,8 @@
           </thead>
           <tbody></tbody>
         </table>
-      </div>
-    </div>
+      </div> <!-- .row#items-list -->
+    </div> <!-- #content -->
     
     <script>
     (function() {      
@@ -135,9 +136,9 @@
         // Draw heatmap
         var heatmap = new Heatmap('map', data.items);
       });
+      
+      // Format numbers
+      util.formatNumber();
     })();
-    </script>
-          
-    @tags.jsFormatNumbers();
   </body>
 </html>

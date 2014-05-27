@@ -3,7 +3,6 @@ package controllers.pages
 import play.api.mvc.{ Action, Controller }
 import play.api.db.slick._
 import global.Global
-import play.api.Logger
 
 object HomepageController extends Controller {
   
@@ -14,13 +13,12 @@ object HomepageController extends Controller {
   }
   
   def search() = DBAction { implicit session =>
-    val queryString = session.request.queryString.get(QUERY).flatMap(_.headOption)
-    if (queryString.isDefined) {
-      val results = Global.index.search(queryString.get, 50)
-      results.items.foreach(result => Logger.info(result.title))
-      Ok("")
+    val query = session.request.queryString.get(QUERY).flatMap(_.headOption)
+    if (query.isDefined && !query.get.isEmpty) {
+      val results = Global.index.search(query.get, Global.DEFAULT_PAGE_SIZE)
+      Ok(views.html.searchresults(results))
     } else {
-      BadRequest
+      Redirect(routes.HomepageController.index)
     }
   }
 

@@ -2,10 +2,14 @@ package controllers.pages
 
 import models._
 import play.api.db.slick._
-import play.api.mvc.Controller
+import play.api.mvc.{ Action, Controller }
 
 object DatasetPagesController extends Controller {
 
+  def listAll = Action {
+    Ok(views.html.datasets())
+  }
+  
   def getDataset(id: String) = DBAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined) {

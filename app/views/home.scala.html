@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/main.css")"/>   
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -16,8 +17,8 @@
             <li><a href="#">Datasets</a></li>
             <li><a href="#">Places</a></li>
           </ul>
-        </div>
-      </div>
+        </div> <!-- .row -->
+      </div> <!-- #header-menu -->
       
       <div id="header-body">
         <div class="row">
@@ -31,16 +32,13 @@
           <p class="stats">
             Search <em class="number">@places</em> places and <em class="number">@items</em> items in <em class="number">@datasets</em> datasets.
           </p>
-        </div>
-      </div>
-    </div>
-    
-    <div id="content">
-      <div class="row">
-
-      </div>
-    </div>
-    
-    @tags.jsFormatNumbers()
+        </div> <!-- .row -->
+      </div> <!-- #header-body -->
+    </div> <!-- #header -->
+    <script>
+      (function() {
+        util.formatNumber();
+      })();
+    </script>
   </body>
 </html>

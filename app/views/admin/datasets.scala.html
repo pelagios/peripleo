@@ -3,6 +3,7 @@
   <head>
     <title>Pelagios API » Admin » Datasets</title>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/admin-utils.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/admin/main.css")" />
   </head>
   
@@ -73,7 +74,10 @@
         </tbody>
       </table>
     </div>
-
-    @tags.jsUpload()
+    <script>
+      (function() {
+        util.enableUploads();
+      })();
+    </script>
   </body>
 </html>
