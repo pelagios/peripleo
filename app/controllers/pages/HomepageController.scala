@@ -16,10 +16,11 @@ object HomepageController extends Controller {
     Ok(views.html.home(datasets, items, places))
   }
   
+  // TODO implement search entirely via the API
   def search() = DBAction { implicit session =>
     val query = session.request.queryString.get(QUERY).flatMap(_.headOption)
     if (query.isDefined && !query.get.isEmpty) {
-      val results = Global.index.search(query.get, 0, Global.DEFAULT_PAGE_SIZE)
+      val results = Global.index.search(query.get, 0, 20)
       Ok(views.html.searchresults(results))
     } else {
       Redirect(routes.HomepageController.index)

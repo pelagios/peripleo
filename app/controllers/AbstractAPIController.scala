@@ -22,8 +22,8 @@ abstract class AbstractAPIController extends Controller {
   //    }
   
   /** Helper for creating pretty-printed JSON responses with proper content-type header **/
-  protected def jsonOk(obj: JsValue, prettyPrint: Option[Boolean]) = {
-    if (prettyPrint.getOrElse(false))
+  protected def jsonOk(obj: JsValue, prettyPrint: Boolean) = {
+    if (prettyPrint)
       Ok(Json.prettyPrint(obj)).withHeaders(("Content-Type", "application/json; charset=utf-8"))
     else
       Ok(obj)

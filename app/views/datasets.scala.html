@@ -34,7 +34,7 @@
       (function() {
         // Helper function to load a page of items
         var loadDatasets = function(offset, pagesize, callback) {
-          $.getJSON('@routes.DatasetController.listAll(None, None, None)?offset=' + offset + '&limit=' + pagesize, function(data) {
+          $.getJSON('@routes.DatasetController.listAll()?offset=' + offset + '&limit=' + pagesize, function(data) {
             console.log(data);
             var table = $('#dataset-list tbody');
             table.html('');

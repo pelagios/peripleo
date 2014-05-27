@@ -96,7 +96,7 @@
       
         // Helper function to load a page of items
         var loadItems = function(offset, pagesize, callback) {
-          $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id, None, None, None)?offset=' + offset + '&limit=' + pagesize, function(data) {
+          $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id)?offset=' + offset + '&limit=' + pagesize, function(data) {
             var table = $('#items-list table tbody');
             table.html('');
             $.each(data.items, function(idx, item) {
@@ -128,7 +128,7 @@
         });
       
         // Load places
-        $.getJSON('@routes.DatasetController.listPlaces(dataset.id, Some(0), Some(Int.MaxValue), None)', function(data) {
+        $.getJSON('@routes.DatasetController.listPlaces(dataset.id)', function(data) {
           maxReferences = data.items[0].number_of_occurrences;
         
           // List top 5 places

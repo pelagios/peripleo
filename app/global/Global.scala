@@ -18,8 +18,6 @@ object Global extends GlobalSettings {
   private val GAZETTER_DATA_DIR = "gazetteer"
     
   private val INDEX_DIR = "index"
-    
-  lazy val DEFAULT_PAGE_SIZE = Play.current.configuration.getInt("default.page.size").getOrElse(20)
   
   /** Initializes the gazetteer index **/
   lazy val gazetteer = {
