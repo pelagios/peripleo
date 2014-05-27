@@ -1,16 +1,19 @@
 package controllers.pages
 
-import play.api.mvc.{ Action, Controller }
-import play.api.db.slick._
+import models.{ AnnotatedThings, Datasets }
 import global.Global
-import play.api.Logger
+import play.api.mvc.Controller
+import play.api.db.slick._
 
 object HomepageController extends Controller {
   
   private val QUERY = "query"
   
-  def index() = Action {
-    Ok(views.html.home(1000, 1000, 1000))
+  def index() = DBAction { implicit session =>
+    val datasets = Datasets.countAll
+    val items = AnnotatedThings.countAll
+    val places = 34000 // TODO get stuff in place to compute this number from the gazetteers
+    Ok(views.html.home(datasets, items, places))
   }
   
   def search() = DBAction { implicit session =>
