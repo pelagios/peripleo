@@ -23,13 +23,16 @@
           @objects.total Total Results
         </div> <!-- .totals -->
         
-        <table id="results">
-          <tbody>
-            @for(obj <- objects.items) {
-              <tr><td>@obj.title</td></tr>
-            }
-          </tbody>
-        </table>
+        <ul id="results">
+          @for(obj <- objects.items) {
+            <li class="result">
+              <span class="type">Item</span>
+              <span class="title">@obj.title</span>
+              <span class="in-dataset">in <a href="#">The Fralin | UVa Art Museum Numismatic Collection</a></span>
+              <span class="stats">2 references to 2 unique places</span>
+            </li>
+          }
+        </ul>
       </div> <!-- .row -->
     </div> <!-- #content -->
   </body>

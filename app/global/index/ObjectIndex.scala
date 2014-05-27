@@ -8,10 +8,13 @@ import org.apache.lucene.search.SearcherManager
 import org.apache.lucene.search.SearcherFactory
 import org.apache.lucene.index.IndexWriter
 import org.apache.lucene.index.IndexWriterConfig
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter
 
-private[index] class ObjectIndexBase(directory: File) {
+private[index] class ObjectIndexBase(indexDir: File, taxonomyDir: File) {
 
-  protected val index = FSDirectory.open(directory)
+  protected val index = FSDirectory.open(indexDir)
+  
+  protected val taxonomy = FSDirectory.open(taxonomyDir)
   
   protected val searcherManager = new SearcherManager(index, new SearcherFactory())
   
@@ -25,7 +28,7 @@ private[index] class ObjectIndexBase(directory: File) {
       
 }
 
-class ObjectIndex private(directory: File) extends ObjectIndexBase(directory) with ObjectIndexReader with ObjectIndexWriter
+class ObjectIndex private(indexDir: File, taxonomyDir: File) extends ObjectIndexBase(indexDir, taxonomyDir) with ObjectIndexReader with ObjectIndexWriter
 
 object ObjectIndex {
   
@@ -35,20 +38,31 @@ object ObjectIndex {
     
   val FIELD_DESCRIPTION = "description"
     
-  val FIELD_OBJECT_TYPE = "type"
+  val FIELD_OBJECT_TYPE= "Type"
     
-  def open(directory: String): ObjectIndex = {
-    val dir = new File(directory)
-    if (!dir.exists) {
-      // Initialize with an empty index
-      dir.mkdirs()
+  val CATEGORY_DATASET = "Dataset"
+    
+  val CATEGORY_ANNOTATED_THING = "Item"
+    
+  def open(indexDir: String, taxonomyDir: String): ObjectIndex = {
+    val indexDirectory = createIfNotExists(indexDir)
+    val idxInitializer = new IndexWriter(FSDirectory.open(indexDirectory), 
+      new IndexWriterConfig(Version.LUCENE_47, new StandardAnalyzer(Version.LUCENE_47)))
+    idxInitializer.close()
+    
+    val taxonomyDirectory = createIfNotExists(indexDir)
+    val taxonomyInitializer = new DirectoryTaxonomyWriter(FSDirectory.open(taxonomyDirectory))
+    taxonomyInitializer.close()
+    
+    new ObjectIndex(indexDirectory, taxonomyDirectory)
+  }
+  
+  private def createIfNotExists(dir: String): File = {
+    val directory = new File(dir)
+    if (!directory.exists)
+      directory.mkdirs()
       
-      val writer = new IndexWriter(FSDirectory.open(dir), 
-          new IndexWriterConfig(Version.LUCENE_47, new StandardAnalyzer(Version.LUCENE_47)))
-      writer.close()
-    }
-    
-    new ObjectIndex(dir)
+    directory
   }
  
 }
