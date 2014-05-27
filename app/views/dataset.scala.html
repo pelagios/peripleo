@@ -19,7 +19,7 @@
           <span class="pelagios-logo">PELAGIOS API</span> 
           <ul>
             <li><a href="@controllers.pages.routes.HomepageController.index">Home</a></li>
-            <li><a href="#">Datasets</a></li>
+            <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
             <li><a href="#">Places</a></li>
           </ul>
         </div> <!-- .row -->
@@ -69,76 +69,78 @@
     </div> <!-- #content -->
     
     <script>
-    (function() {      
-      var maxReferences,
-          meterTemplate = 
-            '<tr>' +
-            '  <td class="place-title">@@title@@</td>' +
-            '  <td class="place-count">' +
-            '    <div class="meter">' +
-            '      <div class="bar" style="width:@@width@@%;"></div><span>@@occurrences@@</span>' +
-            '    </div>' +
-            '  </td>'+ 
-            '</tr>';
+      (function() {      
+        console.log('foo');
+        var maxReferences,
+            meterTemplate = 
+              '<tr>' +
+              '  <td class="place-title">@@title@@</td>' +
+              '  <td class="place-count">' +
+              '    <div class="meter">' +
+              '      <div class="bar" style="width:@@width@@%;"></div><span>@@occurrences@@</span>' +
+              '    </div>' +
+              '  </td>'+ 
+              '</tr>';
             
-      // Helper function to show the next N places in the 'top places' list
-      var showNext = function(places, shown, n) {
-        for (var i=shown, j=shown + n; i<j; i++) {
-          var occurrences = places[i].number_of_occurrences;
-          var html = meterTemplate
-            .replace('@@title@@', places[i].title)
-            .replace('@@width@@', (occurrences / maxReferences) * 100)
-            .replace('@@occurrences@@', occurrences);
-          $('#top-n-places').append(html);
-        }
-      };
-      
-      // Helper function to load a page of items
-      var loadItems = function(offset, pagesize, callback) {
-        $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id, None, None, None)?offset=' + offset + '&limit=' + pagesize, function(data) {
-          var table = $('#items-list table tbody');
-          table.html('');
-          $.each(data.items, function(idx, item) {
-            table.append('<tr>' + 
-                           '<td>' + item.title + '</td>' +
-                           '<td class="center">' + item.number_of_annotations + '</td>' +
-                           '<td class="center">' + item.number_of_unique_places + '</td>' +
-                         '</tr>');
-          });
-          
-          if (callback)
-            callback(data);
-        });        
-      };
-
-      // Load items
-      var pagesize = 20;
-      
-      loadItems(0, pagesize, function(data) {
-        $('.pagination').pagination({
-          items: data.total,
-          itemsOnPage: pagesize,
-          hrefTextPrefix: '#item-page-',
-          onPageClick: function(pageNumber, event) {
-            var offset = (pageNumber - 1) * pagesize;
-            loadItems(offset, pagesize);
+        // Helper function to show the next N places in the 'top places' list
+        var showNext = function(places, shown, n) {
+          for (var i=shown, j=shown + n; i<j; i++) {
+            var occurrences = places[i].number_of_occurrences;
+            var html = meterTemplate
+              .replace('@@title@@', places[i].title)
+              .replace('@@width@@', (occurrences / maxReferences) * 100)
+              .replace('@@occurrences@@', occurrences);
+            $('#top-n-places').append(html);
           }
-        })
-      });
+        };
       
-      // Load places
-      $.getJSON('@routes.DatasetController.listPlaces(dataset.id, Some(0), Some(Int.MaxValue), None)', function(data) {
-        maxReferences = data.items[0].number_of_occurrences;
-        
-        // List top 5 places
-        showNext(data.items, 0, 8);
-        
-        // Draw heatmap
-        var heatmap = new Heatmap('map', data.items);
-      });
+        // Helper function to load a page of items
+        var loadItems = function(offset, pagesize, callback) {
+          $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id, None, None, None)?offset=' + offset + '&limit=' + pagesize, function(data) {
+            var table = $('#items-list table tbody');
+            table.html('');
+            $.each(data.items, function(idx, item) {
+              table.append('<tr>' + 
+                             '<td>' + item.title + '</td>' +
+                             '<td class="center">' + item.number_of_annotations + '</td>' +
+                             '<td class="center">' + item.number_of_unique_places + '</td>' +
+                           '</tr>');
+            });
+          
+            if (callback)
+              callback(data);
+          });        
+        };
+
+        // Load items
+        var pagesize = 20;
       
-      // Format numbers
-      util.formatNumber();
-    })();
+        loadItems(0, pagesize, function(data) {
+          $('.pagination').pagination({
+            items: data.total,
+            itemsOnPage: pagesize,
+            hrefTextPrefix: '#item-page-',
+            onPageClick: function(pageNumber, event) {
+              var offset = (pageNumber - 1) * pagesize;
+              loadItems(offset, pagesize);
+            }
+          })
+        });
+      
+        // Load places
+        $.getJSON('@routes.DatasetController.listPlaces(dataset.id, Some(0), Some(Int.MaxValue), None)', function(data) {
+          maxReferences = data.items[0].number_of_occurrences;
+        
+          // List top 5 places
+          showNext(data.items, 0, 8);
+        
+          // Draw heatmap
+          var heatmap = new Heatmap('map', data.items);
+        });
+      
+        // Format numbers
+        util.formatNumber();
+      })();
+    </script>
   </body>
 </html>
