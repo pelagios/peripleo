@@ -1,8 +1,9 @@
 var util = util || {};
 
 /** Loops through all elements with CSS class .number and formats using numeral.js **/
-util.formatNumbers = function() {
-  $.each($('.number'), function(idx, el) {
+util.formatNumbers = function(opt_parent) {
+  var elements = (opt_parent) ? $(opt_parent).find('.number') : $('.number');	
+  $.each(elements, function(idx, el) {
     var formatted = numeral($(el).text()).format('0,0');
     $(el).html(formatted);
   });

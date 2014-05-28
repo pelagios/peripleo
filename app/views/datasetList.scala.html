@@ -64,7 +64,8 @@
                              '<td class="stats"><em class="number">' + item.number_of_unique_places + '</em> Places</td>' +
                            '</tr>');
             });
-              
+             
+            util.formatNumbers(table); 
             if (callback)
               callback(data);
           });        
