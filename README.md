@@ -75,3 +75,7 @@ appears in the JSON responses. This work is just getting started. See
 [http://pelagios.org/api-v3/pages/datasets/42362e18923860b43ed4c048f16274f7](http://pelagios.org/api-v3/pages/datasets/42362e18923860b43ed4c048f16274f7)
 
 for an example.
+
+## License
+
+The Pelagios API is licensed under the [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl.html).
