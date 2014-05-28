@@ -8,14 +8,14 @@ import play.api.libs.json.Json
 
 object AnnotationController extends AbstractAPIController {
 
-  def listAll(prettyPrint: Boolean) = DBAction { implicit session =>
-    jsonOk(Json.toJson(Annotations.listAll()), prettyPrint)
+  def listAll(offset: Int, limit: Int) = DBAction { implicit session =>
+    jsonOk(Json.toJson(Annotations.listAll()), session.request)
   }
   
-  def getAnnotation(id: UUID, prettyPrint: Boolean) = DBAction { implicit session =>
+  def getAnnotation(id: UUID) = DBAction { implicit session =>
     val annotation = Annotations.findByUUID(id)
     if (annotation.isDefined)
-      jsonOk(Json.toJson(annotation.get), prettyPrint)
+      jsonOk(Json.toJson(annotation.get), session.request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }

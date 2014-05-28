@@ -7,14 +7,14 @@ import play.api.libs.json.Json
 
 object PlaceController extends AbstractAPIController {
 
-  def listAll(prettyPrint: Boolean) = Action {
+  def listAll(offset: Int, limit: Int) = Action {
     Ok(Json.parse("{ \"message\": \"Hello World!\" }"))
   }  
   
-  def getPlace(uri: String, prettyPrint: Boolean) = Action {
+  def getPlace(uri: String) = Action { implicit request =>
     val place = Global.gazetteer.findByURI(uri)
     if (place.isDefined)
-      jsonOk(Json.toJson(place.get), prettyPrint)
+      jsonOk(Json.toJson(place.get), request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }

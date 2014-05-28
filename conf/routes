@@ -6,21 +6,21 @@
 GET     /api-v3/static/*file              controllers.Assets.at(path="/public", file)
 
 # API routes
-GET     /api-v3/datasets                         controllers.DatasetController.listAll(offset: Int ?= 0, limit: Int ?= 20, prettyPrint: Boolean ?= false)
-GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String, prettyPrint: Boolean ?= false)
-GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, offset: Int ?= 0, limit: Int ?= 20, prettyPrint: Boolean ?= false)
-GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, offset: Int ?= 0, limit: Int ?= 20, prettyPrint: Boolean ?= false)
+GET     /api-v3/datasets                         controllers.DatasetController.listAll(offset: Int ?= 0, limit: Int ?= 20)
+GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
+GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, offset: Int ?= 0, limit: Int ?= 20)
+GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, offset: Int ?= 0, limit: Int ?= 20)
 
-GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(prettyPrint: Boolean ?= false)
-GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String, prettyPrint: Boolean ?= false)
-GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, prettyPrint: Boolean ?= false)
-GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String, prettyPrint: Boolean ?= false)
+GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(offset: Int ?= 0, limit: Int ?= 20)
+GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
+GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, offset: Int ?= 0, limit: Int ?= 20)
+GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String, offset: Int ?= 0, limit: Int ?= 20)
 
-GET     /api-v3/annotations                      controllers.AnnotationController.listAll(prettyPrint: Boolean ?= false)
-GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID, prettyPrint: Boolean ?= false)
+GET     /api-v3/annotations                      controllers.AnnotationController.listAll(offset: Int ?= 0, limit: Int ?= 20)
+GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
 
-GET     /api-v3/places                           controllers.PlaceController.listAll(prettyPrint: Boolean ?= false)
-GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String, prettyPrint: Boolean ?= false)
+GET     /api-v3/places                           controllers.PlaceController.listAll(offset: Int ?= 0, limit: Int ?= 20)
+GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String)
 
 # HTML view routes
 GET     /api-v3/pages/datasets                   controllers.pages.DatasetPagesController.listAll
