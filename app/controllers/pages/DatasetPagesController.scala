@@ -19,7 +19,7 @@ object DatasetPagesController extends Controller {
       val things = AnnotatedThings.countByDataset(dataset.get.id)
       val places = Places.countPlacesInDataset(dataset.get.id)
       val annotations = Annotations.countByDataset(dataset.get.id)
-      Ok(views.html.datasetDetails(dataset.get, things, places, annotations))
+      Ok(views.html.datasetDetails(dataset.get, things, annotations, places))
     } else {
       NotFound // TODO create decent 'not found' page
     }
