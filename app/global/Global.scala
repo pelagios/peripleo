@@ -25,7 +25,7 @@ object Global extends GlobalSettings {
     if (idx.isEmpty) {
       Logger.info("Building new index")
       
-      val dumps = Play.current.configuration.getString("gazetteer.files")
+      val dumps = Play.current.configuration.getString("api.gazetteer.files")
         .map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
         
       dumps.foreach(f => {
