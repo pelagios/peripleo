@@ -1,13 +1,14 @@
 package controllers.common.io
 
 import global.Global
+import global.index.IndexedObject
+import java.sql.Date
 import models._
 import org.pelagios.api.gazetteer.Place
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import java.sql.Date
 
 /** JSON writers for model classes.
   *
@@ -107,6 +108,15 @@ object JSONWrites {
       a.dataset,
       a.annotatedThing,
       a.gazetteerURI))
+      
+  implicit val indexedObjectWrites: Writes[IndexedObject] = (
+    (JsPath \ "id").write[String] ~
+    (JsPath \ "title").write[String] ~
+    (JsPath \ "description").writeNullable[String]
+  )(o => (
+      o.id,
+      o.title,
+      o.description))
       
       
   /** Writes a page of items **/

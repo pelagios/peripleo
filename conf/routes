@@ -19,8 +19,10 @@ GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingContr
 GET     /api-v3/annotations                      controllers.AnnotationController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
 
-GET     /api-v3/places                           controllers.PlaceController.listAll(offset: Int ?= 0, limit: Int ?= 20)
+GET     /api-v3/places                           controllers.PlaceController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String)
+
+GET     /api-v3/search                           controllers.SearchController.search(query: String, limit: Int ?= 20, offset: Int ?= 0)
 
 # HTML view routes
 GET     /api-v3/pages/datasets                   controllers.pages.DatasetPagesController.listAll

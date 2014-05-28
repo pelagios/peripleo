@@ -11,7 +11,7 @@ class IndexedObject private[index] (doc: Document) {
 
   val title: String = doc.get(ObjectIndex.FIELD_TITLE)
 
-  val description: String = doc.get(ObjectIndex.FIELD_DESCRIPTION)
+  val description: Option[String] = Option(doc.get(ObjectIndex.FIELD_DESCRIPTION))
   
 }
 
