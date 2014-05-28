@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Pelagios API - Home</title>
-    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/main.css")"/>   
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/index.css")"/>   
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
@@ -11,9 +11,9 @@
     <div id="header">
       <div id="header-menu">
         <div class="row">
-          <span class="pelagios-logo">PELAGIOS API</span> 
+          <a class="pelagios-logo" onclick="return false;" href="@controllers.pages.routes.HomepageController.index">PELAGIOS API</a>
           <ul>
-            <li><a href="#">Home</a></li>
+            <li class="current"><a onclick="return false;" href="@controllers.pages.routes.HomepageController.index">Home</a></li>
             <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
             <li><a href="#">Places</a></li>
           </ul>

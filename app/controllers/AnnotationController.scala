@@ -8,7 +8,7 @@ import play.api.libs.json.Json
 
 object AnnotationController extends AbstractAPIController {
 
-  def listAll(offset: Int, limit: Int) = DBAction { implicit session =>
+  def listAll(limit: Int, offset: Int) = DBAction { implicit session =>
     jsonOk(Json.toJson(Annotations.listAll()), session.request)
   }
   

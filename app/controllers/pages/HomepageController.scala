@@ -12,7 +12,7 @@ object HomepageController extends Controller {
   def index() = DBAction { implicit session =>
     val datasets = Datasets.countAll
     val items = AnnotatedThings.countAll
-    val places = 34000 // TODO get stuff in place to compute this number from the gazetteers
+    val places = 36221 // TODO get rid of this hard-coded number and replace with live count from gazetteers
     Ok(views.html.home(datasets, items, places))
   }
   
@@ -21,7 +21,7 @@ object HomepageController extends Controller {
     val query = session.request.queryString.get(QUERY).flatMap(_.headOption)
     if (query.isDefined && !query.get.isEmpty) {
       val results = Global.index.search(query.get, 0, 20)
-      Ok(views.html.searchresults(results))
+      Ok(views.html.searchResults(results))
     } else {
       Redirect(routes.HomepageController.index)
     }

@@ -1,8 +1,8 @@
-@(dataset: Dataset, things: Int, places: Int, annotations: Int)
+@(dataset: Dataset, things: Int, annotations: Int, places: Int)
 <html>
   <head>
     <title>Dataset &raquo; @dataset.title</title>
-    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/dataset/main.css")"/>   
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/dataset-details.css")"/>   
     <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.simplePagination.js")"></script>
@@ -70,7 +70,6 @@
     
     <script>
       (function() {      
-        console.log('foo');
         var maxReferences,
             meterTemplate = 
               '<tr>' +
@@ -127,8 +126,8 @@
           })
         });
       
-        // Load places
-        $.getJSON('@routes.DatasetController.listPlaces(dataset.id)', function(data) {
+        // Load places - limiting to the first 1 million places should be sufficient...
+        $.getJSON('@routes.DatasetController.listPlaces(dataset.id, 1000000)', function(data) {
           maxReferences = data.items[0].number_of_occurrences;
         
           // List top 5 places

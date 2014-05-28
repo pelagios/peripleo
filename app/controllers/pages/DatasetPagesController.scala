@@ -2,12 +2,15 @@ package controllers.pages
 
 import models._
 import play.api.db.slick._
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.Controller
 
 object DatasetPagesController extends Controller {
 
-  def listAll = Action {
-    Ok(views.html.datasets())
+  def listAll = DBAction { implicit session =>
+    val datasets = Datasets.countAll
+    val things = AnnotatedThings.countAll
+    val annotations = Annotations.countAll
+    Ok(views.html.datasetList(datasets, things, annotations))
   }
   
   def getDataset(id: String) = DBAction { implicit session =>
@@ -16,7 +19,7 @@ object DatasetPagesController extends Controller {
       val things = AnnotatedThings.countByDataset(dataset.get.id)
       val places = Places.countPlacesInDataset(dataset.get.id)
       val annotations = Annotations.countByDataset(dataset.get.id)
-      Ok(views.html.dataset(dataset.get, things, places, annotations))
+      Ok(views.html.datasetDetails(dataset.get, things, places, annotations))
     } else {
       NotFound // TODO create decent 'not found' page
     }

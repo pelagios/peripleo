@@ -7,7 +7,7 @@ import play.api.libs.json.Json
 
 object PlaceController extends AbstractAPIController {
 
-  def listAll(offset: Int, limit: Int) = Action {
+  def listAll(limit: Int, offset: Int) = Action {
     Ok(Json.parse("{ \"message\": \"Hello World!\" }"))
   }  
   

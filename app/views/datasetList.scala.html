@@ -1,8 +1,8 @@
-@()
+@(datasets: Int, things: Int, annotations: Int)
 <html>
   <head>
     <title>Pelagios API - Datasets</title>
-    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/main.css")"/>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/dataset-list.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
@@ -11,14 +11,25 @@
     <div id="header">
       <div id="header-menu">
         <div class="row">
-          <span class="pelagios-logo">PELAGIOS API</span> 
+          <a class="pelagios-logo" href="@controllers.pages.routes.HomepageController.index">PELAGIOS API</a>
           <ul>
             <li><a href="@controllers.pages.routes.HomepageController.index">Home</a></li>
-            <li><a href="#">Datasets</a></li>
+            <li class="current"><a onclick="return false;" href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
             <li><a href="#">Places</a></li>
           </ul>
         </div> <!-- .row -->
       </div> <!-- #header-menu -->
+      
+      <div id="header-body">
+        <div class="row">
+          <p class="stats">
+            <span><em class="number">@datasets</em> datasets</span>
+            <span><em class="number">@things</em> items</span>
+            <span><em class="number">@annotations</em> place references</span>
+          </p>
+        </div> <!-- .row -->
+      </div> <!-- #header-body -->
+      
     </div> <!-- #header -->
     
     <div id="content">
@@ -31,6 +42,8 @@
     </div> <!-- #content -->
     
     <script>
+      util.formatNumbers();
+      
       (function() {
         // Helper function to load a page of items
         var loadDatasets = function(offset, pagesize, callback) {
@@ -52,7 +65,6 @@
                            '</tr>');
             });
               
-            util.formatNumbers();
             if (callback)
               callback(data);
           });        

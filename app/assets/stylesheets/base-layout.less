@@ -5,7 +5,7 @@
 }
 
 a {
-  color:#3a5e8a;
+  color:#4f7eb4;
   text-decoration:none;
 }
 
@@ -40,6 +40,9 @@ a {
       
       li {
         display:inline-block; 
+        border-style:solid;
+        border-color:transparent;
+        border-width:2px 0;
         
         a {
           padding:12px 20px;
@@ -48,7 +51,13 @@ a {
         
       } /* li */
       
-      li:hover { background-color:rgba(255, 255, 255, 0.1); }
+      li:hover { 
+        background-color:#3e5d83; 
+      }
+      
+      li.current {
+        border-bottom-color:#fff; 
+      }
       
     } /* ul */
     
