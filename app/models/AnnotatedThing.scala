@@ -45,7 +45,7 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   def isPartOfId = column[String]("is_part_of", O.Nullable)
   
-  def homepage = column[String]("homepage", O.NotNull)
+  def homepage = column[String]("homepage", O.Nullable)
   
   def temporalBoundsStart = column[Int]("temporal_bounds_start", O.Nullable)
 
