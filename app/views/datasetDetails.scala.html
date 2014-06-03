@@ -10,6 +10,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/heatmap.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/temporal-profile.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
   </head>
   <body>
@@ -51,7 +52,11 @@
     <div id="content">
       <div class="row"><h2>Most Frequently Referenced Places</h2></div>
       <div class="row">
-        <div id="map"></div>
+        <div class="float-right">
+          <div id="map"></div>
+          <div id="temporal-profile"></div>
+        </div>
+        
         <table id="top-n-places"></table>
       </div>
       
@@ -135,10 +140,15 @@
           maxReferences = data.items[0].number_of_occurrences;
         
           // List top 5 places
-          showNext(data.items, 0, 8);
+          showNext(data.items, 0, 10);
         
           // Draw heatmap
           var heatmap = new Heatmap('map', data.items);
+        });
+        
+        // Load the temporal profile
+        $.getJSON('@routes.DatasetController.getTemporalProfile(dataset.id)', function(data) {
+          var histogram = new TemporalProfile('temporal-profile', data);
         });
       
         // Format numbers

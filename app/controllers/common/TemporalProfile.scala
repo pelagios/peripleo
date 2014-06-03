@@ -24,23 +24,16 @@ class TemporalProfile(data: Seq[(Int, Int)]) {
 }
 
 object TemporalProfile {
-
-  implicit val histogramWrites: Writes[(Int, Int)] = (
-    (JsPath \ "year").write[Int] ~
-    (JsPath \ "value").write[Int]
-  )(tuple => (
-      tuple._1,
-      tuple._2))
   
   implicit val profileWrites: Writes[TemporalProfile] = (
     (JsPath \ "bounds_start").write[Int] ~
     (JsPath \ "bounds_end").write[Int] ~
     (JsPath \ "max_value").write[Int] ~
-    (JsPath \ "histogram").write[Seq[(Int, Int)]]
+    (JsPath \ "histogram").write[Map[String, Int]]
   )(profile => (
       profile.boundsStart,
       profile.boundsEnd,
       profile.maxValue,
-      profile.histogram.toSeq.sortBy(_._1)))
+      profile.histogram.map(t => (t._1.toString, t._2))))
   
 }

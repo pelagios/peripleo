@@ -16,6 +16,26 @@
 } /* #header */
 
 #content {
+
+  .float-right {
+    float:right;
+    
+    #map {
+      width:360px;
+      height:240px;
+      border:1px solid #999;
+    }
+  
+    #temporal-profile {
+      width:360px;
+      height:40px;
+      margin:10px 0 30px 0;
+      border-style:solid;
+      border-color:#ccc;
+      border-width:0 0 1px 0;
+    }
+    
+  } /* .floatright */
   
   #top-n-places {
     padding-bottom:30px;
@@ -23,6 +43,10 @@
     .place-title {
       text-align:right;
       padding:5px 8px;
+      max-width:205px;
+      overflow:hidden;
+      white-space:nowrap;
+      text-overflow:ellipsis;
     }
   
     .place-count {
@@ -52,15 +76,6 @@
     
     } /* .place-count */
     
-    
-  }
-
-  #map {
-    float:right;
-    width:360px;
-    height:240px;
-    border:1px solid #999;
-    margin-bottom:30px;
   }
   
   #items-list {
