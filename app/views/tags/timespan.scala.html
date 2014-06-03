@@ -1,0 +1,24 @@
+@(start: Option[Int], end: Option[Int])
+
+@{
+	 
+  def prefix(date: Int) = if (date < 0) "BC" else "AD"
+  
+  if (start.isDefined && end.isDefined) {
+  	val startPrefix = prefix(start.get)
+  	val endPrefix = prefix(end.get)
+  	
+  	if (start == end) {
+  	  startPrefix + " " + start.get
+  	} else {
+  	  if (startPrefix == endPrefix) {
+  	    startPrefix + " " + start.get + " - " + end.get	
+  	  } else {
+  	    startPrefix + " " + start.get + " - " + endPrefix + " " + end.get
+  	  }
+  	}
+  } else {
+    ""
+  }
+  
+}

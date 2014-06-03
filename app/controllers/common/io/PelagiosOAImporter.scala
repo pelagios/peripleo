@@ -61,12 +61,12 @@ object PelagiosOAImporter extends AbstractImporter {
     
     // Update the parent dataset with new temporal bounds
     val datedThings = allThings.filter(_.temporalBoundsStart.isDefined)
-    val tempBoundsStart = datedThings.map(_.temporalBoundsStart.get).min
-    val tempBoundsEnd = datedThings.map(_.temporalBoundsEnd.get).max
+    val tempBoundsStart = if (datedThings.isEmpty) None else Some(datedThings.map(_.temporalBoundsStart.get).min)
+    val tempBoundsEnd = if (datedThings.isEmpty) None else Some(datedThings.map(_.temporalBoundsEnd.get).max)
     
     val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
         dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-        dataset.homepage, dataset.datadump)
+        dataset.homepage, dataset.datadump, tempBoundsStart, tempBoundsEnd)
         
     Datasets.update(updatedDataset)     
   }

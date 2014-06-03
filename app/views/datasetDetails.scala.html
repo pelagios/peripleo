@@ -36,6 +36,9 @@
             }
           </h2>
           @dataset.description.map { description => <p class="description">@description</p> }
+          <p class="time">
+            @tags.timespan(dataset.temporalBoundsStart, dataset.temporalBoundsEnd)
+          </p>
           <p class="stats">
             <span><em class="number">@things</em> items with</span>
             <span><em class="number">@annotations</em> references to</span>
