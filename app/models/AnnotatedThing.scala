@@ -13,11 +13,14 @@ case class AnnotatedThing(
   /** ID of the dataset this thing is part of **/
   dataset: String, 
   
-  /** The thing's title **/
+  /** dcterms:title **/
   title: String, 
- 
+   
   /** The ID of the annotated thing this thing is part of (if any) **/
   isPartOf: Option[String],
+
+  /** foaf:homepage **/
+  homepage: Option[String],
   
   /** The start of the date interval this thing is dated at (optional) **/ 
   temporalBoundsStart: Option[Int],
@@ -42,11 +45,13 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   def isPartOfId = column[String]("is_part_of", O.Nullable)
   
+  def homepage = column[String]("homepage", O.NotNull)
+  
   def temporalBoundsStart = column[Int]("temp_bounds_start", O.Nullable)
 
   def temporalBoundsEnd = column[Int]("temp_bounds_end", O.Nullable)
 
-  def * = (id, datasetId, title, isPartOfId.?, temporalBoundsStart.?, 
+  def * = (id, datasetId, title, isPartOfId.?, homepage.?, temporalBoundsStart.?, 
     temporalBoundsEnd.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
   
   /** Foreign key constraints **/
