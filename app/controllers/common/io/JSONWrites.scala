@@ -86,6 +86,7 @@ object JSONWrites {
     (JsPath \ "title").write[String] ~
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "is_part_of").writeNullable[String] ~
+    (JsPath \ "homepage").writeNullable[String] ~
     (JsPath \ "number_of_annotations").write[Int] ~ 
     (JsPath \ "number_of_unique_places").write[Int]
   )(thing => (
@@ -93,6 +94,7 @@ object JSONWrites {
       thing.title,
       thing.dataset,
       thing.isPartOf,
+      thing.homepage,
       Annotations.countByAnnotatedThing(thing.id),
       Places.countPlacesForThing(thing.id)))
   

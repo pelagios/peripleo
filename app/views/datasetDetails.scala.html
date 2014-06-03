@@ -102,8 +102,9 @@
             var table = $('#items-list table tbody');
             table.html('');
             $.each(data.items, function(idx, item) {
+              var title = (item.homepage) ? '<a href="' + item.homepage + '" target="_blank">' + item.title + '</a>' : item.title;
               table.append('<tr>' + 
-                             '<td>' + item.title + '</td>' +
+                             '<td>' + title + '</td>' +
                              '<td class="center">' + item.number_of_annotations + '</td>' +
                              '<td class="center">' + item.number_of_unique_places + '</td>' +
                            '</tr>');
