@@ -47,9 +47,9 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   def homepage = column[String]("homepage", O.NotNull)
   
-  def temporalBoundsStart = column[Int]("temp_bounds_start", O.Nullable)
+  def temporalBoundsStart = column[Int]("temporal_bounds_start", O.Nullable)
 
-  def temporalBoundsEnd = column[Int]("temp_bounds_end", O.Nullable)
+  def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
 
   def * = (id, datasetId, title, isPartOfId.?, homepage.?, temporalBoundsStart.?, 
     temporalBoundsEnd.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
@@ -74,6 +74,8 @@ object AnnotatedThings {
   def create()(implicit s: Session) = query.ddl.create
   
   def insert(thing: AnnotatedThing)(implicit s: Session) = query.insert(thing)
+  
+  def insertAll(things: Seq[AnnotatedThing])(implicit s: Session) = query.insertAll(things:_*)
   
   def update(thing: AnnotatedThing)(implicit s: Session) = 
     query.where(_.id === thing.id).update(thing)

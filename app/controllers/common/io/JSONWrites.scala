@@ -58,7 +58,7 @@ object JSONWrites {
     (JsPath \ "license").write[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
     (JsPath \ "created_at").write[Long] ~
-    (JsPath \ "modified_at").writeNullable[Long] ~
+    (JsPath \ "modified_at").write[Long] ~
     (JsPath \ "void_url").writeNullable[String] ~
     (JsPath \ "datadump_url").writeNullable[String] ~
     (JsPath \ "number_of_items").write[Int] ~
@@ -72,7 +72,7 @@ object JSONWrites {
       dataset.license,
       dataset.homepage,
       dataset.created.getTime,
-      dataset.modified.map(_.getTime),
+      dataset.modified.getTime,
       dataset.voidURI,
       dataset.datadump,
       AnnotatedThings.countByDataset(dataset.id),

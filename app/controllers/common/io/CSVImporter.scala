@@ -33,7 +33,7 @@ object CSVImporter extends AbstractImporter {
           dataset.id, annotatedThing.id, GazetteerURI(fields(header.indexOf("gazetteer_uri"))))      
     })
       
-    Annotations.insert(annotations)
+    Annotations.insertAll(annotations)
   }
 
   private def toMap(meta: Seq[String]): Map[String, String] = {

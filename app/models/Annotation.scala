@@ -42,7 +42,7 @@ object Annotations {
   
   def create()(implicit s: Session) = query.ddl.create
   
-  def insert(annotations: Seq[Annotation])(implicit s: Session) = {
+  def insertAll(annotations: Seq[Annotation])(implicit s: Session) = {
     // Insert annotations
     query.insertAll(annotations:_*)
     

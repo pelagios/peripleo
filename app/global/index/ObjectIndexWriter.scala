@@ -16,12 +16,14 @@ trait ObjectIndexWriter extends ObjectIndexBase {
     taxonomyWriter.close()
   }
   
-  def addAnnotatedThing(thing: AnnotatedThing) = {
+  def addAnnotatedThing(thing: AnnotatedThing) = addAnnotatedThings(Seq(thing))
+  
+  def addAnnotatedThings(things: Seq[AnnotatedThing]) = {
     val indexWriter = new IndexWriter(index, new IndexWriterConfig(Version.LUCENE_48, analyzer))
     val taxonomyWriter = new DirectoryTaxonomyWriter(taxonomy)
-    indexWriter.addDocument(config.build(taxonomyWriter, IndexedObject(thing)))
+    things.foreach(t => indexWriter.addDocument(config.build(taxonomyWriter, IndexedObject(t))))
     indexWriter.close()
-    taxonomyWriter.close()
+    taxonomyWriter.close()    
   }
   
 }

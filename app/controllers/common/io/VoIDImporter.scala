@@ -30,9 +30,9 @@ object VoIDImporter extends AbstractImporter {
       
       Logger.info("Importing dataset '" + dataset.title + "' with ID " + id)
      
+      val created = new Date(System.currentTimeMillis)
       val datasetEntity = Dataset(id, dataset.title, dataset.publisher, dataset.license,
-        new Date(System.currentTimeMillis), uri, dataset.description, dataset.homepage, 
-        dataset.datadumps.headOption, None)
+        created, created, uri, dataset.description, dataset.homepage, dataset.datadumps.headOption)
         
       Datasets.insert(datasetEntity)
       Global.index.addDataset(datasetEntity)

@@ -48,7 +48,7 @@
               <td>@dataset.title</td>
               <td>@dataset.publisher</td>
               <td>@dataset.created</td>
-              <td class="center">@dataset.modified.getOrElse("-")</td>
+              <td>@dataset.modified</td>
               <td class="center">@Annotations.countByDataset(dataset.id)</td>
               <td>
                 @if(dataset.voidURI.isDefined) {                	

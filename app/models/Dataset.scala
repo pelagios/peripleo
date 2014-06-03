@@ -8,36 +8,50 @@ import java.sql.Date
 /** Dataset model entity **/
 case class Dataset(
     
-    /** Internal ID in the API **/
-    id: String,
+  /** Internal ID in the API **/
+  id: String,
     
-    /** dcterms:title **/
-    title: String, 
+  /** dcterms:title **/
+  title: String, 
     
-    /** dcterms:publisher **/
-    publisher: String, 
+  /** dcterms:publisher **/
+  publisher: String, 
     
-    /** dcterms:license **/
-    license: String, 
+  /** dcterms:license **/
+  license: String, 
     
-    /** time the dataset was created in the system **/
-    created: Date,
+  /** time the dataset was created in the system **/
+  created: Date,
     
-    /** URL of the VoID file (unless imported via file upload) **/
-    voidURI: Option[String], 
+  /** time the dataset was last modified in the system **/
+  modified: Date,
     
-    /** dcterms:description **/
-    description: Option[String],
+  /** URL of the VoID file (unless imported via file upload) **/
+  voidURI: Option[String], 
     
-    /** foaf:homepage **/
-    homepage: Option[String],
+  /** dcterms:description **/
+  description: Option[String],
     
-    /** void:dataDump **/
-    datadump: Option[String],
+  /** foaf:homepage **/
+  homepage: Option[String],
     
-    /** time the dataset was last modified in the system **/
-    modified: Option[Date])
-
+  /** void:dataDump **/
+  datadump: Option[String],
+  
+  /** The start of the date interval this dataset encompasses (optional) **/ 
+  temporalBoundsStart: Option[Int],
+  
+  /** The end of the date interval this dataset encompasses (optional).
+    *
+    * If the dataset is dated (i.e. if it has a temporalBoundsStart value)
+    * this value MUST be set. In case the thing is dated with a datestamp
+    * rather than an interval, temporalBoundsEnd must be the same as
+    * temporalBoundsStart
+    */   
+  temporalBoundsEnd: Option[Int]    
+  
+)
+    
 /** Dataset DB table **/
 class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
 
@@ -51,6 +65,8 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   
   def created = column[Date]("created", O.NotNull)
   
+  def modified = column[Date]("modified", O.NotNull)
+  
   def voidURI = column[String]("void_uri", O.Nullable)
   
   def description = column[String]("description", O.Nullable)
@@ -59,10 +75,12 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   
   def datadump = column[String]("datadump", O.Nullable)
   
-  def modified = column[Date]("modified", O.Nullable)
+  def temporalBoundsStart = column[Int]("temporal_bounds_start", O.Nullable)
+
+  def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
   
-  def * = (id, title, publisher, license, created, voidURI.?, description.?, 
-    homepage.?, datadump.?, modified.?) <> (Dataset.tupled, Dataset.unapply)
+  def * = (id, title, publisher, license, created, modified, voidURI.?, description.?, 
+    homepage.?, datadump.?, temporalBoundsStart.?, temporalBoundsEnd.?) <> (Dataset.tupled, Dataset.unapply)
   
 }
 
