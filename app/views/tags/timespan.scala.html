@@ -9,12 +9,12 @@
   	val endPrefix = prefix(end.get)
   	
   	if (start == end) {
-  	  startPrefix + " " + start.get
+  	  startPrefix + " " + Math.abs(start.get)
   	} else {
   	  if (startPrefix == endPrefix) {
-  	    startPrefix + " " + start.get + " - " + end.get	
+  	    Html(startPrefix + " " + Math.abs(start.get) + " &ndash; " + Math.abs(end.get))	
   	  } else {
-  	    startPrefix + " " + start.get + " - " + endPrefix + " " + end.get
+  	    Html(startPrefix + " " + Math.abs(start.get) + " &ndash; " + endPrefix + " " + Math.abs(end.get))
   	  }
   	}
   } else {

@@ -10,6 +10,7 @@ GET     /api-v3/datasets                         controllers.DatasetController.l
 GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
 GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/datasets/:id/time                controllers.DatasetController.getTemporalProfile(id: String)
 
 GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)

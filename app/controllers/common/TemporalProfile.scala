@@ -5,13 +5,11 @@ import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 
 class TemporalProfile(data: Seq[(Int, Int)]) {
-    
-  val histogram = data.foldLeft(Map.empty[Int, Int]){ case (h, (nextStart, nextEnd)) =>
-    h.map {
-      case (year, count) if (year >= nextStart && year <= nextEnd) => (year, count + 1)
-      case (year, count) => (year, count)
-    }
-  }
+  
+  val histogram = data.foldLeft(scala.collection.mutable.Map.empty[Int, Int]) { case (h, (nextStart, nextEnd)) =>
+    Seq.range(nextStart, nextEnd + 1).foreach(year => h.put(year, h.get(year).getOrElse(0) + 1))
+    h
+  }.toMap
   
   val maxValue = histogram.map(_._2).max
   

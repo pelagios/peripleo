@@ -32,4 +32,12 @@ object DatasetController extends AbstractAPIController {
     jsonOk(Json.toJson(places), session.request)
   } 
   
+  def getTemporalProfile(id: String) = DBAction { implicit session =>
+    val dataset = Datasets.findById(id)
+    if (dataset.isDefined)
+      jsonOk(Json.parse(dataset.get.temporalProfile.getOrElse("{}")), session.request)
+    else
+      NotFound(Json.parse("{ \"message\": \"Not found\" }"))
+  }
+  
 }

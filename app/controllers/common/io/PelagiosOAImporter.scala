@@ -29,21 +29,15 @@ object PelagiosOAImporter extends AbstractImporter {
     // Parse data
     val ingestBatch: Seq[(AnnotatedThing, Seq[Annotation])] = annotatedThings.toSeq.map(oaThing => { 
       val thingId = md5(oaThing.uri)
-      val cal = Calendar.getInstance()
       
-      val tempBoundsStart = oaThing.temporal.map(temporalPeriod => {
-        cal.setTime(temporalPeriod.start)
-        cal.get(Calendar.YEAR)
-      })    
+      val tempBoundsStart = oaThing.temporal.map(_.start)
       
       val tempBoundsEnd = if (tempBoundsStart.isDefined) {
-        val periodEnd = oaThing.temporal.flatMap(_.end) // .map(endDate => {
-        if (periodEnd.isDefined) {
-          cal.setTime(periodEnd.get)
-          Some(cal.get(Calendar.YEAR))
-        } else {
-          tempBoundsStart // Repeat start date in case no end is defined
-        }  
+        val periodEnd = oaThing.temporal.flatMap(_.end)
+        if (periodEnd.isDefined)
+          periodEnd
+        else
+          tempBoundsStart // Repeat start date in case no end is defined  
       } else {
         None
       }
