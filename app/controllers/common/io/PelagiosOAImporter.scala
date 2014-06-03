@@ -42,7 +42,7 @@ object PelagiosOAImporter extends AbstractImporter {
         cal.get(Calendar.YEAR)
       })
       
-      val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, None, tempBoundsStart, tempBoundsEnd)
+      val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, None, oaThing.homepage, tempBoundsStart, tempBoundsEnd)
       AnnotatedThings.insert(thing)
       Global.index.addAnnotatedThing(thing)
      

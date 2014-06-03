@@ -21,7 +21,7 @@ object CSVImporter extends AbstractImporter {
     
     // Recogito CSVs contain exactly one annotated thing
     val annotatedThing = AnnotatedThing(md5(dataset.id + " " + meta.get("title").get), 
-      dataset.id, meta.get("title").get, None, None, None)
+      dataset.id, meta.get("title").get, None, None, None, None)
         
     AnnotatedThings.insert(annotatedThing)
     Global.index.addAnnotatedThing(annotatedThing)
