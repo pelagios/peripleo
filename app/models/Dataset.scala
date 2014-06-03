@@ -48,9 +48,10 @@ case class Dataset(
     * rather than an interval, temporalBoundsEnd must be the same as
     * temporalBoundsStart
     */   
-  temporalBoundsEnd: Option[Int]    
+  temporalBoundsEnd: Option[Int],
   
-)
+  /** The full temporal profile and time histogram for the dataset **/
+  temporalProfile: Option[String])
     
 /** Dataset DB table **/
 class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
@@ -79,8 +80,10 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
 
   def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
   
+  def temporalProfile = column[String]("temporal_profile", O.Nullable, O.DBType("text"))
+  
   def * = (id, title, publisher, license, created, modified, voidURI.?, description.?, 
-    homepage.?, datadump.?, temporalBoundsStart.?, temporalBoundsEnd.?) <> (Dataset.tupled, Dataset.unapply)
+    homepage.?, datadump.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?) <> (Dataset.tupled, Dataset.unapply)
   
 }
 

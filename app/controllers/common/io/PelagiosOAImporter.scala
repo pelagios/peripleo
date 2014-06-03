@@ -1,5 +1,6 @@
 package controllers.common.io
 
+import controllers.common.TemporalProfile
 import global.Global
 import java.util.{ Calendar, UUID }
 import java.io.FileInputStream
@@ -59,14 +60,19 @@ object PelagiosOAImporter extends AbstractImporter {
     Global.index.addAnnotatedThings(allThings)
     Annotations.insertAll(allAnnotations)
     
-    // Update the parent dataset with new temporal bounds
+    // Update the parent dataset with new temporal bounds and profile
     val datedThings = allThings.filter(_.temporalBoundsStart.isDefined)
-    val tempBoundsStart = if (datedThings.isEmpty) None else Some(datedThings.map(_.temporalBoundsStart.get).min)
-    val tempBoundsEnd = if (datedThings.isEmpty) None else Some(datedThings.map(_.temporalBoundsEnd.get).max)
     
+    val (tempBoundsStart, tempBoundsEnd, temporalProfile) = if (datedThings.isEmpty)
+      (None, None, None) 
+    else
+      (Some(datedThings.map(_.temporalBoundsStart.get).min),
+       Some(datedThings.map(_.temporalBoundsEnd.get).max),
+       Some(new TemporalProfile(datedThings.map(thing => (thing.temporalBoundsStart.get, thing.temporalBoundsEnd.get))).toString))  
+        
     val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
         dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-        dataset.homepage, dataset.datadump, tempBoundsStart, tempBoundsEnd)
+        dataset.homepage, dataset.datadump, tempBoundsStart, tempBoundsEnd, temporalProfile)
         
     Datasets.update(updatedDataset)     
   }

@@ -33,7 +33,7 @@ object VoIDImporter extends AbstractImporter {
       val created = new Date(System.currentTimeMillis)
       val datasetEntity = Dataset(id, dataset.title, dataset.publisher, dataset.license,
         created, created, uri, dataset.description, dataset.homepage, 
-        dataset.datadumps.headOption, None, None)
+        dataset.datadumps.headOption, None, None, None)
         
       Datasets.insert(datasetEntity)
       Global.index.addDataset(datasetEntity)
