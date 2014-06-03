@@ -29,6 +29,11 @@ object DatasetController extends AbstractAPIController {
   
   def listPlaces(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
     val places = Places.findPlacesInDataset(id, offset, limit)
+    
+    implicit val verbose = session.request.queryString
+      .filter(_._1.toLowerCase.equals("verbose"))
+      .headOption.flatMap(_._2.headOption.map(_.toBoolean)).getOrElse(true)
+      
     jsonOk(Json.toJson(places), session.request)
   } 
   

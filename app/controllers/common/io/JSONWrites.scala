@@ -36,14 +36,16 @@ object JSONWrites {
   
       
   /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
-  implicit val gazetteerURIWrites: Writes[GazetteerURI] = (
+  implicit def gazetteerURIWrites(implicit verbose: Boolean = true): Writes[GazetteerURI] = (
     (JsPath \ "gazetteer_uri").write[String] ~
     (JsPath).writeNullable[Place]
-  )(uri => (uri.uri, Global.gazetteer.findByURI(uri.uri))) 
+  )(uri => (
+      uri.uri,
+      { if (verbose) Global.gazetteer.findByURI(uri.uri) else None })) 
 
       
   /** Writes a pair (Place, Occurrence-Count) **/
-  implicit val placeCountWrites: Writes[(GazetteerURI, Int)] = (
+  implicit def placeCountWrites(implicit verbose: Boolean = true): Writes[(GazetteerURI, Int)] = (
       (JsPath).write[GazetteerURI] ~
       (JsPath \ "number_of_occurrences").write[Int]
   )(t  => (t._1, t._2))     
