@@ -5,7 +5,31 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
 /** AnnotatedThing model entity **/
-case class AnnotatedThing(id: String, dataset: String, title: String, isPartOf: Option[String])
+case class AnnotatedThing(
+  
+  /** ID **/
+  id: String, 
+  
+  /** ID of the dataset this thing is part of **/
+  dataset: String, 
+  
+  /** The thing's title **/
+  title: String, 
+ 
+  /** The ID of the annotated thing this thing is part of (if any) **/
+  isPartOf: Option[String],
+  
+  /** The start of the date interval this thing is dated at (optional) **/ 
+  temporalBoundsStart: Option[Int],
+  
+  /** The end of the date interval this thing is dated at (optional).
+    *
+    * If the thing is dated (i.e. if it has a temporalBoundsStart value)
+    * this value MUST be set. In case the thing is dated with a datestamp
+    * rather than an interval, temporalBoundsEnd must be the same as
+    * temporalBoundsStart
+    */   
+  temporalBoundsEnd: Option[Int])
 
 /** AnnotatedThing DB table **/
 class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_things") {
@@ -18,7 +42,12 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   def isPartOfId = column[String]("is_part_of", O.Nullable)
   
-  def * = (id, datasetId, title, isPartOfId.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
+  def temporalBoundsStart = column[Int]("temp_bounds_start", O.Nullable)
+
+  def temporalBoundsEnd = column[Int]("temp_bounds_end", O.Nullable)
+
+  def * = (id, datasetId, title, isPartOfId.?, temporalBoundsStart.?, 
+    temporalBoundsEnd.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
   
   /** Foreign key constraints **/
   

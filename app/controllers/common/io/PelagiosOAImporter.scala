@@ -11,6 +11,7 @@ import play.api.mvc.MultipartFormData.FilePart
 import org.openrdf.rio.RDFFormat
 import org.pelagios.Scalagios
 import global.Global
+import java.util.Calendar
 
 object PelagiosOAImporter extends AbstractImporter {
 
@@ -29,7 +30,19 @@ object PelagiosOAImporter extends AbstractImporter {
       // TODO add support for annotated things with multi-level hierarchy
       
       val thingId = md5(oaThing.uri)
-      val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, None)
+      val cal = Calendar.getInstance()
+      
+      val tempBoundsStart = oaThing.temporal.map(temporalPeriod => {
+        cal.setTime(temporalPeriod.start)
+        cal.get(Calendar.YEAR)
+      })
+      
+      val tempBoundsEnd = oaThing.temporal.flatMap(_.end).map(endDate => {
+        cal.setTime(endDate)
+        cal.get(Calendar.YEAR)
+      })
+      
+      val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, None, tempBoundsStart, tempBoundsEnd)
       AnnotatedThings.insert(thing)
       Global.index.addAnnotatedThing(thing)
      
