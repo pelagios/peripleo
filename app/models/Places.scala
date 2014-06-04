@@ -3,21 +3,48 @@ package models
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 import global.Global
+import com.vividsolutions.jts.geom.Geometry
 
-/** Helper entity to speed up 'how many places are in dataset XY'-type queries **/
-private[models] case class PlacesByDataset(id: Option[Int], dataset: String, gazetteerURI: GazetteerURI, count: Int)
+/** Helper entity to speed up 'how many places are in dataset XY'-type queries.
+  *
+  * In a nutshell, this table contains links between datasets and places, plus a bit
+  * of 'cached' information about the place from the gazetteer, so that we don't
+  * need to do an extra gazetteer resolution step when retrieving the links from 
+  * the DB. 
+  */
+private[models] case class PlacesByDataset(
+    
+  /** Auto-inc ID **/
+  id: Option[Int], 
+    
+  /** ID of the dataset that is referencing the place **/
+  dataset: String, 
+    
+  /** Cached information about the place (URI, title and geometry) **/
+  place: GazetteerReference, 
+    
+  /** Number of times the place is referenced **/
+  count: Int)
 
-private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") with HasGazetteerURIColumn {
+    
+private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") {
   
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
   def datasetId = column[String]("dataset", O.NotNull)
 
-  def gazetteerURI = column[GazetteerURI]("gazetteer_uri", O.NotNull)
+  def gazetteerURI = column[String]("gazetteer_uri", O.NotNull)
+  
+  def title = column[String]("title", O.NotNull)
+  
+  def geometry = column[GeoJSON]("geometry", O.Nullable)
 
   def count = column[Int]("count", O.NotNull)
   
-  def * = (id.?, datasetId, gazetteerURI, count) <> (PlacesByDataset.tupled, PlacesByDataset.unapply)
+  // Solution for embedding GazetteerURI as multiple columns provided by the mighty @manuelbernhardt
+  def * = (id.?, datasetId, (gazetteerURI, title, geometry.?), count).shaped <> (
+    { case (id, datasetId, gazetteerURI, count) => PlacesByDataset(id, datasetId, GazetteerReference.tupled.apply(gazetteerURI), count) },
+    { p: PlacesByDataset => Some(p.id, p.dataset, GazetteerReference.unapply(p.place).get, p.count) })
   
   /** Foreign key constraints **/
   
@@ -32,9 +59,24 @@ private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDatas
 }
 
 /** Helper entity to speed up 'how many places are in annotated item XY'-type queries **/
-private[models] case class PlacesByThing(id: Option[Int], dataset: String, annotatedThing: String, gazetteerURI: GazetteerURI, count: Int)
+private[models] case class PlacesByThing(
+    
+  /** Auto-inc ID **/
+  id: Option[Int], 
+  
+  /** ID of the dataset containing the annotating thing **/
+  dataset: String, 
+  
+  /** ID of the annotated thing that is referencing the place **/
+  annotatedThing: String, 
+  
+  /** Cached information about the place (URI, title and geometry) **/
+  place: GazetteerReference,
+  
+  /** Number of times the place is referenced **/
+  count: Int)
 
-private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") with HasGazetteerURIColumn {
+private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -42,11 +84,18 @@ private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](
   
   def annotatedThingId = column[String]("annotated_thing", O.NotNull)
 
-  def gazetteerURI = column[GazetteerURI]("gazetteer_uri", O.NotNull)
+  def gazetteerURI = column[String]("gazetteer_uri", O.NotNull)
+  
+  def title = column[String]("title", O.NotNull)
+  
+  def geometry = column[GeoJSON]("geometry", O.Nullable)
 
   def count = column[Int]("count", O.NotNull)
   
-  def * = (id.?, datasetId, annotatedThingId, gazetteerURI, count) <> (PlacesByThing.tupled, PlacesByThing.unapply)
+  // Solution for embedding GazetteerURI as multiple columns provided by the mighty @manuelbernhardt
+  def * = (id.?, datasetId, annotatedThingId, (gazetteerURI, title, geometry.?), count).shaped <> (
+    { case (id, datasetId, annotatedThingId, gazetteerURI, count) => PlacesByThing(id, datasetId, annotatedThingId, GazetteerReference.tupled.apply(gazetteerURI), count) },
+    { p: PlacesByThing => Some(p.id, p.dataset, p.annotatedThing, GazetteerReference.unapply(p.place).get, p.count) })
   
   /** Foreign key constraints **/
   
@@ -65,7 +114,7 @@ private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](
 }
 
 /** Queries **/
-object Places extends HasGazetteerURIColumn {
+object Places {
   
   private val queryByDataset = TableQuery[PlacesByDatasetTable]
   
@@ -89,25 +138,30 @@ object Places extends HasGazetteerURIColumn {
       
     // Compute per-dataset stats and insert
     val placesInDataset = annotations.groupBy(_.gazetteerURI)
-      .filterKeys(uri => Global.gazetteer.findByURI(uri.uri).isDefined) // We restrict to places in the gazetteer
-      .mapValues(_.size).toSeq 
-      .map { case (gazetteerUri, count) => PlacesByDataset(None, datasetId, gazetteerUri, count) }
+      .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
+      .filter(_._1.isDefined) // We restrict to places in the gazetteer
+      .map { case (place, count) => 
+        PlacesByDataset(None, datasetId, GazetteerReference(place.get.uri, place.get.title, place.get.locations.headOption.map(l => GeoJSON(l.geoJSON))), count) }
+      .toSeq
+
     queryByDataset.insertAll(placesInDataset:_*)
       
     // Compute per-thing stats and insert
-    val placesByAnnotatedThing = annotations.groupBy(_.annotatedThing).toSeq.flatMap { case (thingId, annotations) => {
+    val placesByAnnotatedThing = annotations.groupBy(_.annotatedThing).flatMap { case (thingId, annotations) => {
       annotations.groupBy(_.gazetteerURI)
-        .filterKeys(uri => Global.gazetteer.findByURI(uri.uri).isDefined) // We restrict to places in the gazetteer
-        .mapValues(_.size).toSeq
-        .map { case (gazetteerUri, count) => PlacesByThing(None, datasetId, thingId, gazetteerUri, count)}
-    }}
+        .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
+        .filter(_._1.isDefined) // We restrict to places in the gazetteer
+        .map { case (place, count) => 
+          PlacesByThing(None, datasetId, thingId, GazetteerReference(place.get.uri, place.get.title, place.get.locations.headOption.map(l => GeoJSON(l.geoJSON))), count) }
+    }}.toSeq
+    
     queryByThing.insertAll(placesByAnnotatedThing:_*)
   }
   
-  def countDatasetsForPlace(gazetteerURI: GazetteerURI)(implicit s: Session): Int =
+  def countDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Int =
     Query(queryByDataset.where(_.gazetteerURI === gazetteerURI).length).first
   
-  def findDatasetsForPlace(gazetteerURI: GazetteerURI)(implicit s: Session): Seq[(Dataset, Int)] = {
+  def findDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] = {
     val query = for {
       placesByDataset <- queryByDataset.where(_.gazetteerURI === gazetteerURI)   
       dataset <- Datasets.query if placesByDataset.datasetId === dataset.id
@@ -116,10 +170,10 @@ object Places extends HasGazetteerURIColumn {
     query.list
   }
   
-  def countThingsForPlaceAndDataset(gazetteerURI: GazetteerURI, datasetId: String)(implicit s: Session): Int =
+  def countThingsForPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Int =
     Query(queryByThing.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI).length).first
   
-  def findThingsForPlaceAndDataset(gazetteerURI: GazetteerURI, datasetId: String)(implicit s: Session): Seq[(AnnotatedThing, Int)] = {
+  def findThingsForPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Seq[(AnnotatedThing, Int)] = {
     val query = for {
       placesByThing <- queryByThing.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI)   
       annotatedThing <- AnnotatedThings.query if placesByThing.annotatedThingId === annotatedThing.id
@@ -131,10 +185,10 @@ object Places extends HasGazetteerURIColumn {
   def countPlacesInDataset(datasetId: String)(implicit s: Session): Int =
     Query(queryByDataset.where(_.datasetId === datasetId).length).first
  
-  def findPlacesInDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerURI, Int)] = {
+  def findPlacesInDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerReference, Int)] = {
     val total = countPlacesInDataset(datasetId)
-    val result = queryByDataset.where(_.datasetId === datasetId).sortBy(_.count.desc).drop(offset).take(limit)
-      .map(row => (row.gazetteerURI, row.count)).list
+    val result = queryByDataset.where(_.datasetId === datasetId).sortBy(_.count.desc).drop(offset).take(limit).list
+      .map(row => (row.place, row.count))
     
     Page(result, offset, limit, total)
   }
@@ -142,10 +196,10 @@ object Places extends HasGazetteerURIColumn {
   def countPlacesForThing(thingId: String)(implicit s: Session): Int =
     Query(queryByThing.where(_.annotatedThingId === thingId).length).first
     
-  def findPlacesForThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerURI, Int)] = {
+  def findPlacesForThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerReference, Int)] = {
     val total = countPlacesForThing(thingId)
-    val result = queryByThing.where(_.annotatedThingId === thingId).sortBy(_.count.desc).drop(offset).take(limit)
-      .map(row => (row.gazetteerURI, row.count)).list
+    val result = queryByThing.where(_.annotatedThingId === thingId).sortBy(_.count.desc).drop(offset).take(limit).list
+      .map(row => (row.place, row.count))
       
     Page(result, offset, limit, total)
   }

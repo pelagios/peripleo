@@ -9,6 +9,7 @@ import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import com.vividsolutions.jts.geom.Geometry
 
 /** JSON writers for model classes.
   *
@@ -36,19 +37,26 @@ object JSONWrites {
   
       
   /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
-  implicit def gazetteerURIWrites(implicit verbose: Boolean = true): Writes[GazetteerURI] = (
+  implicit def gazetteerURIWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (
     (JsPath \ "gazetteer_uri").write[String] ~
+    (JsPath \ "title").write[String] ~
+    (JsPath \ "centroid_lat").writeNullable[Double] ~
+    (JsPath \ "centroid_lng").writeNullable[Double] ~ 
     (JsPath).writeNullable[Place]
-  )(uri => (
-      uri.uri,
-      { if (verbose) Global.gazetteer.findByURI(uri.uri) else None })) 
+  )(place => {
+      val centroid = place.geometry.map(_.geometry.getCentroid.getCoordinate)
+      (place.uri,
+       place.title,
+       centroid.map(_.y),
+       centroid.map(_.x),
+       { if (verbose) Global.gazetteer.findByURI(place.uri) else None })}) 
 
       
   /** Writes a pair (Place, Occurrence-Count) **/
-  implicit def placeCountWrites(implicit verbose: Boolean = true): Writes[(GazetteerURI, Int)] = (
-      (JsPath).write[GazetteerURI] ~
+  implicit def placeCountWrites(implicit verbose: Boolean = true): Writes[(GazetteerReference, Int)] = (
+      (JsPath).write[GazetteerReference] ~
       (JsPath \ "number_of_occurrences").write[Int]
-  )(t  => (t._1, t._2))     
+  )(t  => (t._1, t._2))   
        
   
   /** Writes a dataset, with annotation count and place count pulled from the DB on the fly **/
@@ -106,13 +114,15 @@ object JSONWrites {
     (JsPath \ "uuid").write[String] ~
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "annotated_item").write[String] ~
-    (JsPath \ "place").write[GazetteerURI]
+    (JsPath \ "place_uri").write[String]
   )(a => (
       a.uuid.toString,
       a.dataset,
       a.annotatedThing,
       a.gazetteerURI))
       
+      
+  /** Writes a search result **/    
   implicit val indexedObjectWrites: Writes[IndexedObject] = (
     (JsPath \ "id").write[String] ~
     (JsPath \ "title").write[String] ~

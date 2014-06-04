@@ -1,6 +1,6 @@
 package controllers.common.io
 
-import controllers.common.TemporalProfile
+import models.TemporalProfile
 import global.Global
 import java.util.{ Calendar, UUID }
 import java.io.FileInputStream
@@ -43,7 +43,7 @@ object PelagiosOAImporter extends AbstractImporter {
       }
       
       val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, None, oaThing.homepage, tempBoundsStart, tempBoundsEnd)
-      val annotations = oaThing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, new GazetteerURI(a.place.head)))     
+      val annotations = oaThing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, a.place.head))     
       (thing, annotations)
     })
       

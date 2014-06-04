@@ -1,4 +1,4 @@
-package controllers.common
+package models
 
 import play.api.libs.json._
 import play.api.libs.json.Reads._
