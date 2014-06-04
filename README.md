@@ -13,7 +13,7 @@ The primary entities served through the API are __Datasets__, __Items__ and __Pl
 so HTTP GET requests are the only ones accepted. JSON is currently the only response format. Append __prettyprint=true__ 
 as query parameter for a pretty-printed JSON response. All paginated responses will return a list
 of 20 items per default. Append __offset=XY__ (list offset) and __limit=XY__ (number of items returned) as query
-parameters to control pagination. 
+parameters to control pagination. The API supports CORS and JSONP ([example](http://pelagios.org/api-v3/datasets?callback=myHandler)).
 
 The API provides the following methods:
 
