@@ -1,39 +1,28 @@
 # Pelagios API (v3)
 
 This is the latest incarnation of the Pelagios API, developed during the course of the 
-[Pelagios 3 Project](http://pelagios-project.blogspot.co.uk). V3 of the Pelagios API
+[Pelagios 3 Project](http://pelagios-project.blogspot.co.uk). Version 3 of the Pelagios API
 is work in progress (which translates as "not everything works just yet").
 
 __A development version of the API (which includes a small sample dataset to play with) is 
-available at [http://pelagios.org/api-v3/datasets](http://pelagios.org/api-v3/datasets).__
+available at [http://pelagios.org/api-v3/pages/datasets](http://pelagios.org/api-v3/pages/datasets).__
 
-## For Developers
+## Using the API
 
- 
 The primary entities served through the API are __Datasets__, __Items__ and __Places__. The API is read-only,
-so HTTP GET requests are the only ones accepted. JSON is currently the only response format. Append __prettyPrint=true__ 
-(case sensitive) as query parameter for a pretty-printed JSON response. All paginated responses will return a list
+so HTTP GET requests are the only ones accepted. JSON is currently the only response format. Append __prettyprint=true__ 
+as query parameter for a pretty-printed JSON response. All paginated responses will return a list
 of 20 items per default. Append __offset=XY__ (list offset) and __limit=XY__ (number of items returned) as query
 parameters to control pagination. 
 
-API provides the following methods:
+The API provides the following methods:
 
-    GET     /api-v3/datasets
-
-List all datasets (paginated)
-
-    GET     /api-v3/datasets/:id
-    
-Get the dataset with the specified ID
-
-
-    GET     /api-v3/datasets/:id/items
-    
-List all items contained in this dataset (paginated)
-
-    GET     /api-v3/datasets/:id/places
-    
-List all places contained in this dataset (paginated)
+* [/api-v3/datasets](http://pelagios.org/api-v3/datasets?prettyprint=true) -- List all datasets (paginated).
+* [/api-v3/datasets/:id](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd?prettyprint=true) -- 
+  Get the dataset with the specified ID.
+* [/api-v3/datasets/:id/items](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/items?prettyprint=true) -- List all items contained in this dataset (paginated).
+* [/api-v3/datasets/:id/places](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/places?prettyprint=true) -- List all places contained in this dataset (paginated). Append 'verbose=false' as query parameter to receive
+  a less verbose response, which has additional performance benefits (i.e. it will load faster than the full response)
 
     GET     /api-v3/items
     
