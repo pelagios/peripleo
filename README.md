@@ -17,12 +17,10 @@ parameters to control pagination.
 
 The API provides the following methods:
 
-* [/api-v3/datasets](http://pelagios.org/api-v3/datasets?prettyprint=true) -- List all datasets (paginated).
-* [/api-v3/datasets/:id](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd?prettyprint=true) -- 
-  Get the dataset with the specified ID.
-* [/api-v3/datasets/:id/items](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/items?prettyprint=true) -- List all items contained in this dataset (paginated).
-* [/api-v3/datasets/:id/places](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/places?prettyprint=true) -- List all places contained in this dataset (paginated). Append 'verbose=false' as query parameter to receive
-  a less verbose response, which has additional performance benefits (i.e. it will load faster than the full response)
+* __[/api-v3/datasets](http://pelagios.org/api-v3/datasets?prettyprint=true)__ List all datasets (paginated).
+* __[/api-v3/datasets/:id](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd?prettyprint=true)__  Get the dataset with the specified ID.
+* __[/api-v3/datasets/:id/items](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/items?prettyprint=true)__ List all items contained in this dataset (paginated).
+* __[/api-v3/datasets/:id/places](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/places?prettyprint=true)__ List all places contained in this dataset (paginated). Append 'verbose=false' as query parameter to receive a less verbose response, which has additional performance benefits (i.e. it will load faster than the full response)
 
     GET     /api-v3/items
     
