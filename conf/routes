@@ -14,6 +14,7 @@ GET     /api-v3/datasets/:id/time                controllers.DatasetController.g
 
 GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
+GET     /api-v3/items/:id/items                  controllers.AnnotatedThingController.listSubItems(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String, limit: Int ?= 20, offset: Int ?= 0)
 

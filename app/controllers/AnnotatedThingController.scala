@@ -19,6 +19,11 @@ object AnnotatedThingController extends AbstractAPIController {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }  
   
+  def listSubItems(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
+    val subItems = AnnotatedThings.listChildren(id, false)
+    jsonOk(Json.toJson(subItems), session.request)
+  }
+  
   def listPlaces(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
     val places = Places.findPlacesForThing(id)
     jsonOk(Json.toJson(places), session.request)

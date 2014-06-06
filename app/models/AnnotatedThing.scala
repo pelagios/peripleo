@@ -129,6 +129,7 @@ object AnnotatedThings {
     }
   }
   
+  // TODO pagination
   def listChildren(parentId: String, recursive: Boolean = false)(implicit s: Session): Seq[AnnotatedThing] = {
     val children = query.where(_.isPartOfId === parentId).list
     if (recursive) {

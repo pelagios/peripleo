@@ -97,6 +97,7 @@ object JSONWrites {
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "is_part_of").writeNullable[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
+    (JsPath \ "number_of_subitems").writeNullable[Int] ~
     (JsPath \ "number_of_annotations").write[Int] ~ 
     (JsPath \ "number_of_unique_places").write[Int]
   )(thing => (
@@ -105,6 +106,7 @@ object JSONWrites {
       thing.dataset,
       thing.isPartOf,
       thing.homepage,
+      { val count = AnnotatedThings.countChildren(thing.id, false); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),
       Places.countPlacesForThing(thing.id)))
   
