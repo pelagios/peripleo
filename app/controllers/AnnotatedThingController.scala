@@ -8,7 +8,7 @@ import play.api.libs.json.{ Json, JsString, Writes }
 object AnnotatedThingController extends AbstractAPIController {
     
   def listAll(limit: Int, offset: Int) = DBAction { implicit session =>
-    Ok(Json.parse("{ \"message\": \"Hello World!\" }"))
+    jsonOk(Json.toJson(AnnotatedThings.listAll(false, offset, limit)), session.request)
   }  
   
   def getAnnotatedThing(id: String) = DBAction { implicit session =>

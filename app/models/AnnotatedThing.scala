@@ -58,7 +58,7 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   def datasetFk = foreignKey("dataset_fk", datasetId, Datasets.query)(_.id)
   
-  def isPartOf = foreignKey("is_part_of_fk", isPartOfId, AnnotatedThings.query)(_.id)
+  def isPartOfFk = foreignKey("is_part_of_fk", isPartOfId, AnnotatedThings.query)(_.id)
   
   /** Indices **/
   
@@ -80,25 +80,83 @@ object AnnotatedThings {
   def update(thing: AnnotatedThing)(implicit s: Session) = 
     query.where(_.id === thing.id).update(thing)
   
-  def countAll()(implicit s: Session): Int = 
-    Query(query.length).first
+  def countAll(topLevelOnly: Boolean = true)(implicit s: Session): Int = {
+    if (topLevelOnly)
+      Query(query.where(_.isPartOfId.isNull).length).first
+    else
+      Query(query.length).first
+  }
     
-  def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
-    val total = countAll()
-    val result = query.drop(offset).take(limit).list
+  def listAll(topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
+    val total = countAll(topLevelOnly)
+    val result = 
+      if (topLevelOnly)
+        query.where(_.isPartOfId.isNull).drop(offset).take(limit).list
+      else
+        query.drop(offset).take(limit).list
+        
     Page(result, offset, limit, total)
   }
-  
+        
   def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
     query.where(_.id === id).firstOption
 
-  def countByDataset(datasetId: String)(implicit s: Session): Int =
-    Query(query.where(_.datasetId === datasetId).length).first
+  def countByDataset(datasetId: String, topLevelOnly: Boolean = true)(implicit s: Session): Int =
+    if (topLevelOnly)
+      Query(query.where(_.datasetId === datasetId).where(_.isPartOfId.isNull).length).first
+    else
+      Query(query.where(_.datasetId === datasetId).length).first
 
-  def findByDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
-    val total = countByDataset(datasetId)
-    val result = query.where(_.datasetId === datasetId).drop(offset).take(limit).list
+  def findByDataset(datasetId: String, topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
+    val total = countByDataset(datasetId, topLevelOnly)
+    val result = 
+      if (topLevelOnly)
+        query.where(_.datasetId === datasetId).where(_.isPartOfId.isNull).drop(offset).take(limit).list
+      else
+        query.where(_.datasetId === datasetId).drop(offset).take(limit).list
     Page(result, offset, limit, total)
+  }
+  
+  def countChildren(parentId: String, recursive: Boolean = false)(implicit s: Session): Int = {
+    val children = query.where(_.isPartOfId === parentId).map(_.id).list
+    if (recursive) {
+      if (children.isEmpty)
+        return 0
+      else
+        children.foldLeft(children.size)((count, id) =>  count + countChildren(id, true))
+    } else {
+      children.size
+    }
+  }
+  
+  def listChildren(parentId: String, recursive: Boolean = false)(implicit s: Session): Seq[AnnotatedThing] = {
+    val children = query.where(_.isPartOfId === parentId).list
+    if (recursive) {
+      if (children.isEmpty)
+        children
+      else
+        children.flatMap(thing => thing +: listChildren(thing.id, true))
+    } else {
+      children
+    }
+  }
+  
+  def getParentHierarchy(thingId: String)(implicit s: Session): Seq[String] = {
+    val parentId = query.where(_.id === thingId).where(_.isPartOfId.isNotNull).map(_.isPartOfId).firstOption
+    if (parentId.isDefined) {
+      parentId.get +: getParentHierarchy(parentId.get)
+    } else {
+      Seq.empty[String]
+    }
+  }
+  
+  def getParentIds(thingIds: Seq[String])(implicit s: Session): Seq[String] = {
+    val parentIds = query.where(_.id.inSet(thingIds)).where(_.isPartOfId.isNotNull).map(_.isPartOfId).list.distinct
+    if (parentIds.isEmpty) {
+      parentIds
+    } else {
+      (parentIds ++ getParentIds(parentIds)).distinct
+    }
   }
   
 }

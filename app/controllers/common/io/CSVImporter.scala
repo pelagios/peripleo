@@ -6,6 +6,7 @@ import models._
 import play.api.db.slick._
 import scala.io.Source
 import global.Global
+import play.api.Logger
 
 object CSVImporter extends AbstractImporter {
   
@@ -19,21 +20,32 @@ object CSVImporter extends AbstractImporter {
     val meta = toMap(data.takeWhile(_.startsWith("#")))  
     val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
     
-    // Recogito CSVs contain exactly one annotated thing
-    val annotatedThing = AnnotatedThing(md5(dataset.id + " " + meta.get("title").get), 
+    // Recogito CSVs represent exactly one top-level AnnotatedThing...
+    val parentThing = AnnotatedThing(md5(dataset.id + " " + meta.get("title").get), 
       dataset.id, meta.get("title").get, None, None, None, None)
-        
-    AnnotatedThings.insert(annotatedThing)
-    Global.index.addAnnotatedThing(annotatedThing)
-    
+                  
     val uuidIdx = header.indexOf("uuid")
-    val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
-      Annotation(
-          { if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID },
-          dataset.id, annotatedThing.id, fields(header.indexOf("gazetteer_uri")))      
-    })
+    val annotationsByPart = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
+      val uuid = if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID 
+      val gazetteerURI = fields(header.indexOf("gazetteer_uri"))
+      val documentPart = fields(header.indexOf("document_part"))
       
-    Annotations.insertAll(annotations)
+      (uuid, documentPart, gazetteerURI)     
+    }).groupBy(_._2)
+    
+    val parts = annotationsByPart.keys.map(title =>
+      AnnotatedThing(md5(dataset.id + " " + title), dataset.id, title, Some(parentThing.id), None, None, None))
+    
+    val annotations = annotationsByPart.values.flatten.map(t => {
+      Annotation(t._1, dataset.id, parts.find(_.title == t._2).get.id, t._3)
+    })
+    
+    val allThings = parts.toSeq :+ parentThing
+    AnnotatedThings.insertAll(allThings)
+    Global.index.addAnnotatedThings(allThings)
+    Annotations.insertAll(annotations.toSeq)
+    
+    Logger.info("Import complete")
   }
 
   private def toMap(meta: Seq[String]): Map[String, String] = {

@@ -46,8 +46,8 @@ object Annotations {
     // Insert annotations
     query.insertAll(annotations:_*)
     
-    // Update place index stats for affected datasets
-    annotations.groupBy(_.dataset).keys.foreach(Places.recompute(_))
+    // After all annotations are ingested, update place index stats
+    Places.recompute(annotations)
   }
   
   def update(annotation: Annotation)(implicit s: Session) = 
@@ -74,8 +74,14 @@ object Annotations {
     Page(result, offset, limit, total)
   }
  
-  def countByAnnotatedThing(thingId: String)(implicit s: Session): Int =
-    Query(query.where(_.annotatedThingId === thingId).length).first
+  def countByAnnotatedThing(thingId: String, recursive: Boolean = true)(implicit s: Session): Int = {
+    if (recursive) {
+      val allThingIds = thingId +: AnnotatedThings.listChildren(thingId, true).map(_.id)
+      Query(query.where(_.annotatedThingId.inSet(allThingIds)).length).first
+    } else {
+      Query(query.where(_.annotatedThingId === thingId).length).first
+    }
+  }
 
   def findByAnnotatedThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
     val total = countByAnnotatedThing(thingId)

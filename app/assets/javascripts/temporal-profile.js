@@ -33,8 +33,6 @@ window.TemporalProfile = function(divId, data) {
     buckets.push(bucketValue);    
   }
   
-  console.log(maxValue, buckets);
-  
   $.each(buckets, function(offset, value) {
     var h = value * height * 0.9 / maxValue;
     ctx.fillRect(offset, height - h, 1, h);

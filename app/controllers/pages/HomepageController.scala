@@ -11,7 +11,7 @@ object HomepageController extends Controller {
   
   def index() = DBAction { implicit session =>
     val datasets = Datasets.countAll
-    val items = AnnotatedThings.countAll
+    val items = AnnotatedThings.countAll(true)
     val places = 36221 // TODO get rid of this hard-coded number and replace with live count from gazetteers
     Ok(views.html.home(datasets, items, places))
   }
