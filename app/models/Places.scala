@@ -126,12 +126,12 @@ object Places {
     queryByThing.ddl.create
   }
 
-  private def recomputeDataset(datasetId: String, annotations: Seq[Annotation])(implicit s: Session) = {
+  private def recomputeDataset(datasetId: String)(implicit s: Session) = {
     // Purge
     queryByDataset.where(_.datasetId === datasetId).delete
     
     // Recompute
-    val placesInDataset = annotations.filter(_.dataset == datasetId).groupBy(_.gazetteerURI)
+    val placesInDataset = Annotations.findByDataset(datasetId).items.groupBy(_.gazetteerURI)
       .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
       .filter(_._1.isDefined) // We restrict to places in the gazetteer
       .map { case (place, count) => 
@@ -141,8 +141,11 @@ object Places {
     queryByDataset.insertAll(placesInDataset:_*)    
   }
   
-  private def recomputeLeafThings(datasetId: String, annotations: Seq[Annotation])(implicit s: Session) = {
+  private def recomputeLeafThings(datasetId: String, annotations: Seq[Annotation])(implicit s: Session) = {    
     val annotationsByThing = annotations.groupBy(_.annotatedThing)
+    annotationsByThing.foreach { case (thingId, annotations) => 
+      queryByThing.where(_.annotatedThingId === thingId).delete }
+    
     val placesByThing = annotationsByThing.flatMap { case (thingId, annotations) => {
       annotations.groupBy(_.gazetteerURI)
         .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
@@ -154,9 +157,10 @@ object Places {
     queryByThing.insertAll(placesByThing:_*)    
   }
   
-  private def recomputeIntermediateThing(datasetId: String, intermediateThingId: String, leafThings: Seq[String], annotations: Seq[Annotation])(implicit s: Session) = {    
-    val annotationsForThing = annotations.filter(a => leafThings.contains(a.annotatedThing))
+  private def recomputeIntermediateThing(datasetId: String, intermediateThingId: String, leafThings: Seq[String], annotations: Seq[Annotation])(implicit s: Session) = {
+    queryByThing.where(_.annotatedThingId === intermediateThingId).delete
     
+    val annotationsForThing = annotations.filter(a => leafThings.contains(a.annotatedThing))
     val placesForThing = annotationsForThing.groupBy(_.gazetteerURI)
       .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
       .filter(_._1.isDefined) // We restrict to places in the gazetteer
@@ -172,7 +176,7 @@ object Places {
     
     // Recompute datasets and leaf things
     val affectedDatasets = annotations.groupBy(_.dataset).keys
-    affectedDatasets.foreach(recomputeDataset(_, annotations))
+    affectedDatasets.foreach(recomputeDataset(_))
     affectedDatasets.foreach(recomputeLeafThings(_, annotations))
       
     // Things can be hierarchical - aggregate starting from root nodes
