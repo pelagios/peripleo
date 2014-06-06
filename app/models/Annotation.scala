@@ -76,7 +76,7 @@ object Annotations {
  
   def countByAnnotatedThing(thingId: String, recursive: Boolean = true)(implicit s: Session): Int = {
     if (recursive) {
-      val allThingIds = thingId +: AnnotatedThings.listChildren(thingId, true).map(_.id)
+      val allThingIds = thingId +: AnnotatedThings.walkChildren(thingId).map(_.id)
       Query(query.where(_.annotatedThingId.inSet(allThingIds)).length).first
     } else {
       Query(query.where(_.annotatedThingId === thingId).length).first

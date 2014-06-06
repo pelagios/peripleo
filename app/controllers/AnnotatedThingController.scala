@@ -20,7 +20,7 @@ object AnnotatedThingController extends AbstractAPIController {
   }  
   
   def listSubItems(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
-    val subItems = AnnotatedThings.listChildren(id, false)
+    val subItems = AnnotatedThings.listChildren(id)
     jsonOk(Json.toJson(subItems), session.request)
   }
   

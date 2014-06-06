@@ -117,29 +117,21 @@ object AnnotatedThings {
     Page(result, offset, limit, total)
   }
   
-  def countChildren(parentId: String, recursive: Boolean = false)(implicit s: Session): Int = {
-    val children = query.where(_.isPartOfId === parentId).map(_.id).list
-    if (recursive) {
-      if (children.isEmpty)
-        return 0
-      else
-        children.foldLeft(children.size)((count, id) =>  count + countChildren(id, true))
-    } else {
-      children.size
-    }
+  def countChildren(parentId: String)(implicit s: Session): Int =
+    Query(query.where(_.isPartOfId === parentId).length).first
+    
+  def listChildren(parentId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
+    val total = countChildren(parentId)
+    val result = query.where(_.isPartOfId === parentId).drop(offset).take(limit).list
+    Page(result, offset, limit, total)
   }
-  
-  // TODO pagination
-  def listChildren(parentId: String, recursive: Boolean = false)(implicit s: Session): Seq[AnnotatedThing] = {
+    
+  private[models] def walkChildren(parentId: String)(implicit s: Session): Seq[AnnotatedThing] = {
     val children = query.where(_.isPartOfId === parentId).list
-    if (recursive) {
-      if (children.isEmpty)
-        children
-      else
-        children.flatMap(thing => thing +: listChildren(thing.id, true))
-    } else {
+    if (children.isEmpty)
       children
-    }
+    else
+      children.flatMap(thing => thing +: walkChildren(thing.id))    
   }
   
   def getParentHierarchy(thingId: String)(implicit s: Session): Seq[String] = {

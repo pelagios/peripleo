@@ -22,6 +22,7 @@ The API provides the following methods:
 * __[/api-v3/datasets/:id/items](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/items?prettyprint=true)__ List all items contained in this dataset (paginated).
 * __[/api-v3/datasets/:id/places](http://pelagios.org/api-v3/datasets/174524047516a97f0ba45d4af5e485dd/places?prettyprint=true)__ List all places contained in this dataset (paginated). Append 'verbose=false' as query parameter to receive a less verbose response, which has additional performance benefits (i.e. it will load faster than the full response)
 * __[/api-v3/items/:id](http://pelagios.org/api-v3/items/bae00692d9a64e3e947bd5819102d01d?prettyprint=true)__ Get the item with the specified ID
+* __[/api-v3/items/:id/items](http://pelagios.org/api-v3/items/2dbf2df9a073bd29710abdf3a4330996/items?prettyPrint=true)__ List sub-items to this item (paginated)
 * __[/api-v3/items/:id/places](http://pelagios.org/api-v3/items/bae00692d9a64e3e947bd5819102d01d/places?prettyprint=true)__ List all places that are referenced by this item (paginated)
 * __[/api-v3/items/:id/annotations](http://pelagios.org/api-v3/items/bae00692d9a64e3e947bd5819102d01d/annotations?prettyprint=true)__ List the raw annotations on this item (paginated)
 * __[/api-v3/annotations/:id](http://pelagios.org/api-v3/annotations/39dae3ef-b40e-4535-99df-f02c5e507659)__ Get the annotation with the specified ID

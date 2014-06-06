@@ -106,7 +106,7 @@ object JSONWrites {
       thing.dataset,
       thing.isPartOf,
       thing.homepage,
-      { val count = AnnotatedThings.countChildren(thing.id, false); if (count > 0) Some(count) else None },
+      { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),
       Places.countPlacesForThing(thing.id)))
   
