@@ -21,7 +21,7 @@ object CSVImporter extends AbstractImporter {
     val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
     
     // Recogito CSVs represent exactly one top-level AnnotatedThing...
-    val parentThing = AnnotatedThing(md5(dataset.id + " " + meta.get("title").get), 
+    val parentThing = AnnotatedThing(sha256(dataset.id + " " + meta.get("title").get), 
       dataset.id, meta.get("title").get, None, None, None, None)
                   
     val uuidIdx = header.indexOf("uuid")
@@ -34,7 +34,7 @@ object CSVImporter extends AbstractImporter {
     }).groupBy(_._2)
     
     val parts = annotationsByPart.keys.map(title =>
-      AnnotatedThing(md5(dataset.id + " " + title), dataset.id, title, Some(parentThing.id), None, None, None))
+      AnnotatedThing(sha256(dataset.id + " " + title), dataset.id, title, Some(parentThing.id), None, None, None))
     
     val annotations = annotationsByPart.values.flatten.map(t => {
       Annotation(t._1, dataset.id, parts.find(_.title == t._2).get.id, t._3)

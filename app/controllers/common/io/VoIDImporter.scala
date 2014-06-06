@@ -23,9 +23,9 @@ object VoIDImporter extends AbstractImporter {
     Scalagios.readVoID(new FileInputStream(file.ref.file), baseURI, format).foreach(dataset => {
       val id =
         if (dataset.uri.startsWith("http://")) {
-          md5(dataset.uri)          
+          sha256(dataset.uri)          
         } else {
-          md5(dataset.title + " " + dataset.publisher)
+          sha256(dataset.title + " " + dataset.publisher)
         }
       
       Logger.info("Importing dataset '" + dataset.title + "' with ID " + id)

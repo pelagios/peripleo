@@ -17,9 +17,9 @@ abstract class AbstractImporter {
     case _ => throw new UnsupportedRDFormatException("Format not supported")
   }
   
-  /** Utility method that produces an MD5 hash from a string **/
-  protected def md5(str: String): String = {
-    val md = MessageDigest.getInstance(MD5).digest(str.getBytes())
+  /** Utility method that produces a SHA256 hash from a string **/
+  protected def sha256(str: String): String = {
+    val md = MessageDigest.getInstance("SHA-256").digest(str.getBytes("UTF-8"))
     new BigInteger(1, md).toString(16)
   }
 

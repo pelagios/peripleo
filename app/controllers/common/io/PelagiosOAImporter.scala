@@ -28,7 +28,7 @@ object PelagiosOAImporter extends AbstractImporter {
     
     // Parse data
     val ingestBatch: Seq[(AnnotatedThing, Seq[Annotation])] = annotatedThings.toSeq.map(oaThing => { 
-      val thingId = md5(oaThing.uri)
+      val thingId = sha256(oaThing.uri)
       
       val tempBoundsStart = oaThing.temporal.map(_.start)
       
