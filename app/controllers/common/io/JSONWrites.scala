@@ -1,15 +1,16 @@
 package controllers.common.io
 
 import global.Global
-import global.index.IndexedObject
 import java.sql.Date
 import models._
-import org.pelagios.api.gazetteer.Place
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import com.vividsolutions.jts.geom.Geometry
+import index.IndexedObject
+import index.places.IndexedPlace
+import play.api.Logger
 
 /** JSON writers for model classes.
   *
@@ -18,7 +19,7 @@ import com.vividsolutions.jts.geom.Geometry
 object JSONWrites {
   
   /** Writes a place **/
-  implicit val placeWrites: Writes[Place] = (
+  implicit val placeWrites: Writes[IndexedPlace] = (
     (JsPath \ "gazetteer_uri").write[String] ~
     (JsPath \ "title").write[String] ~
     (JsPath \ "place_category").writeNullable[String] ~
@@ -31,9 +32,9 @@ object JSONWrites {
       place.title,
       place.category.map(_.toString),
       place.names.map(_.chars),
-      place.descriptions.headOption.map(literal => literal.chars + literal.lang.map("@" + _).getOrElse("")),
-      place.getCentroid.map(_.y),
-      place.getCentroid.map(_.x)))
+      place.description,
+      place.geometry.map(_.centroid.y),
+      place.geometry.map(_.centroid.x)))  
   
       
   /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
@@ -42,14 +43,14 @@ object JSONWrites {
     (JsPath \ "title").write[String] ~
     (JsPath \ "centroid_lat").writeNullable[Double] ~
     (JsPath \ "centroid_lng").writeNullable[Double] ~ 
-    (JsPath).writeNullable[Place]
+    (JsPath).writeNullable[IndexedPlace]
   )(place => {
-      val centroid = place.geometry.map(_.geometry.getCentroid.getCoordinate)
+      val centroid = place.geometry.map(_.centroid)
       (place.uri,
        place.title,
        centroid.map(_.y),
        centroid.map(_.x),
-       { if (verbose) Global.gazetteer.findByURI(place.uri) else None })}) 
+       { if (verbose) Global.index.findPlaceByURI(place.uri) else None })}) 
 
       
   /** Writes a pair (Place, Occurrence-Count) **/
@@ -122,17 +123,6 @@ object JSONWrites {
       a.dataset,
       a.annotatedThing,
       a.gazetteerURI))
-      
-      
-  /** Writes a search result **/    
-  implicit val indexedObjectWrites: Writes[IndexedObject] = (
-    (JsPath \ "id").write[String] ~
-    (JsPath \ "title").write[String] ~
-    (JsPath \ "description").writeNullable[String]
-  )(o => (
-      o.id,
-      o.title,
-      o.description))
       
       
   /** Writes a page of items **/

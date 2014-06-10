@@ -1,5 +1,6 @@
 package global
 
+import index.Index
 import java.util.zip.GZIPInputStream
 import java.io.{ File, FileInputStream }
 import models._
@@ -11,19 +12,17 @@ import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
-import global.index.ObjectIndex
 
 object Global extends GlobalSettings {
-    
-  private val GAZETTER_DATA_DIR = "gazetteer"
-    
-  private val INDEX_DIR = "index"
   
-  /** Initializes the gazetteer index **/
-  lazy val gazetteer = {
-    val idx = PlaceIndex.open(INDEX_DIR + "/gazetteer")
-    if (idx.isEmpty) {
-      Logger.info("Building new index")
+  private val GAZETTER_DATA_DIR = "gazetteer"
+       
+  /** Initializes the object index **/
+  lazy val index = {
+    val idx = Index.open("index")
+    
+    if (idx.numPlaces == 0) {
+      Logger.info("Building new place index")
       
       val dumps = Play.current.configuration.getString("api.gazetteer.files")
         .map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
@@ -39,15 +38,12 @@ object Global extends GlobalSettings {
         val names = places.flatMap(_.names)
         Logger.info("Inserting " + places.size + " places with " + names.size + " names into index")
         idx.addPlaces(places)
+        idx.refresh()
       })
-      
-      Logger.info("Index complete")      
     }
+
     idx
   }
-  
-  /** Initializes the object index **/
-  lazy val index = ObjectIndex.open(INDEX_DIR + "/objects", INDEX_DIR + "/taxonomy")
 
   override def onStart(app: Application): Unit = {
     // Initializes the database schema
@@ -73,5 +69,7 @@ object Global extends GlobalSettings {
       }
     }
   }  
+  
+  override def onStop(app: Application): Unit = index.close()
 
 }

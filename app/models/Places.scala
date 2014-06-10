@@ -5,6 +5,7 @@ import scala.slick.lifted.Tag
 import global.Global
 import com.vividsolutions.jts.geom.Geometry
 import play.api.Logger
+import index.places.GeoJSON
 
 /** Helper entity to speed up 'how many places are in dataset XY'-type queries.
   *
@@ -28,7 +29,7 @@ private[models] case class PlacesByDataset(
   count: Int)
 
     
-private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") {
+private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") with HasGeoJSONColumn {
   
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -77,7 +78,7 @@ private[models] case class PlacesByThing(
   /** Number of times the place is referenced **/
   count: Int)
 
-private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") {
+private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") with HasGeoJSONColumn {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -132,10 +133,10 @@ object Places {
     
     // Recompute
     val placesInDataset = Annotations.findByDataset(datasetId).items.groupBy(_.gazetteerURI)
-      .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
+      .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
       .filter(_._1.isDefined) // We restrict to places in the gazetteer
       .map { case (place, count) => 
-        PlacesByDataset(None, datasetId, GazetteerReference(place.get.uri, place.get.title, place.get.locations.headOption.map(l => GeoJSON(l.geoJSON))), count) }
+        PlacesByDataset(None, datasetId, GazetteerReference(place.get.uri, place.get.title, place.get.geometry), count) }
       .toSeq
 
     queryByDataset.insertAll(placesInDataset:_*)    
@@ -148,10 +149,10 @@ object Places {
     
     val placesByThing = annotationsByThing.flatMap { case (thingId, annotations) => {
       annotations.groupBy(_.gazetteerURI)
-        .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
+        .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
         .map { case (place, count) => 
-          PlacesByThing(None, datasetId, thingId, GazetteerReference(place.get.uri, place.get.title, place.get.locations.headOption.map(l => GeoJSON(l.geoJSON))), count) }
+          PlacesByThing(None, datasetId, thingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometry), count) }
     }}.toSeq
     
     queryByThing.insertAll(placesByThing:_*)    
@@ -162,10 +163,10 @@ object Places {
     
     val annotationsForThing = annotations.filter(a => leafThings.contains(a.annotatedThing))
     val placesForThing = annotationsForThing.groupBy(_.gazetteerURI)
-      .map { case (uri, annotations) => (Global.gazetteer.findByURI(uri), annotations.size) }
+      .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
       .filter(_._1.isDefined) // We restrict to places in the gazetteer
       .map { case (place, count) =>
-        PlacesByThing(None, datasetId, intermediateThingId, GazetteerReference(place.get.uri, place.get.title, place.get.locations.headOption.map(l => GeoJSON(l.geoJSON))), count) }
+        PlacesByThing(None, datasetId, intermediateThingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometry), count) }
       .toSeq
       
     queryByThing.insertAll(placesForThing:_*)  
