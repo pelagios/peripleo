@@ -21,7 +21,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
   
-  private var placeIndexReader = DirectoryReader.open(placeIndex)
+  protected var placeIndexReader = DirectoryReader.open(placeIndex)
   
   protected val analyzer = new StandardAnalyzer(Version.LUCENE_48)
 

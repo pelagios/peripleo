@@ -13,9 +13,8 @@ trait ObjectReader extends IndexBase {
   
   def search(query: String, offset: Int = 0, limit: Int = 20, fuzzy: Boolean = false): Page[IndexedObject] = {     
     val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
-    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader() /*, placeIndexReader */))
+    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, placeIndexReader))
     val taxonomyReader = searcherAndTaxonomy.taxonomyReader
-    (searcher, taxonomyReader)
     
     try {
       // TODO revisit: which fields should really be considered for search?

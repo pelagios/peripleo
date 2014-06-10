@@ -1,16 +1,12 @@
 package controllers.common.io
 
 import global.Global
-import java.sql.Date
+import index.places.IndexedPlace
 import models._
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import com.vividsolutions.jts.geom.Geometry
-import index.IndexedObject
-import index.places.IndexedPlace
-import play.api.Logger
 
 /** JSON writers for model classes.
   *
