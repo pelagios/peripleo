@@ -1,7 +1,7 @@
 package index
 
 import models.{ AnnotatedThing, Dataset }
-import org.apache.lucene.document.{ Document, Field, StringField, TextField }
+import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
 
 case class IndexedObject(private val doc: Document) {
@@ -23,6 +23,10 @@ case class IndexedObject(private val doc: Document) {
   val title: String = doc.get(IndexFields.TITLE)
     
   val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
+  
+  val temporalBoundsStart: Option[Int] = Option(doc.get(IndexFields.DATE_FROM)).map(_.toInt)
+  
+  val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
  
 }
 
@@ -33,6 +37,8 @@ object IndexedObject {
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
+    thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
+    thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     doc   
   }
@@ -43,6 +49,8 @@ object IndexedObject {
     doc.add(new TextField(IndexFields.TITLE, dataset.title, Field.Store.YES))
     dataset.description.map(d => doc.add(new TextField(IndexFields.DESCRIPTION, d, Field.Store.YES)))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString, Field.Store.YES))
+    dataset.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
+    dataset.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString))
     doc
   }

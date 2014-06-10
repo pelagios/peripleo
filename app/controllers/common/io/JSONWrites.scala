@@ -38,12 +38,16 @@ object JSONWrites {
       (JsPath \ "identifier").write[String] ~
       (JsPath \ "title").write[String] ~
       (JsPath \ "description").writeNullable[String] ~
-      (JsPath \ "object_type").write[String]
+      (JsPath \ "object_type").write[String] ~
+      (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
+      (JsPath \ "temporal_bounds_end").writeNullable[Int]
   )(obj => (
       obj.identifier,
       obj.title,
       obj.description,
-      obj.objectType.toString))    
+      obj.objectType.toString,
+      obj.temporalBoundsStart,
+      obj.temporalBoundsEnd))    
       
   /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
   implicit def gazetteerURIWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (

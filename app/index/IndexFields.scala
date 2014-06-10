@@ -22,4 +22,8 @@ object IndexFields {
     
   val PLACE_CLOSE_MATCH = "close_match"
     
+  val DATE_FROM = "date_from"
+    
+  val DATE_TO = "date_to"
+    
 }
