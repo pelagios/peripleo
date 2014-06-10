@@ -43,6 +43,7 @@ object CSVImporter extends AbstractImporter {
     val allThings = parts.toSeq :+ parentThing
     AnnotatedThings.insertAll(allThings)
     Global.index.addAnnotatedThings(allThings)
+    Global.index.refresh()
     Annotations.insertAll(annotations.toSeq)
     
     Logger.info("Import complete")

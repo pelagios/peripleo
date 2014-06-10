@@ -7,12 +7,9 @@ import play.api.libs.json.Json
 
 object SearchController extends AbstractAPIController {
   
-  private val QUERY = "query"
-  
   def search(query: String, limit: Int, offset: Int) = DBAction { implicit session =>
     val results = Global.index.search(query, offset, limit)
-    // jsonOk(Json.toJson(results), session.request)
-    Ok("")
+    jsonOk(Json.toJson(results), session.request)
   }
 
 }

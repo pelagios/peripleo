@@ -7,6 +7,7 @@ import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import index.IndexedObject
 
 /** JSON writers for model classes.
   *
@@ -32,6 +33,17 @@ object JSONWrites {
       place.geometry.map(_.centroid.y),
       place.geometry.map(_.centroid.x)))  
   
+  /** Writes a search result item **/
+  implicit val indexedObjectWrites: Writes[IndexedObject] = (
+      (JsPath \ "identifier").write[String] ~
+      (JsPath \ "title").write[String] ~
+      (JsPath \ "description").writeNullable[String] ~
+      (JsPath \ "object_type").write[String]
+  )(obj => (
+      obj.identifier,
+      obj.title,
+      obj.description,
+      obj.objectType.toString))    
       
   /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
   implicit def gazetteerURIWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (

@@ -37,6 +37,7 @@ object VoIDImporter extends AbstractImporter {
         
       Datasets.insert(datasetEntity)
       Global.index.addDataset(datasetEntity)
+      Global.index.refresh()
     })
   }
   

@@ -32,6 +32,7 @@ object IndexedObject {
     val doc = new Document()
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
+    doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     doc   
   }
@@ -41,6 +42,7 @@ object IndexedObject {
     doc.add(new StringField(IndexFields.ID, dataset.id, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, dataset.title, Field.Store.YES))
     dataset.description.map(d => doc.add(new TextField(IndexFields.DESCRIPTION, d, Field.Store.YES)))
+    doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString))
     doc
   }
