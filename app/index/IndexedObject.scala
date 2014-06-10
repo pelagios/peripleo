@@ -1,7 +1,6 @@
 package index
 
 import org.apache.lucene.document.Document
-import play.api.Logger
 
 abstract class IndexedObject(private val doc: Document) {
  
@@ -25,5 +24,15 @@ abstract class IndexedObject(private val doc: Document) {
     
   val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
  
+}
+
+object IndexedObjectTypes extends Enumeration {
+  
+  val DATASET = Value("Dataset")
+  
+  val ANNOTATED_THING = Value("Item")
+  
+  val PLACE = Value("Place")
+
 }
 

@@ -9,14 +9,13 @@ import org.pelagios.api.PlainLiteral
 import org.pelagios.api.gazetteer.{ Place, PlaceCategory }
 import play.api.libs.json.Json
 import scala.collection.JavaConversions._
-import play.api.Logger
 
 case class IndexedPlace(private[places] val doc: Document) extends IndexedObject(doc) {
   
   val uri: String = doc.get(IndexFields.PLACE_URI)
     
   val names: Seq[PlainLiteral] = 
-    doc.getFields().filter(_.name.startsWith(IndexFields.PLACE_NAME)).map(field => IndexedPlace.toLabel(field))
+    doc.getFields().filter(_.name.startsWith(IndexFields.PLACE_NAME)).map(field => IndexedPlace.toPlainLiteral(field))
   
   val category: Option[PlaceCategory.Category] = Option(doc.get(IndexFields.PLACE_CATEGORY)).map(PlaceCategory.withName(_))
 
@@ -45,7 +44,7 @@ object IndexedPlace {
     doc    
   }
   
-  def toLabel(field: IndexableField): PlainLiteral = {
+  def toPlainLiteral(field: IndexableField): PlainLiteral = {
     val language = if (field.name.indexOf('@') > -1) Some(field.name.substring(field.name.indexOf('@') + 1)) else None
     PlainLiteral(field.stringValue(), language)    
   }

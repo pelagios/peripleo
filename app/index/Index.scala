@@ -74,15 +74,13 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
       
 }
 
-
 class Index private(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File)
   extends IndexBase(placeIndexDir, objectIndexDir, taxonomyDir)
     with ObjectReader
     with ObjectWriter
     with PlaceReader
     with PlaceWriter
-
-    
+  
 object Index {
   
   def open(indexDir: String): Index = {
