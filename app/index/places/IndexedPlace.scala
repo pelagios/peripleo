@@ -10,9 +10,13 @@ import org.pelagios.api.gazetteer.{ Place, PlaceCategory }
 import play.api.libs.json.Json
 import scala.collection.JavaConversions._
 
-case class IndexedPlace(private[places] val doc: Document) extends IndexedObject(doc) {
+case class IndexedPlace(private[places] val doc: Document) {
   
   val uri: String = doc.get(IndexFields.PLACE_URI)
+  
+  val title: String = doc.get(IndexFields.TITLE)
+    
+  val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
     
   val names: Seq[PlainLiteral] = 
     doc.getFields().filter(_.name.startsWith(IndexFields.PLACE_NAME)).map(field => IndexedPlace.toPlainLiteral(field))

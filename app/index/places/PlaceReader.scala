@@ -7,7 +7,7 @@ import org.apache.lucene.search.{ BooleanClause, BooleanQuery, MatchAllDocsQuery
 trait PlaceReader extends IndexBase {
   
   def listAllPlaces(offset: Int = 0, limit: Int = 20): Seq[IndexedPlace] = {
-    val searcher = getPlaceSearcher()
+    val searcher = newPlaceSearcher()
     val collector = TopScoreDocCollector.create(offset + limit, true)
     searcher.search(new MatchAllDocsQuery(), collector)
     
@@ -19,7 +19,7 @@ trait PlaceReader extends IndexBase {
     val q = new BooleanQuery()
     q.add(new TermQuery(new Term(IndexFields.PLACE_URI, Index.normalizeURI(uri))), BooleanClause.Occur.MUST)
     
-    val searcher = getPlaceSearcher()
+    val searcher = newPlaceSearcher()
     val collector = TopScoreDocCollector.create(1, true)
     searcher.search(q, collector)
     
@@ -34,7 +34,7 @@ trait PlaceReader extends IndexBase {
     val q = new BooleanQuery()
     q.add(new TermQuery(new Term(IndexFields.PLACE_CLOSE_MATCH, Index.normalizeURI(uri))), BooleanClause.Occur.MUST)
     
-    val searcher = getPlaceSearcher()
+    val searcher = newPlaceSearcher()
     val numHits = Math.max(1, numPlaces) // Has to be minimum 1, but can never exceed size of index
     val collector = TopScoreDocCollector.create(numHits, true)
     searcher.search(q, collector)

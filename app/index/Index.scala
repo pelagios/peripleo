@@ -15,41 +15,37 @@ import play.api.Logger
 
 private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File) {
   
-  private val analyzer = new StandardAnalyzer(Version.LUCENE_48)
-
-  private val facetsConfig = new FacetsConfig()
-  facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
+  private val placeIndex = FSDirectory.open(placeIndexDir)
   
   private val objectIndex = FSDirectory.open(objectIndexDir)
   
-  private val placeIndex = FSDirectory.open(placeIndexDir)
-  
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
-
-  private val searcherTaxonomyMgr = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
   
   private var placeIndexReader = DirectoryReader.open(placeIndex)
   
-  protected def getObjectWriter(): (IndexWriter, TaxonomyWriter) =
-    (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LUCENE_48, analyzer)), 
-     new DirectoryTaxonomyWriter(taxonomyIndex))
+  protected val analyzer = new StandardAnalyzer(Version.LUCENE_48)
+
+  protected val facetsConfig = new FacetsConfig()
+  facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
+
+  protected val searcherTaxonomyMgr = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
+  
+  protected def newObjectWriter(): (IndexWriter, TaxonomyWriter) =
+    (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LUCENE_48, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
     
   protected def newPlaceWriter(): IndexWriter = 
     new IndexWriter(placeIndex, new IndexWriterConfig(Version.LUCENE_48, analyzer))
   
-  protected def getSearcher(): (IndexSearcher, DirectoryTaxonomyReader) = {
-    val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
-    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader(), placeIndexReader))
-    val taxonomyReader = searcherAndTaxonomy.taxonomyReader
-    (searcher, taxonomyReader)
-  } 
-  
-  protected def getPlaceSearcher(): IndexSearcher = 
+  protected def newPlaceSearcher(): IndexSearcher = 
     new IndexSearcher(placeIndexReader)
+
+  def numObjects: Int = {
+    val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
+    val numObjects = searcherAndTaxonomy.searcher.getIndexReader().numDocs()
+    searcherTaxonomyMgr.release(searcherAndTaxonomy)
+    numObjects
+  }
   
-  def numObjects: Int =
-    searcherTaxonomyMgr.acquire().searcher.getIndexReader().numDocs()
-    
   def numPlaces: Int =
     placeIndexReader.numDocs()
   
