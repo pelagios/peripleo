@@ -14,9 +14,21 @@ util.licenseIcon = function(url) {
   if (url.indexOf('http://opendatacommons.org/licenses/odbl') == 0) {
     return '<a class="license" href="http://opendatacommons.org/licenses/odbl" target="_blank" title="Open Data Commons Open Database License (ODbL)"><img src="/api-v3/static/images/open-data-generic.png"></a>';
   } else if (url.indexOf('http://creativecommons.org/publicdomain/zero/1.0') == 0) {
-	return '<a class="license" href="http://creativecommons.org/publicdomain/zero/1.0" target="_blank" title="CC0 Public Domain Dedication"><img src="/api-v3/static/images/cc-zero.png"></a>';	  
+	  return '<a class="license" href="http://creativecommons.org/publicdomain/zero/1.0" target="_blank" title="CC0 Public Domain Dedication"><img src="/api-v3/static/images/cc-zero.png"></a>';	  
+  } else {
+    return '<a href="' + url + '">' + url + '</a>';
   }
-  
-  return '<a href="' + url + '">' + url + '</a>';
 } 
+
+util.formatGazetteerURI = function(uri) {
+  if (uri.indexOf('http://pleiades.stoa.org/places/') > -1) {
+    return 'pleiades:' + uri.substr(32);
+  } else if (uri.indexOf('http://www.imperium.ahlfeldt.se/places/') > -1) {
+    return 'dare:' + uri.substr(39);
+  } else if (uri.indexOf('http://sws.geonames.org/') > -1) {
+    return 'geonames:' + uri.substr(24);
+  } else {
+    return uri;
+  }
+}
 
