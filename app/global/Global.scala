@@ -6,7 +6,6 @@ import java.io.{ File, FileInputStream }
 import models._
 import org.openrdf.rio.RDFFormat
 import org.pelagios.Scalagios
-import org.pelagios.gazetteer.PlaceIndex
 import play.api.Play
 import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }

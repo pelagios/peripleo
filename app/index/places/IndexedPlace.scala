@@ -27,6 +27,8 @@ case class IndexedPlace(private[places] val doc: Document) {
   
   val seedURI: String = doc.get(IndexFields.PLACE_SEED_URI)
   
+  val closeMatches: Seq[String] = doc.getValues(IndexFields.PLACE_CLOSE_MATCH)
+  
 }
 
 object IndexedPlace {

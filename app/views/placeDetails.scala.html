@@ -1,0 +1,28 @@
+@(place: index.places.IndexedPlace, network: index.places.PlaceNetwork)
+<html>
+  <head>
+    <title>Place &raquo; @place.title</title>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/places/place-details.css")"/>   
+  </head>
+  <body>
+    <div id="header">
+      <div id="header-menu">
+        <div class="row">
+          <a class="pelagios-logo" href="@controllers.pages.routes.HomepageController.index">PELAGIOS API</a>
+          <ul>
+            <li><a href="@controllers.pages.routes.HomepageController.index">Home</a></li>
+            <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
+            <li><a href="#">Places</a></li>
+          </ul>
+        </div> <!-- .row -->
+      </div> <!-- #header-menu -->
+      
+      <div id="header-body">
+        <div class="row">
+          <h1>@place.title</h1>
+          <a href="@place.uri" target="_blank">@place.uri</a>
+        </div> <!-- .row -->
+      </div> <!-- #header-body -->
+    </div> <!-- #header -->
+  </body>
+</html>
