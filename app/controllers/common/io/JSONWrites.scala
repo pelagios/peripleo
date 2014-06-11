@@ -1,13 +1,13 @@
 package controllers.common.io
 
 import global.Global
-import index.places.IndexedPlace
+import index.IndexedObject
+import index.places._
 import models._
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import index.IndexedObject
 
 /** JSON writers for model classes.
   *
@@ -35,12 +35,12 @@ object JSONWrites {
   
   /** Writes a search result item **/
   implicit val indexedObjectWrites: Writes[IndexedObject] = (
-      (JsPath \ "identifier").write[String] ~
-      (JsPath \ "title").write[String] ~
-      (JsPath \ "description").writeNullable[String] ~
-      (JsPath \ "object_type").write[String] ~
-      (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
-      (JsPath \ "temporal_bounds_end").writeNullable[Int]
+    (JsPath \ "identifier").write[String] ~
+    (JsPath \ "title").write[String] ~
+    (JsPath \ "description").writeNullable[String] ~
+    (JsPath \ "object_type").write[String] ~
+    (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
+    (JsPath \ "temporal_bounds_end").writeNullable[Int]
   )(obj => (
       obj.identifier,
       obj.title,
@@ -48,6 +48,29 @@ object JSONWrites {
       obj.objectType.toString,
       obj.temporalBoundsStart,
       obj.temporalBoundsEnd))    
+  
+  /** Writes a network node **/
+  implicit val networkNodeWrites: Writes[NetworkNode] = (
+    (JsPath \ "uri").write[String] ~
+    (JsPath \ "title").writeNullable[String]
+  )(node => (
+      node.uri,
+      node.place.map(_.title)))
+      
+  /** Writes a network edge **/
+  implicit val networkEdgeWrites: Writes[NetworkEdge] = (
+    (JsPath \ "source").write[Int] ~
+    (JsPath \ "target").write[Int]
+  )(edge => (
+      edge.source,
+      edge.target)) 
+      
+  implicit val networkWrites: Writes[PlaceNetwork] = (
+    (JsPath \ "nodes").write[Seq[NetworkNode]] ~
+    (JsPath \ "edges").write[Seq[NetworkEdge]]
+  )(network => (
+      network.nodes,
+      network.edges))
       
   /** Writes a Gazetteer URI, with place data pulled from the index on the fly **/
   implicit def gazetteerURIWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (

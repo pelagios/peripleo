@@ -19,4 +19,14 @@ object PlaceController extends AbstractAPIController {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
   
+  def getNetwork(uri: String) = Action { implicit request =>
+    val place = Global.index.findPlaceByURI(uri)
+    if(place.isDefined) {
+      val network = Global.index.getNetwork(place.get)
+      jsonOk(Json.toJson(network), request)
+    } else {
+      NotFound(Json.parse("{ \"message\": \"Not found\" }"))
+    }
+  }
+  
 }
