@@ -63,7 +63,7 @@
       <div class="row" id="items-list">
         <h2>Items in this Dataset</h2>
         <div class="pagination"></div>
-        <table>
+        <table class="styled">
           <thead>
             <tr>
               <th class="left">Title</th>
@@ -81,7 +81,7 @@
         var maxReferences,
             meterTemplate = 
               '<tr>' +
-              '  <td class="place-title">@@title@@</td>' +
+              '  <td class="place-title"><a href="@@href@@">@@title@@</a></td>' +
               '  <td class="place-count">' +
               '    <div class="meter">' +
               '      <div class="bar" style="width:@@width@@%;"></div><span>@@occurrences@@</span>' +
@@ -92,8 +92,10 @@
         // Helper function to show the next N places in the 'top places' list
         var showNext = function(places, shown, n) {
           for (var i=shown, j=shown + n; i<j; i++) {
-            var occurrences = places[i].number_of_occurrences;
+            var occurrences = places[i].num_occurrences;
+            console.log(places[i]);
             var html = meterTemplate
+              .replace('@@href@@', '../places/' + encodeURIComponent(places[i].gazetteer_uri))
               .replace('@@title@@', places[i].title)
               .replace('@@width@@', (occurrences / maxReferences) * 100)
               .replace('@@occurrences@@', occurrences);
@@ -110,8 +112,8 @@
               var title = (item.homepage) ? '<a href="' + item.homepage + '" target="_blank">' + item.title + '</a>' : item.title;
               table.append('<tr>' + 
                              '<td>' + title + '</td>' +
-                             '<td class="center">' + item.number_of_annotations + '</td>' +
-                             '<td class="center">' + item.number_of_unique_places + '</td>' +
+                             '<td class="center">' + item.num_annotations + '</td>' +
+                             '<td class="center">' + item.num_unique_places + '</td>' +
                            '</tr>');
             });
           
@@ -137,7 +139,7 @@
       
         // Load places - limiting to the first 1 million places should be sufficient...
         $.getJSON('@routes.DatasetController.listPlaces(dataset.id, 1000000)&verbose=false', function(data) {
-          maxReferences = data.items[0].number_of_occurrences;
+          maxReferences = data.items[0].num_occurrences;
         
           // List top 5 places
           showNext(data.items, 0, 10);

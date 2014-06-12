@@ -1,4 +1,5 @@
 @import "../globals.less";
+@import "../table.less";
 @import "../base-layout.less";
 
 .gazetteer-uri {
@@ -67,10 +68,6 @@
     border:1px solid #ccc;
   }
   
-  table {
-    padding-bottom:50px;
-  }
-  
   table.close-matches {
     
     td {
@@ -90,24 +87,6 @@
     }
     
   } /* table.close-matches */
-  
-  table.references {
-    width:100%;
-    border-collapse:collapse;
-    
-    tr { 
-      border-color:#e2e2e2;
-      border-style:solid;
-      border-width:1px 0;
-    } /* tr */
-    
-    th, td {
-      font-size:13px;
-      padding:6px 10px 6px 10px;
-      text-align:left;
-    } /* th, td */
-    
-  }
 
 } /* #content */
 
