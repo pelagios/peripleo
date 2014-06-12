@@ -24,6 +24,7 @@ GET     /api-v3/annotations/:id                  controllers.AnnotationControlle
 GET     /api-v3/places                           controllers.PlaceController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String)
 GET     /api-v3/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
+GET     /api-v3/places/:uri/references           controllers.PlaceController.listReferences(uri: String, includeCloseMatches: Boolean ?= false)
 
 GET     /api-v3/search                           controllers.SearchController.search(query: String, limit: Int ?= 20, offset: Int ?= 0)
 

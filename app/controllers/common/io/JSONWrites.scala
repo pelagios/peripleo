@@ -93,7 +93,7 @@ object JSONWrites {
   /** Writes a pair (Place, Occurrence-Count) **/
   implicit def placeCountWrites(implicit verbose: Boolean = true): Writes[(GazetteerReference, Int)] = (
       (JsPath).write[GazetteerReference] ~
-      (JsPath \ "number_of_occurrences").write[Int]
+      (JsPath \ "num_occurrences").write[Int]
   )(t  => (t._1, t._2))   
        
   
@@ -109,9 +109,9 @@ object JSONWrites {
     (JsPath \ "modified_at").write[Long] ~
     (JsPath \ "void_url").writeNullable[String] ~
     (JsPath \ "datadump_url").writeNullable[String] ~
-    (JsPath \ "number_of_items").write[Int] ~
-    (JsPath \ "number_of_annotations").write[Int]  ~
-    (JsPath \ "number_of_unique_places").write[Int]
+    (JsPath \ "num_items").write[Int] ~
+    (JsPath \ "num_annotations").write[Int]  ~
+    (JsPath \ "num_unique_places").write[Int]
   )(dataset => (
       dataset.id,
       dataset.title,
@@ -126,8 +126,7 @@ object JSONWrites {
       AnnotatedThings.countByDataset(dataset.id),
       Annotations.countByDataset(dataset.id),
       Places.countPlacesInDataset(dataset.id)))
-
-      
+        
   /** Writes an annotated thing, with annotation count and place count pulled from the DB on the fly **/ 
   implicit def annotatedThingWrites(implicit s: Session): Writes[AnnotatedThing] = (
     (JsPath \ "id").write[String] ~
@@ -135,9 +134,9 @@ object JSONWrites {
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "is_part_of").writeNullable[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
-    (JsPath \ "number_of_subitems").writeNullable[Int] ~
-    (JsPath \ "number_of_annotations").write[Int] ~ 
-    (JsPath \ "number_of_unique_places").write[Int]
+    (JsPath \ "num_subitems").writeNullable[Int] ~
+    (JsPath \ "num_annotations").write[Int] ~ 
+    (JsPath \ "num_unique_places").write[Int]
   )(thing => (
       thing.id,
       thing.title,
