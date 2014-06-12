@@ -8,11 +8,9 @@ window.PlaceNetwork = function(divId, network) {
   };
   
   var force = d3.layout.force()
-    .charge(-120)
-    .linkDistance(80)
-    .size([width, height]);
-
-  force
+    .charge(-300)
+    .linkDistance(120)
+    .size([width, height])
     .nodes(network.nodes)
     .links(network.edges)
     .start();

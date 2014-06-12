@@ -23,22 +23,37 @@ object Global extends GlobalSettings {
     if (idx.numPlaces == 0) {
       Logger.info("Building new place index")
       
-      val dumps = Play.current.configuration.getString("api.gazetteer.files")
-        .map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
+      def getPropertyAsList(name: String): Seq[String] = 
+        Play.current.configuration.getString(name).map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
+      
+      val gazetteers = getPropertyAsList("api.gazetteer.names").zip(getPropertyAsList("api.gazetteer.files"))
+      
+      DB.withSession { implicit session: Session =>
+        gazetteers.foreach { case (name, dump) => {
+          Logger.info("Loading gazetteer " + name  + ": " + dump)
         
-      dumps.foreach(f => {
-        Logger.info("Loading gazetteer dump: " + f)
-        val is = if (f.endsWith(".gz"))
-            new GZIPInputStream(new FileInputStream(new File(GAZETTER_DATA_DIR, f)))
-          else
-            new FileInputStream(new File(GAZETTER_DATA_DIR, f))
+          val is = if (dump.endsWith(".gz"))
+              new GZIPInputStream(new FileInputStream(new File(GAZETTER_DATA_DIR, dump)))
+            else
+              new FileInputStream(new File(GAZETTER_DATA_DIR, dump))
         
-        val places = Scalagios.readPlaces(is, "http://pelagios.org/", RDFFormat.TURTLE).toSeq
-        val names = places.flatMap(_.names)
-        Logger.info("Inserting " + places.size + " places with " + names.size + " names into index")
-        idx.addPlaces(places)
-        idx.refresh()
-      })
+          val places = Scalagios.readPlaces(is, "http://pelagios.org/", RDFFormat.TURTLE).toSeq
+          val uriPrefixes = places.map(_.uri).map(uri => uri.substring(0, uri.indexOf('/', 8))).distinct
+          uriPrefixes.foreach(prefix => Logger.info("URI prefix '" + prefix + "'"))
+          
+          val names = places.flatMap(_.names)
+          Logger.info("Inserting " + places.size + " places with " + names.size + " names into index")
+          val distinctPlaces = idx.addPlaces(places)
+          idx.refresh()
+          
+          // Insert gazetteer meta in to DB
+          Gazetteers.insert(Gazetteer(name, places.size, distinctPlaces), uriPrefixes)
+        }}
+        
+        Gazetteers.listAll.foreach(foo => {
+          Logger.info("## " + foo._1.name + " - " + foo._2.prefix)
+        })
+      }
     }
 
     idx
@@ -65,6 +80,11 @@ object Global extends GlobalSettings {
       if (MTable.getTables("places_by_dataset").list().isEmpty && MTable.getTables("places_by_annotated_thing").list().isEmpty) {
         Logger.info("Places index tables do not exist - creating")
         Places.create
+      }
+      
+      if (MTable.getTables("gazetteers").list().isEmpty) {
+        Logger.info("DB table gazetteers does not exist - creating")
+        Gazetteers.create
       }
     }
   }  

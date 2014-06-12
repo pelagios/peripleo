@@ -23,6 +23,7 @@
       
       <div id="header-body">
         <div class="row">
+          <h3 class="formatted-uri">@place.uri</h3>
           <h1>@place.title</h1>
           <a href="@place.uri" target="_blank">@place.uri</a>
         </div> <!-- .row -->
@@ -31,12 +32,27 @@
     
     <div id="content">
       <div class="row">
+        <table class="names">
+          <tbody>            
+            @for(name <- network.places.flatMap(_.names)) {
+              <tr><td>foo</td><td>@name.chars</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="row">
         <div id="network"></div>
       </div>
     </div> <!-- #content -->
     
     <script type="text/javascript">
       (function() {
+        $.each($('.formatted-uri'), function(idx, el) {
+          var unformatted = el.innerHTML;
+          el.innerHTML = util.formatGazetteerURI(unformatted);
+        });
+        
         $.getJSON('@routes.PlaceController.getNetwork(place.uri)', function(data) {
           var network = new window.PlaceNetwork('network', data);
         });        

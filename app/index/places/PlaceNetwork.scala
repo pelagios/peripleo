@@ -1,6 +1,6 @@
 package index.places
 
-case class PlaceNetwork(private val places: Seq[IndexedPlace], private val links: Seq[(String, String)]) {
+case class PlaceNetwork(val places: Seq[IndexedPlace], private val links: Seq[(String, String)]) {
   
   private val _seedURIs = places.groupBy(_.seedURI).keys
   

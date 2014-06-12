@@ -1,12 +1,39 @@
 @import "../globals.less";
 @import "../base-layout.less";
 
+#header {
+
+  h3 {
+    font-size:16px;
+    margin:0;
+    padding:0;
+  }
+  
+  h1 {
+    margin:5px 0 !important;
+    padding-top:0;
+  }
+   
+} /* #header */
+
 #content {
 
   #network {
+    float:right;
     width:400px;
     height:240px;
     border:1px solid #ccc;
   }
 
+}
+
+svg {
+
+  text {
+    color:#6f6f6f;
+    font: 12px sans-serif;
+    pointer-events: none;
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+  }
+  
 }
