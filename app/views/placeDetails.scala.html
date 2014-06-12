@@ -23,8 +23,9 @@
       
       <div id="header-body">
         <div class="row">
-          <h3 class="formatted-uri">@place.uri</h3>
+          @tags.gazetteerURI(place.uri)
           <h1>@place.title</h1>
+          <h3 class="names">@place.names.map(_.chars).mkString(", ")</h3>
           <a href="@place.uri" target="_blank">@place.uri</a>
         </div> <!-- .row -->
       </div> <!-- #header-body -->
@@ -32,27 +33,35 @@
     
     <div id="content">
       <div class="row">
-        <table class="names">
+        <h2>@place.title in Other Gazetteers</h2>
+        
+        <div id="network"></div>
+        
+        <table class="close-matches">
           <tbody>            
-            @for(name <- network.places.flatMap(_.names)) {
-              <tr><td>foo</td><td>@name.chars</td></tr>
+            @for(place <- network.places.filter(_.uri != place.uri)) {
+              <tr>
+                <td rowspan="3">
+                  <a href="@controllers.pages.routes.PlacePagesController.getPlace(place.uri)">
+                    @tags.gazetteerURI(place.uri)
+                  </a>
+                </td>
+                <td class="title">@place.title</td>
+              </tr>
+              
+              <tr><td>@place.names.map(_.chars).mkString(", ")</td></tr>
+              
+              <tr><td><a href="@place.uri" target="_blank">@place.uri</a></td></tr>
             }
           </tbody>
         </table>
-      </div>
-      
-      <div class="row">
-        <div id="network"></div>
+        
+        
       </div>
     </div> <!-- #content -->
     
     <script type="text/javascript">
       (function() {
-        $.each($('.formatted-uri'), function(idx, el) {
-          var unformatted = el.innerHTML;
-          el.innerHTML = util.formatGazetteerURI(unformatted);
-        });
-        
         $.getJSON('@routes.PlaceController.getNetwork(place.uri)', function(data) {
           var network = new window.PlaceNetwork('network', data);
         });        

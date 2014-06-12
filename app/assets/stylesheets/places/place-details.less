@@ -1,6 +1,25 @@
 @import "../globals.less";
 @import "../base-layout.less";
 
+.gazetteer-uri {
+  color:#fff;
+  .rounded-corners(4px);
+  font-size:13px;
+  padding:4px 8px 5px 8px;
+  background-color:#ccc;
+  border:1px solid rgba(255,255,255,0.3);
+  text-shadow:1px 1px rgba(0,0,0,0.4);
+}
+
+.gazetteer-uri.pleiades {
+  background-color: #428bca;
+}
+
+
+.gazetteer-uri.dare {
+  background-color: #f0ad4e;
+}
+
 #header {
 
   h3 {
@@ -9,14 +28,31 @@
     padding:0;
   }
   
+  h3.names {
+    padding-bottom:8px;
+  }
+  
   h1 {
-    margin:5px 0 !important;
-    padding-top:0;
+    padding:3px 0 !important;
   }
    
 } /* #header */
 
 #content {
+
+  table.close-matches {
+    
+    td {
+      padding:0 6px 0 3px;
+      vertical-align:top;
+    }
+    
+    td.title {
+      font-weight:bold;
+      font-size:14px;
+    }
+    
+  }
 
   #network {
     float:right;

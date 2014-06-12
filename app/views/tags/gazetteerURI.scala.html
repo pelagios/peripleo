@@ -1,0 +1,14 @@
+@(uri: String)
+
+@{   
+  uri match {
+    case s if s.startsWith("http://pleiades.stoa.org/places/") => 
+      <span class="gazetteer-uri pleiades">pleiades:{ s.substring(32) }</span>
+      
+    case s if s.startsWith("http://www.imperium.ahlfeldt.se/places/") => 
+      <span class="gazetteer-uri dare">dare:{ s.substring(39) }</span>
+      
+    case s => 
+      <span class="gazetteer-uri">{ s }</span>
+  }
+}
