@@ -13,6 +13,10 @@ import scala.collection.JavaConversions._
 case class IndexedPlace(private[places] val doc: Document) {
   
   val uri: String = doc.get(IndexFields.PLACE_URI)
+
+  val sourceGazetteer: String = doc.get(IndexFields.PLACE_SOURCE_GAZETTEER)
+
+  val seedURI: String = doc.get(IndexFields.PLACE_SEED_URI)
   
   val title: String = doc.get(IndexFields.TITLE)
     
@@ -23,9 +27,7 @@ case class IndexedPlace(private[places] val doc: Document) {
   
   val category: Option[PlaceCategory.Category] = Option(doc.get(IndexFields.PLACE_CATEGORY)).map(PlaceCategory.withName(_))
 
-  val geometry: Option[GeoJSON] = Option(doc.get(IndexFields.PLACE_GEOMETRY)).map(GeoJSON(_))
-  
-  val seedURI: String = doc.get(IndexFields.PLACE_SEED_URI)
+  val geometry: Option[GeoJSON] = Option(doc.get(IndexFields.PLACE_GEOMETRY)).map(GeoJSON(_))  
   
   val closeMatches: Seq[String] = doc.getValues(IndexFields.PLACE_CLOSE_MATCH)
   
@@ -33,9 +35,11 @@ case class IndexedPlace(private[places] val doc: Document) {
 
 object IndexedPlace {
   
-  def toDoc(place: Place, seedURI: Option[String]): Document = {
+  def toDoc(place: Place, sourceGazetteer: String, seedURI: Option[String]): Document = {
     val doc = new Document()
     doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(place.uri), Field.Store.YES))
+    doc.add(new StringField(IndexFields.PLACE_SOURCE_GAZETTEER, sourceGazetteer, Field.Store.YES))
+    doc.add(new StringField(IndexFields.PLACE_SEED_URI, seedURI.getOrElse(place.uri), Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, place.title, Field.Store.YES))
     place.descriptions.foreach(description => doc.add(new TextField(IndexFields.DESCRIPTION, description.chars, Field.Store.YES)))
     place.names.foreach(name => {
@@ -45,8 +49,7 @@ object IndexedPlace {
     place.locations.foreach(location => doc.add(new StringField(IndexFields.PLACE_GEOMETRY, location.geoJSON, Field.Store.YES)))
     if (place.category.isDefined)
       doc.add(new StringField(IndexFields.PLACE_CATEGORY, place.category.get.toString, Field.Store.YES))
-    place.closeMatches.foreach(closeMatch => doc.add(new StringField(IndexFields.PLACE_CLOSE_MATCH, Index.normalizeURI(closeMatch), Field.Store.YES)))
-    doc.add(new StringField(IndexFields.PLACE_SEED_URI, seedURI.getOrElse(place.uri), Field.Store.YES))
+    place.closeMatches.foreach(closeMatch => doc.add(new StringField(IndexFields.PLACE_CLOSE_MATCH, Index.normalizeURI(closeMatch), Field.Store.YES)))   
     doc    
   }
   

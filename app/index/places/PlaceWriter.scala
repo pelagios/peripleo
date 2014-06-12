@@ -9,7 +9,7 @@ import play.api.Logger
 
 trait PlaceWriter extends PlaceReader {
   
-  def addPlaces(places: Iterable[Place]): Int =  { 
+  def addPlaces(places: Iterable[Place], sourceGazetteer: String): Int =  { 
     val writer = newPlaceWriter()
     
     val distinctNewPlaces = places.map(place => {
@@ -61,7 +61,7 @@ trait PlaceWriter extends PlaceReader {
         
         // Add new document to index
         val differentSeedURI = if (normalizedUri == seedURI) None else Some(seedURI)
-        writer.addDocument(IndexedPlace.toDoc(place, Some(seedURI)))
+        writer.addDocument(IndexedPlace.toDoc(place, sourceGazetteer, Some(seedURI)))
         
         // If this place didn't have any closeMatches in the index, it's counted as a new distinct contribution
         if (closeMatches.size == 0)

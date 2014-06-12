@@ -43,7 +43,7 @@ object Global extends GlobalSettings {
           
           val names = places.flatMap(_.names)
           Logger.info("Inserting " + places.size + " places with " + names.size + " names into index")
-          val distinctPlaces = idx.addPlaces(places)
+          val distinctPlaces = idx.addPlaces(places, name)
           idx.refresh()
           
           // Insert gazetteer meta in to DB

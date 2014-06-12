@@ -1,4 +1,4 @@
-@(datasets: Int, items: Int, places: Int)
+@(datasets: Int, items: Int, gazetteers:Int, places: Int)
 <html>
   <head>
     <title>Pelagios API - Home</title>
@@ -30,7 +30,8 @@
           }
           
           <p class="stats">
-            Search <em class="number">@places</em> places and <em class="number">@items</em> items in <em class="number">@datasets</em> datasets.
+            Search <em class="number">@places</em> distinct places across <em>@gazetteers</em> gazetteers 
+            and <em class="number">@items</em> objects in <em class="number">@datasets</em> datasets.
           </p>
         </div> <!-- .row -->
       </div> <!-- #header-body -->

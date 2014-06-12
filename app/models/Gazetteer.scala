@@ -54,6 +54,9 @@ object Gazetteers {
     queryGazetteerPrefixes.insertAll(prefixes:_*)
   }
   
+  def countAll()(implicit s: Session): Int =
+    Query(queryGazetteers.length).first
+  
   def listAll()(implicit s: Session): Seq[(Gazetteer, Seq[String])] = {
     val query = for {
       gazetteer <- queryGazetteers   

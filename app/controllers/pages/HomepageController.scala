@@ -1,6 +1,6 @@
 package controllers.pages
 
-import models.{ AnnotatedThings, Datasets }
+import models.{ AnnotatedThings, Datasets, Gazetteers }
 import global.Global
 import play.api.mvc.Controller
 import play.api.db.slick._
@@ -12,8 +12,9 @@ object HomepageController extends Controller {
   def index() = DBAction { implicit session =>
     val datasets = Datasets.countAll
     val items = AnnotatedThings.countAll(true)
-    val places = 36221 // TODO get rid of this hard-coded number and replace with live count from gazetteers
-    Ok(views.html.home(datasets, items, places))
+    val gazetteers = Gazetteers.countAll
+    val places = Gazetteers.numDistinctPlaces 
+    Ok(views.html.home(datasets, items, gazetteers, places))
   }
   
   // TODO implement search entirely via the API
