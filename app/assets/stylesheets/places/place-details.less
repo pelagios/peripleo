@@ -7,17 +7,16 @@
   font-size:13px;
   padding:4px 8px 5px 8px;
   background-color:#ccc;
-  border:1px solid rgba(255,255,255,0.3);
   text-shadow:1px 1px rgba(0,0,0,0.4);
 }
 
 .gazetteer-uri.pleiades {
-  background-color: #428bca;
+  background-color:#428bca;
 }
 
 
 .gazetteer-uri.dare {
-  background-color: #f0ad4e;
+  background-color:#f0ad4e;
 }
 
 #header {
@@ -65,11 +64,34 @@
 
 svg {
 
+  circle {
+    fill:#ccc;
+    stroke:#fff;
+    stroke-width:1.5px;
+  }
+  
+  circle.dare { fill:#f0ad4e; }
+  circle.pleiades { fill:#428bca; } 
+  circle.virtual { stroke:#a2a2a2; fill:#fff; }
+
+  .link {
+    stroke-width:1.5px;
+    stroke:#a2a2a2;
+  }
+  
+  .virtual {
+    stroke-dasharray: 0,2 1;
+  }
+  
+  marker {
+    fill:#a2a2a2;
+  }
+
   text {
-    color:#6f6f6f;
-    font: 12px sans-serif;
+    fill:#3f3f3f;
+    font:12px sans-serif;
     pointer-events: none;
-    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+    text-shadow:0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
   }
   
 }

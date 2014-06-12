@@ -52,10 +52,12 @@ object JSONWrites {
   /** Writes a network node **/
   implicit val networkNodeWrites: Writes[NetworkNode] = (
     (JsPath \ "uri").write[String] ~
-    (JsPath \ "title").writeNullable[String]
+    (JsPath \ "title").writeNullable[String] ~
+    (JsPath \ "source_gazetteer").writeNullable[String]
   )(node => (
       node.uri,
-      node.place.map(_.title)))
+      node.place.map(_.title),
+      node.place.map(_.sourceGazetteer)))
       
   /** Writes a network edge **/
   implicit val networkEdgeWrites: Writes[NetworkEdge] = (
