@@ -54,13 +54,13 @@ object Gazetteers {
     queryGazetteerPrefixes.insertAll(prefixes:_*)
   }
   
-  def listAll()(implicit s: Session) = {
+  def listAll()(implicit s: Session): Seq[(Gazetteer, Seq[String])] = {
     val query = for {
       gazetteer <- queryGazetteers   
       prefix <- queryGazetteerPrefixes if gazetteer.name === prefix.gazetteer
     } yield (gazetteer, prefix)
     
-    query.list   
+    query.list.groupBy(_._1).mapValues(_.map(_._2.prefix)).toSeq  
   }
     
   def numDistinctPlaces()(implicit s: Session): Int =

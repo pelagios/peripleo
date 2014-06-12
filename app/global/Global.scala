@@ -49,10 +49,6 @@ object Global extends GlobalSettings {
           // Insert gazetteer meta in to DB
           Gazetteers.insert(Gazetteer(name, places.size, distinctPlaces), uriPrefixes)
         }}
-        
-        Gazetteers.listAll.foreach(foo => {
-          Logger.info("## " + foo._1.name + " - " + foo._2.prefix)
-        })
       }
     }
 

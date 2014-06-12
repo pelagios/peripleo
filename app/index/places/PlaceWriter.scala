@@ -3,6 +3,7 @@ package index.places
 import index.{ Index, IndexFields }
 import org.apache.lucene.document.{ Field, StringField }
 import org.apache.lucene.index.{ IndexWriter, Term }
+import org.apache.lucene.search.{ BooleanQuery, BooleanClause, TermQuery, TopScoreDocCollector }
 import org.pelagios.api.gazetteer.Place
 import play.api.Logger
 
@@ -19,23 +20,44 @@ trait PlaceWriter extends PlaceReader {
         Logger.warn("Place '" + place.uri + "' already in index!")
         0
       } else {
-        // Places that this place lists as closeMatch
-        val closeMatchesOut = place.closeMatches.map(uri => findPlaceByURI(Index.normalizeURI(uri))).filter(_.isDefined).map(_.get)
-
-        // Places in the index that list this place as closeMatch
-        val closeMatchesIn = findPlaceByCloseMatch(normalizedUri)
+        // First, we query our index for all closeMatches our new place has 
+        val closeMatches = place.closeMatches.map(uri => {
+          val normalized = Index.normalizeURI(uri)
+          (normalized, findPlaceByURI(normalized))
+        })
         
-        val closeMatches = closeMatchesOut ++ closeMatchesIn
+        // These are the closeMatches we already have in our index        
+        val indexedCloseMatchesOut = closeMatches.filter(_._2.isDefined).map(_._2.get)
+
+        // Next, we query our index for places which list our new places as their closeMatch
+        val indexedCloseMatchesIn = findPlaceByCloseMatch(normalizedUri)
+        
+        val indexedCloseMatches = indexedCloseMatchesOut ++ indexedCloseMatchesIn
+        
+        // These are closeMatch URIs we don't have in our index (yet)...
+        val unrecordedCloseMatchesOut = closeMatches.filter(_._2.isEmpty).map(_._1)
+
+        // ...but we can still use them to extend our network through indirect connections
+        val indirectlyConnectedPlaces = // expandNetwork(unrecordedCloseMatchesOut)
+          unrecordedCloseMatchesOut.flatMap(uri => findPlaceByCloseMatch(uri))
+          .filter(!indexedCloseMatches.contains(_)) // We filter out places that are already connected directly
+
+        if (indirectlyConnectedPlaces.size > 0) {
+          Logger.info("Connecting " + indirectlyConnectedPlaces.size + " places through indirect closeMatches")
+          indirectlyConnectedPlaces.foreach(p => Logger.info("  " + p.title))
+        }
+
+        val allCloseMatches = indexedCloseMatches ++ indirectlyConnectedPlaces
         
         // All closeMatches need to share the same seed URI
         val seedURI =
-          if (closeMatches.size > 0) 
-            closeMatches(0).seedURI
+          if (allCloseMatches.size > 0) 
+            allCloseMatches(0).seedURI
           else
             normalizedUri
  
         // Update seed URIs where necessary
-        updateSeedURI(closeMatches.filter(!_.seedURI.equals(seedURI)), seedURI, writer)
+        updateSeedURI(allCloseMatches.filter(!_.seedURI.equals(seedURI)), seedURI, writer)
         
         // Add new document to index
         val differentSeedURI = if (normalizedUri == seedURI) None else Some(seedURI)
