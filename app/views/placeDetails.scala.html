@@ -43,12 +43,12 @@
     
     <div id="content">
       <div class="row">        
-        <div class="float-right">
-          <div id="map"></div>
-          <div id="network"></div>
-        </div> <!-- .float-right -->
-        
-        <h2>@place.title in Other Gazetteers</h2>
+        <div id="map"></div>
+        <div id="network"></div>
+      </div> <!-- .row -->
+
+      <div class="row">      
+        <h2>@place.title in Other Gazetteers</h2>  
         <table class="close-matches">
           <tbody>            
             @for(place <- network.places.filter(_.uri != place.uri)) {
@@ -68,6 +68,16 @@
           </tbody>
         </table>
       </div> <!-- .row -->
+      
+      <div class="row">
+        <h2>References to @place.title in Pelagios</h2>
+        <table class="references">
+          <thead>
+            <tr><th>Dataset</th><th>No. of References</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div> <!-- #content -->
     
     <script type="text/javascript">
@@ -82,6 +92,20 @@
           	var map = new window.PlaceMap('map', centroid);   
           } 
         }
+        
+        $.getJSON('@routes.PlaceController.listReferences(place.uri, false)', function(data) {
+          var table = $('.references tbody');
+          $.each(data, function(idx, r) {    
+            console.log(r);        
+            var row =
+              '<tr>' + 
+              '  <td><a href="@controllers.pages.routes.DatasetPagesController.listAll/' + r.dataset.id + '">' + r.dataset.title + '</a></td>' +
+              '  <td><span class="number">' + r.references[0].num_occurrences + '</span> (of <span class="number">' + r.dataset.num_annotations + '</span> total in dataset)</td>' +
+              '</tr>';
+              
+            table.append(row);
+          });
+        });
       })();
     </script>
   </body>
