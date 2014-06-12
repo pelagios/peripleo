@@ -2,10 +2,13 @@
 <html>
   <head>
     <title>Place &raquo; @place.title</title>
-    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/places/place-details.css")"/>  
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script> 
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/places/place-details.css")"/>
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>  
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script> 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/d3.v3.min.js")"></script> 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/place-map.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/place-network.js")"></script>
   </head>
   <body>
@@ -26,17 +29,26 @@
           @tags.gazetteerURI(place.uri)
           <h1>@place.title</h1>
           <h3 class="names">@place.names.map(_.chars).mkString(", ")</h3>
-          <a href="@place.uri" target="_blank">@place.uri</a>
+          <p class="description">
+            @place.description
+            @if(place.geometry.isDefined) {
+              <br/>
+              <span class="icon">&#xf041;</span> LAT @place.geometry.get.centroid.y LON @place.geometry.get.centroid.x</p>
+            }
+            <a class="source-link" href="@place.uri" target="_blank">@place.uri</a>
+          </p>
         </div> <!-- .row -->
       </div> <!-- #header-body -->
     </div> <!-- #header -->
     
     <div id="content">
-      <div class="row">
+      <div class="row">        
+        <div class="float-right">
+          <div id="map"></div>
+          <div id="network"></div>
+        </div> <!-- .float-right -->
+        
         <h2>@place.title in Other Gazetteers</h2>
-        
-        <div id="network"></div>
-        
         <table class="close-matches">
           <tbody>            
             @for(place <- network.places.filter(_.uri != place.uri)) {
@@ -55,16 +67,21 @@
             }
           </tbody>
         </table>
-        
-        
-      </div>
+      </div> <!-- .row -->
     </div> <!-- #content -->
     
     <script type="text/javascript">
       (function() {
         $.getJSON('@routes.PlaceController.getNetwork(place.uri)', function(data) {
           var network = new window.PlaceNetwork('network', data);
-        });        
+        });
+        
+        @defining(place.geometry.map(_.centroid)) { coord =>
+          @if(coord.isDefined) {
+          	var centroid = [@coord.get.y, @coord.get.x];
+          	var map = new window.PlaceMap('map', centroid);   
+          } 
+        }
       })();
     </script>
   </body>

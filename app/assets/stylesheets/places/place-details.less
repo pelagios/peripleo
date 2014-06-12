@@ -8,32 +8,47 @@
   padding:4px 8px 5px 8px;
   background-color:#ccc;
   text-shadow:1px 1px rgba(0,0,0,0.4);
+  border:1px solid #eee;
+  .box-shadow(1px, 1px, 3px, 0, rgba(0,0,0,0.2));
 }
 
 .gazetteer-uri.pleiades {
   background-color:#428bca;
+  border-color:#316a9a;
 }
 
 
 .gazetteer-uri.dare {
   background-color:#f0ad4e;
+  border-color:#b77920;
 }
 
 #header {
 
-  h3 {
-    font-size:16px;
-    margin:0;
-    padding:0;
-  }
+  #header-body {
+    padding-top:30px;
+
+    h3 {
+      font-size:16px;
+      margin:0;
+      padding:0;
+    }
   
-  h3.names {
-    padding-bottom:8px;
-  }
+    h1 {
+      padding:10px 0 !important;
+    }
   
-  h1 {
-    padding:3px 0 !important;
-  }
+    p.description {
+      padding:0 0 10px 0;
+      margin:0;
+    }
+  
+    a.source-link {
+      display:block;
+      padding:10px 0 5px 0;
+    }
+  
+  } /* #header-boddy */
    
 } /* #header */
 
@@ -44,6 +59,12 @@
     td {
       padding:0 6px 0 3px;
       vertical-align:top;
+      
+      .gazetteer-uri {
+        position:relative;
+        top:4px;
+      }
+      
     }
     
     td.title {
@@ -52,11 +73,21 @@
     }
     
   }
+  
+  .float-right {
+    float:right;
+  }
+  
+  #map {
+    width:400px;
+    height:220px;
+    border:1px solid #ccc;
+    margin:10px 0;
+  }
 
   #network {
-    float:right;
     width:400px;
-    height:240px;
+    height:200px;
     border:1px solid #ccc;
   }
 
