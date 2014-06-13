@@ -5,7 +5,7 @@ window.PlaceNetwork = function(divId, network) {
 
   var force = d3.layout.force()
     .charge(-300)
-    .linkDistance(80)
+    .linkDistance(60)
     .size([width, height])
     .nodes(network.nodes)
     .links(network.edges)

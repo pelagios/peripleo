@@ -33,7 +33,7 @@
             @place.description
             @if(place.geometry.isDefined) {
               <br/>
-              <span class="icon">&#xf041;</span> LAT @place.geometry.get.centroid.y LON @place.geometry.get.centroid.x</p>
+              <span class="icon">&#xf041;</span> LAT @place.geometry.get.centroid.y LON @place.geometry.get.centroid.x</span>
             }
             <a class="source-link" href="@place.uri" target="_blank">@place.uri</a>
           </p>
@@ -63,7 +63,7 @@
               
               <tr><td>@place.names.map(_.chars).mkString(", ")</td></tr>
               
-              <tr><td><a href="@place.uri" target="_blank">@place.uri</a></td></tr>
+              <tr class="end"><td><a href="@place.uri" target="_blank">@place.uri</a></td></tr>
             }
           </tbody>
         </table>

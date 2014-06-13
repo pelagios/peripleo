@@ -8,6 +8,9 @@
     case s if s.startsWith("http://www.imperium.ahlfeldt.se/places/") => 
       <span class="gazetteer-uri dare">dare:{ s.substring(39) }</span>
       
+    case s if s.startsWith("http://gazetteer.dainst.org/place/") =>
+      <span class="gazetteer-uri dai">dai:{ s.substring(34) }</span>
+      
     case s => 
       <span class="gazetteer-uri">{ s }</span>
   }

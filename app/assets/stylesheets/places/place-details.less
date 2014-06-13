@@ -23,6 +23,11 @@
   border-color:#b77920;
 }
 
+.gazetteer-uri.dai {
+  background-color:#4fc154;
+  border-color:#37813b;
+}
+
 #header {
 
   #header-body {
@@ -42,6 +47,12 @@
     p.description {
       padding:0 0 10px 0;
       margin:0;
+      line-height:180%;
+      
+      a.source-link {
+        display:block;
+        font-weight:bold;
+      }
     }
   
   } /* #header-boddy */
@@ -69,6 +80,8 @@
   }
   
   table.close-matches {
+  
+    tr.end td { padding-bottom:20px; }
     
     td {
       padding:0 6px 0 3px;
@@ -100,6 +113,7 @@ svg {
   
   circle.dare { fill:#f0ad4e; }
   circle.pleiades { fill:#428bca; } 
+  circle.dai { fill:#4fc154; }
   circle.virtual { stroke:#a2a2a2; fill:#fff; }
 
   .link {

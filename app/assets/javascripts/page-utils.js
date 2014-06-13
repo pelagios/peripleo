@@ -25,6 +25,8 @@ util.formatGazetteerURI = function(uri) {
     return 'pleiades:' + uri.substr(32);
   } else if (uri.indexOf('http://www.imperium.ahlfeldt.se/places/') > -1) {
     return 'dare:' + uri.substr(39);
+  } else if (uri.indexOf('http://gazetteer.dainst.org/place/') > -1) {
+	return 'dai:' + uri.substr(34);
   } else if (uri.indexOf('http://sws.geonames.org/') > -1) {
     return 'geonames:' + uri.substr(24);
   } else {
