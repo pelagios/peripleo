@@ -28,23 +28,41 @@ object Global extends GlobalSettings {
       
       val gazetteers = getPropertyAsList("api.gazetteer.names").zip(getPropertyAsList("api.gazetteer.files"))
       
+      // Inserts a single dump file into the index (returning number of total places, distinct places and URI prefixes)
+      def insertDumpfile(name: String, file: File): (Int, Int, Seq[String]) = {
+        val is = if (file.getName.endsWith(".gz"))
+          new GZIPInputStream(new FileInputStream(file))
+        else
+          new FileInputStream(file)
+        
+        val places = Scalagios.readPlaces(is, "http://pelagios.org/", RDFFormat.TURTLE).toSeq
+
+        Logger.info("Inserting to index")
+        val (distinctPlaces, uriPrefixes) = idx.addPlaces(places, name)
+        (places.size, distinctPlaces, uriPrefixes)
+      }
+      
+      // Builds the place index from the configured gazetteer dumps
       DB.withSession { implicit session: Session =>
         gazetteers.foreach { case (name, dump) => {
           Logger.info("Loading gazetteer " + name  + ": " + dump)
         
-          val is = if (dump.endsWith(".gz"))
-              new GZIPInputStream(new FileInputStream(new File(GAZETTER_DATA_DIR, dump)))
-            else
-              new FileInputStream(new File(GAZETTER_DATA_DIR, dump))
-        
-          val places = Scalagios.readPlaces(is, "http://pelagios.org/", RDFFormat.TURTLE).toSeq
-
-          Logger.info("Inserting to index")
-          val (distinctPlaces, uriPrefixes) = idx.addPlaces(places, name)
+          val file = new File(GAZETTER_DATA_DIR, dump)
+          val (totalPlaces, distinctPlaces, uriPrefixes) =
+            if (file.isDirectory) {
+              file.listFiles.foldLeft((0, 0, Seq.empty[String])) { case ((totalPlaces, distinctPlaces, uriPrefixes), nextFile) => {
+                Logger.info("Loading partial gazetteer file: " + nextFile.getName)
+                val (newPlaces, newDistinctPlaces, prefixes) = insertDumpfile(name, nextFile)
+                (totalPlaces + newPlaces, distinctPlaces + newDistinctPlaces, (uriPrefixes ++ prefixes).distinct)
+              }}
+            } else {
+              insertDumpfile(name, file)
+            }
+          
           idx.refresh()
           
           // Insert gazetteer meta in to DB
-          Gazetteers.insert(Gazetteer(name, places.size, distinctPlaces), uriPrefixes)
+          Gazetteers.insert(Gazetteer(name, totalPlaces, distinctPlaces), uriPrefixes)
         }}
       }
     }
