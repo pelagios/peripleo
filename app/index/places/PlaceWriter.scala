@@ -9,17 +9,21 @@ import play.api.Logger
 
 trait PlaceWriter extends PlaceReader {
   
-  def addPlaces(places: Iterable[Place], sourceGazetteer: String): Int =  { 
+  def addPlaces(places: Iterable[Place], sourceGazetteer: String): (Int, Seq[String]) =  { 
     val writer = newPlaceWriter()
     
-    val distinctNewPlaces = places.map(place => {
+    val uriPrefixes = scala.collection.mutable.Set.empty[String]
+    val distinctNewPlaces = places.foldLeft(0)((distinctNewPlaces, place) => {
       val normalizedUri = Index.normalizeURI(place.uri)
       
       // Enforce uniqueness
       if (findPlaceByURI(normalizedUri).isDefined) {
         Logger.warn("Place '" + place.uri + "' already in index!")
-        0
+        distinctNewPlaces
       } else {
+        // Record URI prefix
+        uriPrefixes.add(normalizedUri.substring(0, normalizedUri.indexOf('/', 8)))
+            
         // First, we query our index for all closeMatches our new place has 
         val closeMatches = place.closeMatches.map(uri => {
           val normalized = Index.normalizeURI(uri)
@@ -65,14 +69,14 @@ trait PlaceWriter extends PlaceReader {
         
         // If this place didn't have any closeMatches in the index, it's counted as a new distinct contribution
         if (closeMatches.size == 0)
-          1
+          distinctNewPlaces + 1
         else
-          0
+          distinctNewPlaces
       }   
     })
-    
+
     writer.close()
-    distinctNewPlaces.foldLeft(0)(_ + _)
+    (distinctNewPlaces, uriPrefixes.toSeq)
   }
   
   def updateSeedURI(places: Seq[IndexedPlace], seedURI: String, writer: IndexWriter) = {

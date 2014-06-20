@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   "org.geotools" % "gt-geojson" % "10.0",
   "org.apache.lucene" % "lucene-analyzers-common" % "4.8.1",
   "org.apache.lucene" % "lucene-queryparser" % "4.8.1",
-  "org.apache.lucene" % "lucene-facet" % "4.8.1"
+  "org.apache.lucene" % "lucene-facet" % "4.8.1",
+  "org.mapdb" % "mapdb" % "1.0.3",
+  "org.slf4j" % "slf4j-simple" % "1.7.7"
 )   
 

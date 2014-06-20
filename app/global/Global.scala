@@ -38,12 +38,9 @@ object Global extends GlobalSettings {
               new FileInputStream(new File(GAZETTER_DATA_DIR, dump))
         
           val places = Scalagios.readPlaces(is, "http://pelagios.org/", RDFFormat.TURTLE).toSeq
-          val uriPrefixes = places.map(_.uri).map(uri => uri.substring(0, uri.indexOf('/', 8))).distinct
-          uriPrefixes.foreach(prefix => Logger.info("URI prefix '" + prefix + "'"))
-          
-          val names = places.flatMap(_.names)
-          Logger.info("Inserting " + places.size + " places with " + names.size + " names into index")
-          val distinctPlaces = idx.addPlaces(places, name)
+
+          Logger.info("Inserting to index")
+          val (distinctPlaces, uriPrefixes) = idx.addPlaces(places, name)
           idx.refresh()
           
           // Insert gazetteer meta in to DB
