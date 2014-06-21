@@ -5,7 +5,7 @@ import java.util.zip.GZIPInputStream
 import java.io.{ File, FileInputStream }
 import models._
 import org.openrdf.rio.RDFFormat
-import org.pelagios.Scalagios
+import org.pelagios.rdf.{ PlaceReader => RDFPlaceReader }
 import play.api.Play
 import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
@@ -35,10 +35,13 @@ object Global extends GlobalSettings {
         else
           new FileInputStream(file)
         
-        val places = Scalagios.readPlaces(is, "http://pelagios.org/", RDFFormat.TURTLE).toSeq
+        val reader = new RDFPlaceReader(is)
+        val places = reader.read("http://pelagios.org/", RDFFormat.TURTLE)
+        Logger.info("Parsed " + places.size + " places")
 
         Logger.info("Inserting to index")
         val (distinctPlaces, uriPrefixes) = idx.addPlaces(places, name)
+        reader.close()
         (places.size, distinctPlaces, uriPrefixes)
       }
       
@@ -53,6 +56,7 @@ object Global extends GlobalSettings {
               file.listFiles.foldLeft((0, 0, Seq.empty[String])) { case ((totalPlaces, distinctPlaces, uriPrefixes), nextFile) => {
                 Logger.info("Loading partial gazetteer file: " + nextFile.getName)
                 val (newPlaces, newDistinctPlaces, prefixes) = insertDumpfile(name, nextFile)
+                Logger.info("Inserted " + (totalPlaces + newPlaces) + " places")
                 (totalPlaces + newPlaces, distinctPlaces + newDistinctPlaces, (uriPrefixes ++ prefixes).distinct)
               }}
             } else {
