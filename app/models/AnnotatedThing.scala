@@ -58,7 +58,7 @@ class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_th
   
   def datasetFk = foreignKey("dataset_fk", datasetId, Datasets.query)(_.id)
   
-  def isPartOfFk = foreignKey("is_part_of_fk", isPartOfId, AnnotatedThings.query)(_.id)
+  def isPartOfFk = foreignKey("is_part_of_thing_fk", isPartOfId, AnnotatedThings.query)(_.id)
   
   /** Indices **/
   

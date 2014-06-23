@@ -34,6 +34,9 @@ case class Dataset(
     
   /** foaf:homepage **/
   homepage: Option[String],
+  
+  /** The ID of the dataset this dataset is part of (if any) **/
+  isPartOf: Option[String],
     
   /** void:dataDump **/
   datadump: Option[String],
@@ -74,6 +77,8 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   
   def homepage = column[String]("homepage", O.Nullable)
   
+  def isPartOfId = column[String]("is_part_of", O.Nullable)
+  
   def datadump = column[String]("datadump", O.Nullable)
   
   def temporalBoundsStart = column[Int]("temporal_bounds_start", O.Nullable)
@@ -83,7 +88,11 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   def temporalProfile = column[String]("temporal_profile", O.Nullable, O.DBType("text"))
   
   def * = (id, title, publisher, license, created, modified, voidURI.?, description.?, 
-    homepage.?, datadump.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?) <> (Dataset.tupled, Dataset.unapply)
+    homepage.?, isPartOfId.?, datadump.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?) <> (Dataset.tupled, Dataset.unapply)
+  
+  /** Foreign key constraints **/
+    
+  def isPartOfFk = foreignKey("is_part_of_dataset_fk", isPartOfId, Datasets.query)(_.id)
   
 }
 

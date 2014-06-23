@@ -66,7 +66,7 @@ object PelagiosOAImporter extends AbstractImporter {
         
     val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
         dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-        dataset.homepage, dataset.datadump, tempBoundsStart, tempBoundsEnd, temporalProfile)
+        dataset.homepage, None, dataset.datadump, tempBoundsStart, tempBoundsEnd, temporalProfile)
         
     Datasets.update(updatedDataset)     
   }
