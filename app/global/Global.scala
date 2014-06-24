@@ -1,11 +1,10 @@
 package global
 
 import index.Index
-import java.util.zip.GZIPInputStream
 import java.io.{ File, FileInputStream }
+import java.util.zip.GZIPInputStream
 import models._
-import org.openrdf.rio.RDFFormat
-import org.pelagios.rdf.{ PlaceReader => RDFPlaceReader }
+import org.pelagios.api.gazetteer.Place
 import play.api.Play
 import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
@@ -29,20 +28,13 @@ object Global extends GlobalSettings {
       val gazetteers = getPropertyAsList("api.gazetteer.names").zip(getPropertyAsList("api.gazetteer.files"))
       
       // Inserts a single dump file into the index (returning number of total places, distinct places and URI prefixes)
-      def insertDumpfile(name: String, file: File): (Int, Int, Seq[String]) = {
-        val is = if (file.getName.endsWith(".gz"))
-          new GZIPInputStream(new FileInputStream(file))
+      def insertDumpfile(sourceGazetteer: String, file: File): (Int, Int, Seq[String]) = {
+        val (is, filename)  = if (file.getName.endsWith(".gz"))
+          (new GZIPInputStream(new FileInputStream(file)), file.getName.substring(0, file.getName.lastIndexOf('.')))
         else
-          new FileInputStream(file)
-        
-        val reader = new RDFPlaceReader(is)
-        val places = reader.read("http://pelagios.org/", RDFFormat.TURTLE)
-        Logger.info("Parsed " + places.size + " places")
+          (new FileInputStream(file), file.getName)
 
-        Logger.info("Inserting to index")
-        val (distinctPlaces, uriPrefixes) = idx.addPlaces(places, name)
-        reader.close()
-        (places.size, distinctPlaces, uriPrefixes)
+        idx.addPlaceStream(is, filename, sourceGazetteer)
       }
       
       // Builds the place index from the configured gazetteer dumps

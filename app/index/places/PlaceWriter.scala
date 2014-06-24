@@ -1,25 +1,59 @@
 package index.places
 
 import index.{ Index, IndexFields }
+import java.io.InputStream
 import org.apache.lucene.document.{ Field, StringField }
 import org.apache.lucene.index.{ IndexWriter, Term }
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, TermQuery, TopScoreDocCollector }
 import org.pelagios.api.gazetteer.Place
 import play.api.Logger
+import scala.collection.mutable.Set
+import org.pelagios.Scalagios
+import org.openrdf.rio.RDFFormat
 
 trait PlaceWriter extends PlaceReader {
   
-  def addPlaces(places: Iterable[Place], sourceGazetteer: String): (Int, Seq[String]) =  { 
+  def addPlaces(places: Iterator[Place], sourceGazetteer: String): (Int, Seq[String]) =  { 
     val writer = newPlaceWriter()
     
-    val uriPrefixes = scala.collection.mutable.Set.empty[String]
+    val uriPrefixes = Set.empty[String]
     val distinctNewPlaces = places.foldLeft(0)((distinctNewPlaces, place) => {
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, writer)
+      if (isDistinct)
+        distinctNewPlaces + 1 
+      else
+        distinctNewPlaces
+    })
+
+    writer.close()
+    (distinctNewPlaces, uriPrefixes.toSeq)
+  }
+  
+  def addPlaceStream(is: InputStream, filename: String, sourceGazetteer: String): (Int, Int, Seq[String]) = {
+    val writer = newPlaceWriter()
+    
+    val uriPrefixes = Set.empty[String]
+    var totalPlaces = 0
+    var distinctNewPlaces = 0
+    def placeHandler(place: Place): Unit = {
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, writer)
+      totalPlaces += 1
+      if (isDistinct)
+        distinctNewPlaces += 1
+    }
+    
+    Scalagios.streamPlaces(is, filename, placeHandler)
+    writer.close()
+    (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
+  }
+  
+  private def addPlace(place: Place, sourceGazetteer: String, uriPrefixes: Set[String], writer: IndexWriter): Boolean = {
       val normalizedUri = Index.normalizeURI(place.uri)
       
       // Enforce uniqueness
       if (findPlaceByURI(normalizedUri).isDefined) {
         Logger.warn("Place '" + place.uri + "' already in index!")
-        distinctNewPlaces
+        false // No new distinct place
       } else {
         // Record URI prefix
         uriPrefixes.add(normalizedUri.substring(0, normalizedUri.indexOf('/', 8)))
@@ -67,19 +101,12 @@ trait PlaceWriter extends PlaceReader {
         val differentSeedURI = if (normalizedUri == seedURI) None else Some(seedURI)
         writer.addDocument(IndexedPlace.toDoc(place, sourceGazetteer, Some(seedURI)))
         
-        // If this place didn't have any closeMatches in the index, it's counted as a new distinct contribution
-        if (closeMatches.size == 0)
-          distinctNewPlaces + 1
-        else
-          distinctNewPlaces
-      }   
-    })
-
-    writer.close()
-    (distinctNewPlaces, uriPrefixes.toSeq)
+        // If this place didn't have any closeMatches in the index, it's a new distinct contribution
+        closeMatches.size == 0
+      }      
   }
   
-  def updateSeedURI(places: Seq[IndexedPlace], seedURI: String, writer: IndexWriter) = {
+  private def updateSeedURI(places: Seq[IndexedPlace], seedURI: String, writer: IndexWriter) = {
     places.foreach(place => {
       // Delete doc from index
       writer.deleteDocuments(new Term(IndexFields.PLACE_URI, place.uri))

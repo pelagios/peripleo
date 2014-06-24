@@ -20,7 +20,8 @@ object VoIDImporter extends AbstractImporter {
     // If we don't have a base URI for the VoID file, we'll use our own namespace as fallback
     // Not 100% the Sesame parser actually makes use of it... but we're keeping things sane nonetheless
     val baseURI = uri.getOrElse(controllers.routes.DatasetController.listAll().absoluteURL(false)(r))
-    Scalagios.readVoID(new FileInputStream(file.ref.file), baseURI, format).foreach(dataset => {
+    val is = new FileInputStream(file.ref.file)
+    Scalagios.readVoID(is, format).foreach(dataset => {
       val id =
         if (dataset.uri.startsWith("http://")) {
           sha256(dataset.uri)          
@@ -39,6 +40,8 @@ object VoIDImporter extends AbstractImporter {
       Global.index.addDataset(datasetEntity)
       Global.index.refresh()
     })
+    
+    is.close()
   }
   
 }

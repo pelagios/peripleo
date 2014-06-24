@@ -34,7 +34,7 @@ object CSVImporter extends AbstractImporter {
     }).groupBy(_._2)
     
     val parts = annotationsByPart.keys.map(title =>
-      AnnotatedThing(sha256(dataset.id + " " + title), dataset.id, title, Some(parentThing.id), None, None, None))
+      AnnotatedThing(sha256(dataset.id + " " + parentThing.title + " " + title), dataset.id, title, Some(parentThing.id), None, None, None))
     
     val annotations = annotationsByPart.values.flatten.map(t => {
       Annotation(t._1, dataset.id, parts.find(_.title == t._2).get.id, t._3)
