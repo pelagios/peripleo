@@ -30,7 +30,7 @@ trait ObjectReader extends IndexBase {
       
       val total = topDocsCollector.getTotalHits
       val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
-      Page(results.toSeq, offset, limit, total)
+      Page(results.toSeq, offset, limit, total, Some(query))
     } finally {
       searcherTaxonomyMgr.release(searcherAndTaxonomy)
     } 

@@ -22,12 +22,12 @@
       
       <div id="header-body">
         <div class="row">
-          @helper.form(action = controllers.pages.routes.HomepageController.search()) {
+          <form method="GET" action="@{controllers.pages.routes.HomepageController.index}pages/search">
           	<div class="form-container">
               <input type="text" name="query" autocomplete="off">
               <input type="submit" value="Find!">
             </div>
-          }
+          </form>
           
           <p class="stats">
             Search <em class="number">@places</em> distinct places across <em>@gazetteers</em> gazetteers 

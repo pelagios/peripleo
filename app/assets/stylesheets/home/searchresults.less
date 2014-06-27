@@ -1,2 +1,52 @@
 @import "../globals.less";
 @import "../base-layout.less";
+@import "../gazetteer-uri.less";
+
+#content {
+
+  ul#results {
+    list-style-type:none;
+    padding:0;
+    margin:0;
+    
+    li {
+      position:relative;
+      margin-bottom:25px;
+      line-height:150%;
+      padding:4px 0 4px 10px;
+      border-style:solid;
+      border-color:#dfdfdf;
+      border-width:0 0 1px 24px;
+      
+      .title {
+        display:block;
+        font-weight:bold;
+        font-size:14px;
+      }
+      
+    } /** li **/
+     
+    li::before {
+      font-family:"Font Awesome";
+      color:#fff;
+      font-size:14px;
+      position:absolute;
+      left:-18px;
+    }
+    
+    li.place::before {
+      font-size:18px;
+      content:'\f041';
+    }
+    
+    li.dataset::before {
+      content:'\f1c0';
+    }
+    
+    li.item::before {
+      content:'\f016';
+    }
+    
+  } /** ul#results **/
+  
+}

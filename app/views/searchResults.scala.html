@@ -1,4 +1,4 @@
-@(objects: Page[index.IndexedObject])
+@(results: Page[index.IndexedObject])(implicit s: play.api.db.slick.Config.driver.simple.Session)
 <html>
   <head>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/searchresults.css")"/>
@@ -7,7 +7,7 @@
     <div id="header">
       <div id="header-menu">
         <div class="row">
-          <span class="pelagios-logo">PELAGIOS API</span> 
+          <a class="pelagios-logo" href="@controllers.pages.routes.HomepageController.index">PELAGIOS API</a>
           <ul>
             <li><a href="@controllers.pages.routes.HomepageController.index">Home</a></li>
             <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
@@ -15,22 +15,19 @@
           </ul>
         </div> <!-- .row -->
       </div> <!-- #header-menu -->
+      
+      <div id="header-body">
+        <div class="row">
+          <em class="number">@results.total</em> results for <span class="query">@results.query</span>
+        </div>
+      </div>
     </div> <!-- #header -->
     
     <div id="content">
       <div class="row">
-        <div class="totals">
-          @objects.total Total Results
-        </div> <!-- .totals -->
-        
         <ul id="results">
-          @for(obj <- objects.items) {
-            <li class="result">
-              <span class="type">Item</span>
-              <span class="title">@obj.title</span>
-              <span class="in-dataset">in <a href="#">The Fralin | UVa Art Museum Numismatic Collection</a></span>
-              <span class="stats">2 references to 2 unique places</span>
-            </li>
+          @for(item <- results.items) {
+          	@tags.searchresultItem(item)
           }
         </ul>
       </div> <!-- .row -->

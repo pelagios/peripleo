@@ -4,6 +4,7 @@ import models.{ AnnotatedThings, Datasets, Gazetteers }
 import global.Global
 import play.api.mvc.Controller
 import play.api.db.slick._
+import play.api.Logger
 
 object HomepageController extends Controller {
   
@@ -17,15 +18,9 @@ object HomepageController extends Controller {
     Ok(views.html.home(datasets, items, gazetteers, places))
   }
   
-  // TODO implement search entirely via the API
-  def search() = DBAction { implicit session =>
-    val query = session.request.queryString.get(QUERY).flatMap(_.headOption)
-    if (query.isDefined && !query.get.isEmpty) {
-      val results = Global.index.search(query.get, 0, 20)
-      Ok(views.html.searchResults(results))
-    } else {
-      Redirect(routes.HomepageController.index)
-    }
+  def search(query: String, limit: Int, offset: Int) = DBAction { implicit session =>
+    val results = Global.index.search(query, offset, limit)
+    Ok(views.html.searchResults(results))
   }
 
 }

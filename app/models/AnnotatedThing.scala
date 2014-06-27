@@ -115,6 +115,16 @@ object AnnotatedThings {
   /** Retrieves a single AnnotatedThing by its ID **/
   def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
     query.where(_.id === id).firstOption
+    
+  /** Retrieves a single AnnotatedThing by its ID and joins the Dataset it belongs to **/
+  def findByIdWithDataset(id: String)(implicit s: Session): Option[(AnnotatedThing, Dataset)] = {
+    val q = for {
+      thing <- query.where(_.id === id)
+      dataset <- Datasets.query if thing.datasetId === dataset.id 
+    } yield (thing, dataset)
+    
+    q.firstOption
+  }
 
   /** Counts the things contained in a specified dataset.
     *
