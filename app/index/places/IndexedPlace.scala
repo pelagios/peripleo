@@ -10,7 +10,7 @@ import org.pelagios.api.gazetteer.{ Place, PlaceCategory }
 import play.api.libs.json.Json
 import scala.collection.JavaConversions._
 
-case class IndexedPlace(private[places] val doc: Document) {
+case class IndexedPlace(private[index] val doc: Document) {
   
   val uri: String = doc.get(IndexFields.PLACE_URI)
 

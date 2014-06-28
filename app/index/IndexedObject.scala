@@ -1,5 +1,6 @@
 package index
 
+import index.places.IndexedPlace
 import models.{ AnnotatedThing, Dataset }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
@@ -27,6 +28,8 @@ case class IndexedObject(private val doc: Document) {
   val temporalBoundsStart: Option[Int] = Option(doc.get(IndexFields.DATE_FROM)).map(_.toInt)
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
+  
+  def toPlace = new IndexedPlace(doc)
  
 }
 

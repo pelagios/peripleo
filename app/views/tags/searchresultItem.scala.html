@@ -34,6 +34,7 @@
           @tags.gazetteerURI(item.identifier)
         </span>
         @if(item.description.isDefined) { <span class="description">@item.description</span> }
+        @item.toPlace.seedURI
       </li> 
     }
   

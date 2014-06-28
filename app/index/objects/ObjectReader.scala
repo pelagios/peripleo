@@ -8,6 +8,7 @@ import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.search.{ IndexSearcher, MultiCollector, TopScoreDocCollector }
+import org.apache.lucene.sandbox.queries.DuplicateFilter
 
 trait ObjectReader extends IndexBase {
   
@@ -19,11 +20,16 @@ trait ObjectReader extends IndexBase {
     try {
       // TODO revisit: which fields should really be considered for search?
       val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION).toArray 
+      
+      val filter = new DuplicateFilter(IndexFields.PLACE_SEED_URI, 
+        DuplicateFilter.KeepMode.KM_USE_LAST_OCCURRENCE,
+        DuplicateFilter.ProcessingMode.PM_FULL_VALIDATION)
+      
       val q = new MultiFieldQueryParser(Version.LUCENE_48, fields, analyzer).parse(query)
       
       val facetsCollector = new FacetsCollector()
       val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)          
-      searcher.search(q, MultiCollector.wrap(topDocsCollector, facetsCollector))
+      searcher.search(q, filter, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
       val facets = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)
       val facetResults = Seq(facets.getTopChildren(offset + limit, IndexFields.OBJECT_TYPE))
