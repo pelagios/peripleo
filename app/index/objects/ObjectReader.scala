@@ -9,21 +9,24 @@ import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.search.{ IndexSearcher, MultiCollector, TopScoreDocCollector }
 import org.apache.lucene.sandbox.queries.DuplicateFilter
+import org.apache.lucene.index.SlowCompositeReaderWrapper
 
 trait ObjectReader extends IndexBase {
   
-  def search(query: String, offset: Int = 0, limit: Int = 20, fuzzy: Boolean = false): Page[IndexedObject] = {     
+  def search(query: String, offset: Int = 0, limit: Int = 20, fuzzy: Boolean = false): Page[IndexedObject] = { 
+    // This is to make deduplication work properly - but it's not a permanent solution since it won't scale
+    // TODO do de-duplication at ingest time
+    val atomicPlaceReader = SlowCompositeReaderWrapper.wrap(placeIndexReader)
+    
     val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
-    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, placeIndexReader))
+    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, atomicPlaceReader))
     val taxonomyReader = searcherAndTaxonomy.taxonomyReader
     
     try {
       // TODO revisit: which fields should really be considered for search?
       val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION).toArray 
       
-      val filter = new DuplicateFilter(IndexFields.PLACE_SEED_URI, 
-        DuplicateFilter.KeepMode.KM_USE_LAST_OCCURRENCE,
-        DuplicateFilter.ProcessingMode.PM_FULL_VALIDATION)
+      val filter = new DuplicateFilter(IndexFields.PLACE_SEED_URI)
       
       val q = new MultiFieldQueryParser(Version.LUCENE_48, fields, analyzer).parse(query)
       

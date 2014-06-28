@@ -31,7 +31,7 @@
       <li class="result place">
         <span class="title">
           <a href="@controllers.pages.routes.PlacePagesController.getPlace(item.identifier)">@item.title</a>
-          @tags.gazetteerURI(item.identifier)
+          @tags.gazetteerURI(item.identifier, true)
         </span>
         @if(item.description.isDefined) { <span class="description">@item.description</span> }
         @item.toPlace.seedURI

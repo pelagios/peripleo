@@ -1,7 +1,7 @@
 @(uri: String, inline: Boolean = false)
 
 @{
-  val cssClass = if (inline) "gazetteer-uri" else "gazetteer-uri inline"
+  val cssClass =  if (inline) "gazetteer-uri inline" else "gazetteer-uri"
 	   
   uri match {
     case s if s.startsWith("http://pleiades.stoa.org/places/") => 
