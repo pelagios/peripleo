@@ -31,12 +31,11 @@
       <li class="result place">
         <span class="title">
           <a href="@controllers.pages.routes.PlacePagesController.getPlace(item.identifier)">@item.title</a>
-          @tags.gazetteerURI(item.identifier, true)
+          @for(place <- item.toPlaceNetwork.places) {
+            @tags.gazetteerURI(place.uri, true)
+          }
         </span>
         @if(item.description.isDefined) { <span class="description">@item.description</span> }
-        @for(place <- item.toPlaceNetwork.places) {
-          @place.uri <br/>
-        }
       </li> 
     }
   
