@@ -1,6 +1,6 @@
 package index
 
-import index.places.IndexedPlace
+import index.places.IndexedPlaceNetwork
 import models.{ AnnotatedThing, Dataset }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
@@ -11,13 +11,13 @@ case class IndexedObject(private val doc: Document) {
     val typeField = doc.get(IndexFields.OBJECT_TYPE)
     if (typeField != null) // The object type is defined through the value of the facet field    
       IndexedObjectTypes.withName(typeField)
-    else // or it's a place (in which case there is no facet field)
+    else // or it's a place network (in which case there is no facet field)
       IndexedObjectTypes.PLACE
   }
   
   val identifier: String =
     if (objectType == IndexedObjectTypes.PLACE) 
-      doc.get(IndexFields.PLACE_URI) // The identifier is the URI for places
+      doc.get(IndexFields.PLACE_URI) // The identifier is the first URI in the list for the place network
     else
       doc.get(IndexFields.ID) // or the ID for everything else
     
@@ -29,7 +29,7 @@ case class IndexedObject(private val doc: Document) {
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
   
-  def toPlace = new IndexedPlace(doc)
+  def toPlaceNetwork = new IndexedPlaceNetwork(doc)
  
 }
 

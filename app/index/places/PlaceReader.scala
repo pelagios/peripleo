@@ -1,62 +1,48 @@
 package index.places
 
+import scala.collection.JavaConversions._
 import index.{ IndexBase, Index, IndexFields }
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.{ BooleanClause, BooleanQuery, MatchAllDocsQuery, TermQuery, TopScoreDocCollector }
 import play.api.Logger
+import org.apache.lucene.search.PhraseQuery
+import org.apache.lucene.queryparser.classic.QueryParser
+import org.apache.lucene.util.Version
+import org.apache.lucene.analysis.standard.StandardAnalyzer
 
 trait PlaceReader extends IndexBase {
   
-  def listAllPlaces(offset: Int = 0, limit: Int = 20): Seq[IndexedPlace] = {
+  def listAllPlaceNetworks(offset: Int = 0, limit: Int = 20): Seq[IndexedPlaceNetwork] = {
     val searcher = newPlaceSearcher()
     val collector = TopScoreDocCollector.create(offset + limit, true)
     searcher.search(new MatchAllDocsQuery(), collector)
     
     collector.topDocs(offset, limit).scoreDocs
-      .map(scoreDoc => new IndexedPlace(searcher.doc(scoreDoc.doc))).toSeq
+      .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
   }
   
-  def findPlaceByURI(uri: String): Option[IndexedPlace] = {
-    val q = new BooleanQuery()
-    q.add(new TermQuery(new Term(IndexFields.PLACE_URI, Index.normalizeURI(uri))), BooleanClause.Occur.MUST)
+  def findPlaceByURI(uri: String): Option[IndexedPlace] =
+    findNetworkByPlaceURI(uri).flatMap(_.getPlace(uri))
+    
+  def findNetworkByPlaceURI(uri: String): Option[IndexedPlaceNetwork] = {
+    val q = new TermQuery(new Term(IndexFields.PLACE_URI, Index.normalizeURI(uri)))
     
     val searcher = newPlaceSearcher()
     val collector = TopScoreDocCollector.create(1, true)
     searcher.search(q, collector)
     
-    val places = collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlace(searcher.doc(scoreDoc.doc)))
-    if (places.size > 0)
-      return Some(places(0))
-    else
-      None
+    collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).headOption
   }
 
-  def findPlaceByCloseMatch(uri: String): Seq[IndexedPlace] = {
-    val q = new BooleanQuery()
-    q.add(new TermQuery(new Term(IndexFields.PLACE_CLOSE_MATCH, Index.normalizeURI(uri))), BooleanClause.Occur.MUST)
+  def findNetworkByCloseMatch(uri: String): Seq[IndexedPlaceNetwork] = {
+    val q = new TermQuery(new Term(IndexFields.PLACE_CLOSE_MATCH, Index.normalizeURI(uri)))
     
     val searcher = newPlaceSearcher()
     val numHits = Math.max(1, numPlaces) // Has to be minimum 1, but can never exceed size of index
     val collector = TopScoreDocCollector.create(numHits, true)
     searcher.search(q, collector)
     
-    collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlace(searcher.doc(scoreDoc.doc)))
-  }
-  
-  def getNetwork(place: IndexedPlace): PlaceNetwork = {
-    val q = new BooleanQuery()
-    q.add(new TermQuery(new Term(IndexFields.PLACE_SEED_URI, place.seedURI)), BooleanClause.Occur.MUST)
-    
-    val searcher = newPlaceSearcher()    
-    val numHits = Math.max(1, numPlaces) // Has to be minimum 1, but can never exceed size of index
-    val collector = TopScoreDocCollector.create(numHits, true)
-    searcher.search(q, collector)
-    
-    val places = collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlace(searcher.doc(scoreDoc.doc))).toSeq
-        
-    // List of edges fromURI -> toURI
-    val edges = places.flatMap(p => Seq.fill(p.closeMatches.size)(p.uri).zip(p.closeMatches))
-    PlaceNetwork(places, edges)
+    collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc)))
   }
   
 }

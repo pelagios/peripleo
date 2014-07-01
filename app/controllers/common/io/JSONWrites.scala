@@ -67,7 +67,7 @@ object JSONWrites {
       edge.source,
       edge.target)) 
       
-  implicit val networkWrites: Writes[PlaceNetwork] = (
+  implicit val networkWrites: Writes[IndexedPlaceNetwork] = (
     (JsPath \ "nodes").write[Seq[NetworkNode]] ~
     (JsPath \ "edges").write[Seq[NetworkEdge]]
   )(network => (

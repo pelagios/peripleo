@@ -19,10 +19,10 @@ object IndexFields {
   val PLACE_CATEGORY = "place_category"
     
   val PLACE_GEOMETRY = "geometry"
-
-  val PLACE_SEED_URI = "seed_uri"
     
   val PLACE_CLOSE_MATCH = "close_match"
+    
+  val PLACE_AS_JSON = "place"
     
   val DATE_FROM = "date_from"
     

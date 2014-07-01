@@ -13,7 +13,7 @@ import play.api.libs.functional.syntax._
 object PlaceController extends AbstractAPIController {
 
   def listAll(limit: Int, offset: Int) = Action { implicit request => 
-    jsonOk(Json.toJson(Global.index.listAllPlaces(offset, limit)), request)
+    jsonOk(Json.parse("{ \"message\": \"Hello World\" }"), request)
   }  
   
   def getPlace(uri: String) = Action { implicit request =>
@@ -25,9 +25,8 @@ object PlaceController extends AbstractAPIController {
   }
   
   def getNetwork(uri: String) = Action { implicit request =>
-    val place = Global.index.findPlaceByURI(uri)
-    if(place.isDefined) {
-      val network = Global.index.getNetwork(place.get)
+    val network = Global.index.findNetworkByPlaceURI(uri)
+    if(network.isDefined) {
       jsonOk(Json.toJson(network), request)
     } else {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))

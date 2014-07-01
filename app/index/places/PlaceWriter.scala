@@ -51,7 +51,7 @@ trait PlaceWriter extends PlaceReader {
       val normalizedUri = Index.normalizeURI(place.uri)
       
       // Enforce uniqueness
-      if (findPlaceByURI(normalizedUri).isDefined) {
+      if (findNetworkByPlaceURI(normalizedUri).isDefined) {
         Logger.warn("Place '" + place.uri + "' already in index!")
         false // No new distinct place
       } else {
@@ -61,14 +61,14 @@ trait PlaceWriter extends PlaceReader {
         // First, we query our index for all closeMatches our new place has 
         val closeMatches = place.closeMatches.map(uri => {
           val normalized = Index.normalizeURI(uri)
-          (normalized, findPlaceByURI(normalized))
+          (normalized, findNetworkByPlaceURI(normalized))
         })
         
         // These are the closeMatches we already have in our index        
         val indexedCloseMatchesOut = closeMatches.filter(_._2.isDefined).map(_._2.get)
 
         // Next, we query our index for places which list our new places as their closeMatch
-        val indexedCloseMatchesIn = findPlaceByCloseMatch(normalizedUri)
+        val indexedCloseMatchesIn = findNetworkByCloseMatch(normalizedUri)
         
         val indexedCloseMatches = indexedCloseMatchesOut ++ indexedCloseMatchesIn
         
@@ -76,47 +76,28 @@ trait PlaceWriter extends PlaceReader {
         val unrecordedCloseMatchesOut = closeMatches.filter(_._2.isEmpty).map(_._1)
 
         // ...but we can still use them to extend our network through indirect connections
-        val indirectlyConnectedPlaces = // expandNetwork(unrecordedCloseMatchesOut)
-          unrecordedCloseMatchesOut.flatMap(uri => findPlaceByCloseMatch(uri))
+        val indirectlyConnectedPlaces = 
+          unrecordedCloseMatchesOut.flatMap(uri => findNetworkByCloseMatch(uri))
           .filter(!indexedCloseMatches.contains(_)) // We filter out places that are already connected directly
 
-        if (indirectlyConnectedPlaces.size > 0) {
-          Logger.info("Connecting " + indirectlyConnectedPlaces.size + " places through indirect closeMatches")
-          indirectlyConnectedPlaces.foreach(p => Logger.info("  " + p.title))
-        }
-
         val allCloseMatches = indexedCloseMatches ++ indirectlyConnectedPlaces
+
+        // Update the index
+        updateIndex(IndexedPlaceNetwork.toIndexedPlace(place, sourceGazetteer), allCloseMatches, writer);
         
-        // All closeMatches need to share the same seed URI
-        val seedURI =
-          if (allCloseMatches.size > 0) 
-            allCloseMatches(0).seedURI
-          else
-            normalizedUri
- 
-        // Update seed URIs where necessary
-        updateSeedURI(allCloseMatches.filter(!_.seedURI.equals(seedURI)), seedURI, writer)
-        
-        // Add new document to index
-        val differentSeedURI = if (normalizedUri == seedURI) None else Some(seedURI)
-        writer.addDocument(IndexedPlace.toDoc(place, sourceGazetteer, Some(seedURI)))
-        
-        // If this place didn't have any closeMatches in the index, it's a new distinct contribution
-        closeMatches.size == 0
+        // If this place didn't have any closeMatches at all, it's a new distinct contribution
+        allCloseMatches.size == 0
       }      
   }
   
-  private def updateSeedURI(places: Seq[IndexedPlace], seedURI: String, writer: IndexWriter) = {
-    places.foreach(place => {
-      // Delete doc from index
-      writer.deleteDocuments(new Term(IndexFields.PLACE_URI, place.uri))
-      
-      // Update seed URI and re-add
-      val doc = place.doc
-      doc.removeField(IndexFields.PLACE_SEED_URI)
-      doc.add(new StringField(IndexFields.PLACE_SEED_URI, seedURI, Field.Store.YES))
-      writer.addDocument(doc)
-    })
+  private def updateIndex(place: IndexedPlace, affectedNetworks: Seq[IndexedPlaceNetwork], writer: IndexWriter) = {
+    // Delete affected networks from index
+    affectedNetworks.foreach(network => 
+      writer.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
+
+    // Add the place and write updated network to index
+    val updatedNetwork = IndexedPlaceNetwork.join(place, affectedNetworks)
+    writer.addDocument(updatedNetwork.doc)
   }
 
 }

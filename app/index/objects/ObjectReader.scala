@@ -14,25 +14,17 @@ import org.apache.lucene.index.SlowCompositeReaderWrapper
 trait ObjectReader extends IndexBase {
   
   def search(query: String, offset: Int = 0, limit: Int = 20, fuzzy: Boolean = false): Page[IndexedObject] = { 
-    // This is to make deduplication work properly - but it's not a permanent solution since it won't scale
-    // TODO do de-duplication at ingest time
-    val atomicPlaceReader = SlowCompositeReaderWrapper.wrap(placeIndexReader)
-    
     val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
-    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, atomicPlaceReader))
+    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, placeIndexReader))
     val taxonomyReader = searcherAndTaxonomy.taxonomyReader
     
     try {
-      // TODO revisit: which fields should really be considered for search?
-      val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION).toArray 
-      
-      val filter = new DuplicateFilter(IndexFields.PLACE_SEED_URI)
-      
+      val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
       val q = new MultiFieldQueryParser(Version.LUCENE_48, fields, analyzer).parse(query)
       
       val facetsCollector = new FacetsCollector()
       val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)          
-      searcher.search(q, filter, MultiCollector.wrap(topDocsCollector, facetsCollector))
+      searcher.search(q, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
       val facets = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)
       val facetResults = Seq(facets.getTopChildren(offset + limit, IndexFields.OBJECT_TYPE))

@@ -1,62 +1,83 @@
 package index.places
 
 import com.vividsolutions.jts.geom.Coordinate
-import index._
-import org.apache.lucene.index.IndexableField
-import org.apache.lucene.document.{ Document, Field, StringField, TextField }
+import index.IndexFields
 import org.geotools.geojson.geom.GeometryJSON
+import play.api.libs.json._
+import play.api.libs.json.Reads._
+import play.api.libs.functional.syntax._
 import org.pelagios.api.PlainLiteral
-import org.pelagios.api.gazetteer.{ Place, PlaceCategory }
-import play.api.libs.json.Json
-import scala.collection.JavaConversions._
+import org.pelagios.api.gazetteer.PlaceCategory
 
-case class IndexedPlace(private[index] val doc: Document) {
-  
-  val uri: String = doc.get(IndexFields.PLACE_URI)
-
-  val sourceGazetteer: String = doc.get(IndexFields.PLACE_SOURCE_GAZETTEER)
-
-  val seedURI: String = doc.get(IndexFields.PLACE_SEED_URI)
-  
-  val title: String = doc.get(IndexFields.TITLE)
+case class IndexedPlace(
     
-  val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
+  uri: String, 
+  
+  sourceGazetteer: String, 
+  
+  title: String, 
+  
+  description: Option[String], 
+  
+  category: Option[PlaceCategory.Category],
+  
+  names: Seq[PlainLiteral],
+  
+  geometry: Option[GeoJSON],
+  
+  closeMatches: Seq[String])
+
+object IndexedPlace { 
+  
+  /** JSON Reads **/
+  
+  implicit val placeCategoryReads: Reads[PlaceCategory.Category] = 
+    (JsPath).read[String].map(PlaceCategory.withName(_))
     
-  val names: Seq[PlainLiteral] = 
-    doc.getFields().filter(_.name.startsWith(IndexFields.PLACE_NAME)).map(field => IndexedPlace.toPlainLiteral(field))
+  implicit val geojsonReads: Reads[GeoJSON] =
+    (JsPath).read[JsValue].map(json => GeoJSON(Json.stringify(json)))
   
-  val category: Option[PlaceCategory.Category] = Option(doc.get(IndexFields.PLACE_CATEGORY)).map(PlaceCategory.withName(_))
-
-  val geometry: Option[GeoJSON] = Option(doc.get(IndexFields.PLACE_GEOMETRY)).map(GeoJSON(_))  
+  implicit val plainLiteralReads: Reads[PlainLiteral] = (
+    (JsPath \ "chars").read[String] ~
+    (JsPath \ "lang").readNullable[String]
+  )(PlainLiteral.apply _)
   
-  val closeMatches: Seq[String] = doc.getValues(IndexFields.PLACE_CLOSE_MATCH)
+  implicit val placeReads: Reads[IndexedPlace] = (
+    (JsPath \ "uri").read[String] ~
+    (JsPath \ "source_gazetteer").read[String] ~
+    (JsPath \ "title").read[String] ~
+    (JsPath \ "description").readNullable[String] ~
+    (JsPath \ "category").readNullable[PlaceCategory.Category] ~
+    (JsPath \ "names").read[Seq[PlainLiteral]] ~
+    (JsPath \ "geometry").readNullable[GeoJSON] ~
+    (JsPath \ "close_matches").read[Seq[String]]
+  )(IndexedPlace.apply _)
   
-}
-
-object IndexedPlace {
+  /** JSON Writes **/
   
-  def toDoc(place: Place, sourceGazetteer: String, seedURI: Option[String]): Document = {
-    val doc = new Document()
-    doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(place.uri), Field.Store.YES))
-    doc.add(new StringField(IndexFields.PLACE_SOURCE_GAZETTEER, sourceGazetteer, Field.Store.YES))
-    doc.add(new StringField(IndexFields.PLACE_SEED_URI, seedURI.getOrElse(place.uri), Field.Store.YES))
-    doc.add(new TextField(IndexFields.TITLE, place.title, Field.Store.YES))
-    place.descriptions.foreach(description => doc.add(new TextField(IndexFields.DESCRIPTION, description.chars, Field.Store.YES)))
-    place.names.foreach(name => {
-      val fieldName = name.lang.map(IndexFields.PLACE_NAME + "@" + _).getOrElse(IndexFields.PLACE_NAME)
-      doc.add(new TextField(fieldName, name.chars, Field.Store.YES))
-    })
-    place.locations.foreach(location => doc.add(new StringField(IndexFields.PLACE_GEOMETRY, location.geoJSON, Field.Store.YES)))
-    if (place.category.isDefined)
-      doc.add(new StringField(IndexFields.PLACE_CATEGORY, place.category.get.toString, Field.Store.YES))
-    place.closeMatches.foreach(closeMatch => doc.add(new StringField(IndexFields.PLACE_CLOSE_MATCH, Index.normalizeURI(closeMatch), Field.Store.YES)))   
-    doc    
-  }
+  implicit val plainLiteralWrites: Writes[PlainLiteral] = (
+    (JsPath \ "chars").write[String] ~
+    (JsPath \ "lang").writeNullable[String]
+  )(l => (l.chars, l.lang))
   
-  def toPlainLiteral(field: IndexableField): PlainLiteral = {
-    val language = if (field.name.indexOf('@') > -1) Some(field.name.substring(field.name.indexOf('@') + 1)) else None
-    PlainLiteral(field.stringValue(), language)    
-  }
+  implicit val placeWrites: Writes[IndexedPlace] = (
+    (JsPath \ "uri").write[String] ~
+    (JsPath \ "source_gazetteer").write[String] ~
+    (JsPath \ "title").write[String] ~
+    (JsPath \ "description").writeNullable[String] ~
+    (JsPath \ "category").writeNullable[String] ~
+    (JsPath \ "names").write[Seq[PlainLiteral]] ~
+    (JsPath \ "geometry").writeNullable[JsValue] ~
+    (JsPath \ "close_matches").write[Seq[String]]
+  )(p => (
+      p.uri,
+      p.sourceGazetteer,
+      p.title,
+      p.description,
+      p.category.map(_.toString),
+      p.names,
+      p.geometry.map(_.asJSON),
+      p.closeMatches))
   
 }
 

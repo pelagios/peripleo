@@ -34,7 +34,9 @@
           @tags.gazetteerURI(item.identifier, true)
         </span>
         @if(item.description.isDefined) { <span class="description">@item.description</span> }
-        @item.toPlace.seedURI
+        @for(place <- item.toPlaceNetwork.places) {
+          @place.uri <br/>
+        }
       </li> 
     }
   
