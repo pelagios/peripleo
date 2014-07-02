@@ -7,7 +7,7 @@ import play.api.mvc.Controller
 object DatasetPagesController extends Controller {
 
   def listAll = DBAction { implicit session =>
-    val datasets = Datasets.countAll
+    val datasets = Datasets.countAll()
     val things = AnnotatedThings.countAll(true)
     val annotations = Annotations.countAll
     Ok(views.html.datasetList(datasets, things, annotations))

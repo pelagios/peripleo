@@ -11,7 +11,7 @@ object HomepageController extends Controller {
   private val QUERY = "query"
   
   def index() = DBAction { implicit session =>
-    val datasets = Datasets.countAll
+    val datasets = Datasets.countAll()
     val items = AnnotatedThings.countAll(true)
     val gazetteers = Gazetteers.countAll
     val places = Gazetteers.numDistinctPlaces 

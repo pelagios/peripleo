@@ -8,7 +8,7 @@ import play.api.libs.json.{ Json, JsValue }
 object DatasetController extends AbstractAPIController {
   
   def listAll(limit: Int, offset: Int) = DBAction { implicit session =>
-    jsonOk(Json.toJson(Datasets.listAll(offset, limit)), session.request)
+    jsonOk(Json.toJson(Datasets.listAll(true, offset, limit)), session.request)
   }
   
   def getDataset(id: String) = DBAction { implicit session =>

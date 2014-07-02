@@ -4,6 +4,7 @@ import java.io.FileInputStream
 import java.sql.Date
 import models.{ Dataset, Datasets }
 import org.pelagios.Scalagios
+import org.pelagios.api.dataset.{ Dataset => VoidDataset }
 import play.api.db.slick._
 import play.api.Logger
 import play.api.libs.Files.TemporaryFile
@@ -14,32 +15,32 @@ import global.Global
 object VoIDImporter extends AbstractImporter {
   
   def importVoID(file: FilePart[TemporaryFile], uri: Option[String] = None)(implicit s: Session, r: RequestHeader) = {
-    Logger.info("Importing VoID file: " + file.filename)
-    val format = getFormat(file.filename)
+    Logger.info("Importing VoID file: " + file.filename)  
+    val is = new FileInputStream(file.ref.file)   
+    val format = getFormat(file.filename)  
+    val created = new Date(System.currentTimeMillis)
     
-    // If we don't have a base URI for the VoID file, we'll use our own namespace as fallback
-    // Not 100% the Sesame parser actually makes use of it... but we're keeping things sane nonetheless
-    val baseURI = uri.getOrElse(controllers.routes.DatasetController.listAll().absoluteURL(false)(r))
-    val is = new FileInputStream(file.ref.file)
-    Scalagios.readVoID(is, format).foreach(dataset => {
-      val id =
-        if (dataset.uri.startsWith("http://")) {
-          sha256(dataset.uri)          
-        } else {
-          sha256(dataset.title + " " + dataset.publisher)
-        }
-      
-      Logger.info("Importing dataset '" + dataset.title + "' with ID " + id)
-     
-      val created = new Date(System.currentTimeMillis)
-      val datasetEntity = Dataset(id, dataset.title, dataset.publisher, dataset.license,
-        created, created, uri, dataset.description, dataset.homepage, None, 
-        dataset.datadumps.headOption, None, None, None)
+    def id(dataset: VoidDataset) =
+      if (dataset.uri.startsWith("http://")) {
+        sha256(dataset.uri)          
+      } else {
+        sha256(dataset.title + " " + dataset.publisher)
+      }
+
+    def flattenHierarchy(datasets: Seq[VoidDataset], parentId: Option[String] = None): Seq[Dataset] = {      
+      val datasetEntities = datasets.map(d => {
+        Dataset(id(d), d.title, d.publisher, d.license, created, created, 
+          uri, d.description, d.homepage, parentId, d.datadumps.headOption, 
+          None, None, None)
+      })
         
-      Datasets.insert(datasetEntity)
-      Global.index.addDataset(datasetEntity)
-      Global.index.refresh()
-    })
+      datasetEntities ++ datasets.flatMap(d => flattenHierarchy(d.subsets, Some(id(d))))
+    }
+    
+    val datasets = flattenHierarchy(Scalagios.readVoID(is, format).toSeq) 
+    Datasets.insertAll(datasets)
+    datasets.foreach(Global.index.addDataset(_))
+    Global.index.refresh()
     
     is.close()
   }

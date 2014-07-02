@@ -4,6 +4,7 @@ import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 import java.sql.Date
+import scala.slick.lifted.Query
 
 /** Dataset model entity **/
 case class Dataset(
@@ -105,16 +106,28 @@ object Datasets {
   
   def insert(dataset: Dataset)(implicit s: Session) = query.insert(dataset)
   
-  def update(dataset: Dataset)(implicit s: Session) = query.where(_.id === dataset.id).update(dataset)
+  def insertAll(dataset: Seq[Dataset])(implicit s: Session) = query.insertAll(dataset:_*)
   
-  def countAll()(implicit s: Session): Int = Query(query.length).first
-
-  def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Dataset] = {
-    val total = countAll()
-    val result = query.drop(offset).take(limit).list
-    Page(result, offset, limit, total)
+  def update(dataset: Dataset)(implicit s: Session) = query.where(_.id === dataset.id).update(dataset)
+ 
+  def countAll(topLevelOnly: Boolean = true)(implicit s: Session): Int = {
+    if (topLevelOnly)
+      Query(query.where(_.isPartOfId.isNull).length).first
+    else
+      Query(query.length).first
   }
-    
+
+  def listAll(topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Dataset] = {
+    val total = countAll(topLevelOnly)
+    val result = 
+      if (topLevelOnly)
+        query.where(_.isPartOfId.isNull).drop(offset).take(limit).list
+      else
+        query.drop(offset).take(limit).list
+        
+    Page(result, offset, limit, total)    
+  }
+      
   def findById(id: String)(implicit s: Session): Option[Dataset] = 
     query.where(_.id === id).firstOption
     
