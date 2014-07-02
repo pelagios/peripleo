@@ -10,6 +10,7 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import org.pelagios.api.gazetteer.Place
+import index.Index
 
 class IndexedPlace(json: String) {
   
@@ -19,7 +20,7 @@ class IndexedPlace(json: String) {
     
   lazy val uri: String = (asJson \ "uri").as[String] 
   
-  lazy val sourceGazetteer: String = (asJson \ "uri").as[String] 
+  lazy val sourceGazetteer: String = (asJson \ "source_gazetteer").as[String] 
   
   lazy val title: String = (asJson \ "title").as[String]
   
@@ -34,7 +35,7 @@ class IndexedPlace(json: String) {
       PlainLiteral(chars, lang)
     })
   
-  lazy val geometryJson: Option[JsValue] = (asJson \ "location").asOpt[JsValue]
+  lazy val geometryJson: Option[JsValue] = (asJson \ "geometry").asOpt[JsValue]
   
   lazy val geometry: Option[Geometry] = geometryJson
     .map(geoJson => new GeometryJSON().read(Json.stringify(geoJson).trim))
@@ -65,13 +66,13 @@ object IndexedPlace {
     (JsPath \ "geometry").writeNullable[JsValue] ~
     (JsPath \ "close_matches").write[Seq[String]]
   )(p  => (
-      p.uri,
+      Index.normalizeURI(p.uri),
       p.title,
       p.descriptions.headOption.map(_.chars),
       p.category.map(_.toString),
       p.names,
       p.locations.headOption.map(location => Json.parse(location.geoJSON)),
-      p.closeMatches))
+      p.closeMatches.map(Index.normalizeURI(_))))
   
   implicit val placeFromGazetteerWrites: Writes[(Place, String)] = (
     (JsPath).write[Place] ~

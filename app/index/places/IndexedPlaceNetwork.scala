@@ -111,7 +111,9 @@ object IndexedPlaceNetwork {
       doc.add(new StringField(IndexFields.PLACE_CLOSE_MATCH, closeMatch, Field.Store.YES)))
       
     // Index shape geometry
-    // val fields = spatialStrategy.createIndexableFields(spatialCtx.readShapeFromWkt(wkt))
+    if (place.geometry.isDefined)
+      spatialStrategy.createIndexableFields(spatialCtx.readShapeFromWkt(place.geometryWKT.get))
+        .foreach(doc.add(_))
     
     // Add the JSON-serialized place as a stored (but not indexed) field
     doc.add(new StoredField(IndexFields.PLACE_AS_JSON, place.toString))    

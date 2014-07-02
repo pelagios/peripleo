@@ -14,7 +14,7 @@ object HomepageController extends Controller {
     val datasets = Datasets.countAll()
     val items = AnnotatedThings.countAll(true)
     val gazetteers = Gazetteers.countAll
-    val places = Gazetteers.numDistinctPlaces 
+    val places = Global.index.numPlaceNetworks
     Ok(views.html.home(datasets, items, gazetteers, places))
   }
   

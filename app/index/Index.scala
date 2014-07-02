@@ -46,7 +46,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     numObjects
   }
   
-  def numPlaces: Int =
+  def numPlaceNetworks: Int =
     placeIndexReader.numDocs()
   
   def refresh() = {

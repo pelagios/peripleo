@@ -19,7 +19,7 @@ object Global extends GlobalSettings {
   lazy val index = {
     val idx = Index.open("index")
     
-    if (idx.numPlaces == 0) {
+    if (idx.numPlaceNetworks == 0) {
       Logger.info("Building new place index")
       
       def getPropertyAsList(name: String): Seq[String] = 
