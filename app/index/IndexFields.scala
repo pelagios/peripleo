@@ -16,8 +16,6 @@ object IndexFields {
 
   val PLACE_NAME = "name"
 
-  val PLACE_CATEGORY = "place_category"
-    
   val PLACE_GEOMETRY = "geometry"
     
   val PLACE_CLOSE_MATCH = "close_match"

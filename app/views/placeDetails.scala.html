@@ -31,9 +31,9 @@
           <h3 class="names">@place.names.map(_.chars).mkString(", ")</h3>
           <p class="description">
             @place.description
-            @if(place.geometry.isDefined) {
+            @if(place.centroid.isDefined) {
               <br/>
-              <span class="icon">&#xf041;</span> LAT @place.geometry.get.centroid.y LON @place.geometry.get.centroid.x</span>
+              <span class="icon">&#xf041;</span> LAT @place.centroid.get.y LON @place.centroid.get.x</span>
             }
             <a class="source-link" href="@place.uri" target="_blank">@place.uri</a>
           </p>
@@ -86,12 +86,10 @@
           var network = new window.PlaceNetwork('network', data);
         });
         
-        @defining(place.geometry.map(_.centroid)) { coord =>
-          @if(coord.isDefined) {
-          	var centroid = [@coord.get.y, @coord.get.x];
-          	var map = new window.PlaceMap('map', centroid);   
-          } 
-        }
+        @if(place.centroid.isDefined) {
+          var centroid = [@place.centroid.get.y, @place.centroid.get.x];
+          var map = new window.PlaceMap('map', centroid);   
+        } 
         
         $.getJSON('@routes.PlaceController.listReferences(place.uri, false)', function(data) {
           var table = $('.references tbody');

@@ -8,6 +8,12 @@ libraryDependencies ++= Seq(jdbc, cache)
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "0.6.0.1",
+  "org.apache.lucene" % "lucene-analyzers-common" % "4.8.1",
+  "org.apache.lucene" % "lucene-queryparser" % "4.8.1",
+  "org.apache.lucene" % "lucene-facet" % "4.8.1",
+  "org.apache.lucene" % "lucene-spatial" % "4.8.1",
+  "com.vividsolutions" % "jts" % "1.13",
+  "org.geotools" % "gt-geojson" % "10.0",
   "org.xerial" % "sqlite-jdbc" % "3.7.2"
 )  
 
@@ -18,12 +24,6 @@ libraryDependencies ++= Seq(
 libraryDependencies ++= Seq(
   "org.openrdf.sesame" % "sesame-rio-n3" % "2.7.5",
   "org.openrdf.sesame" % "sesame-rio-rdfxml" % "2.7.5",
-  "com.vividsolutions" % "jts" % "1.13",
-  "org.geotools" % "gt-geojson" % "10.0",
-  "org.apache.lucene" % "lucene-analyzers-common" % "4.8.1",
-  "org.apache.lucene" % "lucene-queryparser" % "4.8.1",
-  "org.apache.lucene" % "lucene-facet" % "4.8.1",
-  "org.mapdb" % "mapdb" % "1.0.3",
   "org.slf4j" % "slf4j-simple" % "1.7.7"
 )   
 

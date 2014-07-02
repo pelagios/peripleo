@@ -1,58 +1,54 @@
 package index.places
 
-import com.vividsolutions.jts.geom.Coordinate
+import com.vividsolutions.jts.io.WKTWriter
+import com.vividsolutions.jts.geom.{ Coordinate, Geometry }
 import index.IndexFields
 import org.geotools.geojson.geom.GeometryJSON
+import org.pelagios.api.PlainLiteral
+import org.pelagios.api.gazetteer.PlaceCategory
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import org.pelagios.api.PlainLiteral
-import org.pelagios.api.gazetteer.PlaceCategory
+import org.pelagios.api.gazetteer.Place
 
-case class IndexedPlace(
+class IndexedPlace(json: String) {
+  
+  override val toString = json
+  
+  lazy val asJson = Json.parse(json)
     
-  uri: String, 
+  lazy val uri: String = (asJson \ "uri").as[String] 
   
-  sourceGazetteer: String, 
+  lazy val sourceGazetteer: String = (asJson \ "uri").as[String] 
   
-  title: String, 
+  lazy val title: String = (asJson \ "title").as[String]
   
-  description: Option[String], 
+  lazy val description: Option[String] = (asJson \ "description").asOpt[String] 
   
-  category: Option[PlaceCategory.Category],
+  lazy val category: Option[PlaceCategory.Category] = ((asJson \ "category").asOpt[String]).map(PlaceCategory.withName(_))
   
-  names: Seq[PlainLiteral],
+  lazy val names: List[PlainLiteral] = (asJson \ "names").as[List[JsObject]]
+    .map(literal => {
+      val chars = (literal \ "chars").as[String]
+      val lang = (literal \ "lang").asOpt[String]
+      PlainLiteral(chars, lang)
+    })
   
-  geometry: Option[GeoJSON],
+  lazy val geometryJson: Option[JsValue] = (asJson \ "location").asOpt[JsValue]
   
-  closeMatches: Seq[String])
+  lazy val geometry: Option[Geometry] = geometryJson
+    .map(geoJson => new GeometryJSON().read(Json.stringify(geoJson).trim))
+    
+  lazy val geometryWKT: Option[String] =  geometry.map(geom => new WKTWriter().write(geom))
+  
+  lazy val centroid: Option[Coordinate] = geometry.map(_.getCentroid.getCoordinate)
+  
+  lazy val closeMatches: List[String] = (asJson \ "close_matches").as[List[String]]
+  
+}
 
 object IndexedPlace { 
-  
-  /** JSON Reads **/
-  
-  implicit val placeCategoryReads: Reads[PlaceCategory.Category] = 
-    (JsPath).read[String].map(PlaceCategory.withName(_))
-    
-  implicit val geojsonReads: Reads[GeoJSON] =
-    (JsPath).read[JsValue].map(json => GeoJSON(Json.stringify(json)))
-  
-  implicit val plainLiteralReads: Reads[PlainLiteral] = (
-    (JsPath \ "chars").read[String] ~
-    (JsPath \ "lang").readNullable[String]
-  )(PlainLiteral.apply _)
-  
-  implicit val placeReads: Reads[IndexedPlace] = (
-    (JsPath \ "uri").read[String] ~
-    (JsPath \ "source_gazetteer").read[String] ~
-    (JsPath \ "title").read[String] ~
-    (JsPath \ "description").readNullable[String] ~
-    (JsPath \ "category").readNullable[PlaceCategory.Category] ~
-    (JsPath \ "names").read[Seq[PlainLiteral]] ~
-    (JsPath \ "geometry").readNullable[GeoJSON] ~
-    (JsPath \ "close_matches").read[Seq[String]]
-  )(IndexedPlace.apply _)
-  
+   
   /** JSON Writes **/
   
   implicit val plainLiteralWrites: Writes[PlainLiteral] = (
@@ -60,35 +56,31 @@ object IndexedPlace {
     (JsPath \ "lang").writeNullable[String]
   )(l => (l.chars, l.lang))
   
-  implicit val placeWrites: Writes[IndexedPlace] = (
+  implicit val placeWrites: Writes[Place] = (
     (JsPath \ "uri").write[String] ~
-    (JsPath \ "source_gazetteer").write[String] ~
     (JsPath \ "title").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "category").writeNullable[String] ~
     (JsPath \ "names").write[Seq[PlainLiteral]] ~
     (JsPath \ "geometry").writeNullable[JsValue] ~
     (JsPath \ "close_matches").write[Seq[String]]
-  )(p => (
+  )(p  => (
       p.uri,
-      p.sourceGazetteer,
       p.title,
-      p.description,
+      p.descriptions.headOption.map(_.chars),
       p.category.map(_.toString),
       p.names,
-      p.geometry.map(_.asJSON),
+      p.locations.headOption.map(location => Json.parse(location.geoJSON)),
       p.closeMatches))
   
-}
-
-case class GeoJSON(private val json: String) {
+  implicit val placeFromGazetteerWrites: Writes[(Place, String)] = (
+    (JsPath).write[Place] ~
+    (JsPath \ "source_gazetteer").write[String]
+  )(t => (t._1, t._2))
   
-  override val toString = json
-  
-  val asJSON = Json.parse(json)
-  
-  lazy val geom = new GeometryJSON().read(json.trim)
-    
-  lazy val centroid: Coordinate = geom.getCentroid.getCoordinate
+  def toIndexedPlace(place: Place, sourceGazetteer: String): IndexedPlace = {
+    val json = Json.toJson((place, sourceGazetteer))
+    new IndexedPlace(Json.stringify(json))
+  }
   
 }

@@ -1,9 +1,12 @@
 package index.places
 
+import com.spatial4j.core.context.SpatialContext
 import index.{ Index, IndexFields }
 import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField }
 import org.pelagios.api.gazetteer.Place
 import play.api.libs.json.{ Json, JsObject }
+import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
+import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace])
 
@@ -31,8 +34,7 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   /** All indexed places in this network **/
   val places: Seq[IndexedPlace] =
     doc.getValues(IndexFields.PLACE_AS_JSON).toSeq
-      .map(Json.parse(_))
-      .map(_.validate[IndexedPlace].asOpt.get)
+      .map(new IndexedPlace(_))
   
   /** Network nodes and edges **/
   val (nodes, edges) = {
@@ -51,6 +53,13 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
 
 object IndexedPlaceNetwork {
   
+  private val spatialCtx = SpatialContext.GEO
+  
+  private val maxLevels = 11 //results in sub-meter precision for geohash
+  
+  private val spatialStrategy =
+    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.PLACE_GEOMETRY)
+  
   /** Creates a new place network with a single place **/
   def createNew(): IndexedPlaceNetwork = 
     new IndexedPlaceNetwork(new Document())
@@ -66,17 +75,6 @@ object IndexedPlaceNetwork {
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
     new IndexedPlaceNetwork(joinedDoc)   
   }
-  
-  private[places] def toIndexedPlace(place: Place, sourceGazetteer: String): IndexedPlace =
-    IndexedPlace(
-      Index.normalizeURI(place.uri), 
-      sourceGazetteer, 
-      place.title, 
-      place.descriptions.headOption.map(_.chars), 
-      place.category,
-      place.names, 
-      place.locations.headOption.map(location => GeoJSON(location.geoJSON)), 
-      place.closeMatches.map(Index.normalizeURI(_)))
       
   private[places] def addPlaceToDoc(place: IndexedPlace, doc: Document): Document = {
     if (doc.get(IndexFields.TITLE) == null)
@@ -111,9 +109,12 @@ object IndexedPlaceNetwork {
     val knownCloseMatches = doc.getValues(IndexFields.PLACE_CLOSE_MATCH).toSeq // These are distinct by definition
     newCloseMatches.diff(knownCloseMatches).foreach(closeMatch =>
       doc.add(new StringField(IndexFields.PLACE_CLOSE_MATCH, closeMatch, Field.Store.YES)))
+      
+    // Index shape geometry
+    // val fields = spatialStrategy.createIndexableFields(spatialCtx.readShapeFromWkt(wkt))
     
     // Add the JSON-serialized place as a stored (but not indexed) field
-    doc.add(new StoredField(IndexFields.PLACE_AS_JSON, Json.stringify(Json.toJson(place))))    
+    doc.add(new StoredField(IndexFields.PLACE_AS_JSON, place.toString))    
     
     doc
   }

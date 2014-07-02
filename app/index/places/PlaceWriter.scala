@@ -83,7 +83,7 @@ trait PlaceWriter extends PlaceReader {
         val allCloseMatches = indexedCloseMatches ++ indirectlyConnectedPlaces
 
         // Update the index
-        updateIndex(IndexedPlaceNetwork.toIndexedPlace(place, sourceGazetteer), allCloseMatches, writer);
+        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allCloseMatches, writer);
         
         // If this place didn't have any closeMatches at all, it's a new distinct contribution
         allCloseMatches.size == 0

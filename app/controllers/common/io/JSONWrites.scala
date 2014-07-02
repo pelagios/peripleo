@@ -22,16 +22,18 @@ object JSONWrites {
     (JsPath \ "place_category").writeNullable[String] ~
     (JsPath \ "names").write[Seq[String]] ~
     (JsPath \ "description").writeNullable[String] ~
+    (JsPath \ "location").writeNullable[JsValue] ~
     (JsPath \ "centroid_lat").writeNullable[Double] ~
     (JsPath \ "centroid_lng").writeNullable[Double]
-  )(place => (
-      place.uri,
-      place.title,
-      place.category.map(_.toString),
-      place.names.map(_.chars),
-      place.description,
-      place.geometry.map(_.centroid.y),
-      place.geometry.map(_.centroid.x)))  
+  )(place => {
+      (place.uri,
+       place.title,
+       place.category.map(_.toString),
+       place.names.map(_.chars),
+       place.description,
+       place.geometryJson,
+       place.centroid.map(_.y),
+       place.centroid.map(_.x)) })  
   
   /** Writes a search result item **/
   implicit val indexedObjectWrites: Writes[IndexedObject] = (
@@ -78,16 +80,17 @@ object JSONWrites {
   implicit def gazetteerURIWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (
     (JsPath \ "gazetteer_uri").write[String] ~
     (JsPath \ "title").write[String] ~
+    (JsPath \ "location").writeNullable[JsValue] ~
     (JsPath \ "centroid_lat").writeNullable[Double] ~
     (JsPath \ "centroid_lng").writeNullable[Double] ~ 
     (JsPath).writeNullable[IndexedPlace]
-  )(place => {
-      val centroid = place.geometry.map(_.centroid)
-      (place.uri,
-       place.title,
-       centroid.map(_.y),
-       centroid.map(_.x),
-       { if (verbose) Global.index.findPlaceByURI(place.uri) else None })}) 
+  )(gRef => (
+      gRef.uri,
+      gRef.title,
+      gRef.geometryJson.map(Json.parse(_)),
+      gRef.centroid.map(_.y),
+      gRef.centroid.map(_.x),
+      { if (verbose) Global.index.findPlaceByURI(gRef.uri) else None })) 
 
       
   /** Writes a pair (Place, Occurrence-Count) **/

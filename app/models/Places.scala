@@ -1,11 +1,10 @@
 package models
 
+import global.Global
+import play.api.Logger
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
-import global.Global
-import com.vividsolutions.jts.geom.Geometry
-import play.api.Logger
-import index.places.GeoJSON
+import play.api.libs.json.Json
 
 /** Helper entity to speed up 'how many places are in dataset XY'-type queries.
   *
@@ -29,7 +28,7 @@ private[models] case class PlacesByDataset(
   count: Int)
 
     
-private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") with HasGeoJSONColumn {
+private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") {
   
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -39,12 +38,12 @@ private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDatas
   
   def title = column[String]("title", O.NotNull)
   
-  def geometry = column[GeoJSON]("geometry", O.Nullable)
+  def location = column[String]("location", O.Nullable)
 
   def count = column[Int]("count", O.NotNull)
   
   // Solution for embedding GazetteerURI as multiple columns provided by the mighty @manuelbernhardt
-  def * = (id.?, datasetId, (gazetteerURI, title, geometry.?), count).shaped <> (
+  def * = (id.?, datasetId, (gazetteerURI, title, location.?), count).shaped <> (
     { case (id, datasetId, gazetteerURI, count) => PlacesByDataset(id, datasetId, GazetteerReference.tupled.apply(gazetteerURI), count) },
     { p: PlacesByDataset => Some(p.id, p.dataset, GazetteerReference.unapply(p.place).get, p.count) })
   
@@ -78,7 +77,7 @@ private[models] case class PlacesByThing(
   /** Number of times the place is referenced **/
   count: Int)
 
-private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") with HasGeoJSONColumn {
+private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -90,12 +89,12 @@ private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](
   
   def title = column[String]("title", O.NotNull)
   
-  def geometry = column[GeoJSON]("geometry", O.Nullable)
+  def location = column[String]("location", O.Nullable)
 
   def count = column[Int]("count", O.NotNull)
   
   // Solution for embedding GazetteerURI as multiple columns provided by the mighty @manuelbernhardt
-  def * = (id.?, datasetId, annotatedThingId, (gazetteerURI, title, geometry.?), count).shaped <> (
+  def * = (id.?, datasetId, annotatedThingId, (gazetteerURI, title, location.?), count).shaped <> (
     { case (id, datasetId, annotatedThingId, gazetteerURI, count) => PlacesByThing(id, datasetId, annotatedThingId, GazetteerReference.tupled.apply(gazetteerURI), count) },
     { p: PlacesByThing => Some(p.id, p.dataset, p.annotatedThing, GazetteerReference.unapply(p.place).get, p.count) })
   
@@ -136,7 +135,7 @@ object Places {
       .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
       .filter(_._1.isDefined) // We restrict to places in the gazetteer
       .map { case (place, count) => 
-        PlacesByDataset(None, datasetId, GazetteerReference(place.get.uri, place.get.title, place.get.geometry), count) }
+        PlacesByDataset(None, datasetId, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
       .toSeq
 
     queryByDataset.insertAll(placesInDataset:_*)    
@@ -152,7 +151,7 @@ object Places {
         .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
         .map { case (place, count) => 
-          PlacesByThing(None, datasetId, thingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometry), count) }
+          PlacesByThing(None, datasetId, thingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
     }}.toSeq
     
     queryByThing.insertAll(placesByThing:_*)    
@@ -166,7 +165,7 @@ object Places {
       .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
       .filter(_._1.isDefined) // We restrict to places in the gazetteer
       .map { case (place, count) =>
-        PlacesByThing(None, datasetId, intermediateThingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometry), count) }
+        PlacesByThing(None, datasetId, intermediateThingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
       .toSeq
       
     queryByThing.insertAll(placesForThing:_*)  
