@@ -8,10 +8,10 @@ libraryDependencies ++= Seq(jdbc, cache)
 
 libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "0.6.0.1",
-  "org.apache.lucene" % "lucene-analyzers-common" % "4.8.1",
-  "org.apache.lucene" % "lucene-queryparser" % "4.8.1",
-  "org.apache.lucene" % "lucene-facet" % "4.8.1",
-  "org.apache.lucene" % "lucene-spatial" % "4.8.1",
+  "org.apache.lucene" % "lucene-analyzers-common" % "4.9.0",
+  "org.apache.lucene" % "lucene-queryparser" % "4.9.0",
+  "org.apache.lucene" % "lucene-facet" % "4.9.0",
+  "org.apache.lucene" % "lucene-spatial" % "4.9.0",
   "com.vividsolutions" % "jts" % "1.13",
   "org.geotools" % "gt-geojson" % "10.0",
   "org.xerial" % "sqlite-jdbc" % "3.7.2"
