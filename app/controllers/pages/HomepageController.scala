@@ -19,8 +19,9 @@ object HomepageController extends Controller {
   }
   
   def search(query: String, limit: Int, offset: Int) = DBAction { implicit session =>
+    val startTime = System.currentTimeMillis
     val results = Global.index.search(query, offset, limit)
-    Ok(views.html.searchResults(results))
+    Ok(views.html.searchResults(results, (System.currentTimeMillis - startTime)))
   }
 
 }

@@ -1,4 +1,4 @@
-@(results: Page[index.IndexedObject])(implicit s: play.api.db.slick.Config.driver.simple.Session)
+@(results: Page[index.IndexedObject], took: Long)(implicit s: play.api.db.slick.Config.driver.simple.Session)
 <html>
   <head>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/searchresults.css")"/>
@@ -18,7 +18,7 @@
       
       <div id="header-body">
         <div class="row">
-          <em class="number">@results.total</em> results for <span class="query">@results.query</span>
+          <em class="number">@results.total</em> results for <span class="query">@results.query</span> (took @{ took.toDouble / 1000 }s)
         </div>
       </div>
     </div> <!-- #header -->
