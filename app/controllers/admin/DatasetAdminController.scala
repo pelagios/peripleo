@@ -61,7 +61,8 @@ object DatasetAdminController extends Controller with Secured {
           CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get)
         else
           PelagiosOAImporter.importPelagiosAnnotations(filepart, dataset.get)
-        Redirect(routes.DatasetAdminController.index).flashing("success" -> { "Annotations imported." })
+        Redirect(routes.DatasetAdminController.index).flashing("success" ->
+          { "Annotations from file " + filepart.filename + " imported successfully." })
       } else {
         NotFound
       }
