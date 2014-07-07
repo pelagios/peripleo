@@ -48,23 +48,19 @@ input[type=file] {
   
   table.list {
     width:100%;
-  }
   
-  td a {
-      
-    .icon {
-      margin-left:5px;
-      color:transparent;
-    }
+    td {
+
+      form { display:none; }
     
-  }
+    } /** td **/
+
+    .icon.plus { cursor: pointer; }
+    
+    .icon.plus:after { content:'\f196'; }
+
+    .icon.plus.less:after { content: '\f147'; }
   
-  td:hover a .icon {
-    color:#9f9f9f;
-  }
-  
-  td form {
-    display:none;
-  }
+  } /** table.list **/
 
 }

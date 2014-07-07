@@ -5,6 +5,51 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/admin-utils.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/admin/main.css")" />
+    <script type="text/javascript">
+      function toggleSubsets(id) {
+        var tbody = $('table.list').find('tbody');
+        
+        var toggleIcon = $('.plus-' + id);
+        toggleIcon.toggleClass('less');
+        
+        // Bit hacky in the sense that we're pulling this via the API in two steps & order is not maintained.
+        // But OK for the admin UI
+        $.getJSON('@controllers.routes.DatasetController.listAll()/' + id, function(dataset) {
+          if (dataset.subsets) {
+            $.each(dataset.subsets, function(idx, subsetNameAndId) {
+              $.getJSON('@controllers.routes.DatasetController.listAll()/' + subsetNameAndId.id, function(subset) {
+                var html = 
+                  $('<tr>' +
+                    '  <td></td>' +
+                    '  <td>' + subset.id.substr(0, 8) + '...</td>' +
+                    '  <td>&raquo; ' + subset.title + '</td>' +
+                    '  <td></td>' +
+                    '  <td></td>' +
+                    '  <td></td>' +
+                    '  <td></td>' +
+                    '  <td></td>' +
+                    '  <td></td>' +
+                    '  <td class="right">' + 
+                    '    <button class="button upload small" data-input="import-annotations-' + subset.id + '">' +
+                    '      <span class="icon">&#xf016;</span>&nbsp; Import File' +
+                    '    </button>' +
+                    '    <button class="button small red" title="Drop Dataset"><span class="icon">&#xf05e;</span></button>' +
+                    '    <form method="POST" enctype="multipart/form-data">' +
+                    '      <input type="file" id="import-annotations-' + subset.id + '" name="annotations">' +
+                    '    </form>' +
+                    '  </td>' +
+                    '</tr>');
+                  
+                // Set POST destination URL
+                var form = html.find('form')[0];
+                form.action = '@controllers.admin.routes.DatasetAdminController.index/' + subset.id + '/annotations';
+                tbody.append(html);
+              });
+            });
+          }
+        });
+      }
+    </script>
   </head>
   
   <body>
@@ -30,6 +75,7 @@
       <table class="list">
         <thead>
           <tr>
+            <th></th>
             <th>ID</th>
             <th>Title</th>
             <th>Publisher</th>
@@ -44,6 +90,12 @@
         <tbody>
           @for(dataset <- datasets.items) {
           	<tr>
+              @if(models.Datasets.findSubsetsFor(dataset.id).size > 0) {
+          	    <td class="icon plus plus-@dataset.id" onclick="toggleSubsets('@dataset.id'); return false;"></td>  
+          	  } else {
+          	    <td class="icon"></td>
+          	  }
+          	  </td>
           	  <td><a href="@routes.DatasetController.getDataset(dataset.id)">@{dataset.id.substring(0, 8)}...</a></td>
               <td>@dataset.title</td>
               <td>@dataset.publisher</td>
