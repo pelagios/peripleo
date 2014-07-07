@@ -117,7 +117,7 @@ object JSONWrites {
     (JsPath \ "num_unique_places").write[Int] ~
     (JsPath \ "subsets").writeNullable[Seq[JsValue]]
   )(dataset => {
-      val subsets = Datasets.findSubsetsFor(dataset.id)
+      val subsets = Datasets.listSubsets(dataset.id)
       val subsetsJson = 
         if (subsets.size > 0)
           Some(subsets.map(subset => Json.obj("id" -> subset.id, "title" -> subset.title)))

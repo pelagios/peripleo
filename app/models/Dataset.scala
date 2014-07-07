@@ -132,27 +132,23 @@ object Datasets {
   def findById(id: String)(implicit s: Session): Option[Dataset] =
     query.where(_.id === id).firstOption
   
-  def findSubsetsFor(id: String)(implicit s: Session): Seq[Dataset] =
+  def listSubsets(id: String)(implicit s: Session): Seq[Dataset] =
     query.where(_.isPartOfId === id).list    
+    
+  private[models] def walkSubsets(parentId: String)(implicit s: Session): Seq[Dataset] = {
+    val subsets = query.where(_.isPartOfId === parentId).list
+    if (subsets.isEmpty)
+      subsets
+    else
+      subsets.flatMap(dataset => dataset +: walkSubsets(dataset.id))    
+  }
   
-   
-  private def getParentHierarchy(dataset: Dataset)(implicit s: Session): Seq[Dataset] = {
-    val parent = 
-      dataset.isPartOf.flatMap(parentId => query.where(_.id === parentId).firstOption)
-
-    if (parent.isDefined)
-      parent.get +: getParentHierarchy(parent.get)
+  def getParentHierarchy(dataset: Dataset)(implicit s: Session): Seq[Dataset] = {
+    val superset = dataset.isPartOf.flatMap(parentId => query.where(_.id === parentId).firstOption)
+    if (superset.isDefined)
+      getParentHierarchy(superset.get) :+ superset.get
     else
       Seq.empty[Dataset]
-  }
-    
-  def findAllParents(id: String)(implicit s: Session): Seq[Dataset] = {
-    val dataset = findById(id)
-    if (dataset.isEmpty) {
-      Seq.empty[Dataset]
-    } else {
-      getParentHierarchy(dataset.get)
-    }
   }
     
   def delete(id: String)(implicit s: Session) =

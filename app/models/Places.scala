@@ -126,7 +126,7 @@ object Places {
     queryByThing.ddl.create
   }
 
-  private def recomputeDataset(datasetId: String)(implicit s: Session) = {
+  private def recomputeDataset(datasetId: String)(implicit s: Session) = {    
     // Purge
     queryByDataset.where(_.datasetId === datasetId).delete
     

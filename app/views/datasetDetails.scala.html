@@ -1,4 +1,4 @@
-@(dataset: Dataset, things: Int, annotations: Int, places: Int)
+@(dataset: Dataset, things: Int, annotations: Int, places: Int, supersets: Seq[Dataset])
 <html>
   <head>
     <title>Dataset &raquo; @dataset.title</title>
@@ -28,6 +28,13 @@
       
       <div id="header-body">
         <div class="row">
+          @if(supersets.size > 0) {
+          	<h2>
+          	  @for(superset <- supersets) {
+          	  	<a href="@controllers.pages.routes.DatasetPagesController.getDataset(superset.id)">@superset.title</a> &raquo;
+          	  }
+            </h2>
+          }
           <h1>@dataset.title</h1>
           <h2>
             @if(dataset.homepage.isDefined) {

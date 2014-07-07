@@ -90,7 +90,7 @@
         <tbody>
           @for(dataset <- datasets.items) {
           	<tr>
-              @if(models.Datasets.findSubsetsFor(dataset.id).size > 0) {
+              @if(models.Datasets.listSubsets(dataset.id).size > 0) {
           	    <td class="icon plus plus-@dataset.id" onclick="toggleSubsets('@dataset.id'); return false;"></td>  
           	  } else {
           	    <td class="icon"></td>

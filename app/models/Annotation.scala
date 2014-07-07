@@ -65,8 +65,14 @@ object Annotations {
   def findByUUID(uuid: UUID)(implicit s: Session): Option[Annotation] = 
     query.where(_.uuid === uuid).firstOption
     
-  def countByDataset(datasetId: String)(implicit s: Session): Int =
-    Query(query.where(_.datasetId === datasetId).length).first
+  def countByDataset(datasetId: String, recursive: Boolean = true)(implicit s: Session): Int = {
+    if (recursive) {
+      val allDatasetIds = datasetId +: Datasets.walkSubsets(datasetId).map(_.id)
+      Query(query.where(_.datasetId.inSet(allDatasetIds)).length).first
+    } else {
+      Query(query.where(_.datasetId === datasetId).length).first      
+    }
+  }
     
   def findByDataset(id: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
     val total = countByDataset(id)
