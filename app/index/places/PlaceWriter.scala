@@ -5,11 +5,10 @@ import java.io.InputStream
 import org.apache.lucene.document.{ Field, StringField }
 import org.apache.lucene.index.{ IndexWriter, Term }
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, TermQuery, TopScoreDocCollector }
+import org.pelagios.Scalagios
 import org.pelagios.api.gazetteer.Place
 import play.api.Logger
 import scala.collection.mutable.Set
-import org.pelagios.Scalagios
-import org.openrdf.rio.RDFFormat
 
 trait PlaceWriter extends PlaceReader {
   

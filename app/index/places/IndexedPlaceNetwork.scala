@@ -1,13 +1,12 @@
 package index.places
 
+import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.{ Index, IndexFields }
 import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField }
-import org.pelagios.api.gazetteer.Place
-import play.api.libs.json.{ Json, JsObject }
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
-import com.spatial4j.core.context.jts.JtsSpatialContext
-import com.spatial4j.core.context.SpatialContext
+import org.pelagios.api.gazetteer.Place
+import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace])
@@ -55,11 +54,7 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
 
 object IndexedPlaceNetwork {
   
-  private val POINT = "POINT ("
-  
-  private val spatialCtx = SpatialContext.GEO
-  
-  private val jtsSpatialCtx = JtsSpatialContext.GEO
+  private val spatialCtx = JtsSpatialContext.GEO
   
   private val maxLevels = 11 //results in sub-meter precision for geohash
   
@@ -117,16 +112,8 @@ object IndexedPlaceNetwork {
       doc.add(new StringField(IndexFields.PLACE_CLOSE_MATCH, closeMatch, Field.Store.YES)))
       
     // Index shape geometry
-    // TODO check if the switch actually makes sense, or whether there is no performance gain at all
-    if (place.geometry.isDefined) {
-      val shapes =
-        if (place.geometryWKT.get.startsWith(POINT))
-          spatialCtx.readShapeFromWkt(place.geometryWKT.get)
-        else
-          jtsSpatialCtx.makeShape(place.geometry.get)
-        
-      spatialStrategy.createIndexableFields(shapes).foreach(doc.add(_))
-    }
+    if (place.geometry.isDefined)
+      spatialStrategy.createIndexableFields(spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
     
     // Add the JSON-serialized place as a stored (but not indexed) field
     doc.add(new StoredField(IndexFields.PLACE_AS_JSON, place.toString))    

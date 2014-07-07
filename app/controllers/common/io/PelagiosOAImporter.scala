@@ -72,6 +72,8 @@ object PelagiosOAImporter extends AbstractImporter {
     Datasets.update(updatedDataset) 
     
     is.close()
+    
+    Logger.info("Import of " + file.filename + " complete")
   }
   
 }
