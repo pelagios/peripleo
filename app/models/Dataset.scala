@@ -134,6 +134,26 @@ object Datasets {
   
   def findSubsetsFor(id: String)(implicit s: Session): Seq[Dataset] =
     query.where(_.isPartOfId === id).list    
+  
+   
+  private def getParentHierarchy(dataset: Dataset)(implicit s: Session): Seq[Dataset] = {
+    val parent = 
+      dataset.isPartOf.flatMap(parentId => query.where(_.id === parentId).firstOption)
+
+    if (parent.isDefined)
+      parent.get +: getParentHierarchy(parent.get)
+    else
+      Seq.empty[Dataset]
+  }
+    
+  def findAllParents(id: String)(implicit s: Session): Seq[Dataset] = {
+    val dataset = findById(id)
+    if (dataset.isEmpty) {
+      Seq.empty[Dataset]
+    } else {
+      getParentHierarchy(dataset.get)
+    }
+  }
     
   def delete(id: String)(implicit s: Session) =
     query.where(_.id === id).delete
