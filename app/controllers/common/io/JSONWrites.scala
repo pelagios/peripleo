@@ -114,21 +114,29 @@ object JSONWrites {
     (JsPath \ "datadump_url").writeNullable[String] ~
     (JsPath \ "num_items").write[Int] ~
     (JsPath \ "num_annotations").write[Int]  ~
-    (JsPath \ "num_unique_places").write[Int]
-  )(dataset => (
-      dataset.id,
-      dataset.title,
-      dataset.publisher,
-      dataset.description,
-      dataset.license,
-      dataset.homepage,
-      dataset.created.getTime,
-      dataset.modified.getTime,
-      dataset.voidURI,
-      dataset.datadump,
-      AnnotatedThings.countByDataset(dataset.id),
-      Annotations.countByDataset(dataset.id),
-      Places.countPlacesInDataset(dataset.id)))
+    (JsPath \ "num_unique_places").write[Int] ~
+    (JsPath \ "subsets").writeNullable[Seq[JsValue]]
+  )(dataset => {
+      val subsets = Datasets.findSubsetsFor(dataset.id)
+      val subsetsJson = 
+        if (subsets.size > 0)
+          Some(subsets.map(subset => Json.obj("id" -> subset.id, "title" -> subset.title)))
+        else
+          None
+      (dataset.id,
+       dataset.title,
+       dataset.publisher,
+       dataset.description,
+       dataset.license,
+       dataset.homepage,
+       dataset.created.getTime,
+       dataset.modified.getTime,
+       dataset.voidURI,
+       dataset.datadump,
+       AnnotatedThings.countByDataset(dataset.id),
+       Annotations.countByDataset(dataset.id),
+       Places.countPlacesInDataset(dataset.id),
+       subsetsJson)})
         
   /** Writes an annotated thing, with annotation count and place count pulled from the DB on the fly **/ 
   implicit def annotatedThingWrites(implicit s: Session): Writes[AnnotatedThing] = (

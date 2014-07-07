@@ -5,6 +5,7 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 import java.sql.Date
 import scala.slick.lifted.Query
+import play.api.Logger
 
 /** Dataset model entity **/
 case class Dataset(
@@ -128,8 +129,11 @@ object Datasets {
     Page(result, offset, limit, total)    
   }
       
-  def findById(id: String)(implicit s: Session): Option[Dataset] = 
+  def findById(id: String)(implicit s: Session): Option[Dataset] =
     query.where(_.id === id).firstOption
+  
+  def findSubsetsFor(id: String)(implicit s: Session): Seq[Dataset] =
+    query.where(_.isPartOfId === id).list    
     
   def delete(id: String)(implicit s: Session) =
     query.where(_.id === id).delete
