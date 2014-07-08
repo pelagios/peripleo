@@ -95,7 +95,7 @@ object IndexedPlaceNetwork {
     }
     
     // Index (but don't store) all names
-    place.names.foreach(literal => doc.add(new StringField(IndexFields.PLACE_NAME, literal.chars, Field.Store.NO)))
+    place.names.foreach(literal => doc.add(new TextField(IndexFields.PLACE_NAME, literal.chars, Field.Store.NO)))
     
     // Index & store place URI
     doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(place.uri), Field.Store.YES))
