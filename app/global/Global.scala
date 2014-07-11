@@ -80,7 +80,7 @@ object Global extends GlobalSettings {
       }
       
       if (MTable.getTables("datasets").list().isEmpty) {
-        Logger.info("DB table datasets does not exist - creating")
+        Logger.info("DB table 'datasets' does not exist - creating")
         Datasets.create
       }
       
@@ -90,7 +90,7 @@ object Global extends GlobalSettings {
       }
       
       if (MTable.getTables("gazetteers").list().isEmpty) {
-        Logger.info("DB table gazetteers does not exist - creating")
+        Logger.info("DB table 'gazetteers' does not exist - creating")
         Gazetteers.create
       }
     }

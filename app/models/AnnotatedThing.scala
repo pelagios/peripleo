@@ -133,28 +133,44 @@ object AnnotatedThings {
   /** Counts the things contained in a specified dataset.
     *
     * @param datasetId the dataset ID
+    * @param recursive if set to true, the count will recursively include things contained in subsets 
     * @param topLevelOnly if set to true, only top-level things will be counted, i.e. hierarchical things only count as one    
     */
-  def countByDataset(datasetId: String, topLevelOnly: Boolean = true)(implicit s: Session): Int =
+  def countByDataset(datasetId: String, recursive: Boolean = true, topLevelOnly: Boolean = true)(implicit s: Session): Int = {
+    val datasetIds =
+      if (recursive)
+        datasetId +: Datasets.walkSubsets(datasetId).map(_.id)
+      else
+        Seq(datasetId)
+
     if (topLevelOnly)
-      Query(query.where(_.datasetId === datasetId).where(_.isPartOfId.isNull).length).first
+      Query(query.where(_.datasetId.inSet(datasetIds)).where(_.isPartOfId.isNull).length).first
     else
-      Query(query.where(_.datasetId === datasetId).length).first
+      Query(query.where(_.datasetId.inSet(datasetIds)).length).first
+  }
 
   /** Retrieves the things contained in a specified dataset.
     *
     * @param datasetId the dataset ID
+    * @param recursive if set to true, the response will recursively include things contained in subsets
     * @param topLevelOnly if set to true, only top-level things will be returned
     * @param offset pagination offset
     * @param limit pagination limit (number of items to be returned)
     */
-  def findByDataset(datasetId: String, topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
-    val total = countByDataset(datasetId, topLevelOnly)
+  def findByDataset(datasetId: String, recursive: Boolean = true, topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[AnnotatedThing] = {
+    val total = countByDataset(datasetId, recursive, topLevelOnly)
+    val datasetIds = 
+      if (recursive)
+        datasetId +: Datasets.walkSubsets(datasetId).map(_.id)
+      else
+        Seq(datasetId)
+        
     val result = 
       if (topLevelOnly)
-        query.where(_.datasetId === datasetId).where(_.isPartOfId.isNull).drop(offset).take(limit).list
+        query.where(_.datasetId.inSet(datasetIds)).where(_.isPartOfId.isNull).drop(offset).take(limit).list
       else
-        query.where(_.datasetId === datasetId).drop(offset).take(limit).list
+        query.where(_.datasetId.inSet(datasetIds)).drop(offset).take(limit).list
+        
     Page(result, offset, limit, total)
   }
   
@@ -185,6 +201,8 @@ object AnnotatedThings {
   private[models] def walkChildren(parentId: String)(implicit s: Session): Seq[AnnotatedThing] = {
     // Note that we're making a DB request for every parent
     // TODO this could be slightly tuned by taking a list of of parentIds rather than just a single one
+    
+    // TODO not sure we really need to include the Datasets, possibly just the IDs are enough
     val children = query.where(_.isPartOfId === parentId).list
     if (children.isEmpty)
       children

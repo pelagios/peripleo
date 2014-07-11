@@ -1,4 +1,4 @@
-@(dataset: Dataset, things: Int, annotations: Int, places: Int, supersets: Seq[Dataset])
+@(dataset: Dataset, things: Int, annotations: Int, places: Int, supersets: Seq[Dataset], subsets: Seq[Dataset])
 <html>
   <head>
     <title>Dataset &raquo; @dataset.title</title>
@@ -67,6 +67,17 @@
         <table id="top-n-places"></table>
       </div>
       
+      @if(subsets.size > 0) {
+      	<div class="row" id="subsets-list">
+      	  <h2>Subsets</h2>
+      	  <ul>
+      	    @for(subset <- subsets) {
+      	      <li><a href="@controllers.pages.routes.DatasetPagesController.getDataset(subset.id)">@subset.title</a></li>
+      	    }
+      	  </ul>
+      	</div>
+      }
+    
       <div class="row" id="items-list">
         <h2>Items in this Dataset</h2>
         <div class="pagination"></div>

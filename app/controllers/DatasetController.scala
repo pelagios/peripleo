@@ -22,7 +22,7 @@ object DatasetController extends AbstractAPIController {
   def listAnnotatedThings(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined)
-      jsonOk(Json.toJson(AnnotatedThings.findByDataset(id, true, offset, limit)), session.request)
+      jsonOk(Json.toJson(AnnotatedThings.findByDataset(id, true, true, offset, limit)), session.request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }

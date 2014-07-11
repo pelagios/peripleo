@@ -154,7 +154,7 @@ object Datasets {
   /** Retrieves a batch of Datasets by their ID **/
   def findAllById(ids: Seq[String])(implicit s: Session): Seq[Dataset] =
     query.where(_.id.inSet(ids)).list
-
+    
   /** Returns the number of subsets in a specific Dataset.
     * 
     * This method only counts the direct subsets of the Dataset - it does not
@@ -179,6 +179,8 @@ object Datasets {
   private[models] def walkSubsets(parentId: String)(implicit s: Session): Seq[Dataset] = {
     // Note that we're making a DB request for every parent
     // TODO this could be slightly tuned by taking a list of of parentIds rather than just a single one
+    
+    // TODO not sure we really need to include the Datasets, possibly just the IDs are enough
     val subsets = query.where(_.isPartOfId === parentId).list
     if (subsets.isEmpty)
       subsets

@@ -128,7 +128,7 @@ object Places {
 
   private def recomputeDatasets(leafIds: Seq[String])(implicit s: Session) = {
     // IDs of all affected datasets, including parents in the hierarchy
-    val datasetIds = leafIds.flatMap(id => Datasets.getParentHierarchy(id)).distinct
+    val datasetIds = (leafIds ++ leafIds.flatMap(id => Datasets.getParentHierarchy(id))).distinct
 
     // Purge
     queryByDataset.where(_.datasetId.inSet(datasetIds)).delete

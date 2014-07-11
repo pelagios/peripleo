@@ -16,11 +16,13 @@ object DatasetPagesController extends Controller {
   def getDataset(id: String) = DBAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined) {
-      val things = AnnotatedThings.countByDataset(dataset.get.id)
-      val places = Places.countPlacesInDataset(dataset.get.id)
-      val annotations = Annotations.countByDataset(dataset.get.id)
-      val supersets = Datasets.findAllById(Datasets.getParentHierarchy(dataset.get.id))
-      Ok(views.html.datasetDetails(dataset.get, things, annotations, places, supersets))
+      val id = dataset.get.id
+      val things = AnnotatedThings.countByDataset(id)
+      val places = Places.countPlacesInDataset(id)
+      val annotations = Annotations.countByDataset(id)
+      val supersets = Datasets.findAllById(Datasets.getParentHierarchy(id))
+      val subsets = Datasets.listSubsets(id)
+      Ok(views.html.datasetDetails(dataset.get, things, annotations, places, supersets, subsets))
     } else {
       NotFound // TODO create decent 'not found' page
     }
