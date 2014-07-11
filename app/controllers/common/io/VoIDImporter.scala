@@ -27,14 +27,29 @@ object VoIDImporter extends AbstractImporter {
         sha256(dataset.title + " " + dataset.publisher)
       }
 
-    def flattenHierarchy(datasets: Seq[VoidDataset], parentId: Option[String] = None): Seq[Dataset] = {      
+    def flattenHierarchy(datasets: Seq[VoidDataset], parent: Option[Dataset] = None): Seq[Dataset] = { 
       val datasetEntities = datasets.map(d => {
-        Dataset(id(d), d.title, d.publisher, d.license, created, created, 
-          uri, d.description, d.homepage, parentId, d.datadumps.headOption, 
+        val publisher =
+          if (d.publisher.isDefined)
+            d.publisher.get
+          else
+            parent.map(_.publisher).getOrElse("[NO PUBLISHER]")  
+        
+        val license =
+          if (d.license.isDefined)
+            d.license.get 
+          else 
+            parent.map(_.license).getOrElse("[NO LICENSE]")
+        
+        val datasetEntity = Dataset(id(d), d.title, publisher, license, created, created, 
+          uri, d.description, d.homepage, parent.map(_.id), d.datadumps.headOption, 
           None, None, None)
+          
+        (d, datasetEntity)
       })
         
-      datasetEntities ++ datasets.flatMap(d => flattenHierarchy(d.subsets, Some(id(d))))
+      datasetEntities.map(_._2) ++ datasetEntities.flatMap { case (void, entity) 
+        => flattenHierarchy(void.subsets, Some(entity)) }
     }
     
     val datasets = flattenHierarchy(Scalagios.readVoID(is, format).toSeq) 
