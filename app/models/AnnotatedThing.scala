@@ -183,6 +183,8 @@ object AnnotatedThings {
     * i.e. retrieves not only the direct children, but also the childrens' children, etc. 
     */
   private[models] def walkChildren(parentId: String)(implicit s: Session): Seq[AnnotatedThing] = {
+    // Note that we're making a DB request for every parent
+    // TODO this could be slightly tuned by taking a list of of parentIds rather than just a single one
     val children = query.where(_.isPartOfId === parentId).list
     if (children.isEmpty)
       children

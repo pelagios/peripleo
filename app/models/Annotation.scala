@@ -40,8 +40,10 @@ object Annotations {
   
   private[models] val query = TableQuery[Annotations]
   
+  /** Creates the DB table **/
   def create()(implicit s: Session) = query.ddl.create
   
+  /** Inserts a list of Annotations into the DB **/
   def insertAll(annotations: Seq[Annotation])(implicit s: Session) = {
     // Insert annotations
     query.insertAll(annotations:_*)
@@ -50,21 +52,31 @@ object Annotations {
     Places.recompute(annotations)
   }
   
+  /** Updates an Annotation **/
   def update(annotation: Annotation)(implicit s: Session) = 
     query.where(_.uuid === annotation.uuid).update(annotation)
-  
+    
+  /** Counts all Annotations in the DB **/
   def countAll()(implicit s: Session): Int = 
     Query(query.length).first
 
+
+  /** Lists all Annotations in the DB (paginated) **/
   def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
     val total = countAll()
     val result = query.drop(offset).take(limit).list
     Page(result, offset, limit, total)
   }
-    
+
+  /** Retrieves a single Annotation by its UUID **/
   def findByUUID(uuid: UUID)(implicit s: Session): Option[Annotation] = 
     query.where(_.uuid === uuid).firstOption
-    
+   
+  /** Counts the Annotations contained in a specified dataset.
+    *
+    * @param datasetId the dataset ID
+    * @param recursive if set to true, the count will recursively include Annotations contained in subsets 
+    */
   def countByDataset(datasetId: String, recursive: Boolean = true)(implicit s: Session): Int = {
     if (recursive) {
       val allDatasetIds = datasetId +: Datasets.walkSubsets(datasetId).map(_.id)
@@ -74,12 +86,31 @@ object Annotations {
     }
   }
     
-  def findByDataset(id: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
-    val total = countByDataset(id)
-    val result = query.where(_.datasetId === id).drop(offset).take(limit).list
+  /** Retrieves the Annotations contained in a specified dataset.
+    *
+    * @param datasetId the dataset ID
+    * @param recursive if set to true, the response will recursively include Annotations contained in subsets
+    * @param offset pagination offset
+    * @param limit pagination limit (number of items to be returned)
+    */
+  def findByDataset(datasetId: String, recursive: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
+    val total = countByDataset(datasetId, recursive)
+    val result = 
+      if (recursive) {
+        val allDatasetIds = datasetId +: Datasets.walkSubsets(datasetId).map(_.id)    
+        query.where(_.datasetId.inSet(allDatasetIds)).drop(offset).take(limit).list
+      } else {
+        query.where(_.datasetId === datasetId).drop(offset).take(limit).list  
+      }
+    
     Page(result, offset, limit, total)
   }
- 
+
+  /** Counts the Annotations attached to a specified thing.
+    *
+    * @param thingId the thing ID
+    * @param recursive if set to true, the count will recursively include Annotations contained in sub-things
+    */
   def countByAnnotatedThing(thingId: String, recursive: Boolean = true)(implicit s: Session): Int = {
     if (recursive) {
       val allThingIds = thingId +: AnnotatedThings.walkChildren(thingId).map(_.id)
@@ -89,9 +120,22 @@ object Annotations {
     }
   }
 
-  def findByAnnotatedThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
-    val total = countByAnnotatedThing(thingId)
-    val result = query.where(_.annotatedThingId === thingId).drop(offset).take(limit).list
+  /** Retrieves the Annotations attached to a specified thing.
+    *
+    * @param thingId the thingID
+    * @param recursive if set to true, the response will recursively include Annotations contained in sub-things
+    * @param offset pagination offset
+    * @param limit pagination limit (number of items to be returned)
+    */
+  def findByAnnotatedThing(thingId: String, recursive: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
+    val total = countByAnnotatedThing(thingId, recursive)
+    val result = if (recursive) {
+      val allThingIds = thingId +: AnnotatedThings.walkChildren(thingId).map(_.id)
+      query.where(_.annotatedThingId.inSet(allThingIds)).drop(offset).take(limit).list
+    } else {
+      query.where(_.annotatedThingId === thingId).drop(offset).take(limit).list      
+    }
+    
     Page(result, offset, limit, total)
   }
   

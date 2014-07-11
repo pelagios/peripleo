@@ -150,6 +150,10 @@ object Datasets {
   /** Retrieves a single Dataset by its ID **/
   def findById(id: String)(implicit s: Session): Option[Dataset] =
     query.where(_.id === id).firstOption
+    
+  /** Retrieves a batch of Datasets by their ID **/
+  def findAllById(ids: Seq[String])(implicit s: Session): Seq[Dataset] =
+    query.where(_.id.inSet(ids)).list
 
   /** Returns the number of subsets in a specific Dataset.
     * 
@@ -173,6 +177,8 @@ object Datasets {
     * i.e. retrieves not only the direct subsets, but also the subsets' subsets, etc. 
     */
   private[models] def walkSubsets(parentId: String)(implicit s: Session): Seq[Dataset] = {
+    // Note that we're making a DB request for every parent
+    // TODO this could be slightly tuned by taking a list of of parentIds rather than just a single one
     val subsets = query.where(_.isPartOfId === parentId).list
     if (subsets.isEmpty)
       subsets
@@ -181,12 +187,13 @@ object Datasets {
   }
 
   /** Returns the parent hierarchy of a thing, i.e. the sequence of things from this thing to the root parent **/
-  def getParentHierarchy(dataset: Dataset)(implicit s: Session): Seq[Dataset] = {
-    val superset = dataset.isPartOf.flatMap(parentId => query.where(_.id === parentId).firstOption)
-    if (superset.isDefined)
-      getParentHierarchy(superset.get) :+ superset.get
-    else
-      Seq.empty[Dataset]
+  def getParentHierarchy(datasetId: String)(implicit s: Session): Seq[String] = {
+    val parentId = query.where(_.id === datasetId).where(_.isPartOfId.isNotNull).map(_.isPartOfId).firstOption
+    if (parentId.isDefined) {
+      parentId.get +: getParentHierarchy(parentId.get)
+    } else {
+      Seq.empty[String]
+    }
   }
  
 }

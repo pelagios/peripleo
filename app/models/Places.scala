@@ -126,19 +126,24 @@ object Places {
     queryByThing.ddl.create
   }
 
-  private def recomputeDataset(datasetId: String)(implicit s: Session) = {    
+  private def recomputeDatasets(leafIds: Seq[String])(implicit s: Session) = {
+    // IDs of all affected datasets, including parents in the hierarchy
+    val datasetIds = leafIds.flatMap(id => Datasets.getParentHierarchy(id)).distinct
+
     // Purge
-    queryByDataset.where(_.datasetId === datasetId).delete
+    queryByDataset.where(_.datasetId.inSet(datasetIds)).delete
     
     // Recompute
-    val placesInDataset = Annotations.findByDataset(datasetId).items.groupBy(_.gazetteerURI)
-      .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
-      .filter(_._1.isDefined) // We restrict to places in the gazetteer
-      .map { case (place, count) => 
-        PlacesByDataset(None, datasetId, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
-      .toSeq
+    datasetIds.foreach(id => {
+      val placesInDataset = Annotations.findByDataset(id).items.groupBy(_.gazetteerURI)
+        .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
+        .filter(_._1.isDefined) // We restrict to places in the gazetteer
+        .map { case (place, count) => 
+          PlacesByDataset(None, id, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+        .toSeq
 
-    queryByDataset.insertAll(placesInDataset:_*)    
+      queryByDataset.insertAll(placesInDataset:_*)
+    })
   }
   
   private def recomputeLeafThings(datasetId: String, annotations: Seq[Annotation])(implicit s: Session) = {    
@@ -175,9 +180,9 @@ object Places {
     Logger.info("Recomputing unique place count aggregates")
     
     // Recompute datasets and leaf things
-    val affectedDatasets = annotations.groupBy(_.dataset).keys
-    affectedDatasets.foreach(recomputeDataset(_))
-    affectedDatasets.foreach(recomputeLeafThings(_, annotations))
+    val affectedLeafDatasets = annotations.groupBy(_.dataset).keys.toSeq
+    recomputeDatasets(affectedLeafDatasets)
+    affectedLeafDatasets.foreach(recomputeLeafThings(_, annotations))
       
     // Things can be hierarchical - aggregate starting from root nodes
     val leafThings = annotations.groupBy(_.annotatedThing).toSeq.map { case (thing, annotations) => (annotations.head.dataset, thing) }    
