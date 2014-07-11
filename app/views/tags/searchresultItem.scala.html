@@ -13,17 +13,23 @@
     
     case index.IndexedObjectTypes.ANNOTATED_THING => {
       @defining(AnnotatedThings.findByIdWithDataset(item.identifier).get) { case (thing, dataset) =>
-        <li class="result item">
-          <span class="title">
-            @if(thing.homepage.isDefined) {
-              <a href="@thing.homepage.get" target="_blank">@item.title</a>
-            } else {
+        @defining(Datasets.findAllById(Datasets.getParentHierarchy(dataset.id))) { supersets =>
+          <li class="result item">
+            <span class="title">
+              @if(thing.homepage.isDefined) {
+                <a href="@thing.homepage.get" target="_blank">@item.title</a>
+              } else {
               @item.title
-            }
-          </span>
-          @if(item.description.isDefined) { <span class="description">@item.description</span> }
-          In: <a href="@controllers.pages.routes.DatasetPagesController.getDataset(dataset.id)">@dataset.title</a>
-        </li> 
+              }
+            </span>
+            @if(item.description.isDefined) { <span class="description">@item.description</span> }
+            In:
+            @for(superset <- supersets) {
+              <a href="@controllers.pages.routes.DatasetPagesController.getDataset(superset.id)">@superset.title</a> &raquo;
+            } 
+            <a href="@controllers.pages.routes.DatasetPagesController.getDataset(dataset.id)">@dataset.title</a>
+          </li> 
+        }
       }
     }
     
