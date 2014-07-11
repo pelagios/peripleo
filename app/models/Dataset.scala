@@ -103,14 +103,26 @@ object Datasets {
   
   private[models] val query = TableQuery[Datasets]
   
+  /** Creates the DB table **/
   def create()(implicit s: Session) = query.ddl.create
   
+  /** Inserts a single Dataset into the DB **/
   def insert(dataset: Dataset)(implicit s: Session) = query.insert(dataset)
   
+  /** Inserts a list of Datasets into the DB **/
   def insertAll(dataset: Seq[Dataset])(implicit s: Session) = query.insertAll(dataset:_*)
   
+  /** Updates a Dataset **/
   def update(dataset: Dataset)(implicit s: Session) = query.where(_.id === dataset.id).update(dataset)
  
+  /** Deletes a Dataset **/
+  def delete(id: String)(implicit s: Session) =
+    query.where(_.id === id).delete
+    
+  /** Counts all Datasets in the DB.
+    * 
+    * @param topLevelOnly if set to true, only top-level datasets will be counted, i.e. hierarchical datasets only count as one 
+    */
   def countAll(topLevelOnly: Boolean = true)(implicit s: Session): Int = {
     if (topLevelOnly)
       Query(query.where(_.isPartOfId.isNull).length).first
@@ -118,6 +130,12 @@ object Datasets {
       Query(query.length).first
   }
 
+  /** Lists all Datasets in the DB (paginated).
+    *  
+    * @param topLevelOnly if set to true, only top-level datasets will be returned
+    * @param offset pagination offset
+    * @param limit pagination limit (number of items to be returned)
+    */
   def listAll(topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Dataset] = {
     val total = countAll(topLevelOnly)
     val result = 
@@ -128,13 +146,32 @@ object Datasets {
         
     Page(result, offset, limit, total)    
   }
-      
+
+  /** Retrieves a single Dataset by its ID **/
   def findById(id: String)(implicit s: Session): Option[Dataset] =
     query.where(_.id === id).firstOption
-  
+
+  /** Returns the number of subsets in a specific Dataset.
+    * 
+    * This method only counts the direct subsets of the Dataset - it does not
+    * traverse further down the hierarchy!
+    */
+  def countSubsets(id: String)(implicit s: Session): Int =
+    Query(query.where(_.isPartOfId === id).length).first
+
+  /** Returns the subsets of a specific Dataset.
+    * 
+    * This method only returns the direct subsets of the Dataset - it does not
+    * traverse further down in the hierarchy!
+    */
   def listSubsets(id: String)(implicit s: Session): Seq[Dataset] =
     query.where(_.isPartOfId === id).list    
-    
+ 
+  /** Returns all subsets in the hierarchy below a specific Dataset.
+    * 
+    * This method is similar to listSubsets, but it DOES traverse down the hierarchy,
+    * i.e. retrieves not only the direct subsets, but also the subsets' subsets, etc. 
+    */
   private[models] def walkSubsets(parentId: String)(implicit s: Session): Seq[Dataset] = {
     val subsets = query.where(_.isPartOfId === parentId).list
     if (subsets.isEmpty)
@@ -142,7 +179,8 @@ object Datasets {
     else
       subsets.flatMap(dataset => dataset +: walkSubsets(dataset.id))    
   }
-  
+
+  /** Returns the parent hierarchy of a thing, i.e. the sequence of things from this thing to the root parent **/
   def getParentHierarchy(dataset: Dataset)(implicit s: Session): Seq[Dataset] = {
     val superset = dataset.isPartOf.flatMap(parentId => query.where(_.id === parentId).firstOption)
     if (superset.isDefined)
@@ -150,8 +188,5 @@ object Datasets {
     else
       Seq.empty[Dataset]
   }
-    
-  def delete(id: String)(implicit s: Session) =
-    query.where(_.id === id).delete
  
 }

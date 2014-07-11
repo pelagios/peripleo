@@ -83,6 +83,10 @@ object AnnotatedThings {
   /** Updates an AnnotatedThing **/
   def update(thing: AnnotatedThing)(implicit s: Session) = 
     query.where(_.id === thing.id).update(thing)
+    
+  /** Deletes an AnnotatedThing **/
+  def delete(id: String)(implicit s: Session) =
+    query.where(_.id === id).delete
 
   /** Counts all AnnotatedThings in the DB.
     * 
@@ -116,7 +120,7 @@ object AnnotatedThings {
   def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
     query.where(_.id === id).firstOption
     
-  /** Retrieves a single AnnotatedThing by its ID and joins the Dataset it belongs to **/
+  /** Retrieves a single AnnotatedThing by its ID, joining with the Dataset it's contained in **/
   def findByIdWithDataset(id: String)(implicit s: Session): Option[(AnnotatedThing, Dataset)] = {
     val q = for {
       thing <- query.where(_.id === id)
@@ -156,11 +160,11 @@ object AnnotatedThings {
   
   /** Returns the number of children of a specific AnnotatedThing.
     * 
-    * This method only counts the direct children of the AnnotatedThing - it does not
-    * count further down in the hierarchy!
+    * This method only counts the direct subsets of the Dataset - it does not
+    * traverse further down the hierarchy!
     */
-  def countChildren(parentId: String)(implicit s: Session): Int =
-    Query(query.where(_.isPartOfId === parentId).length).first
+  def countChildren(id: String)(implicit s: Session): Int =
+    Query(query.where(_.isPartOfId === id).length).first
 
   /** Returns the children of a specific AnnotatedThing.
     * 
@@ -175,7 +179,7 @@ object AnnotatedThings {
 
   /** Returns all children in the hierarchy below a specific AnnotatedThing.
     * 
-    * This method is similar to listChildren, but DOES recurse down the hierarchy,
+    * This method is similar to listChildren, but DOES traverse down the hierarchy,
     * i.e. retrieves not only the direct children, but also the childrens' children, etc. 
     */
   private[models] def walkChildren(parentId: String)(implicit s: Session): Seq[AnnotatedThing] = {
