@@ -52,6 +52,9 @@ object Annotations {
     Places.recompute(annotations)
   }
   
+  def deleteForDataset(id: String)(implicit s: Session) =
+    query.where(_.datasetId === id).delete
+  
   /** Updates an Annotation **/
   def update(annotation: Annotation)(implicit s: Session) = 
     query.where(_.uuid === annotation.uuid).update(annotation)

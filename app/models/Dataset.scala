@@ -2,9 +2,8 @@ package models
 
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.Tag
+import scala.slick.lifted.{ Tag, Query }
 import java.sql.Date
-import scala.slick.lifted.Query
 import play.api.Logger
 
 /** Dataset model entity **/
@@ -116,8 +115,10 @@ object Datasets {
   def update(dataset: Dataset)(implicit s: Session) = query.where(_.id === dataset.id).update(dataset)
  
   /** Deletes a Dataset **/
-  def delete(id: String)(implicit s: Session) =
-    query.where(_.id === id).delete
+  def delete(id: String)(implicit s: Session) = {
+	val datasetTreeIds = walkSubsets(id).map(_.id) :+ id
+    query.where(_.id inSet datasetTreeIds).delete
+  }
     
   /** Counts all Datasets in the DB.
     * 

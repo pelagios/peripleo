@@ -174,6 +174,9 @@ object AnnotatedThings {
     Page(result, offset, limit, total)
   }
   
+  def deleteForDataset(id: String)(implicit s: Session) = 
+    query.where(_.datasetId === id).delete
+  
   /** Returns the number of children of a specific AnnotatedThing.
     * 
     * This method only counts the direct subsets of the Dataset - it does not

@@ -7,7 +7,7 @@ GET     /api-v3/static/*file              controllers.Assets.at(path="/public", 
 
 # API routes
 GET     /api-v3/datasets                         controllers.DatasetController.listAll(limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
+GET     /api-v3/datasets/:id                     controllers.DatasetController.get(id: String)
 GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/datasets/:id/time                controllers.DatasetController.getTemporalProfile(id: String)

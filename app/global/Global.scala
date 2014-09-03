@@ -69,27 +69,32 @@ object Global extends GlobalSettings {
   override def onStart(app: Application): Unit = {
     // Initializes the database schema
     DB.withSession { implicit session: Session =>
-      if (MTable.getTables("annotated_things").list().isEmpty) {
+      if (MTable.getTables("annotated_things").list.isEmpty) {
         Logger.info("DB table 'annotated_things' does not exist - creating")
         AnnotatedThings.create
       }
        
-      if (MTable.getTables("annotations").list().isEmpty) {
+      if (MTable.getTables("annotations").list.isEmpty) {
         Logger.info("DB table 'annotations' does not exist - creating")
         Annotations.create
       }
       
-      if (MTable.getTables("datasets").list().isEmpty) {
+      if (MTable.getTables("datasets").list.isEmpty) {
         Logger.info("DB table 'datasets' does not exist - creating")
         Datasets.create
       }
       
-      if (MTable.getTables("places_by_dataset").list().isEmpty && MTable.getTables("places_by_annotated_thing").list().isEmpty) {
+      if (MTable.getTables("dataset_dumpfiles").list.isEmpty) {
+		 Logger.info("DB table 'dataset_dumpfiles' does not exist - creating")
+		 DatasetDumpfiles.create
+	  }
+      
+      if (MTable.getTables("places_by_dataset").list.isEmpty && MTable.getTables("places_by_annotated_thing").list().isEmpty) {
         Logger.info("Places index tables do not exist - creating")
         Places.create
       }
       
-      if (MTable.getTables("gazetteers").list().isEmpty) {
+      if (MTable.getTables("gazetteers").list.isEmpty) {
         Logger.info("DB table 'gazetteers' does not exist - creating")
         Gazetteers.create
       }

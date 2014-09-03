@@ -230,6 +230,11 @@ object Places {
   def countPlacesInDataset(datasetId: String)(implicit s: Session): Int =
     Query(queryByDataset.where(_.datasetId === datasetId).length).first
  
+  def deleteForDataset(id: String)(implicit s: Session) = {
+	 queryByThing.where(_.datasetId === id).delete
+	 queryByDataset.where(_.datasetId === id).delete
+  }
+ 
   def findPlacesInDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerReference, Int)] = {
     val total = countPlacesInDataset(datasetId)
     val result = queryByDataset.where(_.datasetId === datasetId).sortBy(_.count.desc).drop(offset).take(limit).list

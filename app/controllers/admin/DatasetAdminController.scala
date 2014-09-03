@@ -1,7 +1,7 @@
 package controllers.admin
 
 import controllers.common.io.{ CSVImporter, PelagiosOAImporter, VoIDImporter }
-import models.Datasets
+import models._
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.{ AnyContent, Controller, SimpleResult }
@@ -49,6 +49,9 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def deleteDataset(id: String) = adminAction { username => implicit requestWithSession =>
+    Annotations.deleteForDataset(id)
+    AnnotatedThings.deleteForDataset(id)
+    Places.deleteForDataset(id)
     Datasets.delete(id)
     Status(200)
   }

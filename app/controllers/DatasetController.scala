@@ -11,7 +11,7 @@ object DatasetController extends AbstractAPIController {
     jsonOk(Json.toJson(Datasets.listAll(true, offset, limit)), session.request)
   }
   
-  def getDataset(id: String) = DBAction { implicit session =>
+  def get(id: String) = DBAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(dataset.get), session.request)
