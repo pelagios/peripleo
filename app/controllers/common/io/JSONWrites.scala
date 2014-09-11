@@ -111,7 +111,6 @@ object JSONWrites {
     (JsPath \ "created_at").write[Long] ~
     (JsPath \ "modified_at").write[Long] ~
     (JsPath \ "void_url").writeNullable[String] ~
-    (JsPath \ "datadump_url").writeNullable[String] ~
     (JsPath \ "num_items").write[Int] ~
     (JsPath \ "num_annotations").write[Int]  ~
     (JsPath \ "num_unique_places").write[Int] ~
@@ -132,7 +131,6 @@ object JSONWrites {
        dataset.created.getTime,
        dataset.modified.getTime,
        dataset.voidURI,
-       dataset.datadump,
        AnnotatedThings.countByDataset(dataset.id),
        Annotations.countByDataset(dataset.id),
        Places.countPlacesInDataset(dataset.id),

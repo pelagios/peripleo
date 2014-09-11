@@ -117,12 +117,12 @@
                 }
               </td>
               <td>
-                <a href="@dataset.datadump">@dataset.datadump</a>
+                <!-- dumpfiles -->
               </td>
               <td class="right">
-                @if(dataset.datadump.isDefined) {
+                @* if(datadumps.size > 0) *@
                   <button class="button small"><span class="icon">&#xf0ac;</span>&nbsp; Update through VoID</span></button>
-                }
+                @* } *@
                 <button class="button upload small" data-input="import-annotations-@dataset.id"><span class="icon">&#xf016;</span>&nbsp; Import File</button>
                 <button class="button small red" onclick="deleteDataset('@dataset.id');" title="Drop Dataset"><span class="icon">&#xf05e;</span></button>
                 

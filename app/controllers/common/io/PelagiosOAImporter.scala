@@ -65,9 +65,11 @@ object PelagiosOAImporter extends AbstractImporter {
        Some(datedThings.map(_.temporalBoundsEnd.get).max),
        Some(new TemporalProfile(datedThings.map(thing => (thing.temporalBoundsStart.get, thing.temporalBoundsEnd.get))).toString))  
         
+    // TODO insert dataset dumpfiles
+    
     val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
         dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-        dataset.homepage, None, dataset.datadump, tempBoundsStart, tempBoundsEnd, temporalProfile)
+        dataset.homepage, None, tempBoundsStart, tempBoundsEnd, temporalProfile)
         
     Datasets.update(updatedDataset) 
     

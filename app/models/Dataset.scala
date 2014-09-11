@@ -39,9 +39,6 @@ case class Dataset(
   /** The ID of the dataset this dataset is part of (if any) **/
   isPartOf: Option[String],
     
-  /** void:dataDump **/
-  datadump: Option[String],
-  
   /** The start of the date interval this dataset encompasses (optional) **/ 
   temporalBoundsStart: Option[Int],
   
@@ -79,9 +76,7 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   def homepage = column[String]("homepage", O.Nullable)
   
   def isPartOfId = column[String]("is_part_of", O.Nullable)
-  
-  def datadump = column[String]("datadump", O.Nullable)
-  
+    
   def temporalBoundsStart = column[Int]("temporal_bounds_start", O.Nullable)
 
   def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
@@ -89,7 +84,7 @@ class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
   def temporalProfile = column[String]("temporal_profile", O.Nullable, O.DBType("text"))
   
   def * = (id, title, publisher, license, created, modified, voidURI.?, description.?, 
-    homepage.?, isPartOfId.?, datadump.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?) <> (Dataset.tupled, Dataset.unapply)
+    homepage.?, isPartOfId.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?) <> (Dataset.tupled, Dataset.unapply)
   
   /** Foreign key constraints **/
     
@@ -144,7 +139,10 @@ object Datasets {
         query.where(_.isPartOfId.isNull).drop(offset).take(limit).list
       else
         query.drop(offset).take(limit).list
-        
+     
+    // .leftJoin(DatasetDumpfiles.query).on(_.id === _.datasetId)
+    Logger.info(result.toString)
+       
     Page(result, offset, limit, total)    
   }
 
