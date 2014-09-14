@@ -92,7 +92,7 @@ object JSONWrites {
       gRef.centroid.map(_.x),
       { if (verbose) Global.index.findPlaceByURI(gRef.uri) else None })) 
 
-      
+     
   /** Writes a pair (Place, Occurrence-Count) **/
   implicit def placeCountWrites(implicit verbose: Boolean = true): Writes[(GazetteerReference, Int)] = (
       (JsPath).write[GazetteerReference] ~
@@ -135,6 +135,25 @@ object JSONWrites {
        Annotations.countByDataset(dataset.id),
        Places.countPlacesInDataset(dataset.id),
        subsetsJson)})
+
+
+  /** Writes dataset dumpfile metadata **/  
+  implicit val datasetDumpfileWrites: Writes[DatasetDumpfile] = (
+    (JsPath \ "uri").write[String] ~
+    (JsPath \ "dataset").write[String] ~
+    (JsPath \ "last_harvest").writeNullable[Long]
+  )(dumpfile => (
+      dumpfile.uri,
+      dumpfile.datasetId,
+      dumpfile.lastHarvest.map(_.getTime)))
+      
+      
+  /** Writes a pair (Dataset, Seq[DatasetDumpfile]) **/
+  implicit def datasetWithDumpsWrites(implicit s: Session): Writes[(Dataset, Seq[DatasetDumpfile])] = (
+    (JsPath).write[Dataset] ~
+    (JsPath \ "dumpfiles").write[Seq[DatasetDumpfile]]
+  )(t  => (t._1, t._2))   
+
         
   /** Writes an annotated thing, with annotation count and place count pulled from the DB on the fly **/ 
   implicit def annotatedThingWrites(implicit s: Session): Writes[AnnotatedThing] = (
@@ -155,8 +174,7 @@ object JSONWrites {
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),
       Places.countPlacesForThing(thing.id)))
-  
-      
+   
   /** Writes an annotation **/
   implicit val annotationWrites: Writes[Annotation] = (
     (JsPath \ "uuid").write[String] ~
@@ -168,8 +186,7 @@ object JSONWrites {
       a.dataset,
       a.annotatedThing,
       a.gazetteerURI))
-      
-      
+          
   /** Writes a page of items **/
   implicit def pageWrites[A](implicit fmt: Writes[A]): Writes[Page[A]] = (
     (JsPath \ "total").write[Long] ~
