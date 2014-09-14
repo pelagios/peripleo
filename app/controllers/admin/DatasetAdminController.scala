@@ -61,9 +61,9 @@ object DatasetAdminController extends Controller with Secured {
       val dataset = Datasets.findById(id)
       if (dataset.isDefined) {
         if (filepart.filename.endsWith(CSV))
-          CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get)
+          CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get._1)
         else
-          PelagiosOAImporter.importPelagiosAnnotations(filepart, dataset.get)
+          PelagiosOAImporter.importPelagiosAnnotations(filepart, dataset.get._1)
         Redirect(routes.DatasetAdminController.index).flashing("success" ->
           { "Annotations from file " + filepart.filename + " imported successfully." })
       } else {

@@ -132,23 +132,29 @@ object Datasets {
     * @param offset pagination offset
     * @param limit pagination limit (number of items to be returned)
     */
-  def listAll(topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Dataset] = {
+  def listAll(topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(Dataset, Seq[DatasetDumpfile])] = {
     val total = countAll(topLevelOnly)
-    val result = 
+    val datasets =
       if (topLevelOnly)
         query.where(_.isPartOfId.isNull).drop(offset).take(limit).list
-      else
+      else 
         query.drop(offset).take(limit).list
      
-    // .leftJoin(DatasetDumpfiles.query).on(_.id === _.datasetId)
-    Logger.info(result.toString)
-       
+    val dumpfiles = 
+      DatasetDumpfiles.query.where(_.datasetId inSet datasets.map(_.id)).list.groupBy(_.datasetId)
+          
+    val result = datasets.map(dataset =>
+      (dataset, dumpfiles.get(dataset.id).getOrElse(Seq.empty[DatasetDumpfile])))
+             
     Page(result, offset, limit, total)    
   }
 
   /** Retrieves a single Dataset by its ID **/
-  def findById(id: String)(implicit s: Session): Option[Dataset] =
-    query.where(_.id === id).firstOption
+  def findById(id: String)(implicit s: Session): Option[(Dataset, Seq[DatasetDumpfile])] = {
+    val dataset = query.where(_.id === id).firstOption
+    dataset.map(d =>
+      (d, DatasetDumpfiles.query.where(_.datasetId === d.id).list))
+  }
     
   /** Retrieves a batch of Datasets by their ID **/
   def findAllById(ids: Seq[String])(implicit s: Session): Seq[Dataset] =
