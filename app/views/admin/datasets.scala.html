@@ -16,7 +16,12 @@
       }
       
       function harvestDataset(id) {
-	    console.log('harvesting ' + id);
+        $.ajax({
+          type: 'POST',
+          url: '@controllers.admin.routes.DatasetAdminController.index/' + id + '/harvests',
+          success: function(result) { location.href = '@controllers.admin.routes.DatasetAdminController.index'; },
+          error: function(result) { console.log(result); }
+        });
 	  }
 
       function toggleSubsets(id) {

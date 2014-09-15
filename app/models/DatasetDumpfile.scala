@@ -21,7 +21,7 @@ class DatasetDumpfiles(tag: Tag) extends Table[DatasetDumpfile](tag, "dataset_du
 	
   def uri = column[String]("uri", O.PrimaryKey)
 
-  def datasetId = column[String]("datatset", O.NotNull)
+  def datasetId = column[String]("dataset", O.NotNull)
   
   def lastHarvest = column[Timestamp]("last_harvest", O.Nullable)
   
