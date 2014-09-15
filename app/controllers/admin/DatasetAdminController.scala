@@ -73,14 +73,9 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def harvestDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    Datasets.findById(id) match {
-	  case Some((dataset, dumpfiles)) => {
-	    Logger.info("Harvesting " + dataset.title + ", " + dumpfiles.size + " dumpfiles") 
-	    Ok("")
-	  }
-	  
-	  case None => NotFound
-    }
+    val worker = new controllers.common.harvest.HarvestWorker()
+    worker.harvest(id)
+    Ok("")
   }
   
 }
