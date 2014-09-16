@@ -59,8 +59,11 @@
     <div id="content">
       <div class="row"><h2>Most Frequently Referenced Places</h2></div>
       <div class="row">
-        <div class="float-right">
+        <div id="map-container" class="float-right">
           <div id="map"></div>
+          <div id="map-toggle-fullscreen">
+            <a href="#" onclick="return false;"><span class="icon">&#xf0b2;</span> Full Screen</a>
+          </div>
           <div id="temporal-profile"></div>
         </div>
         
@@ -111,7 +114,6 @@
         var showNext = function(places, shown, n) {
           for (var i=shown, j=shown + n; i<j; i++) {
             var occurrences = places[i].num_occurrences;
-            console.log(places[i]);
             var html = meterTemplate
               .replace('@@href@@', '../places/' + encodeURIComponent(places[i].gazetteer_uri))
               .replace('@@title@@', places[i].title)
@@ -156,6 +158,7 @@
         });
       
         // Load places - limiting to the first 1 million places should be sufficient...
+        var heatmap;
         $.getJSON('@routes.DatasetController.listPlaces(dataset.id, 1000000)&verbose=false', function(data) {
           maxReferences = data.items[0].num_occurrences;
         
@@ -163,7 +166,7 @@
           showNext(data.items, 0, 10);
         
           // Draw heatmap
-          var heatmap = new Heatmap('map', data.items);
+          heatmap = new Heatmap('map', data.items);
         });
         
         // Load the temporal profile
@@ -171,6 +174,26 @@
           var histogram = new TemporalProfile('temporal-profile', data);
         });
       
+        // Activate 'map fullscreen' button
+        var mapContainer = $('#map-container'),
+            map = $('#map');
+            
+        $('#map-toggle-fullscreen a').click(function() {
+          // Switch to fullscreen
+          map.detach();
+          map.css({
+            position: 'absolute',
+            top:0,
+            left:0,
+            width:'100%',
+            height:'100%'
+          });
+          $('body').append(map);
+          heatmap.refresh();
+        });
+        
+        // TODO switch to normal?
+        
         // Format numbers
         util.formatNumbers();
       })();
