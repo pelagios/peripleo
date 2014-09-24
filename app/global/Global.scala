@@ -88,16 +88,21 @@ object Global extends GlobalSettings {
 		 Logger.info("DB table 'dataset_dumpfiles' does not exist - creating")
 		 DatasetDumpfiles.create
 	  }
+
+      if (MTable.getTables("gazetteers").list.isEmpty) {
+        Logger.info("DB table 'gazetteers' does not exist - creating")
+        Gazetteers.create
+      }
       
       if (MTable.getTables("places_by_dataset").list.isEmpty && MTable.getTables("places_by_annotated_thing").list().isEmpty) {
         Logger.info("Places index tables do not exist - creating")
         Places.create
       }
       
-      if (MTable.getTables("gazetteers").list.isEmpty) {
-        Logger.info("DB table 'gazetteers' does not exist - creating")
-        Gazetteers.create
-      }
+      if (MTable.getTables("tags").list.isEmpty) {
+        Logger.info("DB table 'tags' does not exist - creating")
+        Tags.create
+      }      
     }
   }  
   
