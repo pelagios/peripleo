@@ -6,7 +6,7 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
 /** Annotation model entity **/
-case class Annotation(uuid: UUID, dataset: String, annotatedThing: String, gazetteerURI: String)
+case class Annotation(uuid: UUID, dataset: String, annotatedThing: String, gazetteerURI: String, quote: Option[String], offset: Option[Int])
 
 /** Annotation DB table **/
 class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") {
@@ -19,7 +19,11 @@ class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") {
   
   def gazetteerURI = column[String]("gazetteer_uri", O.NotNull)
   
-  def * = (uuid, datasetId, annotatedThingId, gazetteerURI) <> (Annotation.tupled, Annotation.unapply)
+  def quote = column[String]("quote", O.Nullable)
+  
+  def offset = column[Int]("offset", O.Nullable)
+  
+  def * = (uuid, datasetId, annotatedThingId, gazetteerURI, quote.?, offset.?) <> (Annotation.tupled, Annotation.unapply)
   
   /** Foreign key constraints **/
   

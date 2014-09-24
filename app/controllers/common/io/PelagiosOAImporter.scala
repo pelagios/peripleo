@@ -44,7 +44,11 @@ object PelagiosOAImporter extends AbstractImporter {
       }
       
       val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, None, oaThing.homepage, tempBoundsStart, tempBoundsEnd)
-      val annotations = oaThing.annotations.map(a => Annotation(UUID.randomUUID, dataset.id, thingId, a.place.head))     
+      
+      // TODO make use of 'quote' and 'offset' fields
+      val annotations = oaThing.annotations.map(a =>
+        Annotation(UUID.randomUUID, dataset.id, thingId, a.place.head, None, None))     
+        
       (thing, annotations)
     })
       

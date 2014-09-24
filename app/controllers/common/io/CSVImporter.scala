@@ -36,8 +36,9 @@ object CSVImporter extends AbstractImporter {
     val parts = annotationsByPart.keys.map(title =>
       AnnotatedThing(sha256(parentThing.id + " " + title), dataset.id, title, Some(parentThing.id), None, None, None))
     
+    // TODO make use of 'quote' and 'offset' fields
     val annotations = annotationsByPart.values.flatten.map(t => {
-      Annotation(t._1, dataset.id, parts.find(_.title == t._2).get.id, t._3)
+      Annotation(t._1, dataset.id, parts.find(_.title == t._2).get.id, t._3, None, None)
     })
     
     val allThings = parts.toSeq :+ parentThing
