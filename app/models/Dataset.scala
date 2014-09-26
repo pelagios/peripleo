@@ -2,7 +2,7 @@ package models
 
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.{ Tag, Query }
+import scala.slick.lifted.{ Tag => SlickTag, Query }
 import java.sql.Date
 import play.api.Logger
 
@@ -55,7 +55,7 @@ case class Dataset(
   temporalProfile: Option[String])
     
 /** Dataset DB table **/
-class Datasets(tag: Tag) extends Table[Dataset](tag, "datasets") {
+class Datasets(tag: SlickTag) extends Table[Dataset](tag, "datasets") {
 
   def id = column[String]("id", O.PrimaryKey)
   
@@ -193,7 +193,11 @@ object Datasets {
       subsets.flatMap(dataset => dataset +: walkSubsets(dataset.id))    
   }
 
-  /** Returns the parent hierarchy of a thing, i.e. the sequence of things from this thing to the root parent **/
+  /** Returns the parent hierarchy of a thing, i.e. the sequence of things from this thing to the root parent 
+    *
+    * Note: the first element in the list is the direct parent, the last element in the list is the 
+    * top-most root.
+    */
   def getParentHierarchy(datasetId: String)(implicit s: Session): Seq[String] = {
     val parentId = query.where(_.id === datasetId).where(_.isPartOfId.isNotNull).map(_.isPartOfId).firstOption
     if (parentId.isDefined) {
