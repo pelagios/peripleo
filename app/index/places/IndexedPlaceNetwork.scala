@@ -59,7 +59,7 @@ object IndexedPlaceNetwork {
   private val maxLevels = 11 //results in sub-meter precision for geohash
   
   private val spatialStrategy =
-    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.PLACE_GEOMETRY)
+    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
   
   /** Creates a new place network with a single place **/
   def createNew(): IndexedPlaceNetwork = 

@@ -7,6 +7,8 @@ object IndexFields {
   val TITLE = "title"
     
   val DESCRIPTION = "description"
+
+  val GEOMETRY = "geometry"
   
   val OBJECT_TYPE = "type"
     
@@ -15,8 +17,6 @@ object IndexFields {
   val PLACE_SOURCE_GAZETTEER = "source_gazetteer"
 
   val PLACE_NAME = "name"
-
-  val PLACE_GEOMETRY = "geometry"
     
   val PLACE_CLOSE_MATCH = "close_match"
     

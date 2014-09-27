@@ -1,9 +1,13 @@
 package index
 
+import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.places.IndexedPlaceNetwork
-import models.{ AnnotatedThing, Dataset }
+import models.{ AnnotatedThing, Dataset, Places }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
+import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
+import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
+import play.api.db.slick._
 
 case class IndexedObject(private val doc: Document) {
  
@@ -34,8 +38,15 @@ case class IndexedObject(private val doc: Document) {
 }
 
 object IndexedObject {
+	
+  private val spatialCtx = JtsSpatialContext.GEO
   
-  def toDoc(thing: AnnotatedThing): Document = {
+  private val maxLevels = 11 //results in sub-meter precision for geohash
+  
+  private val spatialStrategy =
+    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
+  
+  def toDoc(thing: AnnotatedThing)(implicit s: Session): Document = {
     val doc = new Document()
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
@@ -43,6 +54,14 @@ object IndexedObject {
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
     thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
+    
+    Places.findPlacesForThing(thing.id).items
+      .map(_._1.geometry)
+      .filter(_.isDefined)
+      .foreach(geom => {
+        spatialStrategy.createIndexableFields(spatialCtx.makeShape(geom.get)).foreach(doc.add(_))
+	  })
+	  
     doc   
   }
   

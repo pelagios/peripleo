@@ -4,12 +4,14 @@ import models.{ Dataset, AnnotatedThing }
 import org.apache.lucene.index.IndexWriterConfig
 import index.IndexBase
 import index.IndexedObject
+import play.api.db.slick._
 
 trait ObjectWriter extends IndexBase {
   
-  def addAnnotatedThing(annotatedThing: AnnotatedThing) = addAnnotatedThings(Seq(annotatedThing))
+  def addAnnotatedThing(annotatedThing: AnnotatedThing)(implicit s: Session) =
+    addAnnotatedThings(Seq(annotatedThing))
   
-  def addAnnotatedThings(annotatedThings: Seq[AnnotatedThing]) = {
+  def addAnnotatedThings(annotatedThings: Seq[AnnotatedThing])(implicit s: Session) = {
     val (indexWriter, taxonomyWriter) = newObjectWriter() 
     
     annotatedThings.foreach(thing =>

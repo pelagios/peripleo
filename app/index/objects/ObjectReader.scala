@@ -20,7 +20,7 @@ trait ObjectReader extends IndexBase {
     
     try {
       val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
-      val q = new MultiFieldQueryParser(Version.LUCENE_48, fields, analyzer).parse(query)
+      val q = new MultiFieldQueryParser(Version.LUCENE_CURRENT, fields, analyzer).parse(query)
       
       val facetsCollector = new FacetsCollector()
       val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)          

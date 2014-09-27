@@ -23,7 +23,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   
   protected var placeIndexReader = DirectoryReader.open(placeIndex)
   
-  protected val analyzer = new StandardAnalyzer(Version.LUCENE_48)
+  protected val analyzer = new StandardAnalyzer(Version.LUCENE_CURRENT)
 
   protected val facetsConfig = new FacetsConfig()
   facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
@@ -31,10 +31,10 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   protected val searcherTaxonomyMgr = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
   
   protected def newObjectWriter(): (IndexWriter, TaxonomyWriter) =
-    (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LUCENE_48, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
+    (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LUCENE_CURRENT, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
     
   protected def newPlaceWriter(): IndexWriter = 
-    new IndexWriter(placeIndex, new IndexWriterConfig(Version.LUCENE_48, analyzer))
+    new IndexWriter(placeIndex, new IndexWriterConfig(Version.LUCENE_CURRENT, analyzer))
   
   protected def newPlaceSearcher(): IndexSearcher = 
     new IndexSearcher(placeIndexReader)
@@ -98,7 +98,7 @@ object Index {
   private def createIfNotExists(dir: File): File = {
     if (!dir.exists) {
       dir.mkdirs()  
-      val initConfig = new IndexWriterConfig(Version.LUCENE_48, new StandardAnalyzer(Version.LUCENE_48))
+      val initConfig = new IndexWriterConfig(Version.LUCENE_CURRENT, new StandardAnalyzer(Version.LUCENE_CURRENT))
       val initializer = new IndexWriter(FSDirectory.open(dir), initConfig)
       initializer.close()      
     }
