@@ -3,7 +3,7 @@ package models
 import global.Global
 import play.api.Logger
 import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.Tag
+import scala.slick.lifted.{ Tag => SlickTag }
 import play.api.libs.json.Json
 
 /** Helper entity to speed up 'how many places are in dataset XY'-type queries.
@@ -20,15 +20,15 @@ private[models] case class PlacesByDataset(
     
   /** ID of the dataset that is referencing the place **/
   dataset: String, 
-    
+          
   /** Cached information about the place (URI, title and geometry) **/
   place: GazetteerReference, 
-    
+
   /** Number of times the place is referenced **/
   count: Int)
 
     
-private[models] class PlacesByDatasetTable(tag: Tag) extends Table[PlacesByDataset](tag, "places_by_dataset") {
+private[models] class PlacesByDatasetTable(tag: SlickTag) extends Table[PlacesByDataset](tag, "places_by_dataset") {
   
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -70,6 +70,18 @@ private[models] case class PlacesByThing(
   
   /** ID of the annotated thing that is referencing the place **/
   annotatedThing: String, 
+
+  /** The start of the date interval this dataset encompasses (optional) **/ 
+  temporalBoundsStart: Option[Int],
+  
+  /** The end of the date interval this dataset encompasses (optional).
+    *
+    * If the dataset is dated (i.e. if it has a temporalBoundsStart value)
+    * this value MUST be set. In case the thing is dated with a datestamp
+    * rather than an interval, temporalBoundsEnd must be the same as
+    * temporalBoundsStart
+    */   
+  temporalBoundsEnd: Option[Int],
   
   /** Cached information about the place (URI, title and geometry) **/
   place: GazetteerReference,
@@ -77,13 +89,17 @@ private[models] case class PlacesByThing(
   /** Number of times the place is referenced **/
   count: Int)
 
-private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") {
+private[models] class PlacesByThingTable(tag: SlickTag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
   def datasetId = column[String]("dataset", O.NotNull)
   
   def annotatedThingId = column[String]("annotated_thing", O.NotNull)
+
+  def temporalBoundsStart = column[Int]("temporal_bounds_start", O.Nullable)
+
+  def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
 
   def gazetteerURI = column[String]("gazetteer_uri", O.NotNull)
   
@@ -94,9 +110,9 @@ private[models] class PlacesByThingTable(tag: Tag) extends Table[PlacesByThing](
   def count = column[Int]("count", O.NotNull)
   
   // Solution for embedding GazetteerURI as multiple columns provided by the mighty @manuelbernhardt
-  def * = (id.?, datasetId, annotatedThingId, (gazetteerURI, title, location.?), count).shaped <> (
-    { case (id, datasetId, annotatedThingId, gazetteerURI, count) => PlacesByThing(id, datasetId, annotatedThingId, GazetteerReference.tupled.apply(gazetteerURI), count) },
-    { p: PlacesByThing => Some(p.id, p.dataset, p.annotatedThing, GazetteerReference.unapply(p.place).get, p.count) })
+  def * = (id.?, datasetId, annotatedThingId, temporalBoundsStart.?, temporalBoundsEnd.?, (gazetteerURI, title, location.?), count).shaped <> (
+    { case (id, datasetId, annotatedThingId, temporalBoundsStart, temporalBoundsEnd, gazetteerURI, count) => PlacesByThing(id, datasetId, annotatedThingId, temporalBoundsStart, temporalBoundsEnd, GazetteerReference.tupled.apply(gazetteerURI), count) },
+    { p: PlacesByThing => Some(p.id, p.dataset, p.annotatedThing, p.temporalBoundsStart, p.temporalBoundsEnd, GazetteerReference.unapply(p.place).get, p.count) })
   
   /** Foreign key constraints **/
   
@@ -138,7 +154,7 @@ object Places {
       val placesInDataset = Annotations.findByDataset(id).items.groupBy(_.gazetteerURI)
         .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
-        .map { case (place, count) => 
+        .map { case (place, count) => // TODO temporal bounds 
           PlacesByDataset(None, id, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
         .toSeq
 
@@ -155,8 +171,8 @@ object Places {
       annotations.groupBy(_.gazetteerURI)
         .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
-        .map { case (place, count) => 
-          PlacesByThing(None, datasetId, thingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+        .map { case (place, count) => // TODO temporal bounds
+          PlacesByThing(None, datasetId, thingId, None, None, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
     }}.toSeq
     
     queryByThing.insertAll(placesByThing:_*)    
@@ -170,7 +186,7 @@ object Places {
       .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
       .filter(_._1.isDefined) // We restrict to places in the gazetteer
       .map { case (place, count) =>
-        PlacesByThing(None, datasetId, intermediateThingId, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+        PlacesByThing(None, datasetId, intermediateThingId, None, None, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
       .toSeq
       
     queryByThing.insertAll(placesForThing:_*)  

@@ -3,13 +3,13 @@ package models
 import java.util.UUID
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.Tag
+import scala.slick.lifted.{ Tag => SlickTag }
 
 /** Annotation model entity **/
 case class Annotation(uuid: UUID, dataset: String, annotatedThing: String, gazetteerURI: String, quote: Option[String], offset: Option[Int])
 
 /** Annotation DB table **/
-class Annotations(tag: Tag) extends Table[Annotation](tag, "annotations") {
+class Annotations(tag: SlickTag) extends Table[Annotation](tag, "annotations") {
 
   def uuid = column[UUID]("uuid", O.PrimaryKey)
   
