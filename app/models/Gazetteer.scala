@@ -2,11 +2,11 @@ package models
 
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.Tag
+import scala.slick.lifted.{ Tag => SlickTag }
 
 case class Gazetteer(name: String, totalPlaces: Int, distinctPlaces: Int)
 
-class Gazetteers(tag: Tag) extends Table[Gazetteer](tag, "gazetteers") {
+class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
   
   def name = column[String]("name", O.PrimaryKey)
   
@@ -20,7 +20,7 @@ class Gazetteers(tag: Tag) extends Table[Gazetteer](tag, "gazetteers") {
 
 case class URIPrefix(id: Option[Int], gazetteer: String, prefix: String)
 
-class URIPrefixes(tag: Tag) extends Table[URIPrefix](tag, "gazetteer_uri_prefixes") {
+class URIPrefixes(tag: SlickTag) extends Table[URIPrefix](tag, "gazetteer_uri_prefixes") {
   
   def id = column[Int]("id", O.AutoInc, O.PrimaryKey)
   

@@ -2,7 +2,7 @@ package models
 
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.{ Tag, Query }
+import scala.slick.lifted.{ Tag => SlickTag, Query }
 import java.sql.Timestamp
 import play.api.Logger
 
@@ -17,7 +17,7 @@ case class DatasetDumpfile(
 
 )
 
-class DatasetDumpfiles(tag: Tag) extends Table[DatasetDumpfile](tag, "dataset_dumpfiles") {
+class DatasetDumpfiles(tag: SlickTag) extends Table[DatasetDumpfile](tag, "dataset_dumpfiles") {
 	
   def uri = column[String]("uri", O.PrimaryKey)
 

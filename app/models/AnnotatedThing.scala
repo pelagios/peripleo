@@ -2,7 +2,7 @@ package models
 
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.Tag
+import scala.slick.lifted.{ Tag => SlickTag }
 
 /** AnnotatedThing model entity **/
 case class AnnotatedThing(
@@ -35,7 +35,7 @@ case class AnnotatedThing(
   temporalBoundsEnd: Option[Int])
 
 /** AnnotatedThing DB table **/
-class AnnotatedThings(tag: Tag) extends Table[AnnotatedThing](tag, "annotated_things") {
+class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotated_things") {
 
   def id = column[String]("id", O.PrimaryKey)
   

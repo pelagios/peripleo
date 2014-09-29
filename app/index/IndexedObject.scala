@@ -48,19 +48,24 @@ object IndexedObject {
   
   def toDoc(thing: AnnotatedThing)(implicit s: Session): Document = {
     val doc = new Document()
+    
+    // ID, title, description, type = object
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
-    thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
-    thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
-    Places.findPlacesForThing(thing.id).items
-      .map(_._1.geometry)
-      .filter(_.isDefined)
-      .foreach(geom => {
-        spatialStrategy.createIndexableFields(spatialCtx.makeShape(geom.get)).foreach(doc.add(_))
-	  })
+    // Temporal bounds
+    thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
+    thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
+    
+    // Place URIs
+    val places = Places.findPlacesForThing(thing.id).items.map(_._1)
+    places.foreach(gazetteerRef => doc.add(new StringField(IndexFields.PLACE_URI, gazetteerRef.uri, Field.Store.NO)))
+    
+    // Geometry (spatial indexing)
+    places.filter(_.geometry.isDefined).foreach(gazetteerRef =>
+        spatialStrategy.createIndexableFields(spatialCtx.makeShape(gazetteerRef.geometry.get)).foreach(doc.add(_)))
 	  
     doc   
   }
