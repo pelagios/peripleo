@@ -39,7 +39,10 @@ class HarvestWorker {
 	      Logger.info("Importing " + file.file.getName)
 	      if (file.file.getName.endsWith(CSV))
             CSVImporter.importRecogitoCSV(Source.fromFile(file.file, UTF8), dataset)
-          // TODO support OA imports - needs change in the importer interface!
+          else
+            PelagiosOAImporter.importPelagiosAnnotations(file, file.file.getName, dataset)
+           
+          file.finalize()
           Logger.info(file.file.getName + " - import complete.")
 	    })
 	    Logger.info("All downloads imported.")

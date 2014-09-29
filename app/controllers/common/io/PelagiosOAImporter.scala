@@ -16,14 +16,11 @@ import org.pelagios.Scalagios
 
 object PelagiosOAImporter extends AbstractImporter {
 
-  def importPelagiosAnnotations(file: FilePart[TemporaryFile], dataset: Dataset)(implicit s: Session, r: RequestHeader) = {
-    Logger.info("Reading Pelagios annotations from RDF: " + file.filename) 
-    val format = getFormat(file.filename)
+  def importPelagiosAnnotations(file: TemporaryFile, filename: String, dataset: Dataset)(implicit s: Session) = {
+    Logger.info("Reading Pelagios annotations from RDF: " + filename) 
+    val format = getFormat(filename)
     
-    // If we don't have a base URI for the VoID file, we'll use our own namespace as fallback
-    // Not 100% the Sesame parser actually makes use of it... but we're keeping things sane nonetheless
-    val baseURI = controllers.routes.DatasetController.listAll().absoluteURL(false)(r)
-    val is = new FileInputStream(file.ref.file)
+    val is = new FileInputStream(file.file)
     val annotatedThings = Scalagios.readAnnotations(is, format)
     Logger.info("Importing " + annotatedThings.size + " annotated things with " + annotatedThings.flatMap(_.annotations).size + " annotations")
     
@@ -79,7 +76,7 @@ object PelagiosOAImporter extends AbstractImporter {
     
     is.close()
     
-    Logger.info("Import of " + file.filename + " complete")
+    Logger.info("Import of " + filename + " complete")
   }
   
 }
