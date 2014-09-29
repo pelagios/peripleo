@@ -2,7 +2,7 @@ package controllers.pages
 
 import models.{ AnnotatedThings, Datasets, Gazetteers }
 import global.Global
-import play.api.mvc.Controller
+import play.api.mvc.{ Action, Controller }
 import play.api.db.slick._
 import play.api.Logger
 
@@ -22,6 +22,10 @@ object HomepageController extends Controller {
     val startTime = System.currentTimeMillis
     val results = Global.index.search(query, offset, limit)
     Ok(views.html.searchResults(results, (System.currentTimeMillis - startTime)))
+  }
+  
+  def defineAdvancedSearch() = Action {
+    Ok(views.html.advancedSearch())
   }
 
 }

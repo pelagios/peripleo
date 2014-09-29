@@ -12,6 +12,8 @@ object IndexFields {
   
   val OBJECT_TYPE = "type"
     
+  val DATASET = "dataset"
+    
   val PLACE_URI = "uri"
     
   val PLACE_SOURCE_GAZETTEER = "source_gazetteer"

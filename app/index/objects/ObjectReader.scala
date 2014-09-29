@@ -13,7 +13,18 @@ import org.apache.lucene.index.SlowCompositeReaderWrapper
 
 trait ObjectReader extends IndexBase {
   
-  def search(query: String, offset: Int = 0, limit: Int = 20, fuzzy: Boolean = false): Page[IndexedObject] = { 
+  /** Search the index.
+   *  
+    * @param query the query
+    * @param offset the offset in the search result list
+    * @param limit the size of the search result page
+    * @fObjectType object type filter - only results of the specified type are returned
+    * @fDataset dataset filter - only results from the specified dataset are returned (applicable for fObjectType == ANNOTATED_THING)
+    * @fPlaces place filter - only results referencing the places are returned (applicable for fObjectType == ANNOTATED_THING | DATASET)
+    */
+  def search(query: String, offset: Int = 0, limit: Int = 20, fOjectType: Option[IndexedObjectTypes.Value] = None,
+             fDataset: Option[String] = None, fPlaces: Seq[String] = Seq.empty[String]): Page[IndexedObject] = {
+    
     val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
     val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, placeIndexReader))
     val taxonomyReader = searcherAndTaxonomy.taxonomyReader
