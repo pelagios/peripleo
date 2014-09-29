@@ -14,10 +14,10 @@ import global.Global
 
 object VoIDImporter extends AbstractImporter {
   
-  def importVoID(file: FilePart[TemporaryFile], uri: Option[String] = None)(implicit s: Session, r: RequestHeader) = {
-    Logger.info("Importing VoID file: " + file.filename)  
-    val is = new FileInputStream(file.ref.file)   
-    val format = getFormat(file.filename)  
+  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session, r: RequestHeader) = {
+    Logger.info("Importing VoID file: " + filename)  
+    val is = new FileInputStream(file.file)   
+    val format = getFormat(filename)  
     val created = new Date(System.currentTimeMillis)
     
     def id(dataset: VoidDataset) =

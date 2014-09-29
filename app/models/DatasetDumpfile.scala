@@ -37,10 +37,16 @@ object DatasetDumpfiles {
 
   private[models] val query = TableQuery[DatasetDumpfiles]
   
-  def create()(implicit s: Session) = query.ddl.create
+  def create()(implicit s: Session) =
+    query.ddl.create
   
-  def insert(dumpfile: DatasetDumpfile)(implicit s: Session) = query.insert(dumpfile)
+  def insert(dumpfile: DatasetDumpfile)(implicit s: Session) = 
+    query.insert(dumpfile)
   
-  def insertAll(dumpfiles: Seq[DatasetDumpfile])(implicit s: Session) = query.insertAll(dumpfiles:_*)
+  def insertAll(dumpfiles: Seq[DatasetDumpfile])(implicit s: Session) = 
+    query.insertAll(dumpfiles:_*)
+  
+  def deleteForDataset(id: String)(implicit s: Session) = 
+    query.where(_.datasetId === id).delete
 
 }

@@ -34,14 +34,41 @@ input[type=file] {
     background-color:#fcf8f2;
     border-left:3px solid #f0ad4e;
     
-    button {
-      margin-right:20px;
-    }
-    
     h4 {
       font-size:18px;
       display:inline;
       color:#f0ad4e;
+    }
+    
+    ul {
+      position:relative;
+      bottom:1px;
+      display:inline;
+      list-style:none;
+      margin-left:20px;
+      padding-left:0;
+    }
+
+    li {
+      display:inline;
+      padding:0 8px 8px 0;
+      text-indent:0;
+      color:#f0ad4e;
+    }
+    
+    li a {
+      color:#f0ad4e;
+      font-size:13px;
+    }
+
+    li:before {
+      font-family:"Font Awesome";
+      content:'\f0fe';
+      padding:0 10px 0 5px;
+    }
+    
+    button {
+      margin-right:20px;
     }
     
   } /** #admin-actions **/
