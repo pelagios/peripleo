@@ -16,14 +16,14 @@ object CSVImporter extends AbstractImporter {
 
   def importRecogitoCSV(source: Source, dataset: Dataset)(implicit s: Session) = {
     val data = source.getLines.toSeq
-    
-    val meta = toMap(data.takeWhile(_.startsWith("#")))  
-    val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
+    val meta = toMap(data.takeWhile(_.startsWith("#"))) 
     
     // Recogito CSVs represent exactly one top-level AnnotatedThing...
+    val date = meta.get("date (numeric)").map(_.toInt)
     val parentThingIdPlain = dataset.id + " " + meta.get("author").getOrElse("") + meta.get("title").get + " " + meta.get("language").getOrElse("")
-    val parentThing = AnnotatedThing(sha256(parentThingIdPlain), dataset.id, meta.get("title").get, None, None, None, None)
+    val parentThing = AnnotatedThing(sha256(parentThingIdPlain), dataset.id, meta.get("title").get, None, None, date, date)
                   
+    val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
     val uuidIdx = header.indexOf("uuid")
     val annotationsByPart = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
       val uuid = if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID 
@@ -34,7 +34,7 @@ object CSVImporter extends AbstractImporter {
     }).groupBy(_._2)
     
     val parts = annotationsByPart.keys.map(title =>
-      AnnotatedThing(sha256(parentThing.id + " " + title), dataset.id, title, Some(parentThing.id), None, None, None))
+      AnnotatedThing(sha256(parentThing.id + " " + title), dataset.id, title, Some(parentThing.id), None, date, date))
     
     // TODO make use of 'quote' and 'offset' fields
     val annotations = annotationsByPart.values.flatten.map(t => {
@@ -43,9 +43,10 @@ object CSVImporter extends AbstractImporter {
     
     val allThings = parts.toSeq :+ parentThing
     AnnotatedThings.insertAll(allThings)
+    Annotations.insertAll(annotations.toSeq)
+    
     Global.index.addAnnotatedThings(allThings)
     Global.index.refresh()
-    Annotations.insertAll(annotations.toSeq)
     
     Logger.info("Import complete")
   }

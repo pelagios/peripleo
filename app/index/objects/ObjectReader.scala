@@ -7,11 +7,7 @@ import org.apache.lucene.index.{ Term, MultiReader }
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
-import org.apache.lucene.search.{ BooleanQuery, BooleanClause, IndexSearcher, MultiCollector, TermQuery, TopScoreDocCollector }
-import org.apache.lucene.index.Term
-import org.apache.lucene.search.Query
-import play.api.Logger
-import org.apache.lucene.search.NumericRangeQuery
+import org.apache.lucene.search.{ BooleanQuery, BooleanClause, IndexSearcher, MultiCollector, NumericRangeQuery, Query, TermQuery, TopScoreDocCollector }
 
 trait ObjectReader extends IndexBase {
 
@@ -55,7 +51,6 @@ trait ObjectReader extends IndexBase {
       
     // Timespan filter
     if (fromYear.isDefined && toYear.isDefined) {
-      Logger.info("from " + fromYear.get  + " to " + toYear.get)
       val timeIntervalQuery = new BooleanQuery()
       timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, toYear.get, true, true), BooleanClause.Occur.MUST)
       timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_TO, fromYear.get, null, true, true), BooleanClause.Occur.MUST)
