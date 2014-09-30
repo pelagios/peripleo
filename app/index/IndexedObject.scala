@@ -62,7 +62,7 @@ object IndexedObject {
     
     // Place URIs
     val places = Places.findPlacesForThing(thing.id).items.map(_._1)
-    places.foreach(gazetteerRef => doc.add(new StringField(IndexFields.PLACE_URI, gazetteerRef.uri, Field.Store.NO)))
+    places.foreach(gazetteerRef => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(gazetteerRef.uri), Field.Store.NO)))
     
     // Geometry (spatial indexing)
     places.filter(_.geometry.isDefined).foreach(gazetteerRef =>

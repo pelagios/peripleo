@@ -49,14 +49,10 @@ object PelagiosOAImporter extends AbstractImporter {
       (thing, annotations)
     })
       
-    // Insert data into DB and index
+    // Insert data into DB
     val allThings = ingestBatch.map(_._1)
     val allAnnotations = ingestBatch.flatMap(_._2)
     AnnotatedThings.insertAll(allThings)
-    
-    Global.index.addAnnotatedThings(allThings)
-    Global.index.refresh()
-    
     Annotations.insertAll(allAnnotations)
     
     // Update the parent dataset with new temporal bounds and profile
@@ -68,14 +64,16 @@ object PelagiosOAImporter extends AbstractImporter {
       (Some(datedThings.map(_.temporalBoundsStart.get).min),
        Some(datedThings.map(_.temporalBoundsEnd.get).max),
        Some(new TemporalProfile(datedThings.map(thing => (thing.temporalBoundsStart.get, thing.temporalBoundsEnd.get))).toString))  
-        
-    // TODO insert dataset dumpfiles
     
     val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
         dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
         dataset.homepage, None, tempBoundsStart, tempBoundsEnd, temporalProfile)
         
     Datasets.update(updatedDataset) 
+    
+    // Update index
+    Global.index.addAnnotatedThings(allThings)
+    Global.index.refresh()
     
     is.close()
     

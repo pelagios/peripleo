@@ -120,6 +120,9 @@ object AnnotatedThings {
   def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
     query.where(_.id === id).firstOption
     
+  def findByIds(ids: Seq[String])(implicit s: Session): Seq[AnnotatedThing] = 
+    query.where(_.id inSet ids).list
+    
   /** Retrieves a single AnnotatedThing by its ID, joining with the Dataset it's contained in **/
   def findByIdWithDataset(id: String)(implicit s: Session): Option[(AnnotatedThing, Dataset)] = {
     val q = for {

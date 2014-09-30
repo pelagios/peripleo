@@ -12,7 +12,7 @@ GET     /api-v3/datasets/:id/items               controllers.DatasetController.l
 GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/datasets/:id/time                controllers.DatasetController.getTemporalProfile(id: String)
 
-GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0, dataset: Option[String], places: Option[String])
 GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
 GET     /api-v3/items/:id/items                  controllers.AnnotatedThingController.listSubItems(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
@@ -27,10 +27,6 @@ GET     /api-v3/places/:uri/network              controllers.PlaceController.get
 GET     /api-v3/places/:uri/references           controllers.PlaceController.listReferences(uri: String, includeCloseMatches: Boolean ?= false)
 
 GET     /api-v3/search                           controllers.SearchController.search(query: String, limit: Int ?= 20, offset: Int ?= 0)
-
-## HACK! ##
-GET     /api-v3/filter                           controllers.SearchController.filter(limit: Int ?= 20, offset: Int ?= 0, dataset: Option[String], places: Option[String])
-## HACK! ##
 
 # HTML view routes
 GET     /api-v3/pages/datasets                   controllers.pages.DatasetPagesController.listAll
