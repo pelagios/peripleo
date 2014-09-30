@@ -13,41 +13,45 @@ import org.apache.lucene.search.Query
 import play.api.Logger
 
 trait ObjectReader extends IndexBase {
-  
-  /** Search the index.
-   *  
-    * @param query the query
-    * @param offset the offset in the search result list
-    * @param limit the size of the search result page
-    * @fObjectType object type filter - only results of the specified type are returned
-    * @fDataset dataset filter - only results from the specified dataset are returned (applicable for fObjectType == ANNOTATED_THING)
-    * @fPlaces place filter - only results referencing the places are returned (applicable for fObjectType == ANNOTATED_THING | DATASET)
-    */
-  def search(query: String, offset: Int = 0, limit: Int = 20, fObjectType: Option[IndexedObjectTypes.Value] = None,
-             fDataset: Option[String] = None, fPlaces: Seq[String] = Seq.empty[String]): Page[IndexedObject] = {
-    
-    val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
-    execute(new MultiFieldQueryParser(Version.LUCENE_4_9, fields, analyzer).parse(query))
-  }
-  
-  def filter(offset: Int = 0, limit: Int = 20, fObjectType: Option[IndexedObjectTypes.Value] = None,
-             fDataset: Option[String] = None, fPlaces: Seq[String] = Seq.empty[String]): Page[IndexedObject] = {
 
-    val query = new BooleanQuery()
+  /** Search the index.
+    *  
+    * @param limit search result page size
+    * @param offset search result page offset
+    * @query query keyword query
+    * @query objectType filter search to a specific object type ('PLACE', 'ANNOTATED_THING' or 'DATASET')
+    * @query dataset filter search to items in a specific dataset
+    * @query places filter search to items referencing specific places 
+    */
+  def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
+      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String]): Page[IndexedObject] = {
     
-    if (fObjectType.isDefined)
-      query.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, fObjectType.get.toString)), BooleanClause.Occur.MUST)
+    val q = new BooleanQuery()
     
-    if (fDataset.isDefined)
-      query.add(new TermQuery(new Term(IndexFields.DATASET, fDataset.get)), BooleanClause.Occur.MUST)
+    if (query.isDefined) {
+      val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
+      q.add(new MultiFieldQueryParser(Version.LUCENE_4_9, fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
+    } 
       
-    fPlaces.foreach(uri =>
-      query.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
+    if (objectType.isDefined) {
+      if (objectType.get == IndexedObjectTypes.PLACE) {
+        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST_NOT)
+        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString)), BooleanClause.Occur.MUST_NOT)
+      } else {
+        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.get.toString)), BooleanClause.Occur.MUST)
+      }
+    }
+    
+    if (dataset.isDefined)
+      q.add(new TermQuery(new Term(IndexFields.DATASET, dataset.get)), BooleanClause.Occur.MUST)
       
-    execute(query)
+    places.foreach(uri =>
+      q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
+      
+    execute(q, limit, offset, query)
   }
   
-  private def execute(query: Query, offset: Int = 0, limit: Int = 20, queryString: Option[String] = None): Page[IndexedObject] = {
+  private def execute(query: Query, limit: Int, offset: Int, queryString: Option[String]): Page[IndexedObject] = {
     val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
     val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, placeIndexReader))
     val taxonomyReader = searcherAndTaxonomy.taxonomyReader

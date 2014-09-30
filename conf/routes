@@ -26,14 +26,14 @@ GET     /api-v3/places/:uri                      controllers.PlaceController.get
 GET     /api-v3/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
 GET     /api-v3/places/:uri/references           controllers.PlaceController.listReferences(uri: String, includeCloseMatches: Boolean ?= false)
 
-GET     /api-v3/search                           controllers.SearchController.search(query: String, limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/search                           controllers.SearchController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String])
 
 # HTML view routes
 GET     /api-v3/pages/datasets                   controllers.pages.DatasetPagesController.listAll
 GET     /api-v3/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
 GET     /api-v3/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.getAnnotatedThing(id: String)
 GET     /api-v3/pages/places/:uri                controllers.pages.PlacePagesController.getPlace(uri: String)
-GET     /api-v3/pages/search                     controllers.pages.HomepageController.search(query: String, limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/pages/search                     controllers.pages.HomepageController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String])
 GET     /api-v3/pages/advanced-search            controllers.pages.HomepageController.defineAdvancedSearch
 GET     /api-v3/                                 controllers.pages.HomepageController.index 
 GET     /api-v3                                  controllers.pages.HomepageController.index
