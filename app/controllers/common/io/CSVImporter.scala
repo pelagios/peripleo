@@ -45,9 +45,8 @@ object CSVImporter extends AbstractImporter {
     AnnotatedThings.insertAll(allThings)
     Annotations.insertAll(annotations.toSeq)
     
-    Global.index.addAnnotatedThings(allThings)
+    Global.index.addAnnotatedThing(parentThing)
     Global.index.refresh()
-    
     Logger.info("Import complete")
   }
 

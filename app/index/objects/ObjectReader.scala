@@ -1,13 +1,14 @@
 package index.objects
 
 import index._
-import models.Page
+import models.{ Datasets, Page }
 import org.apache.lucene.util.Version
 import org.apache.lucene.index.{ Term, MultiReader }
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, IndexSearcher, MultiCollector, NumericRangeQuery, Query, TermQuery, TopScoreDocCollector }
+import play.api.db.slick._
 
 trait ObjectReader extends IndexBase {
 
@@ -21,7 +22,7 @@ trait ObjectReader extends IndexBase {
     * @query places filter search to items referencing specific places 
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
-      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int], toYear: Option[Int]): Page[IndexedObject] = {
+      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int], toYear: Option[Int])(implicit s: Session): Page[IndexedObject] = {
     
     val q = new BooleanQuery()
     
@@ -42,8 +43,18 @@ trait ObjectReader extends IndexBase {
     }
     
     // Dataset filter
-    if (dataset.isDefined)
-      q.add(new TermQuery(new Term(IndexFields.DATASET, dataset.get)), BooleanClause.Occur.MUST)
+    if (dataset.isDefined) {
+      val datasetHierarchy = dataset.get +: Datasets.walkSubsets(dataset.get).map(_.id)
+      if (datasetHierarchy.size == 1) {
+        q.add(new TermQuery(new Term(IndexFields.DATASET, dataset.get)), BooleanClause.Occur.MUST)        
+      } else {
+        val datasetQuery = new BooleanQuery()
+        datasetHierarchy.foreach(id => {
+          datasetQuery.add(new TermQuery(new Term(IndexFields.DATASET, id)), BooleanClause.Occur.SHOULD)       
+        })
+        q.add(datasetQuery, BooleanClause.Occur.MUST)
+      }
+    }
       
     // Places filter
     places.foreach(uri =>
