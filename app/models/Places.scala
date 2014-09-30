@@ -246,9 +246,9 @@ object Places {
   def countPlacesInDataset(datasetId: String)(implicit s: Session): Int =
     Query(queryByDataset.where(_.datasetId === datasetId).length).first
  
-  def deleteForDataset(id: String)(implicit s: Session) = {
-	 queryByThing.where(_.datasetId === id).delete
-	 queryByDataset.where(_.datasetId === id).delete
+  def deleteForDatasets(ids: Seq[String])(implicit s: Session) = {
+	 queryByThing.where(_.datasetId inSet ids).delete
+	 queryByDataset.where(_.datasetId inSet ids).delete
   }
  
   def findPlacesInDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerReference, Int)] = {

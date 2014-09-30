@@ -48,5 +48,8 @@ object DatasetDumpfiles {
   
   def deleteForDataset(id: String)(implicit s: Session) = 
     query.where(_.datasetId === id).delete
+    
+  def deleteForDatasets(ids: Seq[String])(implicit s: Session) = 
+    query.where(_.datasetId inSet ids).delete
 
 }

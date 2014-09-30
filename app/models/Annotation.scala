@@ -58,6 +58,9 @@ object Annotations {
   
   def deleteForDataset(id: String)(implicit s: Session) =
     query.where(_.datasetId === id).delete
+    
+  def deleteForDatasets(ids: Seq[String])(implicit s: Session) =
+    query.where(_.datasetId inSet ids).delete
   
   /** Updates an Annotation **/
   def update(annotation: Annotation)(implicit s: Session) = 

@@ -110,10 +110,12 @@ object Datasets {
   def update(dataset: Dataset)(implicit s: Session) = query.where(_.id === dataset.id).update(dataset)
  
   /** Deletes a Dataset **/
-  def delete(id: String)(implicit s: Session) = {
-	val datasetTreeIds = walkSubsets(id).map(_.id) :+ id
-    query.where(_.id inSet datasetTreeIds).delete
-  }
+  def delete(id: String)(implicit s: Session) =
+    query.where(_.id === id).delete
+    
+  /** Deletes a Dataset **/
+  def delete(ids: Seq[String])(implicit s: Session) =
+    query.where(_.id inSet ids).delete
     
   /** Counts all Datasets in the DB.
     * 
@@ -181,7 +183,7 @@ object Datasets {
     * This method is similar to listSubsets, but it DOES traverse down the hierarchy,
     * i.e. retrieves not only the direct subsets, but also the subsets' subsets, etc. 
     */
-  private[models] def walkSubsets(parentId: String)(implicit s: Session): Seq[Dataset] = {
+  def walkSubsets(parentId: String)(implicit s: Session): Seq[Dataset] = {
     // Note that we're making a DB request for every parent
     // TODO this could be slightly tuned by taking a list of of parentIds rather than just a single one
     

@@ -53,7 +53,10 @@ object PelagiosOAImporter extends AbstractImporter {
     val allThings = ingestBatch.map(_._1)
     val allAnnotations = ingestBatch.flatMap(_._2)
     AnnotatedThings.insertAll(allThings)
+    
     Global.index.addAnnotatedThings(allThings)
+    Global.index.refresh()
+    
     Annotations.insertAll(allAnnotations)
     
     // Update the parent dataset with new temporal bounds and profile

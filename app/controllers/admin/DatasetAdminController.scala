@@ -1,16 +1,17 @@
 package controllers.admin
 
 import controllers.common.io.{ CSVImporter, PelagiosOAImporter, VoIDImporter }
+import global.Global
+import java.io.File
+import java.net.URL
 import models._
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.{ AnyContent, Controller, SimpleResult }
 import play.api.mvc.MultipartFormData.FilePart
-import scala.io.Source
 import play.api.Logger
 import play.api.libs.json.Json
-import java.io.File
-import java.net.URL
+import scala.io.Source
 import sys.process._
 
 object DatasetAdminController extends Controller with Secured {
@@ -68,11 +69,19 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def deleteDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    Annotations.deleteForDataset(id)
-    AnnotatedThings.deleteForDataset(id)
-    DatasetDumpfiles.deleteForDataset(id)
-    Places.deleteForDataset(id)
-    Datasets.delete(id)
+    val subsetsRecursive = id +: Datasets.walkSubsets(id).map(_.id)
+    
+    // Purge from database
+    Annotations.deleteForDatasets(subsetsRecursive)
+    AnnotatedThings.deleteForDatasets(subsetsRecursive)
+    DatasetDumpfiles.deleteForDatasets(subsetsRecursive)
+    Places.deleteForDatasets(subsetsRecursive)
+    Datasets.delete(subsetsRecursive)
+    
+    // Purge from index
+    Global.index.dropDatasets(subsetsRecursive)
+    Global.index.refresh()
+    
     Status(200)
   }
   
