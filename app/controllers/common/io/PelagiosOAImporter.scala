@@ -72,11 +72,11 @@ object PelagiosOAImporter extends AbstractImporter {
     Datasets.update(updatedDataset) 
     
     // Update index
+    Logger.info("Updating Index") 
     Global.index.addAnnotatedThings(allThings)
     Global.index.refresh()
     
     is.close()
-    
     Logger.info("Import of " + filename + " complete")
   }
   

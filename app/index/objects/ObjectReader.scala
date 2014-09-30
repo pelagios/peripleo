@@ -11,6 +11,7 @@ import org.apache.lucene.search.{ BooleanQuery, BooleanClause, IndexSearcher, Mu
 import org.apache.lucene.index.Term
 import org.apache.lucene.search.Query
 import play.api.Logger
+import org.apache.lucene.search.NumericRangeQuery
 
 trait ObjectReader extends IndexBase {
 
@@ -24,15 +25,17 @@ trait ObjectReader extends IndexBase {
     * @query places filter search to items referencing specific places 
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
-      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String]): Page[IndexedObject] = {
+      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int], toYear: Option[Int]): Page[IndexedObject] = {
     
     val q = new BooleanQuery()
     
+    // Keyword query
     if (query.isDefined) {
       val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
       q.add(new MultiFieldQueryParser(Version.LUCENE_4_9, fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
     } 
       
+    // Object type filter
     if (objectType.isDefined) {
       if (objectType.get == IndexedObjectTypes.PLACE) {
         q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST_NOT)
@@ -42,11 +45,22 @@ trait ObjectReader extends IndexBase {
       }
     }
     
+    // Dataset filter
     if (dataset.isDefined)
       q.add(new TermQuery(new Term(IndexFields.DATASET, dataset.get)), BooleanClause.Occur.MUST)
       
+    // Places filter
     places.foreach(uri =>
       q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
+      
+    // Timespan filter
+    if (fromYear.isDefined && toYear.isDefined) {
+      Logger.info("from " + fromYear.get  + " to " + toYear.get)
+      val timeIntervalQuery = new BooleanQuery()
+      timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, toYear.get, true, true), BooleanClause.Occur.MUST)
+      timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_TO, fromYear.get, null, true, true), BooleanClause.Occur.MUST)
+      q.add(timeIntervalQuery, BooleanClause.Occur.MUST)
+    }
       
     execute(q, limit, offset, query)
   }

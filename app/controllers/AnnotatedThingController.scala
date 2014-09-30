@@ -18,7 +18,7 @@ object AnnotatedThingController extends AbstractAPIController {
     if (inDataset.isDefined && forPlaces.isDefined) {
       // Filter by place and dataset
       val places = forPlaces.get.split(",").map(s => Index.normalizeURI(s.trim())).toSeq
-      val indexHits = Global.index.search(offset, limit, None, Some(IndexedObjectTypes.ANNOTATED_THING), inDataset, places)
+      val indexHits = Global.index.search(offset, limit, None, Some(IndexedObjectTypes.ANNOTATED_THING), inDataset, places, None, None)
       val annotatedThings = AnnotatedThings.findByIds(indexHits.items.map(_.identifier))
       
       // Note: this will (and should) fail if index and DB are out of sync!

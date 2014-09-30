@@ -22,7 +22,9 @@ object SearchController extends AbstractAPIController {
     * @query dataset filter search to items in a specific dataset
     * @query places filter search to items referencing specific places 
     */
-  def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], places: Option[String]) = DBAction { implicit session =>
+  def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String],
+      places: Option[String], yearFrom: Option[Int], yearTo: Option[Int]) = DBAction { implicit session =>
+        
     // Map object types
     val objType = objectType.flatMap(name => name.toLowerCase match {
       case DATASET => Some(IndexedObjectTypes.DATASET)
@@ -34,7 +36,7 @@ object SearchController extends AbstractAPIController {
     // Tokenize and normalize place URIs
     val placeURIs = places.map(_.split(",").map(s => Index.normalizeURI(s.trim())).toSeq).getOrElse(Seq.empty[String])
     
-    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs)
+    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo)
     jsonOk(Json.toJson(results), session.request)
   }
 

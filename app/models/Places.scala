@@ -212,7 +212,8 @@ object Places {
     
     // Compute all intermediate things (as (datasetId, thingId) tuples)...
     val intermediateThings = hierarchies.flatMap { case (datasetId, thingId, parentIds) => (Seq.fill(parentIds.size)(datasetId)).zip(parentIds) }.distinct
-    Logger.info(intermediateThings.size + " parent things in the hierarchy")
+    if (intermediateThings.size > 0)
+      Logger.info(intermediateThings.size + " parent things in the hierarchy")
 
     // ...and recompute their stats
     intermediateThings.foreach { case (datasetId, intermediateThingId) => 
