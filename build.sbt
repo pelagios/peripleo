@@ -14,7 +14,8 @@ libraryDependencies ++= Seq(
   "org.apache.lucene" % "lucene-spatial" % "4.9.0",
   "com.vividsolutions" % "jts" % "1.13",
   "org.geotools" % "gt-geojson" % "10.0",
-  "org.xerial" % "sqlite-jdbc" % "3.7.2"
+  "org.xerial" % "sqlite-jdbc" % "3.7.2",
+  "postgresql" % "postgresql" % "9.1-901.jdbc4"
 )  
 
 /** Transient dependencies required by Scalagios

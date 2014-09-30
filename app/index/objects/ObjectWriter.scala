@@ -14,7 +14,7 @@ trait ObjectWriter extends IndexBase {
   def addAnnotatedThings(annotatedThings: Seq[AnnotatedThing])(implicit s: Session) = {
     val (indexWriter, taxonomyWriter) = newObjectWriter() 
     
-    annotatedThings.foreach(thing =>
+    annotatedThings.par.foreach(thing =>
       indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing))))
     
     indexWriter.close()

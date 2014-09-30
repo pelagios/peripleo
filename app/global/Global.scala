@@ -69,6 +69,11 @@ object Global extends GlobalSettings {
   override def onStart(app: Application): Unit = {
     // Initializes the database schema
     DB.withSession { implicit session: Session =>
+      if (MTable.getTables("datasets").list.isEmpty) {
+        Logger.info("DB table 'datasets' does not exist - creating")
+        Datasets.create
+      }
+            
       if (MTable.getTables("annotated_things").list.isEmpty) {
         Logger.info("DB table 'annotated_things' does not exist - creating")
         AnnotatedThings.create
@@ -77,11 +82,6 @@ object Global extends GlobalSettings {
       if (MTable.getTables("annotations").list.isEmpty) {
         Logger.info("DB table 'annotations' does not exist - creating")
         Annotations.create
-      }
-      
-      if (MTable.getTables("datasets").list.isEmpty) {
-        Logger.info("DB table 'datasets' does not exist - creating")
-        Datasets.create
       }
       
       if (MTable.getTables("dataset_dumpfiles").list.isEmpty) {

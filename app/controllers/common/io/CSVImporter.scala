@@ -41,7 +41,7 @@ object CSVImporter extends AbstractImporter {
       Annotation(t._1, dataset.id, parts.find(_.title == t._2).get.id, t._3, None, None)
     })
     
-    val allThings = parts.toSeq :+ parentThing
+    val allThings = parentThing +: parts.toSeq 
     AnnotatedThings.insertAll(allThings)
     Annotations.insertAll(annotations.toSeq)
     
