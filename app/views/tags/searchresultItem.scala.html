@@ -13,7 +13,7 @@
     
     case index.IndexedObjectTypes.ANNOTATED_THING => {
       @defining(AnnotatedThings.findByIdWithDataset(item.identifier).get) { case (thing, dataset) =>
-        @defining(Datasets.findAllById(Datasets.getParentHierarchy(dataset.id))) { supersets =>
+        @defining(Datasets.findByIds(Datasets.getParentHierarchy(dataset.id))) { supersets =>
           <li class="result item">
             <span class="title">
               @if(thing.homepage.isDefined) {

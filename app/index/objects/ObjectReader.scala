@@ -44,7 +44,7 @@ trait ObjectReader extends IndexBase {
     
     // Dataset filter
     if (dataset.isDefined) {
-      val datasetHierarchy = dataset.get +: Datasets.walkSubsets(dataset.get).map(_.id)
+      val datasetHierarchy = dataset.get +: Datasets.listSubsetsRecursive(dataset.get)
       if (datasetHierarchy.size == 1) {
         q.add(new TermQuery(new Term(IndexFields.DATASET, dataset.get)), BooleanClause.Occur.MUST)        
       } else {

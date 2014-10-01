@@ -6,7 +6,25 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 
 /** Annotation model entity **/
-case class Annotation(uuid: UUID, dataset: String, annotatedThing: String, gazetteerURI: String, quote: Option[String], offset: Option[Int])
+case class Annotation(
+    
+    /** a globally unique identifier for the annotation **/ 
+    uuid: UUID, 
+    
+    /** the ID of the dataset the annotation is in **/
+    dataset: String, 
+    
+    /** the ID of the annotated thing the annotation is attached to **/
+    annotatedThing: String,
+    
+    /** the gazetteer URI in the annotation 'body' **/
+    gazetteerURI: String,
+    
+    /** any additional text content in the annotation 'body' (such as a transcription) **/
+    quote: Option[String],
+    
+    /** the offset in the annotated thing - really only a measure to compute distance between annotations! **/ 
+    offset: Option[Int])
 
 /** Annotation DB table **/
 class Annotations(tag: SlickTag) extends Table[Annotation](tag, "annotations") {
@@ -49,16 +67,13 @@ object Annotations {
   
   /** Inserts a list of Annotations into the DB **/
   def insertAll(annotations: Seq[Annotation])(implicit s: Session) = {
-    // Insert annotations
     query.insertAll(annotations:_*)
     
-    // After all annotations are ingested, update place index stats
+    // Update aggregation table stats
     Places.recompute(annotations)
   }
-  
-  def deleteForDataset(id: String)(implicit s: Session) =
-    query.where(_.datasetId === id).delete
     
+  /** Deletes annotations from the specified datasets **/ 
   def deleteForDatasets(ids: Seq[String])(implicit s: Session) =
     query.where(_.datasetId inSet ids).delete
   
@@ -69,7 +84,6 @@ object Annotations {
   /** Counts all Annotations in the DB **/
   def countAll()(implicit s: Session): Int = 
     Query(query.length).first
-
 
   /** Lists all Annotations in the DB (paginated) **/
   def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
@@ -89,7 +103,7 @@ object Annotations {
     */
   def countByDataset(datasetId: String, recursive: Boolean = true)(implicit s: Session): Int = {
     if (recursive) {
-      val allDatasetIds = datasetId +: Datasets.walkSubsets(datasetId).map(_.id)
+      val allDatasetIds = datasetId +: Datasets.listSubsetsRecursive(datasetId)
       Query(query.where(_.datasetId.inSet(allDatasetIds)).length).first
     } else {
       Query(query.where(_.datasetId === datasetId).length).first      
@@ -107,7 +121,7 @@ object Annotations {
     val total = countByDataset(datasetId, recursive)
     val result = 
       if (recursive) {
-        val allDatasetIds = datasetId +: Datasets.walkSubsets(datasetId).map(_.id)    
+        val allDatasetIds = datasetId +: Datasets.listSubsetsRecursive(datasetId)
         query.where(_.datasetId.inSet(allDatasetIds)).drop(offset).take(limit).list
       } else {
         query.where(_.datasetId === datasetId).drop(offset).take(limit).list  
@@ -123,7 +137,7 @@ object Annotations {
     */
   def countByAnnotatedThing(thingId: String, recursive: Boolean = true)(implicit s: Session): Int = {
     if (recursive) {
-      val allThingIds = thingId +: AnnotatedThings.walkChildren(thingId).map(_.id)
+      val allThingIds = thingId +: AnnotatedThings.listChildrenRecursive(thingId)
       Query(query.where(_.annotatedThingId.inSet(allThingIds)).length).first
     } else {
       Query(query.where(_.annotatedThingId === thingId).length).first
@@ -140,7 +154,7 @@ object Annotations {
   def findByAnnotatedThing(thingId: String, recursive: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Annotation] = {
     val total = countByAnnotatedThing(thingId, recursive)
     val result = if (recursive) {
-      val allThingIds = thingId +: AnnotatedThings.walkChildren(thingId).map(_.id)
+      val allThingIds = thingId +: AnnotatedThings.listChildrenRecursive(thingId)
       query.where(_.annotatedThingId.inSet(allThingIds)).drop(offset).take(limit).list
     } else {
       query.where(_.annotatedThingId === thingId).drop(offset).take(limit).list      

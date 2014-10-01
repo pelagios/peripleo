@@ -1,10 +1,9 @@
 package models
 
+import java.sql.Date
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag, Query }
-import java.sql.Date
-import play.api.Logger
 
 /** Dataset model entity **/
 case class Dataset(
@@ -108,12 +107,8 @@ object Datasets {
   
   /** Updates a Dataset **/
   def update(dataset: Dataset)(implicit s: Session) = query.where(_.id === dataset.id).update(dataset)
- 
-  /** Deletes a Dataset **/
-  def delete(id: String)(implicit s: Session) =
-    query.where(_.id === id).delete
     
-  /** Deletes a Dataset **/
+  /** Deletes a list of Datasets **/
   def delete(ids: Seq[String])(implicit s: Session) =
     query.where(_.id inSet ids).delete
     
@@ -151,54 +146,54 @@ object Datasets {
     Page(result, offset, limit, total)    
   }
 
+  /** Retrieves a Datasets by ID **/
+  def findById(id: String)(implicit s: Session): Option[Dataset] =
+    query.where(_.id === id).firstOption
+  
+  /** Retrieves a batch of Datasets by their ID **/
+  def findByIds(ids: Seq[String])(implicit s: Session): Seq[Dataset] =
+    query.where(_.id.inSet(ids)).list
+  
   /** Retrieves a single Dataset by its ID **/
-  def findById(id: String)(implicit s: Session): Option[(Dataset, Seq[DatasetDumpfile])] = {
+  def findByIdWithDumpfiles(id: String)(implicit s: Session): Option[(Dataset, Seq[DatasetDumpfile])] = {
     val dataset = query.where(_.id === id).firstOption
     dataset.map(d =>
       (d, DatasetDumpfiles.query.where(_.datasetId === d.id).list))
   }
     
-  /** Retrieves a batch of Datasets by their ID **/
-  def findAllById(ids: Seq[String])(implicit s: Session): Seq[Dataset] =
-    query.where(_.id.inSet(ids)).list
-    
-  /** Returns the number of subsets in a specific Dataset.
+  /** Returns the number of direct subsets in a specific Dataset.
     * 
-    * This method only counts the direct subsets of the Dataset - it does not
-    * traverse further down the hierarchy!
+    * This method only counts the direct subsets - it does not traverse further down the hierarchy!
     */
   def countSubsets(id: String)(implicit s: Session): Int =
     Query(query.where(_.isPartOfId === id).length).first
 
-  /** Returns the subsets of a specific Dataset.
+  /** Returns the direct subsets of a specific Dataset.
     * 
-    * This method only returns the direct subsets of the Dataset - it does not
-    * traverse further down in the hierarchy!
+    * This method only returns the direct subsets - it does not traverse further down in the hierarchy!
     */
   def listSubsets(id: String)(implicit s: Session): Seq[Dataset] =
     query.where(_.isPartOfId === id).list    
- 
+    
   /** Returns all subsets in the hierarchy below a specific Dataset.
     * 
     * This method is similar to listSubsets, but it DOES traverse down the hierarchy,
     * i.e. retrieves not only the direct subsets, but also the subsets' subsets, etc. 
     */
-  def walkSubsets(parentId: String)(implicit s: Session): Seq[Dataset] = {
-    // Note that we're making a DB request for every parent
-    // TODO this could be slightly tuned by taking a list of of parentIds rather than just a single one
+  def listSubsetsRecursive(parentId: String)(implicit s: Session): Seq[String] =
+    listSubsetsRecursive(Seq(parentId))
     
-    // TODO not sure we really need to include the Datasets, possibly just the IDs are enough
-    val subsets = query.where(_.isPartOfId === parentId).list
+  private def listSubsetsRecursive(parentIds: Seq[String])(implicit s: Session): Seq[String] = {
+    val subsets = query.where(_.isPartOfId inSet parentIds).map(_.id).list
     if (subsets.isEmpty)
       subsets
     else
-      subsets.flatMap(dataset => dataset +: walkSubsets(dataset.id))    
+      subsets ++ listSubsetsRecursive(subsets)
   }
 
-  /** Returns the parent hierarchy of a thing, i.e. the sequence of things from this thing to the root parent 
+  /** Returns the parent hierarchy of a thing, i.e. the sequence of things from this thing to the root parent. 
     *
-    * Note: the first element in the list is the direct parent, the last element in the list is the 
-    * top-most root.
+    * Note: first element in the list is the direct parent, last is the top-most root.
     */
   def getParentHierarchy(datasetId: String)(implicit s: Session): Seq[String] = {
     val parentId = query.where(_.id === datasetId).where(_.isPartOfId.isNotNull).map(_.isPartOfId).firstOption

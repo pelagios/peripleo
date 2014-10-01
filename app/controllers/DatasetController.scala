@@ -12,7 +12,7 @@ object DatasetController extends AbstractAPIController {
   }
   
   def get(id: String) = DBAction { implicit session =>
-    val dataset = Datasets.findById(id)
+    val dataset = Datasets.findByIdWithDumpfiles(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(dataset.get), session.request)
     else
@@ -20,7 +20,7 @@ object DatasetController extends AbstractAPIController {
   }
     
   def listAnnotatedThings(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
-    val dataset = Datasets.findById(id)
+    val dataset = Datasets.findByIdWithDumpfiles(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(AnnotatedThings.findByDataset(id, true, true, offset, limit)), session.request)
     else
@@ -40,7 +40,7 @@ object DatasetController extends AbstractAPIController {
   def getTemporalProfile(id: String) = DBAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined)
-      jsonOk(Json.parse(dataset.get._1.temporalProfile.getOrElse("{}")), session.request)
+      jsonOk(Json.parse(dataset.get.temporalProfile.getOrElse("{}")), session.request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }

@@ -19,7 +19,7 @@ class HarvestWorker {
 	
   def harvest(datasetId: String) = {
     DB.withSession { implicit session: Session =>
-      val d = Datasets.findById(datasetId)
+      val d = Datasets.findByIdWithDumpfiles(datasetId)
       if (d.isEmpty) {
 	    // TODO error notification
       } else {

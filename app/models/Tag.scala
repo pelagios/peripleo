@@ -4,9 +4,10 @@ import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 
-/** AnnotatedThing model entity **/
+/** Tag model entity **/
 case class Tag(id: Option[Int], dataset: String, annotatedThing: String, label: String)
 
+/** Tag DB table **/
 class Tags(slickTag: SlickTag) extends Table[Tag](slickTag, "tags") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)

@@ -4,8 +4,10 @@ import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 
+/** Gazetteer model entity **/
 case class Gazetteer(name: String, totalPlaces: Int, distinctPlaces: Int)
 
+/** Gazetteer DB table **/
 class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
   
   def name = column[String]("name", O.PrimaryKey)
@@ -18,8 +20,10 @@ class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
   
 }
 
+/** Gazetteer URI prefix model entity **/
 case class URIPrefix(id: Option[Int], gazetteer: String, prefix: String)
 
+/** Gazetteer URI prefix DB table **/
 class URIPrefixes(tag: SlickTag) extends Table[URIPrefix](tag, "gazetteer_uri_prefixes") {
   
   def id = column[Int]("id", O.AutoInc, O.PrimaryKey)
@@ -36,6 +40,7 @@ class URIPrefixes(tag: SlickTag) extends Table[URIPrefix](tag, "gazetteer_uri_pr
   
 }
 
+/** Queries **/
 object Gazetteers {
   
   private[models] val queryGazetteers = TableQuery[Gazetteers]

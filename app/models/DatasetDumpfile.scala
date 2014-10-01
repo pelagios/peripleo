@@ -1,12 +1,11 @@
 package models
 
+import java.sql.Timestamp
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag, Query }
-import java.sql.Timestamp
-import play.api.Logger
 
-/** Dataset model entity **/
+/** DatasetDumpfile model entity **/
 case class DatasetDumpfile(
 
   uri: String,
@@ -17,6 +16,7 @@ case class DatasetDumpfile(
 
 )
 
+/** DatasetDumpfile DB table **/
 class DatasetDumpfiles(tag: SlickTag) extends Table[DatasetDumpfile](tag, "dataset_dumpfiles") {
 	
   def uri = column[String]("uri", O.PrimaryKey)
@@ -33,6 +33,7 @@ class DatasetDumpfiles(tag: SlickTag) extends Table[DatasetDumpfile](tag, "datas
 
 }
 
+/** Queries **/
 object DatasetDumpfiles {
 
   private[models] val query = TableQuery[DatasetDumpfiles]
@@ -45,9 +46,6 @@ object DatasetDumpfiles {
   
   def insertAll(dumpfiles: Seq[DatasetDumpfile])(implicit s: Session) = 
     query.insertAll(dumpfiles:_*)
-  
-  def deleteForDataset(id: String)(implicit s: Session) = 
-    query.where(_.datasetId === id).delete
     
   def deleteForDatasets(ids: Seq[String])(implicit s: Session) = 
     query.where(_.datasetId inSet ids).delete

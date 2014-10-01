@@ -69,7 +69,7 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def deleteDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    val subsetsRecursive = id +: Datasets.walkSubsets(id).map(_.id)
+    val subsetsRecursive = id +: Datasets.listSubsetsRecursive(id)
     
     // Purge from database
     Annotations.deleteForDatasets(subsetsRecursive)
@@ -90,9 +90,9 @@ object DatasetAdminController extends Controller with Secured {
       val dataset = Datasets.findById(id)
       if (dataset.isDefined) {
         if (filepart.filename.endsWith(CSV))
-          CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get._1)
+          CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get)
         else
-          PelagiosOAImporter.importPelagiosAnnotations(filepart.ref, filepart.filename, dataset.get._1)
+          PelagiosOAImporter.importPelagiosAnnotations(filepart.ref, filepart.filename, dataset.get)
         Redirect(routes.DatasetAdminController.index).flashing("success" ->
           { "Annotations from file " + filepart.filename + " imported successfully." })
       } else {

@@ -11,8 +11,7 @@ object AnnotatedThingPagesController extends Controller {
     if (thing.isDefined) {
       val places = Places.countPlacesForThing(id)
       val annotations = Annotations.countByAnnotatedThing(id)
-      val datasetHierarchy = Datasets.findAllById(
-        thing.get.id +: Datasets.getParentHierarchy(thing.get.dataset))
+      val datasetHierarchy = Datasets.findByIds(thing.get.id +: Datasets.getParentHierarchy(thing.get.dataset))
 
       Ok("") //views.html.datasetDetails(dataset.get._1, things, annotations, places, supersets, subsets))
     } else {
