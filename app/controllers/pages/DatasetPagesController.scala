@@ -18,7 +18,7 @@ object DatasetPagesController extends Controller {
     if (dataset.isDefined) {
       val id = dataset.get.id
       val things = AnnotatedThings.countByDataset(id)
-      val places = Places.countPlacesInDataset(id)
+      val places = AggregatedView.countPlacesInDataset(id)
       val annotations = Annotations.countByDataset(id)
       val supersets = Datasets.findByIds(Datasets.getParentHierarchy(id))
       val subsets = Datasets.listSubsets(id)

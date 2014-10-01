@@ -70,7 +70,7 @@ object Annotations {
     query.insertAll(annotations:_*)
     
     // Update aggregation table stats
-    Places.recompute(annotations)
+    AggregatedView.recompute(annotations)
   }
     
   /** Deletes annotations from the specified datasets **/ 

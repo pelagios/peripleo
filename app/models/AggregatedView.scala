@@ -131,7 +131,7 @@ private[models] class PlacesByThingTable(tag: SlickTag) extends Table[PlacesByTh
 }
 
 /** Queries **/
-object Places {
+object AggregatedView {
   
   private val queryByDataset = TableQuery[PlacesByDatasetTable]
   

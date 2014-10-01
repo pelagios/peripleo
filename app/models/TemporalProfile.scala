@@ -1,8 +1,7 @@
 package models
 
-import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
+import controllers.common.io.JSONWrites._
+import play.api.libs.json.Json
 
 class TemporalProfile(data: Seq[(Int, Int)]) {
   
@@ -21,19 +20,4 @@ class TemporalProfile(data: Seq[(Int, Int)]) {
   
   override lazy val toString = Json.stringify(asJSON)
 
-}
-
-object TemporalProfile {
-  
-  implicit val profileWrites: Writes[TemporalProfile] = (
-    (JsPath \ "bounds_start").write[Int] ~
-    (JsPath \ "bounds_end").write[Int] ~
-    (JsPath \ "max_value").write[Int] ~
-    (JsPath \ "histogram").write[Map[String, Int]]
-  )(profile => (
-      profile.boundsStart,
-      profile.boundsEnd,
-      profile.maxValue,
-      profile.histogram.map(t => (t._1.toString, t._2))))
-  
 }

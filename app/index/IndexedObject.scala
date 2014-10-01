@@ -2,7 +2,7 @@ package index
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.places.IndexedPlaceNetwork
-import models.{ AnnotatedThing, Dataset, Places }
+import models.{ AggregatedView, AnnotatedThing, Dataset }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
@@ -61,7 +61,7 @@ object IndexedObject {
     thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
     
     // Place URIs
-    val places = Places.findPlacesForThing(thing.id).items.map(_._1)
+    val places = AggregatedView.findPlacesForThing(thing.id).items.map(_._1)
     places.foreach(gazetteerRef => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(gazetteerRef.uri), Field.Store.NO)))
     
     // Geometry (spatial indexing)

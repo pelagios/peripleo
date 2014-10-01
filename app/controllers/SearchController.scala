@@ -3,7 +3,6 @@ package controllers
 import controllers.common.io.JSONWrites._
 import global.Global
 import index.{ Index, IndexedObjectTypes }
-import models.{ Page, AnnotatedThing, Places }
 import play.api.db.slick._
 import play.api.libs.json.Json
 

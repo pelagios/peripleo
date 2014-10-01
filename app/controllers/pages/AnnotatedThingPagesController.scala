@@ -9,7 +9,7 @@ object AnnotatedThingPagesController extends Controller {
   def getAnnotatedThing(id: String) = DBAction { implicit session =>
     val thing = AnnotatedThings.findById(id)
     if (thing.isDefined) {
-      val places = Places.countPlacesForThing(id)
+      val places = AggregatedView.countPlacesForThing(id)
       val annotations = Annotations.countByAnnotatedThing(id)
       val datasetHierarchy = Datasets.findByIds(thing.get.id +: Datasets.getParentHierarchy(thing.get.dataset))
 

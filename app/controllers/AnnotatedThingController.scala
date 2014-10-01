@@ -49,7 +49,7 @@ object AnnotatedThingController extends AbstractAPIController {
   }
   
   def listPlaces(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
-    val places = Places.findPlacesForThing(id)
+    val places = AggregatedView.findPlacesForThing(id)
     jsonOk(Json.toJson(places), session.request)
   } 
   

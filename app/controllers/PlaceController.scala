@@ -3,7 +3,7 @@ package controllers
 import controllers.common.io.JSONWrites._
 import global.Global
 import index.places.IndexedPlace
-import models.{ Dataset, Places }
+import models.{ AggregatedView, Dataset }
 import play.api.mvc.Action
 import play.api.db.slick._
 import play.api.libs.json._
@@ -36,8 +36,8 @@ object PlaceController extends AbstractAPIController {
   def listReferences(uri: String, includeCloseMatches: Boolean) = DBAction { implicit request =>
     val place = Global.index.findPlaceByURI(uri)
     if (place.isDefined) {
-      val asTuples = Places.findDatasetsForPlace(place.get.uri).map { case (dataset, occurences) => {
-        val numReferencingItems = Places.countThingsForPlaceAndDataset(place.get.uri, dataset.id)
+      val asTuples = AggregatedView.findDatasetsForPlace(place.get.uri).map { case (dataset, occurences) => {
+        val numReferencingItems = AggregatedView.countThingsForPlaceAndDataset(place.get.uri, dataset.id)
         (dataset, References(place.get, occurences, numReferencingItems))
       }}
       

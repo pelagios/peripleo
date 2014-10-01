@@ -75,7 +75,7 @@ object DatasetAdminController extends Controller with Secured {
     Annotations.deleteForDatasets(subsetsRecursive)
     AnnotatedThings.deleteForDatasets(subsetsRecursive)
     DatasetDumpfiles.deleteForDatasets(subsetsRecursive)
-    Places.deleteForDatasets(subsetsRecursive)
+    AggregatedView.deleteForDatasets(subsetsRecursive)
     Datasets.delete(subsetsRecursive)
     
     // Purge from index

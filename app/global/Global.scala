@@ -15,19 +15,19 @@ object Global extends GlobalSettings {
   
   private val GAZETTER_DATA_DIR = "gazetteer"
        
-  /** Initializes the object index **/
   lazy val index = {
     val idx = Index.open("index")
     
     if (idx.numPlaceNetworks == 0) {
-      Logger.info("Building new place index")
+      Logger.info("Building place index...")
       
+      // Grab the list of gazetteers from the application properties file
       def getPropertyAsList(name: String): Seq[String] = 
         Play.current.configuration.getString(name).map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
       
       val gazetteers = getPropertyAsList("api.gazetteer.names").zip(getPropertyAsList("api.gazetteer.files"))
       
-      // Inserts a single dump file into the index (returning number of total places, distinct places and URI prefixes)
+      // Helper function to insert a single dump file into the index (returning number of total places, distinct places and URI prefixes)
       def insertDumpfile(sourceGazetteer: String, file: File): (Int, Int, Seq[String]) = {
         val (is, filename)  = if (file.getName.endsWith(".gz"))
           (new GZIPInputStream(new FileInputStream(file)), file.getName.substring(0, file.getName.lastIndexOf('.')))
@@ -37,7 +37,7 @@ object Global extends GlobalSettings {
         idx.addPlaceStream(is, filename, sourceGazetteer)
       }
       
-      // Builds the place index from the configured gazetteer dumps
+      // Build the place index
       DB.withSession { implicit session: Session =>
         gazetteers.foreach { case (name, dump) => {
           Logger.info("Loading gazetteer " + name  + ": " + dump)
@@ -94,9 +94,9 @@ object Global extends GlobalSettings {
         Gazetteers.create
       }
       
-      if (MTable.getTables("places_by_dataset").list.isEmpty && MTable.getTables("places_by_annotated_thing").list().isEmpty) {
-        Logger.info("Places index tables do not exist - creating")
-        Places.create
+      if (MTable.getTables("places_by_dataset").list.isEmpty && MTable.getTables("places_by_annotated_thing").list.isEmpty) {
+        Logger.info("Aggregated view tables do not exist - creating")
+        AggregatedView.create
       }
       
       if (MTable.getTables("tags").list.isEmpty) {
