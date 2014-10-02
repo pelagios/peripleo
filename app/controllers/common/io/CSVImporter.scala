@@ -39,11 +39,13 @@ object CSVImporter extends AbstractImporter {
     // TODO make use of 'quote' and 'offset' fields
     val annotations = annotationsByPart.values.flatten.map(t => {
       Annotation(t._1, dataset.id, parts.find(_.title == t._2).get.id, t._3, None, None)
-    })
+    }).toSeq
     
     val allThings = parentThing +: parts.toSeq 
     AnnotatedThings.insertAll(allThings)
-    Annotations.insertAll(annotations.toSeq)
+    Annotations.insertAll(annotations)
+    AggregatedView.recompute(allThings, annotations)
+    Datasets.recomputeTemporalProfileRecursive(dataset)
     
     Global.index.addAnnotatedThing(parentThing)
     Global.index.refresh()

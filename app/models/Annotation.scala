@@ -68,9 +68,6 @@ object Annotations {
   /** Inserts a list of Annotations into the DB **/
   def insertAll(annotations: Seq[Annotation])(implicit s: Session) = {
     query.insertAll(annotations:_*)
-    
-    // Update aggregation table stats
-    AggregatedView.recompute(annotations)
   }
     
   /** Deletes annotations from the specified datasets **/ 

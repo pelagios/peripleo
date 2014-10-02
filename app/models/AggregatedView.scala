@@ -146,78 +146,80 @@ object AggregatedView {
     // IDs of all affected datasets, including parents in the hierarchy
     val datasetIds = (leafIds ++ leafIds.flatMap(id => Datasets.getParentHierarchy(id))).distinct
 
-    // Purge
+    // Drop them from the table first...
     queryByDataset.where(_.datasetId.inSet(datasetIds)).delete
     
-    // Recompute
+    // ...and then recompute
     datasetIds.foreach(id => {
+      // Grab all annotations from the database and group by gazetteer URI
       val placesInDataset = Annotations.findByDataset(id).items.groupBy(_.gazetteerURI)
-        .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
+        .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) } // Resolve place from index and just keep annotation count
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
-        .map { case (place, count) => // TODO temporal bounds 
+        .map { case (place, count) => 
           PlacesByDataset(None, id, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
         .toSeq
-
+        
+      // Write to DB
       queryByDataset.insertAll(placesInDataset:_*)
     })
   }
   
-  private def recomputeLeafThings(datasetId: String, annotations: Seq[Annotation])(implicit s: Session) = {    
+  private def recomputeAnnotatedThings(things: Seq[AnnotatedThing], annotations: Seq[Annotation])(implicit s: Session) = {
+    // Drop them from the table first
+    val allThingIds = things.map(_.id)
+    queryByThing.where(_.annotatedThingId inSet allThingIds).delete
+        
+    // Note: we don't need to grab annotations from the database in this case, because we can assume that data for a single
+    // annotated thing is NEVER split accross multiple imports. The same is NOT true for datasets - so we need to fetch from the
+    // DB in the recomputeDatasets method above
     val annotationsByThing = annotations.groupBy(_.annotatedThing)
-    annotationsByThing.foreach { case (thingId, annotations) => 
-      queryByThing.where(_.annotatedThingId === thingId).delete }
+    val leafThingIds = annotationsByThing.map(_._1).toSet
+    val leafThings = things.filter(thing => leafThingIds.contains(thing.id))
     
-    val placesByThing = annotationsByThing.flatMap { case (thingId, annotations) => {
+    // First, we compute stats for things that have annotations attached directly
+    val placesByLeafThing = annotationsByThing.flatMap { case (thingId, annotations) => {
+      val thing = leafThings.find(_.id == thingId).get
+        
+      // Group annotations for this thing by gazetteer URI
       annotations.groupBy(_.gazetteerURI)
-        .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
+        .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) } // Resolve place from index and just keep annotation count
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
-        .map { case (place, count) => // TODO temporal bounds
-          PlacesByThing(None, datasetId, thingId, None, None, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+        .map { case (place, count) =>
+          PlacesByThing(None, thing.dataset, thingId, thing.temporalBoundsStart, thing.temporalBoundsEnd, 
+            GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
     }}.toSeq
     
-    queryByThing.insertAll(placesByThing:_*)    
-  }
-  
-  private def recomputeIntermediateThing(datasetId: String, intermediateThingId: String, leafThings: Seq[String], annotations: Seq[Annotation])(implicit s: Session) = {
-    queryByThing.where(_.annotatedThingId === intermediateThingId).delete
-    
-    val annotationsForThing = annotations.filter(a => leafThings.contains(a.annotatedThing))
-    val placesForThing = annotationsForThing.groupBy(_.gazetteerURI)
-      .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
-      .filter(_._1.isDefined) // We restrict to places in the gazetteer
-      .map { case (place, count) =>
-        PlacesByThing(None, datasetId, intermediateThingId, None, None, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
-      .toSeq
+    // Next, we compute stats for all other annotated things
+    val placesByNonLeafThing = things.filter(thing => !leafThingIds.contains(thing.id)).flatMap { case thing =>
+      // For each thing, get all leaf things that sit below it in the hierarchy...
+      val leafChildren = AnnotatedThings.listChildrenRecursive(thing.id).toSet.intersect(leafThingIds)
       
-    queryByThing.insertAll(placesForThing:_*)  
-  }
-  
-  private[models] def recompute(annotations: Seq[Annotation])(implicit s: Session) = {
-    Logger.info("Recomputing unique place count aggregates")
-    
-    // Recompute datasets and leaf things
-    val affectedLeafDatasets = annotations.groupBy(_.dataset).keys.toSeq
-    recomputeDatasets(affectedLeafDatasets)
-    affectedLeafDatasets.foreach(recomputeLeafThings(_, annotations))
+      // ... and pick the annotations for that
+      val annotationsForThing = annotations.filter(a => leafChildren.contains(a.annotatedThing))
       
-    // Things can be hierarchical - aggregate starting from root nodes
-    val leafThings = annotations.groupBy(_.annotatedThing).toSeq.map { case (thing, annotations) => (annotations.head.dataset, thing) }    
-    Logger.info(leafThings.size + " annotated things")
-    val hierarchies = leafThings.map { case (datasetId, thingId) => (datasetId, thingId, AnnotatedThings.getParentHierarchy(thingId)) }
-    
-    // Helper method that will get the leaf things for any intermediate thing in the hierarchy
-    def getLeafThings(intermediateThing: String): Seq[String] = {
-      hierarchies.filter(_._3.contains(intermediateThing)).map(_._2)
+      // Now we aggregate
+      annotationsForThing.groupBy(_.gazetteerURI)
+        .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) }
+        .filter(_._1.isDefined)
+        .map { case (place, count) =>
+          PlacesByThing(None, thing.dataset, thing.id, thing.temporalBoundsStart, thing.temporalBoundsEnd,
+            GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+        .toSeq
     }
     
-    // Compute all intermediate things (as (datasetId, thingId) tuples)...
-    val intermediateThings = hierarchies.flatMap { case (datasetId, thingId, parentIds) => (Seq.fill(parentIds.size)(datasetId)).zip(parentIds) }.distinct
-    if (intermediateThings.size > 0)
-      Logger.info(intermediateThings.size + " parent things in the hierarchy")
+    // And we write to the DB
+    queryByThing.insertAll({ placesByLeafThing ++ placesByNonLeafThing }:_*)  
+  } 
 
-    // ...and recompute their stats
-    intermediateThings.foreach { case (datasetId, intermediateThingId) => 
-      recomputeIntermediateThing(datasetId, intermediateThingId, getLeafThings(intermediateThingId), annotations)}
+  def recompute(things: Seq[AnnotatedThing], annotations: Seq[Annotation])(implicit s: Session) = {
+    Logger.info("Recomputing unique place count aggregates")
+    
+    // Recompute stats for affected datasets
+    val affectedDatasets = annotations.groupBy(_.dataset).keys.toSeq
+    recomputeDatasets(affectedDatasets)
+    
+    // Recompute stats for things
+    recomputeAnnotatedThings(things, annotations)
   }
   
   def countDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Int =

@@ -4,6 +4,7 @@ import java.sql.Date
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag, Query }
+import play.api.Logger
 
 /** Dataset model entity **/
 case class Dataset(
@@ -98,6 +99,41 @@ object Datasets {
   
   /** Creates the DB table **/
   def create()(implicit s: Session) = query.ddl.create
+  
+  /** Recomputes the temporal profile for this dataset and all datasets above it in the hierarchy **/
+  def recomputeTemporalProfileRecursive(dataset: Dataset)(implicit s: Session): Unit = {
+    val datasetsAbove = getParentHierarchy(dataset.id) 
+    val allDatasets = dataset +: findByIds(datasetsAbove)
+    
+    // Note: this will fetch subsets and things for each dataset from the DB in every loop, so could be optimized
+    // but usually we won't have huge numbers of datasets, so optimization wouldn't have much impact
+    allDatasets.foreach(recomputeTemporalProfile(_))
+  }
+
+  private def recomputeTemporalProfile(dataset: Dataset)(implicit s: Session) = {
+    Logger.info("Recomputing temporal profile for dataset " + dataset.title)
+    
+    // Grab all toplevel things in this dataset and its subsets
+    val datedThings = AnnotatedThings.findByDataset(dataset.id, true, true).items.filter(_.temporalBoundsStart.isDefined)
+    
+    // Compute the temporal profile from the things
+    val (tempBoundsStart, tempBoundsEnd, tempProfile) = 
+      if (datedThings.isEmpty) {
+        (None, None, None)
+      } else {
+        val boundsStart = datedThings.map(_.temporalBoundsStart.get).min
+        val boundsEnd = datedThings.map(_.temporalBoundsEnd.get).max
+        val profile = new TemporalProfile(datedThings.map(thing => (thing.temporalBoundsStart.get, thing.temporalBoundsEnd.get)))
+        (Some(boundsStart), Some(boundsEnd), Some(profile.toString))
+      }
+    
+    // Update the DB record
+    val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
+      dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
+      dataset.homepage, dataset.isPartOf, tempBoundsStart, tempBoundsEnd, tempProfile)
+    
+    update(updatedDataset) 
+  }
   
   /** Inserts a single Dataset into the DB **/
   def insert(dataset: Dataset)(implicit s: Session) = query.insert(dataset)
@@ -203,5 +239,18 @@ object Datasets {
       Seq.empty[String]
     }
   }
+  
+  /** Returns the root (top-level parent) of the dataset. 
+    *  
+    * Note: if the dataset is a root itself, the method will pass it through. 
+    *
+  def getRoot(dataset: Dataset)(implicit s: Session): Dataset = {
+    val parentHierarchy = getParentHierarchy(dataset.id)
+    if (parentHierarchy.isEmpty)
+      dataset
+    else
+      findById(parentHierarchy.last).get
+  }
+  */
  
 }

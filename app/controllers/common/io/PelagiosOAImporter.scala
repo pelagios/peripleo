@@ -54,22 +54,12 @@ object PelagiosOAImporter extends AbstractImporter {
     val allAnnotations = ingestBatch.flatMap(_._2)
     AnnotatedThings.insertAll(allThings)
     Annotations.insertAll(allAnnotations)
+            
+    // Update aggregation table stats
+    AggregatedView.recompute(allThings, allAnnotations)
     
     // Update the parent dataset with new temporal bounds and profile
-    val datedThings = allThings.filter(_.temporalBoundsStart.isDefined)
-    
-    val (tempBoundsStart, tempBoundsEnd, temporalProfile) = if (datedThings.isEmpty)
-      (None, None, None) 
-    else
-      (Some(datedThings.map(_.temporalBoundsStart.get).min),
-       Some(datedThings.map(_.temporalBoundsEnd.get).max),
-       Some(new TemporalProfile(datedThings.map(thing => (thing.temporalBoundsStart.get, thing.temporalBoundsEnd.get))).toString))  
-    
-    val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
-        dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-        dataset.homepage, None, tempBoundsStart, tempBoundsEnd, temporalProfile)
-        
-    Datasets.update(updatedDataset) 
+    Datasets.recomputeTemporalProfileRecursive(dataset)
     
     // Update index
     Logger.info("Updating Index") 
