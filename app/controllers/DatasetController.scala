@@ -11,10 +11,18 @@ object DatasetController extends AbstractAPIController {
     jsonOk(Json.toJson(Datasets.listAll(true, offset, limit)), session.request)
   }
   
-  def get(id: String) = DBAction { implicit session =>
+  def getDataset(id: String) = DBAction { implicit session =>
     val dataset = Datasets.findByIdWithDumpfiles(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(dataset.get), session.request)
+    else
+      NotFound(Json.parse("{ \"message\": \"Not found\" }"))
+  }
+  
+  def getTemporalProfile(id: String) = DBAction { implicit session =>
+    val dataset = Datasets.findById(id)
+    if (dataset.isDefined)
+      jsonOk(Json.parse(dataset.get.temporalProfile.getOrElse("{}")), session.request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
@@ -35,14 +43,6 @@ object DatasetController extends AbstractAPIController {
       .headOption.flatMap(_._2.headOption.map(_.toBoolean)).getOrElse(true)
       
     jsonOk(Json.toJson(places), session.request)
-  } 
-  
-  def getTemporalProfile(id: String) = DBAction { implicit session =>
-    val dataset = Datasets.findById(id)
-    if (dataset.isDefined)
-      jsonOk(Json.parse(dataset.get.temporalProfile.getOrElse("{}")), session.request)
-    else
-      NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
   
 }

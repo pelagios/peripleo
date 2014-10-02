@@ -33,7 +33,8 @@ object PlaceController extends AbstractAPIController {
     }
   }
   
-  def listReferences(uri: String, includeCloseMatches: Boolean) = DBAction { implicit request =>
+  /** TODO CLEAN UP **/
+  def listOccurrences(uri: String, includeCloseMatches: Boolean) = DBAction { implicit request =>
     val place = Global.index.findPlaceByURI(uri)
     if (place.isDefined) {
       val asTuples = AggregatedView.findDatasetsForPlace(place.get.uri).map { case (dataset, occurences) => {

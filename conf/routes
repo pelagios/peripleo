@@ -7,14 +7,14 @@ GET     /api-v3/static/*file              controllers.Assets.at(path="/public", 
 
 # API routes
 GET     /api-v3/datasets                         controllers.DatasetController.listAll(limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/datasets/:id                     controllers.DatasetController.get(id: String)
+GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
+GET     /api-v3/datasets/:id/time                controllers.DatasetController.getTemporalProfile(id: String)
 GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/datasets/:id/time                controllers.DatasetController.getTemporalProfile(id: String)
 
-GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0, dataset: Option[String], places: Option[String])
+GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
-GET     /api-v3/items/:id/items                  controllers.AnnotatedThingController.listSubItems(id: String, limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/items/:id/items                  controllers.AnnotatedThingController.listSubThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String, limit: Int ?= 20, offset: Int ?= 0)
 
@@ -24,7 +24,7 @@ GET     /api-v3/annotations/:id                  controllers.AnnotationControlle
 GET     /api-v3/places                           controllers.PlaceController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String)
 GET     /api-v3/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
-GET     /api-v3/places/:uri/references           controllers.PlaceController.listReferences(uri: String, includeCloseMatches: Boolean ?= false)
+GET     /api-v3/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
 
 GET     /api-v3/search                           controllers.SearchController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int])
 
