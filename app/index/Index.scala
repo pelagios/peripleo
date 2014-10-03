@@ -11,15 +11,20 @@ import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig
 import org.apache.lucene.search.{ IndexSearcher, SearcherFactory }
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.Version
+import org.apache.lucene.search.spell.{ SpellChecker, LuceneDictionary }
 import play.api.Logger
 
-private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File) {
+private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {
   
   private val placeIndex = FSDirectory.open(placeIndexDir)
   
   private val objectIndex = FSDirectory.open(objectIndexDir)
   
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
+  
+  private val spellcheckIndex = FSDirectory.open(spellcheckDir)
+  
+  private val spellchecker = new SpellChecker(spellcheckIndex)
   
   protected var placeIndexReader = DirectoryReader.open(placeIndex)
   
@@ -66,12 +71,22 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     
     objectIndex.close()
     taxonomyIndex.close()
+    
+    spellchecker.close()
+    spellcheckIndex.close()
+  }
+  
+  def buildSpellchecker() = {
+	// Logger.info("Building spellcheck index")
+    // spellchecker.indexDictionary(new LuceneDictionary(placeIndexReader, IndexFields.PLACE_NAME), new IndexWriterConfig(Version.LUCENE_4_9, analyzer), true);
+    // val test = spellchecker.suggestSimilar("vindobuna", 5)
+    // test.foreach(s => Logger.info(s))
   }
       
 }
 
-class Index private(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File)
-  extends IndexBase(placeIndexDir, objectIndexDir, taxonomyDir)
+class Index private(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File)
+  extends IndexBase(placeIndexDir, objectIndexDir, taxonomyDir, spellcheckDir)
     with ObjectReader
     with ObjectWriter
     with PlaceReader
@@ -92,7 +107,9 @@ object Index {
       taxonomyInitializer.close()
     }
     
-    new Index(placeIndexDir, objectIndexDir, taxonomyDirectory)
+    val spellcheckIndexDir = createIfNotExists(new File(baseDir, "spellcheck"))
+    
+    new Index(placeIndexDir, objectIndexDir, taxonomyDirectory, spellcheckIndexDir)
   }
   
   private def createIfNotExists(dir: File): File = {

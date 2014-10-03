@@ -104,6 +104,8 @@ object Global extends GlobalSettings {
         Tags.create
       }      
     }
+    
+    index.buildSpellchecker()
   }  
   
   override def onStop(app: Application): Unit = index.close()
