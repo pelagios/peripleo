@@ -70,7 +70,7 @@ private[models] case class PlacesByThing(
   
   /** ID of the annotated thing that is referencing the place **/
   annotatedThing: String, 
-
+  
   /** The start of the date interval this dataset encompasses (optional) **/ 
   temporalBoundsStart: Option[Int],
   
@@ -225,13 +225,30 @@ object AggregatedView {
   def countDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Int =
     Query(queryByDataset.where(_.gazetteerURI === gazetteerURI).length).first
   
-  def findDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] = {
-    val query = for {
-      placesByDataset <- queryByDataset.where(_.gazetteerURI === gazetteerURI)   
-      dataset <- Datasets.query if placesByDataset.datasetId === dataset.id
-    } yield (dataset, placesByDataset.count)
+  /** Returns the datasets that reference a specific place.
+    * 
+    * The results are tuples of
+    * (i) dataset
+    * (ii) no. of items in the set referencing the place
+    * (iii) no. of occurrences (= annotations) in the set referencing the place 
+    */
+  def findOccurrences(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] =
+    findOccurrences(Set(gazetteerURI))
     
-    query.list
+  def findOccurrences(gazetteerURIs: Set[String])(implicit s: Session): Seq[(Dataset, Int)] = {
+    // Part 1: all things that reference the place
+    val queryA = for { 
+      (datasetId, thingId) <- queryByThing.where(_.gazetteerURI inSet gazetteerURIs).map(t => (t.datasetId, t.annotatedThingId))
+      thing <- AnnotatedThings.query if thingId === thing.id
+    } yield (datasetId, thing)
+    
+    // Part 2: filter to top-level things, group by dataset ID and join in the dataset
+    val queryB = for {
+      (datasetId, numberOfTopLevelThings) <- queryA.filter(_._2.isPartOfId.isNull).groupBy(_._1).map(t => (t._1, t._2.length))
+      dataset <- Datasets.query if datasetId === dataset.id
+    } yield (dataset, numberOfTopLevelThings)
+    
+    queryB.list
   }
   
   def countThingsForPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Int =

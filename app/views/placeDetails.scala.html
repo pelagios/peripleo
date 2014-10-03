@@ -70,10 +70,14 @@
       </div> <!-- .row -->
       
       <div class="row">
-        <h2>References to @place.title in Pelagios</h2>
+        <h2>References to @place.title</h2>
         <table class="references styled">
           <thead>
-            <tr><th>Dataset</th><th>No. of References</th></tr>
+            <tr>
+              <th>Publisher</th>
+              <th>Dataset</th>
+              <th>No. of Items</th>
+            </tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -91,14 +95,15 @@
           var map = new window.PlaceMap('map', centroid);   
         } 
         
-        $.getJSON('@routes.PlaceController.listOccurrences(place.uri, false)', function(data) {
+        $.getJSON('@routes.PlaceController.listOccurrences(place.uri, true)', function(data) {
           var table = $('.references tbody');
-          $.each(data, function(idx, r) {    
-            console.log(r);        
+          $.each(data.occurrences, function(idx, r) {    
+            console.log(r);
             var row =
               '<tr>' + 
+              '  <td>' + r.dataset.publisher + '</td>' +
               '  <td><a href="@controllers.pages.routes.DatasetPagesController.listAll/' + r.dataset.id + '">' + r.dataset.title + '</a></td>' +
-              '  <td><span class="number">' + r.references[0].num_occurrences + '</span> (of <span class="number">' + r.dataset.num_annotations + '</span> total in dataset)</td>' +
+              '  <td><span class="number">' + r.num_referencing_items + '</span></td>' +
               '</tr>';
               
             table.append(row);

@@ -2,6 +2,7 @@ package controllers
 
 import controllers.common.io.JSONWrites._
 import global.Global
+import index.Index
 import index.places.IndexedPlace
 import models.{ AggregatedView, Dataset }
 import play.api.mvc.Action
@@ -33,38 +34,21 @@ object PlaceController extends AbstractAPIController {
     }
   }
   
-  /** TODO CLEAN UP **/
   def listOccurrences(uri: String, includeCloseMatches: Boolean) = DBAction { implicit request =>
-    val place = Global.index.findPlaceByURI(uri)
+    val place = Global.index.findPlaceByURI(Index.normalizeURI(uri))
     if (place.isDefined) {
-      val asTuples = AggregatedView.findDatasetsForPlace(place.get.uri).map { case (dataset, occurences) => {
-        val numReferencingItems = AggregatedView.countThingsForPlaceAndDataset(place.get.uri, dataset.id)
-        (dataset, References(place.get, occurences, numReferencingItems))
-      }}
-      
-      val grouped = asTuples.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+      val occurrences = 
+        if (includeCloseMatches) {
+          val places = Global.index.findNetworkByPlaceURI(uri).get.places.map(_.uri)
+          AggregatedView.findOccurrences(places.toSet) 
+        } else {
+          AggregatedView.findOccurrences(place.get.uri)      
+        }
       implicit val verbose = false
-      jsonOk(Json.toJson(grouped), request.request)
+      jsonOk(Json.toJson((place.get, occurrences)), request.request)
     } else {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
     }
   }
-  
-}
-
-case class References(toPlace: IndexedPlace, occurrencesInDataset: Int, numReferencingItems: Int)
-
-object References {
-  
-  implicit def referencesInsideDatasetWrites: Writes[References] = (
-    (JsPath \ "to_place").write[IndexedPlace] ~
-    (JsPath \ "num_occurrences").write[Int] ~
-    (JsPath \ "num_referencing_items").write[Int]
-  )(r => (r.toPlace, r.occurrencesInDataset, r.numReferencingItems))
-  
-  implicit def referencesWrites(implicit s: Session): Writes[(Dataset, Seq[References])] = (
-    (JsPath \ "dataset").write[Dataset] ~
-    (JsPath \ "references").write[Seq[References]]
-  )(t => (t._1, t._2)) 
   
 }

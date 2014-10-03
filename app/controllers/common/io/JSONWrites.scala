@@ -100,6 +100,12 @@ object JSONWrites {
     (JsPath).write[Dataset] ~
     (JsPath \ "dumpfiles").write[Seq[DatasetDumpfile]]
   )(t  => (t._1, t._2))   
+  
+  
+  implicit def placeOccurrenceInDatasetWrites(implicit s: Session): Writes[(Dataset, Int)] = (
+    (JsPath \ "dataset").write[Dataset] ~
+    (JsPath \ "num_referencing_items").write[Int]
+  )(t => (t._1, t._2))
       
       
   /** TODO this (optionally) inlines a place with an index request - optimize with a Writes[(Gazetteer, IndexedPlace)] **/
@@ -188,6 +194,12 @@ object JSONWrites {
        place.centroid.map(_.x)) })  
   
 
+  implicit def placeOccurencesWrites(implicit s: Session): Writes[(IndexedPlace, Seq[(Dataset, Int)])] = (
+    (JsPath \ "to_place").write[IndexedPlace] ~
+    (JsPath \ "occurrences").write[Seq[(Dataset, Int)]]
+  )(t => (t._1, t._2))
+       
+  
   implicit val networkNodeWrites: Writes[NetworkNode] = (
     (JsPath \ "uri").write[String] ~
     (JsPath \ "title").writeNullable[String] ~
