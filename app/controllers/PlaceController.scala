@@ -10,13 +10,20 @@ import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import models.Gazetteers
 
 object PlaceController extends AbstractAPIController {
 
-  def listAll(limit: Int, offset: Int) = Action { implicit request => 
-    jsonOk(Json.parse("{ \"message\": \"Hello World\" }"), request)
+  def listAll(gazetteerName:String, limit: Option[Int], offset: Option[Int]) = DBAction { implicit session => 
+    val gazetteer = Gazetteers.findByName(gazetteerName) 
+    if (gazetteer.isDefined) {
+      val allPlaces = Global.index.listAllPlaces(gazetteer.get.name, offset.getOrElse(0), limit.getOrElse(gazetteer.get.totalPlaces))
+      jsonOk(Json.toJson(allPlaces), session.request)
+    } else {
+      NotFound(Json.parse("{ \"message\": \"Place not found.\" }"))
+    }
   }  
-  
+
   def getPlace(uri: String) = Action { implicit request =>
     val place = Global.index.findPlaceByURI(uri)
     if (place.isDefined)

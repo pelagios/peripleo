@@ -21,7 +21,7 @@ GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingContr
 GET     /api-v3/annotations                      controllers.AnnotationController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
 
-GET     /api-v3/places                           controllers.PlaceController.listAll(limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/places                           controllers.PlaceController.listAll(gazetteer: String, limit: Option[Int], offset: Option[Int])
 GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String)
 GET     /api-v3/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
 GET     /api-v3/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
@@ -29,10 +29,11 @@ GET     /api-v3/places/:uri/occurrences          controllers.PlaceController.lis
 GET     /api-v3/search                           controllers.SearchController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int])
 
 # HTML view routes
+GET     /api-v3/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.getAnnotatedThing(id: String)
 GET     /api-v3/pages/datasets                   controllers.pages.DatasetPagesController.listAll
 GET     /api-v3/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
-GET     /api-v3/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.getAnnotatedThing(id: String)
 GET     /api-v3/pages/places/:uri                controllers.pages.PlacePagesController.getPlace(uri: String)
+GET     /api-v3/pages/gazetteers/:name           controllers.pages.PlacePagesController.showGazetteer(name)
 GET     /api-v3/pages/search                     controllers.pages.HomepageController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int])
 GET     /api-v3/pages/advanced-search            controllers.pages.HomepageController.defineAdvancedSearch
 GET     /api-v3/                                 controllers.pages.HomepageController.index 

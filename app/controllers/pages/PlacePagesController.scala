@@ -2,10 +2,9 @@ package controllers.pages
 
 import global.Global
 import index.Index
+import models.Gazetteers
 import play.api.db.slick._
-import play.api.mvc.Controller
-import play.api.Logger
-import play.api.libs.json.Json
+import play.api.mvc.{ Action, Controller }
 
 object PlacePagesController extends Controller {
   
@@ -14,8 +13,17 @@ object PlacePagesController extends Controller {
     if (network.isDefined) {
       Ok(views.html.placeDetails(network.flatMap(_.getPlace(uri)).get, network.get))
     } else {
-      NotFound(Json.parse("{ \"message\": \"Place not found.\" }")) // TODO create decent 'not found' page
+      NotFound
     }
+  }
+  
+  def listGazetteers() = DBAction { implicit session =>
+    // TODO implement
+    Ok("")
+  }
+  
+  def showGazetteer(name: String) = Action { 
+    Ok(views.html.showGazetteer(name))    
   }
 
 }

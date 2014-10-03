@@ -76,7 +76,10 @@ object Gazetteers {
     
   def numTotalPlaces()(implicit s: Session): Int =
     queryGazetteers.map(_.totalPlaces).list.foldLeft(0)(_ + _)
- 
+   
+  def findByName(name: String)(implicit s: Session): Option[Gazetteer] =
+    queryGazetteers.where(_.name.toLowerCase === name.toLowerCase).firstOption
+  
   def findByURI(uri: String)(implicit s: Session): Option[Gazetteer] = {
     val prefix = queryGazetteerPrefixes.list.find(p => uri.startsWith(p.prefix))
     if (prefix.isDefined)

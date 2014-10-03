@@ -21,6 +21,18 @@ trait PlaceReader extends IndexBase {
       .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
   }
   
+  def listAllPlaces(gazetteer: String, offset: Int = 0, limit: Int = 20): Seq[IndexedPlace] = {    
+    val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
+ 
+    val searcher = newPlaceSearcher()
+    val collector = TopScoreDocCollector.create(offset + limit, true)
+    searcher.search(query, collector)
+    
+    collector.topDocs(offset, limit).scoreDocs
+      .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
+      .map(_.places.filter(_.sourceGazetteer == gazetteer).head)
+  }
+  
   def findPlaceByURI(uri: String): Option[IndexedPlace] =
     findNetworkByPlaceURI(uri).flatMap(_.getPlace(uri))
     

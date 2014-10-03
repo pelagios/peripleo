@@ -1,0 +1,22 @@
+@(gazetteerName: String)
+<html>
+  <head>
+    <title>Explore</title>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/gazetteer/main.css")"/>
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/heatmap.js")"></script>
+  </head>
+  
+  <body>
+    <div id="map"></div>
+    <script>
+      $.getJSON('@routes.PlaceController.listAll(gazetteerName, None, None)', function(data) {
+        console.log('Rendering...');
+        var heatmap = new Heatmap('map', data);
+      });
+    </script>
+  </body>
+</html>
