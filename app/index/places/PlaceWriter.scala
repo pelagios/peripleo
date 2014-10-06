@@ -69,7 +69,7 @@ trait PlaceWriter extends PlaceReader {
         // Next, we query our index for places which list our new places as their closeMatch
         val indexedCloseMatchesIn = findNetworkByCloseMatch(normalizedUri)
         
-        val indexedCloseMatches = indexedCloseMatchesOut ++ indexedCloseMatchesIn
+        val indexedCloseMatches = (indexedCloseMatchesOut ++ indexedCloseMatchesIn)
         
         // These are closeMatch URIs we don't have in our index (yet)...
         val unrecordedCloseMatchesOut = closeMatches.filter(_._2.isEmpty).map(_._1)
@@ -79,10 +79,10 @@ trait PlaceWriter extends PlaceReader {
           unrecordedCloseMatchesOut.flatMap(uri => findNetworkByCloseMatch(uri))
           .filter(!indexedCloseMatches.contains(_)) // We filter out places that are already connected directly
 
-        val allCloseMatches = (indexedCloseMatches ++ indirectlyConnectedPlaces).distinct
+        val allCloseMatches = indexedCloseMatches ++ indirectlyConnectedPlaces
 
         // Update the index
-        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allCloseMatches, writer);
+        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allCloseMatches.distinct, writer);
         
         // If this place didn't have any closeMatches at all, it's a new distinct contribution
         allCloseMatches.size == 0

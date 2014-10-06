@@ -60,6 +60,13 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   def getPlace(uri: String): Option[IndexedPlace] =
     places.find(_.uri == Index.normalizeURI(uri))
     
+  override def equals(o: Any) = o match {
+    case other: IndexedPlaceNetwork => other.seedURI == seedURI
+    case _  => false
+  }
+  
+  override def hashCode = seedURI.hashCode
+    
 }
 
 object IndexedPlaceNetwork {
@@ -83,6 +90,12 @@ object IndexedPlaceNetwork {
   def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork = {
     val joinedDoc = new Document() 
     val allPlaces = networks.flatMap(_.places) :+ place
+    
+    /** DEBUG **/
+    val uris = allPlaces.map(_.uri).toSet
+    if (uris.size > allPlaces.length)
+      println(allPlaces.toString)
+    
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
     new IndexedPlaceNetwork(joinedDoc)   
   }
