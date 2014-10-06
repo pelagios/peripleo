@@ -79,7 +79,7 @@ trait PlaceWriter extends PlaceReader {
           unrecordedCloseMatchesOut.flatMap(uri => findNetworkByCloseMatch(uri))
           .filter(!indexedCloseMatches.contains(_)) // We filter out places that are already connected directly
 
-        val allCloseMatches = indexedCloseMatches ++ indirectlyConnectedPlaces
+        val allCloseMatches = (indexedCloseMatches ++ indirectlyConnectedPlaces).distinct
 
         // Update the index
         updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allCloseMatches, writer);
