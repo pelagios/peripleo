@@ -114,7 +114,7 @@
         var showNext = function(places, shown, n) {
           var numResults = Math.min(n, places.length);
           
-          for (var i=shown, j=shown + n; i<j; i++) {
+          for (var i=shown, j=shown + numResults; i<j; i++) {
             var occurrences = places[i].num_occurrences;
             var html = meterTemplate
               .replace('@@href@@', '../places/' + encodeURIComponent(places[i].gazetteer_uri))
