@@ -11,7 +11,10 @@
       <span class={ cssClass + " dare" }>dare:{ s.substring(39) }</span>
       
     case s if s.startsWith("http://gazetteer.dainst.org/place/") =>
-      <span class={ cssClass + " dai" }>dai:{ s.substring(34) }</span>
+      <span class={ cssClass + " idai" }>dai:{ s.substring(34) }</span>
+      
+    case s if s.startsWith("http://vici.org/vici/") =>
+      <span class={ cssClass + " vici"}>vici:{ s.substring(21) }</span>
       
     case s => 
       <span class={ cssClass }>{ s }</span>

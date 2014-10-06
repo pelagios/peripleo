@@ -30,7 +30,9 @@ util.formatGazetteerURI = function(uri) {
   } else if (uri.indexOf('http://gazetteer.dainst.org/place/') > -1) {
 	return 'dai:' + uri.substr(34);
   } else if (uri.indexOf('http://sws.geonames.org/') > -1) {
-    return 'geonames:' + uri.substr(24);
+	return 'geonames:' + uri.substr(24);
+  } else if (uri.indexOf('http://vici.org/vici') > -1) {
+	return 'vici:' + uri.substr(21); 
   } else {
     return uri;
   }
