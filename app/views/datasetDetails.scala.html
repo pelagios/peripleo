@@ -112,6 +112,8 @@
             
         // Helper function to show the next N places in the 'top places' list
         var showNext = function(places, shown, n) {
+          var numResults = Math.min(n, places.length);
+          
           for (var i=shown, j=shown + n; i<j; i++) {
             var occurrences = places[i].num_occurrences;
             var html = meterTemplate
