@@ -203,19 +203,23 @@ object JSONWrites {
   implicit val networkNodeWrites: Writes[NetworkNode] = (
     (JsPath \ "uri").write[String] ~
     (JsPath \ "title").writeNullable[String] ~
-    (JsPath \ "source_gazetteer").writeNullable[String]
+    (JsPath \ "source_gazetteer").writeNullable[String] ~
+    (JsPath \ "is_inner_node").write[Boolean]
   )(node => (
       node.uri,
       node.place.map(_.title),
-      node.place.map(_.sourceGazetteer)))
+      node.place.map(_.sourceGazetteer),
+      node.isInnerNode))
       
 
   implicit val networkEdgeWrites: Writes[NetworkEdge] = (
     (JsPath \ "source").write[Int] ~
-    (JsPath \ "target").write[Int]
+    (JsPath \ "target").write[Int] ~
+    (JsPath \ "is_inner_edge").write[Boolean]
   )(edge => (
       edge.source,
-      edge.target)) 
+      edge.target,
+      edge.isInnerEdge)) 
       
       
   implicit val networkWrites: Writes[IndexedPlaceNetwork] = (

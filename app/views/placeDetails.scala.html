@@ -87,7 +87,17 @@
     <script type="text/javascript">
       (function() {
         $.getJSON('@routes.PlaceController.getNetwork(place.uri)', function(data) {
-          var network = new window.PlaceNetwork('network', data);
+          var nodes = $.grep(data.nodes, function(n) {
+            return n.is_inner_node;
+          });
+          
+          var edges = $.grep(data.edges, function(e) {
+            return e.is_inner_edge;
+          });         
+          
+          console.log(edges)
+          
+          var network = new window.PlaceNetwork('network', nodes, edges);
         });
         
         @if(place.centroid.isDefined) {

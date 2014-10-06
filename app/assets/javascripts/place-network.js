@@ -1,4 +1,4 @@
-window.PlaceNetwork = function(divId, network) {
+window.PlaceNetwork = function(divId, nodes, edges) {
   var div = $('#' + divId),
       width = div.width(),
       height = div.height();
@@ -7,8 +7,8 @@ window.PlaceNetwork = function(divId, network) {
     .charge(-300)
     .linkDistance(60)
     .size([width, height])
-    .nodes(network.nodes)
-    .links(network.edges)
+    .nodes(nodes)
+    .links(edges)
     .on('tick', function() {
       link
         .attr('x1', function(d) { return d.source.x; })
@@ -37,10 +37,10 @@ window.PlaceNetwork = function(divId, network) {
         .attr('d', 'M0,-5L10,0L0,5');
       
   var link = svg.selectAll('.link')
-    .data(network.edges)
+    .data(edges)
     .enter().append('line')
     .attr('class', function(d) { 
-      var t = network.nodes[d.target];
+      var t = nodes[d.target];
       if (t.title)
         return 'link'
       else
@@ -49,7 +49,7 @@ window.PlaceNetwork = function(divId, network) {
     .attr('marker-end', 'url(#end)')
 
   var node = svg.selectAll('.node')
-    .data(network.nodes)
+    .data(nodes)
     .enter().append('g')
     .attr('class', 'node')
     .call(force.drag);

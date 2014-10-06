@@ -9,9 +9,9 @@ import org.pelagios.api.gazetteer.Place
 import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
 
-case class NetworkNode(uri: String, place: Option[IndexedPlace])
+case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
-case class NetworkEdge(source: Int, target: Int)
+case class NetworkEdge(source: Int, target: Int, isInnerEdge: Boolean)
 
 /** Represents a network of gazetteer records, interlinked with closeMatch statements.
   *  
@@ -40,9 +40,19 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   /** Network nodes and edges **/
   val (nodes, edges) = {
     val links = places.flatMap(p => Seq.fill(p.closeMatches.size)(p.uri).zip(p.closeMatches))   
-    val nodes = (links.map(_._1) ++ links.map(_._2)).distinct.map(uri => NetworkNode(uri, places.find(_.uri == uri)))
-    val edges = links.map { case (source, target) => 
-      NetworkEdge(nodes.indexWhere(_.uri == source), nodes.indexWhere(_.uri == target)) }  
+    val nodes = (links.map(_._1) ++ links.map(_._2)).distinct.map(uri => { 
+      // If the node is an indexed place, it's an inner node; otherwise we require > 1 links to the node
+      val place = places.find(_.uri == uri)
+      val isInner = place.isDefined || links.filter(_._2 == uri).size > 1
+      NetworkNode(uri, place, isInner) 
+    })
+    
+    val edges = links.map { case (sourceURI, targetURI) => {
+      val source = nodes.find(_.uri == sourceURI).get
+      val target = nodes.find(_.uri == targetURI).get
+      NetworkEdge(nodes.indexOf(source), nodes.indexOf(target), source.isInnerNode && target.isInnerNode) 
+    }}  
+
     (nodes, edges)
   }
 
