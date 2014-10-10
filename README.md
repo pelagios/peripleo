@@ -100,7 +100,7 @@ Note: items in Pelagios that are __not dated will not appear in the results__. E
 
 [http://pelagios.org/api-v3/search?query=coin&from=-600&to=-500](http://pelagios.org/api-v3/search?query=coin&from=-600&to=-500&prettyprint=true)
 
-[http://pelagios.org/api-v3/search?from=2014&to=2014][http://pelagios.org/api-v3/search?from=2014&to=2014&prettyprint=true]
+[http://pelagios.org/api-v3/search?from=2014&to=2014](http://pelagios.org/api-v3/search?from=2014&to=2014&prettyprint=true)
 
 
 ## REST-style access methods
