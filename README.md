@@ -40,7 +40,7 @@ The API returns responses in JSON format. [CORS](http://de.wikipedia.org/wiki/Cr
 }
 ```
 
-You can traverse pages using an _offset_ and _limit_ (= page size) parameter. If _limit_ is omitted, it will
+You can traverse pages using an `offset` and `limit` (= page size) parameter. If `limit` is omitted, it will
 default to a page size of 20. Example:
 
 Results 1 - 20:
@@ -59,8 +59,8 @@ appending a `prettyprint=true` parameter. Example:
 ## Searching the API
 
 The main feature you'll probably want to use is __search__. You can currently search the API by __keyword query__, 
-__entity type__, __dataset__, __places__ and __time interval__ (or any combination of those). The base URL for 
-search is __http://pelagios.org/api-v3/search?__, followed by any combination of query parameters:
+__entity type__, __dataset__, __places__ and __time interval__ (or a combination of those). The base URL for 
+search is http://pelagios.org/api-v3/search, followed by the filter parameters:
 
 ### query 
 
@@ -68,11 +68,13 @@ A keyword query. Returns exact matches only (i.e. no fuzzy search). Supports AND
 asterisk for prefix queries. Examples:
 
 [http://pelagios.org/api-v3/search?query=gold+AND+coin](http://pelagios.org/api-v3/search?query=gold+AND+coin&prettyprint=true)
+
 [http://pelagios.org/api-v3/search?query=athen*](http://pelagios.org/api-v3/search?query=athen*&prettyprint=true)
 
 ### type
 
 Restrict the results to `place`, `dataset` or `item`. Examples:
+
 [http://pelagios.org/api-v3/search?query=bronze&type=place](http://pelagios.org/api-v3/search?query=bronze&type=place&prettyprint=true)
 
 ### dataset
@@ -97,6 +99,7 @@ numbers for BC years.) If you are interested in a specific year, use the same va
 Note: items in Pelagios that are __not dated will not appear in the results__. Examples:
 
 [http://pelagios.org/api-v3/search?query=coin&from=-600&to=-500](http://pelagios.org/api-v3/search?query=coin&from=-600&to=-500&prettyprint=true)
+
 [http://pelagios.org/api-v3/search?from=2014&to=2014][http://pelagios.org/api-v3/search?from=2014&to=2014&prettyprint=true]
 
 
