@@ -60,9 +60,9 @@ appending a `prettyprint=true` parameter. Example:
 
 The main feature you'll probably want to use is __search__. You can currently search the API by __keyword query__, 
 __entity type__, __dataset__, __places__ and __time interval__ (or a combination of those). The base URL for 
-search is http://pelagios.org/api-v3/search, followed by the filter parameters:
+search is http://pelagios.org/api-v3/search, followed by any of these the filter parameters:
 
-### query 
+#### query 
 
 A keyword query. Returns exact matches only (i.e. no fuzzy search). Supports AND and OR operators, and trailing
 asterisk for prefix queries. Examples:
@@ -71,20 +71,20 @@ asterisk for prefix queries. Examples:
 
 [http://pelagios.org/api-v3/search?query=athen*](http://pelagios.org/api-v3/search?query=athen*&prettyprint=true)
 
-### type
+#### type
 
 Restrict the results to `place`, `dataset` or `item`. Examples:
 
 [http://pelagios.org/api-v3/search?query=bronze&type=place](http://pelagios.org/api-v3/search?query=bronze&type=place&prettyprint=true)
 
-### dataset
+#### dataset
 
 Restrict results to one specific dataset. E.g. find everything for 'netherlands' in the [Following Hadrian](http://pelagios.org/api-v3/pages/datasets/ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2)
 photo collection:
 
 [http://pelagios.org/api-v3/search?query=netherlands&dataset=ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2](http://pelagios.org/api-v3/search?query=netherlands&dataset=ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2&prettyprint=true)
 
-### places
+#### places
 
 Restrict to one or more places. Places are identified by (a comma-separated list of) gazetteer URIs. (Search by coordinate is under development.) 
 If more than one place is specified, they are logically combined to an AND query. That means the search will return items that reference __all__
@@ -92,7 +92,7 @@ of the places in the list. E.g. find everything that referes to both Rome and Sy
 
 [http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025](http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025&prettyprint=true)
 
-### from, to
+#### from, to
 
 Restrict the results to a specific time interval. Both parameters take an integer number, which is interpreted as year. (Use negative
 numbers for BC years.) If you are interested in a specific year, use the same value for `from` and `to`. 
