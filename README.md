@@ -95,7 +95,7 @@ items that reference __all__ of the places in the list. E.g. find everything tha
 #### from, to
 
 Restrict the results to a specific time interval. Both parameters take an integer number, which is interpreted as year. (Use negative
-numbers for BC years.) If you are interested in a specific year, use the same value for `from` and `to`. 
+numbers for BC years.) If you are interested in one specific year only, use the same value for `from` and `to`. 
 Note: items in Pelagios that are __not dated will not appear in the results__. Examples:
 
 [http://pelagios.org/api-v3/search?query=coin&from=-600&to=-500](http://pelagios.org/api-v3/search?query=coin&from=-600&to=-500&prettyprint=true)
