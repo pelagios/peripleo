@@ -114,7 +114,7 @@ The API also provides 'REST-style' access to the data via the following methods:
 * [/api-v3/items/:id](http://pelagios.org/api-v3/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa?prettyprint=true) - get metdata for the item with the specified ID
 * [/api-v3/items/:id/items](http://pelagios.org/api-v3/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa/items?prettyPrint=true) - list sub-items to this item
 * [/api-v3/items/:id/places](http://pelagios.org/api-v3/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa/places?prettyprint=true) - list all places that are referenced by this item
-* [/api-v3/places/:uri](http://pelagios.org/api-v3/places/http%3A%2F%2Fpleiades.stoa.org%2Fplaces%2F658381?prettyprint=true) - get information about the place with the specified URI (be sure to URL-escape the URI!)
+* [/api-v3/places/:uri](http://pelagios.org/api-v3/places/http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025?prettyprint=true) - get information about the place with the (URL-escaped!) URI
 
 *) Append `verbose=false` as query parameter to receive a less verbose response. This response will have additional performance benefits and load faster than
 the full response. Usually, you will only need this if you retrieve many places in one request, by setting a high page size `limit`.
