@@ -111,9 +111,9 @@ The API also provides 'REST-style' access to the data via the following methods:
 * [/api-v3/datasets/:id](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947?prettyprint=true) - get the dataset with the specified ID
 * [/api-v3/datasets/:id/items](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/items?prettyprint=true) - list all items contained in this dataset
 * [/api-v3/datasets/:id/places](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/places?prettyprint=true) - list all places referenced in this dataset *)
-* [/api-v3/items/:id](http://pelagios.org/api-v3/items/bae00692d9a64e3e947bd5819102d01d?prettyprint=true) - get metdata for the item with the specified ID
-* [/api-v3/items/:id/items](http://pelagios.org/api-v3/items/2dbf2df9a073bd29710abdf3a4330996/items?prettyPrint=true) - list sub-items to this item
-* [/api-v3/items/:id/places](http://pelagios.org/api-v3/items/bae00692d9a64e3e947bd5819102d01d/places?prettyprint=true) - list all places that are referenced by this item
+* [/api-v3/items/:id](http://pelagios.org/api-v3/items/25012298ced3f04b802b5558f3ab8225db67a35807318a354c44eac43eba69f5?prettyprint=true) - get metdata for the item with the specified ID
+* [/api-v3/items/:id/items](http://pelagios.org/api-v3/items/25012298ced3f04b802b5558f3ab8225db67a35807318a354c44eac43eba69f5/items?prettyPrint=true) - list sub-items to this item
+* [/api-v3/items/:id/places](http://pelagios.org/api-v3/items/25012298ced3f04b802b5558f3ab8225db67a35807318a354c44eac43eba69f5/places?prettyprint=true) - list all places that are referenced by this item
 * [/api-v3/places/:uri](http://pelagios.org/api-v3/places/http%3A%2F%2Fpleiades.stoa.org%2Fplaces%2F658381?prettyprint=true) - get information about the place with the specified URI (be sure to URL-escape the URI!)
 
 *) Append `verbose=false` as query parameter to receive a less verbose response. This response will have additional performance benefits and load faster than
