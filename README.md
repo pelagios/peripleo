@@ -40,11 +40,14 @@ The API returns responses in JSON format. [CORS](http://de.wikipedia.org/wiki/Cr
 }
 ```
 
-You can traverse pages using an `offset` (for the page offset) and `limit` (for the number of items on one page) parameter. If
-limit is not specified, it will default to a page size of 20. Example:
+You can traverse pages using an _offset_ and _limit_ (= page size) parameter. If _limit_ is omitted, it will
+default to a page size of 20. Example:
 
-Results 1 - 20: [http://pelagios.org/api-v3/search?query=gold+AND+coin](http://pelagios.org/api-v3/search?query=gold+AND+coin)
-Results 21 - 40: [http://pelagios.org/api-v3/search?query=gold+AND+coin&offset=20]
+Results 1 - 20:
+[http://pelagios.org/api-v3/search?query=gold+AND+coin](http://pelagios.org/api-v3/search?query=gold+AND+coin&prettyprint=true)
+
+Results 21 - 40:
+[http://pelagios.org/api-v3/search?query=gold+AND+coin&offset=20](http://pelagios.org/api-v3/search?query=gold+AND+coin&offset=20&prettyprint=true)
 
 ## Pretty Printing
 
