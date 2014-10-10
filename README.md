@@ -116,7 +116,8 @@ The API also provides 'REST-style' access to the data via the following methods:
 * [/api-v3/items/:id/places](http://pelagios.org/api-v3/items/bae00692d9a64e3e947bd5819102d01d/places?prettyprint=true) - list all places that are referenced by this item
 * [/api-v3/places/:uri](http://pelagios.org/api-v3/places/http%3A%2F%2Fpleiades.stoa.org%2Fplaces%2F658381?prettyprint=true) - get information about the place with the specified URI (be sure to URL-escape the URI!)
 
-*) (Append 'verbose=false' as query parameter to receive a less verbose response, which has additional performance benefits (i.e. it will load faster than the full response)
+*) Append `verbose=false` as query parameter to receive a less verbose response. This response will have additional performance benefits and load faster than
+the full response. Usually, you will only need this if you retrieve many places in one request, by setting a high page size `limit`.
 
 ## HTML Views
 
