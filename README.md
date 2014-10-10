@@ -9,11 +9,11 @@ free to give it a spin.__
 
 ## API Basics
 
-Pelagios is a __community and network__ with the goal to facilitate __better linking between online
-resources documenting the past__, based on the __places they refer to__. The purpose of the Pelagios
-API is to __browse__ and __search__ within this network of links. 
+Pelagios is a __community network__ with the goal to facilitate __better linking between online
+resources documenting the past__, based on the __places they refer to__. The purpose of the __Pelagios
+API__ is to make our network of links __browse-__ and __searchable__. The 'mental model' behind our API
+is simple, and consists of only three types of entities:
 
-The API is concerened with three kinds of entities:
 * __Items__ such as archaeological artefacts, literary texts or photographs
 * __Places__ to which the items are related, e.g. places mentioned in a text, findspots of artefacts, etc.
 * __Datasets__ which contain items, e.g. a particular museum collection or data corpus
