@@ -82,7 +82,7 @@ Restrict the results to `place`, `dataset` or `item`. Examples:
 Restrict results to one specific dataset. E.g. find everything for 'netherlands' in the [Following Hadrian](http://pelagios.org/api-v3/pages/datasets/ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2)
 photo collection:
 
-[http://pelagios.org/api-v3/search?query=netherlands&dataset=ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2](http://pelagios.org/api-v3/search?query=netherlands&dataset=ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2&prettyprint=true)
+[http://pelagios.org/api-v3/search?query=netherlands&dataset=ca222503...](http://pelagios.org/api-v3/search?query=netherlands&dataset=ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2&prettyprint=true)
 
 #### places
 
