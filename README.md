@@ -86,11 +86,11 @@ photo collection:
 
 #### places
 
-Restrict to one or more places. Places are identified by (a comma-separated list of) gazetteer URIs. (Search by coordinate is under development.) 
-If more than one place is specified, they are logically combined to an AND query. That means the search will return items that reference __all__
-of the places in the list. E.g. find everything that referes to both Rome and Syria:
+Restrict to one or more places. Places are identified by (a comma-separated list of) gazetteer URIs. Search by coordinate is not available yet,
+but under development. If more than one place is specified, they are logically combined to an AND query. That means the search will return 
+items that reference __all__ of the places in the list. E.g. find everything that referes to both Rome and Syria:
 
-[http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025](http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025&prettyprint=true)
+[http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,htt...](http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025&prettyprint=true)
 
 #### from, to
 
