@@ -27,9 +27,12 @@
     </div> <!-- #header -->
     
     <div id="content">
+      <div class="row pagination">
+        <span class="label">Showing Results <strong>@{results.offset + 1}</strong> to <strong>@{ Math.min(results.total, results.offset + results.limit) }</strong></span>
+        <ul></ul>
+      </div>
+      
       <div class="row">
-        <ul class="pagination"></ul>
-        
         <ul id="results">
           @for(item <- results.items) {
           	@tags.searchresultItem(item)
@@ -39,8 +42,9 @@
     </div> <!-- #content -->
     
     <script>
-      $('.pagination').twbsPagination({
-        totalPages: @{ Math.ceil(results.total.toDouble / results.limit) },
+      var totalPages = @{ Math.ceil(results.total.toDouble / results.limit) };
+      $('.pagination ul').twbsPagination({
+        totalPages: totalPages,
         startPage: @{ Math.ceil(results.offset.toDouble / results.limit) + 1 }, 
         first: '&#xf100;',
         prev: '&#xf104;',
