@@ -61,10 +61,15 @@ trait ObjectReader extends IndexBase {
       q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
       
     // Timespan filter
-    if (fromYear.isDefined && toYear.isDefined) {
+    if (fromYear.isDefined || toYear.isDefined) {
       val timeIntervalQuery = new BooleanQuery()
-      timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, toYear.get, true, true), BooleanClause.Occur.MUST)
-      timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_TO, fromYear.get, null, true, true), BooleanClause.Occur.MUST)
+      
+      if (fromYear.isDefined)
+        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, toYear.get, true, true), BooleanClause.Occur.MUST)
+        
+      if (toYear.isDefined)
+        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_TO, fromYear.get, null, true, true), BooleanClause.Occur.MUST)
+        
       q.add(timeIntervalQuery, BooleanClause.Occur.MUST)
     }
       
