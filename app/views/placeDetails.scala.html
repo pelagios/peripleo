@@ -69,9 +69,9 @@
         </table>
       </div> <!-- .row -->
       
-      <div class="row">
-        <h2>References to @place.title</h2>
-        <table class="references styled">
+      <div class="row references">
+        <h2>References</h2>
+        <table>
           <thead>
             <tr>
               <th>Publisher</th>
@@ -106,18 +106,23 @@
         } 
         
         $.getJSON('@routes.PlaceController.listOccurrences(place.uri, true)', function(data) {
-          var table = $('.references tbody');
+          var h2 = $('.references h2'),
+              table = $('.references tbody'),
+              references = 0;
+           
           $.each(data.occurrences, function(idx, r) {    
-            console.log(r);
             var row =
               '<tr>' + 
               '  <td>' + r.dataset.publisher + '</td>' +
-              '  <td><a href="@controllers.pages.routes.DatasetPagesController.listAll/' + r.dataset.id + '">' + r.dataset.title + '</a></td>' +
+              '  <td><a href="@{controllers.pages.routes.HomepageController.index}pages/search?dataset=' + r.dataset.id + '&places=' + encodeURIComponent('@place.uri') + '">' + r.dataset.title + '</a></td>' +
               '  <td><span class="number">' + r.num_referencing_items + '</span></td>' +
               '</tr>';
               
+            references += r.num_referencing_items;
             table.append(row);
           });
+        
+          h2.html(references + ' References');
         });
       })();
     </script>
