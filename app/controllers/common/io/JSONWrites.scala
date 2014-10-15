@@ -23,6 +23,8 @@ object JSONWrites {
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "is_part_of").writeNullable[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
+    (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
+    (JsPath \ "temporal_bounds_end").writeNullable[Int] ~
     (JsPath \ "num_subitems").writeNullable[Int] ~
     (JsPath \ "num_annotations").write[Int] ~ 
     (JsPath \ "num_unique_places").write[Int]
@@ -32,6 +34,8 @@ object JSONWrites {
       thing.dataset,
       thing.isPartOf,
       thing.homepage,
+      thing.temporalBoundsStart,
+      thing.temporalBoundsEnd,
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),
       AggregatedView.countPlacesForThing(thing.id)))
