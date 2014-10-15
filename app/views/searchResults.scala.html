@@ -2,6 +2,9 @@
 <html>
   <head>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/searchresults.css")"/>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.twbsPagination.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -25,6 +28,8 @@
     
     <div id="content">
       <div class="row">
+        <ul class="pagination"></ul>
+        
         <ul id="results">
           @for(item <- results.items) {
           	@tags.searchresultItem(item)
@@ -32,5 +37,21 @@
         </ul>
       </div> <!-- .row -->
     </div> <!-- #content -->
+    
+    <script>
+      $('.pagination').twbsPagination({
+        totalPages: @{ Math.ceil(results.total.toDouble / results.limit) },
+        startPage: @{ Math.ceil(results.offset.toDouble / results.limit) + 1 }, 
+        first: '&#xf100;',
+        prev: '&#xf104;',
+        next: '&#xf105;',
+        last: '&#xf101;',
+        onPageClick: function (event, page) {
+          var offset = (page - 1) * @results.limit;
+          $('#results').html('');
+          location.search = util.buildPageRequestURL(offset, @results.limit);
+        }
+      })
+    </script>
   </body>
 </html>

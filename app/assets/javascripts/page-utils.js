@@ -7,7 +7,7 @@ util.formatNumbers = function(opt_parent) {
     var formatted = numeral($(el).text()).format('0,0');
     $(el).html(formatted);
   });
-}
+};
 
 /** Renders an image icon corresponding to a specific license URL **/
 util.licenseIcon = function(url) {
@@ -20,7 +20,7 @@ util.licenseIcon = function(url) {
   } else {
     return '<a href="' + url + '">' + url + '</a>';
   }
-} 
+};
 
 util.formatGazetteerURI = function(uri) {
   if (uri.indexOf('http://pleiades.stoa.org/places/') > -1) {
@@ -36,5 +36,21 @@ util.formatGazetteerURI = function(uri) {
   } else {
     return uri;
   }
-}
+};
 
+/** From http://www.samaxes.com/2011/09/change-url-parameters-with-jquery/ **/
+util.buildPageRequestURL = function(offset, limit) {
+  var queryParameters = {}, 
+      queryString = location.search.substring(1),
+      re = /([^&=]+)=([^&]*)/g, 
+      m;
+ 
+   while (m = re.exec(queryString)) {
+     queryParameters[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+   }
+ 
+   queryParameters['offset'] = offset;
+   queryParameters['limit'] = limit;
+ 
+   return $.param(queryParameters);
+};
