@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>  
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script> 
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/d3.v3.min.js")"></script> 
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/place-map.js")"></script>
@@ -49,24 +50,13 @@
 
       <div class="row">      
         <h2>@place.title in Other Gazetteers</h2>  
-        <table class="close-matches">
-          <tbody>            
-            @for(place <- network.places.filter(_.uri != place.uri)) {
-              <tr>
-                <td rowspan="3">
-                  <a href="@controllers.pages.routes.PlacePagesController.getPlace(place.uri)">
-                    @tags.gazetteerURI(place.uri)
-                  </a>
-                </td>
-                <td class="title">@place.title</td>
-              </tr>
-              
-              <tr><td>@place.names.map(_.chars).mkString(", ")</td></tr>
-              
-              <tr class="end"><td><a href="@place.uri" target="_blank">@place.uri</a></td></tr>
-            }
-          </tbody>
-        </table>
+        <div class="close-matches">      
+          @for(place <- network.places.filter(_.uri != place.uri)) {
+            <a href="@controllers.pages.routes.PlacePagesController.getPlace(place.uri)" title="@place.title">
+             @tags.gazetteerURI(place.uri)
+            </a>
+          }
+        </div>
       </div> <!-- .row -->
       
       <div class="row references">
@@ -95,8 +85,6 @@
             return e.is_inner_edge;
           });         
           
-          console.log(edges)
-          
           var network = new window.PlaceNetwork('network', nodes, edges);
         });
         
@@ -122,7 +110,8 @@
             table.append(row);
           });
         
-          h2.html(references + ' References');
+          h2.html('<span class="number">' + references + '</span> References');
+          util.formatNumbers();
         });
       })();
     </script>
