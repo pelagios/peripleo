@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Item &raquo; @thing.title</title>
-    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/dataset-details.css")"/>   
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/items/item-details.css")"/>   
     <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
@@ -29,8 +29,13 @@
           	  <a href="@controllers.pages.routes.DatasetPagesController.getDataset(dataset.id)">@dataset.title</a> &raquo;
           	}
           </h2>
-          <h1>@thing.title</h1>
-          [ Description goes here, if any ]
+          <h1>
+            @thing.title
+            @if(thing.homepage.isDefined) {
+              <a href="@thing.homepage.get" target="_blank">Source <span class="icon">&#xf08e;</span></a></h1>
+            }
+          </h1>
+          @thing.description.map { description => <p class="description">@description</p> }
           <p class="time">
             from - to
           </p>
