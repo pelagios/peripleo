@@ -131,21 +131,23 @@
       
         // Helper function to load a page of items
         var loadItems = function(offset, pagesize, callback) {
-          var table = $('#items-list table tbody');
-          table.html('');
+          var oldTable = $('#items-list table tbody');
           
           $('#items-list .from-to').html('Showing Results <strong>' + (offset + 1) + '</strong> to <strong>' + (offset + pagesize) + '</strong>');
           
           $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id)?offset=' + offset + '&limit=' + pagesize, function(data) {
+            var newTable = $('<tbody></tbody>');
             $.each(data.items, function(idx, item) {
               var title = (item.homepage) ? '<a href="@{controllers.pages.routes.HomepageController.index}pages/items/' + item.id + '">' + item.title + '</a>' : item.title;
-              table.append('<tr>' + 
-                             '<td>' + title + '</td>' +
-                             '<td class="center">' + item.num_annotations + '</td>' +
-                             '<td class="center">' + item.num_unique_places + '</td>' +
-                           '</tr>');
+              newTable.append('<tr>' + 
+                                '<td>' + title + '</td>' +
+                                '<td class="center">' + item.num_annotations + '</td>' +
+                                '<td class="center">' + item.num_unique_places + '</td>' +
+                              '</tr>');
             });
           
+            oldTable.replaceWith(newTable);
+            
             if (callback)
               callback(data);
           });        
@@ -165,6 +167,7 @@
             onPageClick: function (event, page) {
               var offset = (page - 1) * pagesize;
               loadItems(offset, pagesize);
+              event.preventDefault();
             }
           });
         });
