@@ -1,7 +1,7 @@
 @import "../globals.less";
 @import "../base-layout.less";
 @import "../common/table.less";
-@import "../common/pagination.less";
+@import "../common/paginate.less";
 
 #header {
 
@@ -93,28 +93,32 @@
   #items-list {
     clear:both;
     padding-top:20px;
+  
+    h2, .pagination {
+      margin:20px 0 10px 0;
+    }
     
-    h2, .pagination { display:inline-block; }
-    
-    .pagination {
-      position:relative;
-      top:6px;
-      margin-left:20px;
+    .from-to {
+      padding-left:20px;
     }
   
     table {
-      margin:0;
-      padding:0;
-      clear:both;
       width:100%;
-      
-      tr {
-        padding:8px 0;
-      }
-      
-      .left { text-align:left; }
-      .center { text-align:center; }
-      
+      border-collapse:collapse;
+      margin-bottom:80px;
+  
+      tr { 
+        border-color:#e2e2e2;
+        border-style:solid;
+        border-width:1px 0;
+      } /* tr */
+    
+      th, td {
+        font-size:13px;
+        padding:6px 10px 6px 10px;
+        text-align:left;
+      } /* th, td */
+    
     } /* table */
     
   } /* #items-list */

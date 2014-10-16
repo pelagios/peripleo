@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/datasets/dataset-details.css")"/>   
     <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.simplePagination.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.twbsPagination.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
@@ -82,9 +82,13 @@
       }
     
       <div class="row" id="items-list">
-        <h2>Items in this Dataset</h2>
-        <div class="pagination"></div>
-        <table class="styled">
+        <div class="pagination">
+          <h2 class="label"><span class="number">@things</span> Items</h2>
+          <span class="from-to"></span>
+          <ul></ul>
+        </div>
+        
+        <table>
           <thead>
             <tr>
               <th class="left">Title</th>
@@ -127,11 +131,14 @@
       
         // Helper function to load a page of items
         var loadItems = function(offset, pagesize, callback) {
+          var table = $('#items-list table tbody');
+          table.html('');
+          
+          $('#items-list .from-to').html('Showing Results <strong>' + (offset + 1) + '</strong> to <strong>' + (offset + pagesize) + '</strong>');
+          
           $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id)?offset=' + offset + '&limit=' + pagesize, function(data) {
-            var table = $('#items-list table tbody');
-            table.html('');
             $.each(data.items, function(idx, item) {
-              var title = (item.homepage) ? '<a href="' + item.homepage + '" target="_blank">' + item.title + '</a>' : item.title;
+              var title = (item.homepage) ? '<a href="@{controllers.pages.routes.HomepageController.index}pages/items/' + item.id + '">' + item.title + '</a>' : item.title;
               table.append('<tr>' + 
                              '<td>' + title + '</td>' +
                              '<td class="center">' + item.num_annotations + '</td>' +
@@ -148,15 +155,18 @@
         var pagesize = 20;
       
         loadItems(0, pagesize, function(data) {
-          $('.pagination').pagination({
-            items: data.total,
-            itemsOnPage: pagesize,
-            hrefTextPrefix: '#item-page-',
-            onPageClick: function(pageNumber, event) {
-              var offset = (pageNumber - 1) * pagesize;
+          var totalPages = Math.ceil(data.total / pagesize);
+          $('.pagination ul').twbsPagination({
+            totalPages: totalPages, 
+            first: '&#xf100;',
+            prev: '&#xf104;',
+            next: '&#xf105;',
+            last: '&#xf101;',
+            onPageClick: function (event, page) {
+              var offset = (page - 1) * pagesize;
               loadItems(offset, pagesize);
             }
-          })
+          });
         });
       
         // Load places - limiting to the first 1 million places should be sufficient...
@@ -194,8 +204,6 @@
           $('body').append(map);
           heatmap.refresh();
         });
-        
-        // TODO switch to normal?
         
         // Format numbers
         util.formatNumbers();
