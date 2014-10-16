@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/searchresults.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.twbsPagination.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
   </head>
   <body>
@@ -56,6 +57,8 @@
           location.search = util.buildPageRequestURL(offset, @results.limit);
         }
       });
+      
+      util.formatNumbers();
     </script>
   </body>
 </html>

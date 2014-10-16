@@ -41,10 +41,10 @@ util.formatGazetteerURI = function(uri) {
 /** From http://www.samaxes.com/2011/09/change-url-parameters-with-jquery/ **/
 util.buildPageRequestURL = function(offset, limit) {
   var queryParameters = {}, 
-      queryString = location.search.substring(1),
+      queryString = location.search.substring(1).replace(/\+/g, ' '),
       re = /([^&=]+)=([^&]*)/g, 
       m;
- 
+  
    while (m = re.exec(queryString)) {
      queryParameters[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
    }
