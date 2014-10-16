@@ -10,7 +10,7 @@ object AnnotatedThingPagesController extends Controller {
     val thing = AnnotatedThings.findById(id)
     if (thing.isDefined) {
       val places = AggregatedView.countPlacesForThing(id)
-      val datasetHierarchy = Datasets.findByIds(thing.get.dataset +: Datasets.getParentHierarchy(thing.get.dataset))
+      val datasetHierarchy = Datasets.findByIds(thing.get.dataset +: Datasets.getParentHierarchy(thing.get.dataset)).reverse
       Ok(views.html.annotatedThingDetails(thing.get, datasetHierarchy))
     } else {
       NotFound
