@@ -57,35 +57,35 @@ trait PlaceWriter extends PlaceReader {
         // Record URI prefix
         uriPrefixes.add(normalizedUri.substring(0, normalizedUri.indexOf('/', 8)))
             
-        // First, we query our index for all closeMatches our new place has 
-        val closeMatches = place.closeMatches.map(uri => {
+        // First, we query our index for all matches our new place has 
+        val matches = (place.closeMatches ++ place.exactMatches).map(uri => {
           val normalized = Index.normalizeURI(uri)
           (normalized, findNetworkByPlaceURI(normalized))
         })
         
         // These are the closeMatches we already have in our index        
-        val indexedCloseMatchesOut = closeMatches.filter(_._2.isDefined).map(_._2.get)
+        val indexedMatchesOut = matches.filter(_._2.isDefined).map(_._2.get)
 
         // Next, we query our index for places which list our new places as their closeMatch
-        val indexedCloseMatchesIn = findNetworkByCloseMatch(normalizedUri)
+        val indexedMatchesIn = findNetworkByCloseMatch(normalizedUri)
         
-        val indexedCloseMatches = (indexedCloseMatchesOut ++ indexedCloseMatchesIn)
+        val indexedMatches = (indexedMatchesOut ++ indexedMatchesIn)
         
         // These are closeMatch URIs we don't have in our index (yet)...
-        val unrecordedCloseMatchesOut = closeMatches.filter(_._2.isEmpty).map(_._1)
+        val unrecordedMatchesOut = matches.filter(_._2.isEmpty).map(_._1)
 
         // ...but we can still use them to extend our network through indirect connections
         val indirectlyConnectedPlaces = 
-          unrecordedCloseMatchesOut.flatMap(uri => findNetworkByCloseMatch(uri))
-          .filter(!indexedCloseMatches.contains(_)) // We filter out places that are already connected directly
+          unrecordedMatchesOut.flatMap(uri => findNetworkByCloseMatch(uri))
+          .filter(!indexedMatches.contains(_)) // We filter out places that are already connected directly
 
-        val allCloseMatches = indexedCloseMatches ++ indirectlyConnectedPlaces
+        val allMatches = indexedMatches ++ indirectlyConnectedPlaces
 
         // Update the index
-        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allCloseMatches.distinct, writer);
+        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allMatches.distinct, writer);
         
         // If this place didn't have any closeMatches at all, it's a new distinct contribution
-        allCloseMatches.size == 0
+        allMatches.size == 0
       }      
   }
   

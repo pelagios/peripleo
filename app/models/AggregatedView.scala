@@ -156,7 +156,7 @@ object AggregatedView {
         .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) } // Resolve place from index and just keep annotation count
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
         .map { case (place, count) => 
-          PlacesByDataset(None, id, GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+          PlacesByDataset(None, id, GazetteerReference(place.get.uri, place.get.label, place.get.geometryJson.map(Json.stringify(_))), count) }
         .toSeq
         
       // Write to DB
@@ -186,7 +186,7 @@ object AggregatedView {
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
         .map { case (place, count) =>
           PlacesByThing(None, thing.dataset, thingId, thing.temporalBoundsStart, thing.temporalBoundsEnd, 
-            GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+            GazetteerReference(place.get.uri, place.get.label, place.get.geometryJson.map(Json.stringify(_))), count) }
     }}.toSeq
     
     // Next, we compute stats for all other annotated things
@@ -203,7 +203,7 @@ object AggregatedView {
         .filter(_._1.isDefined)
         .map { case (place, count) =>
           PlacesByThing(None, thing.dataset, thing.id, thing.temporalBoundsStart, thing.temporalBoundsEnd,
-            GazetteerReference(place.get.uri, place.get.title, place.get.geometryJson.map(Json.stringify(_))), count) }
+            GazetteerReference(place.get.uri, place.get.label, place.get.geometryJson.map(Json.stringify(_))), count) }
         .toSeq
     }
     

@@ -20,7 +20,7 @@ object IndexFields {
 
   val PLACE_NAME = "name"
     
-  val PLACE_CLOSE_MATCH = "close_match"
+  val PLACE_MATCH = "match"
     
   val PLACE_AS_JSON = "place"
     

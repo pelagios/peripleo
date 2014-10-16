@@ -22,7 +22,7 @@ class IndexedPlace(json: String) {
   
   lazy val sourceGazetteer: String = (asJson \ "source_gazetteer").as[String] 
   
-  lazy val title: String = (asJson \ "title").as[String]
+  lazy val label: String = (asJson \ "label").as[String]
   
   lazy val description: Option[String] = (asJson \ "description").asOpt[String] 
   
@@ -46,6 +46,10 @@ class IndexedPlace(json: String) {
   
   lazy val closeMatches: List[String] = (asJson \ "close_matches").as[List[String]]
   
+  lazy val exactMatches: List[String] = (asJson \ "exact_matches").as[List[String]]
+  
+  lazy val matches: List[String] = closeMatches ++ exactMatches
+  
 }
 
 object IndexedPlace { 
@@ -59,20 +63,22 @@ object IndexedPlace {
   
   implicit val placeWrites: Writes[Place] = (
     (JsPath \ "uri").write[String] ~
-    (JsPath \ "title").write[String] ~
+    (JsPath \ "label").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "category").writeNullable[String] ~
     (JsPath \ "names").write[Seq[PlainLiteral]] ~
     (JsPath \ "geometry").writeNullable[JsValue] ~
-    (JsPath \ "close_matches").write[Seq[String]]
+    (JsPath \ "close_matches").write[Seq[String]] ~
+    (JsPath \ "exact_matches").write[Seq[String]]
   )(p  => (
       Index.normalizeURI(p.uri),
-      p.title,
+      p.label,
       p.descriptions.headOption.map(_.chars),
       p.category.map(_.toString),
       p.names,
       p.locations.headOption.map(location => Json.parse(location.geoJSON)),
-      p.closeMatches.map(Index.normalizeURI(_))))
+      p.closeMatches.map(Index.normalizeURI(_)),
+      p.exactMatches.map(Index.normalizeURI(_))))
   
   implicit val placeFromGazetteerWrites: Writes[(Place, String)] = (
     (JsPath).write[Place] ~

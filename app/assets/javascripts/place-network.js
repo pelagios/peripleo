@@ -41,7 +41,7 @@ window.PlaceNetwork = function(divId, nodes, edges) {
     .enter().append('line')
     .attr('class', function(d) { 
       var t = nodes[d.target];
-      if (t.title)
+      if (t.label)
         return 'link'
       else
         return 'link virtual';

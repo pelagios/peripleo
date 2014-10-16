@@ -39,7 +39,7 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   
   /** Network nodes and edges **/
   val (nodes, edges) = {
-    val links = places.flatMap(p => Seq.fill(p.closeMatches.size)(p.uri).zip(p.closeMatches))   
+    val links = places.flatMap(p => Seq.fill(p.matches.size)(p.uri).zip(p.matches))   
     val nodes = (links.map(_._1) ++ links.map(_._2)).distinct.map(uri => { 
       // If the node is an indexed place, it's an inner node; otherwise we require > 1 links to the node
       val place = places.find(_.uri == uri)
@@ -103,10 +103,10 @@ object IndexedPlaceNetwork {
   private[places] def addPlaceToDoc(place: IndexedPlace, doc: Document): Document = {
     if (doc.get(IndexFields.TITLE) == null)
       // If the network is still be empty, its title is null. In this case, store the place title as network title
-      doc.add(new TextField(IndexFields.TITLE, place.title, Field.Store.YES))
+      doc.add(new TextField(IndexFields.TITLE, place.label, Field.Store.YES))
     else
       // Otherwise just index the place title, but don't store
-      doc.add(new TextField(IndexFields.TITLE, place.title, Field.Store.NO))
+      doc.add(new TextField(IndexFields.TITLE, place.label, Field.Store.NO))
       
     if (place.description.isDefined) {
       if (doc.get(IndexFields.DESCRIPTION) == null)
@@ -128,11 +128,11 @@ object IndexedPlaceNetwork {
     if (!sourceGazetteers.contains(place.sourceGazetteer))
       doc.add(new StringField(IndexFields.PLACE_SOURCE_GAZETTEER, place.sourceGazetteer, Field.Store.YES))
       
-    // Update list of close matches
-    val newCloseMatches = place.closeMatches.map(Index.normalizeURI(_)).distinct
-    val knownCloseMatches = doc.getValues(IndexFields.PLACE_CLOSE_MATCH).toSeq // These are distinct by definition
-    newCloseMatches.diff(knownCloseMatches).foreach(closeMatch =>
-      doc.add(new StringField(IndexFields.PLACE_CLOSE_MATCH, closeMatch, Field.Store.YES)))
+    // Update list of matches
+    val newMatches = place.matches.map(Index.normalizeURI(_)).distinct
+    val knownMatches = doc.getValues(IndexFields.PLACE_MATCH).toSeq // These are distinct by definition
+    newMatches.diff(knownMatches).foreach(anyMatch =>
+      doc.add(new StringField(IndexFields.PLACE_MATCH, anyMatch, Field.Store.YES)))
       
     // Index shape geometry
     if (place.geometry.isDefined)

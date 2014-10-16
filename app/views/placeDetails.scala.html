@@ -1,7 +1,7 @@
 @(place: index.places.IndexedPlace, network: index.places.IndexedPlaceNetwork)
 <html>
   <head>
-    <title>Place &raquo; @place.title</title>
+    <title>Place &raquo; @place.label</title>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/places/place-details.css")"/>
     <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>  
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
@@ -28,7 +28,7 @@
       <div id="header-body">
         <div class="row">
           @tags.gazetteerURI(place.uri)
-          <h1>@place.title</h1>
+          <h1>@place.label</h1>
           <h3 class="names">@place.names.map(_.chars).mkString(", ")</h3>
           <p class="description">
             @place.description
@@ -49,10 +49,10 @@
       </div> <!-- .row -->
 
       <div class="row">      
-        <h2>@place.title in Other Gazetteers</h2>  
+        <h2>@place.label in Other Gazetteers</h2>  
         <div class="close-matches">      
           @for(place <- network.places.filter(_.uri != place.uri)) {
-            <a href="@controllers.pages.routes.PlacePagesController.getPlace(place.uri)" title="@place.title">
+            <a href="@controllers.pages.routes.PlacePagesController.getPlace(place.uri)" title="@place.label">
              @tags.gazetteerURI(place.uri)
             </a>
           }
@@ -77,6 +77,8 @@
     <script type="text/javascript">
       (function() {
         $.getJSON('@routes.PlaceController.getNetwork(place.uri)', function(data) {
+          console.log(data);
+          
           var nodes = $.grep(data.nodes, function(n) {
             return n.is_inner_node;
           });

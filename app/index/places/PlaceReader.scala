@@ -47,7 +47,7 @@ trait PlaceReader extends IndexBase {
   }
 
   def findNetworkByCloseMatch(uri: String): Seq[IndexedPlaceNetwork] = {
-    val q = new TermQuery(new Term(IndexFields.PLACE_CLOSE_MATCH, Index.normalizeURI(uri)))
+    val q = new TermQuery(new Term(IndexFields.PLACE_MATCH, Index.normalizeURI(uri)))
     
     val searcher = newPlaceSearcher()
     val numHits = Math.max(1, numPlaceNetworks) // Has to be minimum 1, but can never exceed size of index

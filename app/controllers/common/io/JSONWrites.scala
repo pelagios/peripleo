@@ -180,7 +180,7 @@ object JSONWrites {
       
   implicit val placeWrites: Writes[IndexedPlace] = (
     (JsPath \ "gazetteer_uri").write[String] ~
-    (JsPath \ "title").write[String] ~
+    (JsPath \ "label").write[String] ~
     (JsPath \ "place_category").writeNullable[String] ~
     (JsPath \ "names").write[Seq[String]] ~
     (JsPath \ "description").writeNullable[String] ~
@@ -189,7 +189,7 @@ object JSONWrites {
     (JsPath \ "centroid_lng").writeNullable[Double]
   )(place => {
       (place.uri,
-       place.title,
+       place.label,
        place.category.map(_.toString),
        place.names.map(_.chars),
        place.description,
@@ -206,12 +206,12 @@ object JSONWrites {
   
   implicit val networkNodeWrites: Writes[NetworkNode] = (
     (JsPath \ "uri").write[String] ~
-    (JsPath \ "title").writeNullable[String] ~
+    (JsPath \ "label").writeNullable[String] ~
     (JsPath \ "source_gazetteer").writeNullable[String] ~
     (JsPath \ "is_inner_node").write[Boolean]
   )(node => (
       node.uri,
-      node.place.map(_.title),
+      node.place.map(_.label),
       node.place.map(_.sourceGazetteer),
       node.isInnerNode))
       
