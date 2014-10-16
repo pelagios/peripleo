@@ -25,11 +25,10 @@ object PelagiosOAImporter extends AbstractImporter {
     Logger.info("Importing " + annotatedThings.size + " annotated things with " + annotatedThings.flatMap(_.annotations).size + " annotations")
     
     // Parse data
-    val ingestBatch: Seq[(AnnotatedThing, Seq[Annotation])] = annotatedThings.toSeq.map(oaThing => { 
+    val ingestBatch: Seq[(AnnotatedThing, Seq[Image], Seq[Annotation])] = annotatedThings.toSeq.map(oaThing => { 
       val thingId = sha256(oaThing.uri)
       
       val tempBoundsStart = oaThing.temporal.map(_.start)
-      
       val tempBoundsEnd = if (tempBoundsStart.isDefined) {
         val periodEnd = oaThing.temporal.flatMap(_.end)
         if (periodEnd.isDefined)
@@ -42,17 +41,23 @@ object PelagiosOAImporter extends AbstractImporter {
       
       val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, oaThing.description, None, oaThing.homepage, tempBoundsStart, tempBoundsEnd)
       
+      val images = 
+        oaThing.depictions.map(url => Image(None, dataset.id, thingId, url, false)) ++
+        oaThing.thumbnails.map(url => Image(None, dataset.id, thingId, url, true))
+        
       // TODO make use of 'quote' and 'offset' fields
       val annotations = oaThing.annotations.map(a =>
         Annotation(UUID.randomUUID, dataset.id, thingId, a.place.head, None, None))     
         
-      (thing, annotations)
+      (thing, images, annotations)
     })
       
     // Insert data into DB
     val allThings = ingestBatch.map(_._1)
-    val allAnnotations = ingestBatch.flatMap(_._2)
+    val allImages = ingestBatch.flatMap(_._2)
+    val allAnnotations = ingestBatch.flatMap(_._3)
     AnnotatedThings.insertAll(allThings)
+    Images.insertAll(allImages)
     Annotations.insertAll(allAnnotations)
             
     // Update aggregation table stats

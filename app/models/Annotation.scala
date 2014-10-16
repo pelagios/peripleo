@@ -66,9 +66,8 @@ object Annotations {
   def create()(implicit s: Session) = query.ddl.create
   
   /** Inserts a list of Annotations into the DB **/
-  def insertAll(annotations: Seq[Annotation])(implicit s: Session) = {
+  def insertAll(annotations: Seq[Annotation])(implicit s: Session) =
     query.insertAll(annotations:_*)
-  }
     
   /** Deletes annotations from the specified datasets **/ 
   def deleteForDatasets(ids: Seq[String])(implicit s: Session) =

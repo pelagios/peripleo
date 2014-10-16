@@ -1,4 +1,4 @@
-@(thing: AnnotatedThing, datasetHierarchy: Seq[Dataset])
+@(thing: AnnotatedThing, thumbnails: Seq[Thumbnail], datasetHierarchy: Seq[Dataset])
 <html>
   <head>
     <title>Item &raquo; @thing.title</title>
@@ -48,8 +48,13 @@
       </div> <!-- #header-body -->
     </div> <!-- #header -->
     
-    <div id="content">
-      <div class="row">Bear with us...</div>
+    <div id="content">      
+      <div class="row">
+        @for(thumbnail <- thumbnails) {
+      	  <img style="max-width:400px" src="@thumbnail.url">
+      	  @thing.homepage.map { homepage => <p><a href="@homepage" target="_blank">Visit Source <span class="icon">&#xf08e;</span></a></p> }
+        }
+      </div>
     </div> <!-- #content -->
   </body>
 </html>

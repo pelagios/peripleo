@@ -3,6 +3,7 @@ package models
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
+import play.api.Logger
 
 /** AnnotatedThing model entity **/
 case class AnnotatedThing(
@@ -122,7 +123,7 @@ object AnnotatedThings {
   }
         
   /** Retrieves a single AnnotatedThing by its ID **/
-  def findById(id: String)(implicit s: Session): Option[AnnotatedThing] = 
+  def findById(id: String)(implicit s: Session): Option[AnnotatedThing] =
     query.where(_.id === id).firstOption
     
   /** Retrieves several AnnotatedThings by their ID in one go **/

@@ -12,9 +12,9 @@ object AnnotatedThingController extends AbstractAPIController {
   }  
   
   def getAnnotatedThing(id: String) = DBAction { implicit session =>
-    val annotatedThing = AnnotatedThings.findById(id)
-    if (annotatedThing.isDefined)
-      jsonOk(Json.toJson(annotatedThing.get), session.request)
+    val thing = AnnotatedThings.findById(id)
+    if (thing.isDefined)
+      jsonOk(Json.toJson(thing.get), session.request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }  

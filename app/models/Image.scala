@@ -5,7 +5,7 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 
 /** DB entity **/
-private[models] case class Image(id: Option[Int], dataset: String, annotatedThing: String, url: String, isThumbnail: Boolean)
+case class Image(id: Option[Int], dataset: String, annotatedThing: String, url: String, isThumbnail: Boolean)
 
 /** Wrappers to provide readable, typesafe access to depictions vs. thumbnails **/
 case class Depiction(url: String)
@@ -42,5 +42,16 @@ object Images {
   
   /** Creates the DB table **/
   def create()(implicit s: Session) = query.ddl.create
+  
+  /** Inserts a list of Images into the DB **/
+  def insertAll(images: Seq[Image])(implicit s: Session) =
+    query.insertAll(images:_*)
+    
+  def findByAnnotatedThing(id: String)(implicit s: Session): (Seq[Thumbnail], Seq[Depiction]) = {
+    val images = query.where(_.annotatedThingId === id).list
+    val thumbnails = images.filter(_.isThumbnail).map(img => Thumbnail(img.url))
+    val depictions = images.filter(!_.isThumbnail).map(img => Depiction(img.url))
+    (thumbnails, depictions)
+  }
   
 }
