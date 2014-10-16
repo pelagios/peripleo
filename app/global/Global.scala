@@ -78,6 +78,11 @@ object Global extends GlobalSettings {
         Logger.info("DB table 'annotated_things' does not exist - creating")
         AnnotatedThings.create
       }
+      
+      if (MTable.getTables("images").list.isEmpty) {
+        Logger.info("DB table 'images' does not exist - creating")
+        Images.create
+      }  
        
       if (MTable.getTables("annotations").list.isEmpty) {
         Logger.info("DB table 'annotations' does not exist - creating")

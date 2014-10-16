@@ -10,12 +10,10 @@ object AnnotatedThingPagesController extends Controller {
     val thing = AnnotatedThings.findById(id)
     if (thing.isDefined) {
       val places = AggregatedView.countPlacesForThing(id)
-      val annotations = Annotations.countByAnnotatedThing(id)
       val datasetHierarchy = Datasets.findByIds(thing.get.id +: Datasets.getParentHierarchy(thing.get.dataset))
-
-      Ok("") //views.html.datasetDetails(dataset.get._1, things, annotations, places, supersets, subsets))
+      Ok(views.html.annotatedThingDetails(thing.get, datasetHierarchy))
     } else {
-      NotFound // TODO create decent 'not found' page
+      NotFound
     }
   }
   

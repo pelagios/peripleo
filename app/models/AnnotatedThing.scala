@@ -15,6 +15,9 @@ case class AnnotatedThing(
   
   /** dcterms:title **/
   title: String, 
+  
+  /** dcterms:description **/
+  description: Option[String],
    
   /** The ID of the annotated thing this thing is part of (if any) **/
   isPartOf: Option[String],
@@ -43,6 +46,8 @@ class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotat
   
   def title = column[String]("title", O.NotNull)
   
+  def description = column[String]("description", O.Nullable, O.DBType("text"))
+  
   def isPartOfId = column[String]("is_part_of", O.Nullable)
   
   def homepage = column[String]("homepage", O.Nullable)
@@ -51,7 +56,7 @@ class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotat
 
   def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
 
-  def * = (id, datasetId, title, isPartOfId.?, homepage.?, temporalBoundsStart.?, 
+  def * = (id, datasetId, title, description.?, isPartOfId.?, homepage.?, temporalBoundsStart.?, 
     temporalBoundsEnd.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
   
   /** Foreign key constraints **/

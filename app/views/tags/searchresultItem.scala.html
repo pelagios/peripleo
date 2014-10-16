@@ -16,11 +16,7 @@
         @defining(Datasets.findByIds(Datasets.getParentHierarchy(dataset.id))) { supersets =>
           <li class="result item">
             <span class="title">
-              @if(thing.homepage.isDefined) {
-                <a href="@thing.homepage.get" target="_blank">@item.title</a>
-              } else {
-              @item.title
-              }
+              <a href="@controllers.pages.routes.AnnotatedThingPagesController.getAnnotatedThing(item.identifier)">@item.title</a>
             </span>
             @if(item.description.isDefined) { <span class="description">@item.description</span> }
             In:
