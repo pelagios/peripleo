@@ -16,7 +16,7 @@ object JSONWrites {
   /** Database entity serializations **/
   /**                                **/
   
-  /** TODO this inlines subitem/annotation/place counts with a DB request - optimize via a Writes[(AnnotatedThing, Int, Int, Int)] **/ 
+  /** TODO this inlines subitem/annotation/place counts with a DB request - optimize via a Writes[(AnnotatedThing, Seq[Depiction], Seq[Thumbnail], Int, Int, Int)] **/ 
   implicit def annotatedThingWrites(implicit s: Session): Writes[AnnotatedThing] = (
     (JsPath \ "id").write[String] ~
     (JsPath \ "title").write[String] ~
@@ -25,20 +25,30 @@ object JSONWrites {
     (JsPath \ "homepage").writeNullable[String] ~
     (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
     (JsPath \ "temporal_bounds_end").writeNullable[Int] ~
+    (JsPath \ "thumbnails").writeNullable[Seq[String]] ~
+    (JsPath \ "images").writeNullable[Seq[String]] ~
     (JsPath \ "num_subitems").writeNullable[Int] ~
     (JsPath \ "num_annotations").write[Int] ~ 
     (JsPath \ "num_unique_places").write[Int]
-  )(thing => (
-      thing.id,
+  )(thing => { 
+     val (thumbnails, depictions) = {
+       val (t, d) = Images.findByAnnotatedThing(thing.id)
+       (if (t.size > 0) Some(t.map(_.url)) else None,
+        if (d.size > 0) Some(d.map(_.url)) else None) 
+     }
+     
+     (thing.id,
       thing.title,
       thing.dataset,
       thing.isPartOf,
       thing.homepage,
       thing.temporalBoundsStart,
       thing.temporalBoundsEnd,
+      thumbnails,
+      depictions,
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),
-      AggregatedView.countPlacesForThing(thing.id)))
+      AggregatedView.countPlacesForThing(thing.id))})
   
       
   implicit val annotationWrites: Writes[Annotation] = (
