@@ -73,7 +73,7 @@ object IndexedPlaceNetwork {
   
   private val spatialCtx = JtsSpatialContext.GEO
   
-  private val maxLevels = 11 //results in sub-meter precision for geohash
+  private val maxLevels = 9 // 11 results in sub-meter precision for geohash
   
   private val spatialStrategy =
     new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
