@@ -47,6 +47,9 @@ object Images {
   def insertAll(images: Seq[Image])(implicit s: Session) =
     query.insertAll(images:_*)
     
+  def deleteForDatasets(ids: Seq[String])(implicit s: Session) =
+    query.where(_.datasetId inSet ids).delete
+    
   def findByAnnotatedThing(id: String)(implicit s: Session): (Seq[Thumbnail], Seq[Depiction]) = {
     val images = query.where(_.annotatedThingId === id).list
     val thumbnails = images.filter(_.isThumbnail).map(img => Thumbnail(img.url))
