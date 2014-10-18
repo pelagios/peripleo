@@ -9,6 +9,11 @@ import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, IndexSearcher, MultiCollector, NumericRangeQuery, Query, TermQuery, TopScoreDocCollector }
 import play.api.db.slick._
+import com.vividsolutions.jts.geom.Point
+import org.apache.lucene.spatial.query.SpatialArgs
+import org.apache.lucene.spatial.query.SpatialOperation
+import com.spatial4j.core.distance.DistanceUtils
+import org.apache.lucene.search.Filter
 
 trait ObjectReader extends IndexBase {
 
@@ -23,7 +28,7 @@ trait ObjectReader extends IndexBase {
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
       dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int], toYear: Option[Int])(implicit s: Session): Page[IndexedObject] = {
-    
+        
     val q = new BooleanQuery()
     
     // Keyword query
@@ -72,6 +77,22 @@ trait ObjectReader extends IndexBase {
         
       q.add(timeIntervalQuery, BooleanClause.Occur.MUST)
     }
+    
+    /* Spatial filter
+    val spatialFilter = {
+      if (bbox.isDefined) {
+          // minLong, maxLong, minLat, maxLat
+          val bboxShape = spatialCtx.makeRectangle(bbox.get._1, bbox.get._2, bbox.get._3, bbox.get._4)
+          Some(new SpatialArgs(SpatialOperation.Intersects, bboxShape))
+        } else if (latLon.isDefined) {
+          val circle = spatialCtx.makeCircle(latLon.get._1, latLon.get._2, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
+          Some(new SpatialArgs(SpatialOperation.Intersects, circle))
+        } else {
+          None
+        }
+    }.map(spatialStrategy.makeFilter(_))
+    */
+
       
     execute(q, limit, offset, query)
   }
@@ -83,7 +104,7 @@ trait ObjectReader extends IndexBase {
     
     try {      
       val facetsCollector = new FacetsCollector()
-      val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)          
+      val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)
       searcher.search(query, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
       val facets = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)

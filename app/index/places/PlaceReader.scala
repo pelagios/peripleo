@@ -9,6 +9,8 @@ import org.apache.lucene.search.PhraseQuery
 import org.apache.lucene.queryparser.classic.QueryParser
 import org.apache.lucene.util.Version
 import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.spatial.query.SpatialArgs
+import org.apache.lucene.spatial.query.SpatialOperation
 
 trait PlaceReader extends IndexBase {
   
@@ -20,13 +22,28 @@ trait PlaceReader extends IndexBase {
     collector.topDocs(offset, limit).scoreDocs
       .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
   }
-  
-  def listAllPlaces(gazetteer: String, offset: Int = 0, limit: Int = 20): Seq[IndexedPlace] = {    
+ 
+  /** List all places (with filter options).
+    * @param gazetteer the gazetteer
+    * @param bbox bounding box - minLong, maxLong, minLat, maxLat
+    * @param offset page offset
+    * @param limit page size
+    */
+  def listAllPlaces(gazetteer: String, bbox: Option[(Double, Double, Double, Double)], offset: Int = 0, limit: Int = 20): Seq[IndexedPlace] = {    
     val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
+    
+    val bboxFilter = bbox.map(bounds => {
+      val shape = spatialCtx.makeRectangle(bounds._1, bounds._2, bounds._3, bounds._4)
+      spatialStrategy.makeFilter(new SpatialArgs(SpatialOperation.Intersects, shape))
+    })
  
     val searcher = newPlaceSearcher()
     val collector = TopScoreDocCollector.create(offset + limit, true)
-    searcher.search(query, collector)
+    
+    if (bboxFilter.isDefined)
+      searcher.search(query, bboxFilter.get, collector)
+    else
+      searcher.search(query, collector)
     
     collector.topDocs(offset, limit).scoreDocs
       .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq

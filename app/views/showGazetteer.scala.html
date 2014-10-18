@@ -13,7 +13,7 @@
   <body>
     <div id="map"></div>
     <script>
-      $.getJSON('@routes.PlaceController.listAll(gazetteerName, None, None)', function(data) {
+      $.getJSON('@routes.PlaceController.listAll(gazetteerName, None, None, None)', function(data) {
         console.log('Rendering...');
         var heatmap = new Heatmap('map', data);
       });

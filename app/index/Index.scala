@@ -13,8 +13,18 @@ import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.Version
 import org.apache.lucene.search.spell.{ SpellChecker, LuceneDictionary }
 import play.api.Logger
+import com.spatial4j.core.context.jts.JtsSpatialContext
+import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
+import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 
 private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {
+  
+  protected val spatialCtx = JtsSpatialContext.GEO
+  
+  private val maxLevels = 11 //results in sub-meter precision for geohash
+  
+  protected val spatialStrategy =
+    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
   
   private val placeIndex = FSDirectory.open(placeIndexDir)
   

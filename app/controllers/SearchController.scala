@@ -36,7 +36,7 @@ object SearchController extends AbstractAPIController {
     
     // Tokenize and normalize place URIs
     val placeURIs = places.map(_.split(",").map(s => Index.normalizeURI(s.trim())).toSeq).getOrElse(Seq.empty[String])
-    
+            
     val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo)
     jsonOk(Json.toJson(results), session.request)
   }
