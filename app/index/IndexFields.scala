@@ -14,6 +14,8 @@ object IndexFields {
     
   val DATASET = "dataset"
     
+  val PUBLISHER = "publisher"
+    
   val PLACE_URI = "uri"
     
   val PLACE_SOURCE_GAZETTEER = "source_gazetteer"

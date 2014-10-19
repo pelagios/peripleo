@@ -68,7 +68,8 @@ object PelagiosOAImporter extends AbstractImporter {
     
     // Update index
     Logger.info("Updating Index") 
-    Global.index.addAnnotatedThings(allThings)
+    val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
+    Global.index.addAnnotatedThings(allThings, parentHierarchy)
     Global.index.refresh()
     
     is.close()

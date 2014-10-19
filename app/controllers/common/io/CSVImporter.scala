@@ -47,7 +47,8 @@ object CSVImporter extends AbstractImporter {
     AggregatedView.recompute(allThings, annotations)
     Datasets.recomputeTemporalProfileRecursive(dataset)
     
-    Global.index.addAnnotatedThing(parentThing)
+    val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
+    Global.index.addAnnotatedThing(parentThing, parentHierarchy)
     Global.index.refresh()
     Logger.info("Import complete")
   }

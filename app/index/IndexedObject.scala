@@ -54,15 +54,19 @@ object IndexedObject {
   private val spatialStrategy =
     new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
   
-  def toDoc(thing: AnnotatedThing)(implicit s: Session): Document = {
+  def toDoc(thing: AnnotatedThing, datasetHierarchy: Seq[Dataset])(implicit s: Session): Document = {
     val doc = new Document()
     
     // ID, parent dataset ID, title, description, type = object
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
-    doc.add(new StringField(IndexFields.DATASET, thing.dataset, Field.Store.NO))
+    doc.add(new StringField(IndexFields.PUBLISHER, datasetHierarchy.head.publisher, Field.Store.NO))
+    doc.add(new StringField(IndexFields.DATASET, thing.dataset, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
-    doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString)) // Just add multiple strings for a path
+    doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
+    
+    val datasetPath = datasetHierarchy(0).publisher +: datasetHierarchy.map(_.title)
+    doc.add(new FacetField(IndexFields.DATASET, datasetPath:_*))
     
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))

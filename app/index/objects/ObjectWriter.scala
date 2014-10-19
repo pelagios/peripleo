@@ -8,14 +8,14 @@ import play.api.db.slick._
 
 trait ObjectWriter extends IndexBase {
   
-  def addAnnotatedThing(annotatedThing: AnnotatedThing)(implicit s: Session) =
-    addAnnotatedThings(Seq(annotatedThing))
+  def addAnnotatedThing(annotatedThing: AnnotatedThing, datasetHierarchy: Seq[Dataset])(implicit s: Session) =
+    addAnnotatedThings(Seq(annotatedThing), datasetHierarchy)
   
-  def addAnnotatedThings(annotatedThings: Seq[AnnotatedThing])(implicit s: Session) = {
+  def addAnnotatedThings(annotatedThings: Seq[AnnotatedThing], datasetHierarchy: Seq[Dataset])(implicit s: Session) = {
     val (indexWriter, taxonomyWriter) = newObjectWriter() 
     
     annotatedThings.par.foreach(thing =>
-      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing))))
+      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, datasetHierarchy))))
     
     indexWriter.close()
     taxonomyWriter.close()   

@@ -240,17 +240,16 @@ object Datasets {
     }
   }
   
-  /** Returns the root (top-level parent) of the dataset. 
-    *  
-    * Note: if the dataset is a root itself, the method will pass it through. 
-    *
-  def getRoot(dataset: Dataset)(implicit s: Session): Dataset = {
-    val parentHierarchy = getParentHierarchy(dataset.id)
-    if (parentHierarchy.isEmpty)
-      dataset
-    else
-      findById(parentHierarchy.last).get
+  def getParentHierarchyWithDatasets(dataset: Dataset)(implicit s: Session): Seq[Dataset] = {
+    if (dataset.isPartOf.isEmpty) {
+      Seq.empty[Dataset]
+    } else {
+      val parent = query.where(_.id === dataset.isPartOf.get).firstOption
+      if (parent.isDefined)
+        parent.get +: getParentHierarchyWithDatasets(parent.get)
+      else
+        Seq.empty[Dataset]
+    }
   }
-  */
  
 }
