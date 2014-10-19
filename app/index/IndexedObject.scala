@@ -8,6 +8,10 @@ import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.db.slick._
+import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.io.WKTWriter
+import org.geotools.geometry.jts.JTS
+import org.apache.lucene.document.StoredField
 
 case class IndexedObject(private val doc: Document) {
  
@@ -32,6 +36,10 @@ case class IndexedObject(private val doc: Document) {
   val temporalBoundsStart: Option[Int] = Option(doc.get(IndexFields.DATE_FROM)).map(_.toInt)
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
+  
+  val bbox = Option(doc.get(IndexFields.BBOX))
+    .map(str => str.split(",").map(_.toDouble).toSeq)
+    .map(c => (c(0), c(1), c(2), c(3)))
   
   def toPlaceNetwork = new IndexedPlaceNetwork(doc)
  
@@ -63,11 +71,20 @@ object IndexedObject {
     // Place URIs
     val places = AggregatedView.findPlacesForThing(thing.id).items.map(_._1)
     places.foreach(gazetteerRef => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(gazetteerRef.uri), Field.Store.NO)))
+ 
+    // Bounding box
+    val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
+    if (geometries.size > 0) {
+      val envelope = new Envelope()
+      geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
+      val bbox = 
+        Seq(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY).mkString(",")
+      doc.add(new StoredField(IndexFields.BBOX, bbox))
+    }
     
-    // Geometry (spatial indexing)
-    places.filter(_.geometry.isDefined).foreach(gazetteerRef =>
-        spatialStrategy.createIndexableFields(spatialCtx.makeShape(gazetteerRef.geometry.get)).foreach(doc.add(_)))
-	  
+    // Detailed geometry for spatial indexing
+    geometries.foreach(geom => spatialStrategy.createIndexableFields(spatialCtx.makeShape(geom)).foreach(doc.add(_)))
+    
     doc   
   }
   

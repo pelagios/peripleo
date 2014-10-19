@@ -178,16 +178,22 @@ object JSONWrites {
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "object_type").write[String] ~
     (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
-    (JsPath \ "temporal_bounds_end").writeNullable[Int]
+    (JsPath \ "temporal_bounds_end").writeNullable[Int] ~
+    (JsPath \ "geo_bounds").writeNullable[JsValue]
   )(obj => (
       obj.identifier,
       obj.title,
       obj.description,
       obj.objectType.toString,
       obj.temporalBoundsStart,
-      obj.temporalBoundsEnd))    
+      obj.temporalBoundsEnd,
+      obj.bbox.map(bbox => Json.obj(
+        "minLon" -> bbox._1,
+        "maxLon" -> bbox._2,
+        "minLat" -> bbox._3,
+        "maxLat" -> bbox._4))))    
       
-      
+        
   implicit val placeWrites: Writes[IndexedPlace] = (
     (JsPath \ "gazetteer_uri").write[String] ~
     (JsPath \ "label").write[String] ~

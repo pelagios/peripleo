@@ -28,4 +28,6 @@ object IndexFields {
     
   val DATE_TO = "date_to"
     
+  val BBOX = "bbox"
+    
 }

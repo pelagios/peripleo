@@ -90,12 +90,6 @@ object IndexedPlaceNetwork {
   def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork = {
     val joinedDoc = new Document() 
     val allPlaces = networks.flatMap(_.places) :+ place
-    
-    /** DEBUG **/
-    val uris = allPlaces.map(_.uri).toSet
-    if (uris.size > allPlaces.length)
-      println(allPlaces.toString)
-    
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
     new IndexedPlaceNetwork(joinedDoc)   
   }
@@ -133,7 +127,7 @@ object IndexedPlaceNetwork {
     val knownMatches = doc.getValues(IndexFields.PLACE_MATCH).toSeq // These are distinct by definition
     newMatches.diff(knownMatches).foreach(anyMatch =>
       doc.add(new StringField(IndexFields.PLACE_MATCH, anyMatch, Field.Store.YES)))
-      
+          
     // Index shape geometry
     if (place.geometry.isDefined)
       spatialStrategy.createIndexableFields(spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
