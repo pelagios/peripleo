@@ -62,7 +62,7 @@ object IndexedObject {
     doc.add(new StringField(IndexFields.DATASET, thing.dataset, Field.Store.NO))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
-    doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
+    doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString)) // Just add multiple strings for a path
     
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
