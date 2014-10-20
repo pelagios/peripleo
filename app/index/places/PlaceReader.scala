@@ -11,6 +11,7 @@ import org.apache.lucene.util.Version
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.spatial.query.SpatialArgs
 import org.apache.lucene.spatial.query.SpatialOperation
+import models.Page
 
 trait PlaceReader extends IndexBase {
   
@@ -29,7 +30,7 @@ trait PlaceReader extends IndexBase {
     * @param offset page offset
     * @param limit page size
     */
-  def listAllPlaces(gazetteer: String, bbox: Option[(Double, Double, Double, Double)], offset: Int = 0, limit: Int = 20): Seq[IndexedPlace] = {    
+  def listAllPlaces(gazetteer: String, bbox: Option[(Double, Double, Double, Double)], offset: Int = 0, limit: Int = 20): Page[IndexedPlace] = {    
     val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
     
     val bboxFilter = bbox.map(bounds => {
@@ -45,9 +46,12 @@ trait PlaceReader extends IndexBase {
     else
       searcher.search(query, collector)
     
-    collector.topDocs(offset, limit).scoreDocs
+    val total = collector.getTotalHits
+    val results = collector.topDocs(offset, limit).scoreDocs
       .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
       .map(_.places.filter(_.sourceGazetteer == gazetteer).head)
+      
+    Page(results, offset, limit, total)
   }
   
   def findPlaceByURI(uri: String): Option[IndexedPlace] =

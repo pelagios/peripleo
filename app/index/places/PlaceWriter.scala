@@ -41,7 +41,7 @@ trait PlaceWriter extends PlaceReader {
         distinctNewPlaces += 1
     }
     
-    Scalagios.streamPlaces(is, filename, placeHandler)
+    Scalagios.streamPlaces(is, filename, placeHandler, true)
     writer.close()
     (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
   }

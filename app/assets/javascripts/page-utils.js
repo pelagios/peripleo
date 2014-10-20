@@ -33,7 +33,9 @@ util.formatGazetteerURI = function(uri) {
 	return 'geonames:' + uri.substr(24);
   } else if (uri.indexOf('http://vici.org/vici') > -1) {
 	return 'vici:' + uri.substr(21); 
-  } else {
+  } else if (uri.indexOf('http://data.pastplace.org') > -1) {
+    return 'pastplace:' + uri.substr(35);
+  } else { 
     return uri;
   }
 };

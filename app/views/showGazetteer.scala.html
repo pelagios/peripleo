@@ -13,10 +13,46 @@
   <body>
     <div id="map"></div>
     <script>
-      $.getJSON('@routes.PlaceController.listAll(gazetteerName, None, None, None)', function(data) {
-        console.log('Rendering...');
-        var heatmap = new Heatmap('map', data);
-      });
+      var latLngs = [],
+          total;
+          offset = 0,
+          limit = 10000;
+          
+      var getNext = function(offset, limit, callback) {
+        $.getJSON('@{ controllers.pages.routes.HomepageController.index }places?gazetteer=@gazetteerName&offset=' + offset + '&limit=' + limit, callback);
+      };
+      
+      var handleResult = function(result) {
+        console.log('Next batch');
+        offset += result.limit;
+        total = result.total;
+        
+        $.each(result.items, function(idx, place) {
+          if (place.centroid_lat && place.centroid_lng)
+            latLngs.push([place.centroid_lat, place.centroid_lng]);
+        });    
+        
+        if (offset < total) 
+          getNext(offset, limit, handleResult);
+        else
+          initHeatmap();
+      }
+      
+      var initHeatmap = function() {
+        var awmcLayer = L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
+            attribution: 'Tiles and Data &copy; 2013 <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
+                         '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC 3.0</a>'});
+  
+        var map = new L.Map('map', {
+          center: new L.LatLng(41.893588, 12.488022),
+          zoom: 3,
+          layers: [awmcLayer]
+        });
+
+        L.heatLayer(latLngs, { max: 1.5, maxZoom: 0, radius: 5, blur: 6 }).addTo(map);
+      };
+
+      getNext(offset, limit, handleResult)
     </script>
   </body>
 </html>

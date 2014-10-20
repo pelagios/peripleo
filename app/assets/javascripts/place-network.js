@@ -1,7 +1,13 @@
 window.PlaceNetwork = function(divId, nodes, edges) {
   var div = $('#' + divId),
       width = div.width(),
-      height = div.height();
+      height = div.height(),
+      innerNodes = $.grep(nodes, function(n) {
+        return n.is_inner_node;
+      }),
+      innerEdges = $.grep(edges, function(e) {
+        return e.is_inner_edge;
+      });
 
   var force = d3.layout.force()
     .charge(-300)
@@ -37,9 +43,9 @@ window.PlaceNetwork = function(divId, nodes, edges) {
         .attr('d', 'M0,-5L10,0L0,5');
       
   var link = svg.selectAll('.link')
-    .data(edges)
+    .data(innerEdges)
     .enter().append('line')
-    .attr('class', function(d) { 
+    .attr('class', function(d) {
       var t = nodes[d.target];
       if (t.label)
         return 'link'
@@ -49,7 +55,7 @@ window.PlaceNetwork = function(divId, nodes, edges) {
     .attr('marker-end', 'url(#end)')
 
   var node = svg.selectAll('.node')
-    .data(nodes)
+    .data(innerNodes)
     .enter().append('g')
     .attr('class', 'node')
     .call(force.drag);
