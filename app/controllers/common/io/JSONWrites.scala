@@ -177,16 +177,16 @@ object JSONWrites {
     (JsPath \ "title").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "object_type").write[String] ~
-    (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
-    (JsPath \ "temporal_bounds_end").writeNullable[Int] ~
+    (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
     (JsPath \ "geo_bounds").writeNullable[JsValue]
   )(obj => (
       obj.identifier,
       obj.title,
       obj.description,
       obj.objectType.toString,
-      obj.temporalBoundsStart,
-      obj.temporalBoundsEnd,
+      obj.temporalBoundsStart.map(start => Json.obj( 
+        "start" -> start,
+        "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
       obj.bbox.map(bbox => Json.obj(
         "minLon" -> bbox._1,
         "maxLon" -> bbox._2,
