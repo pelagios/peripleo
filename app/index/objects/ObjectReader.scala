@@ -15,6 +15,7 @@ import org.apache.lucene.spatial.query.SpatialOperation
 import com.spatial4j.core.distance.DistanceUtils
 import org.apache.lucene.search.Filter
 import play.api.Logger
+import org.apache.lucene.facet.FacetResult
 
 trait ObjectReader extends IndexBase {
 
@@ -108,12 +109,19 @@ trait ObjectReader extends IndexBase {
       val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)
       searcher.search(query, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
-      val facets = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)
-      val facetResults = Seq(
-        facets.getTopChildren(3, IndexFields.OBJECT_TYPE),
-        facets.getTopChildren(10, IndexFields.DATASET))
-            
-      facetResults.foreach(result => Logger.info(Option(result).toString))
+      val facetCounts = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)
+      Logger.info(facetCounts.getAllDims(2).toString)
+      
+      // 
+      
+      /* 
+      val typeCounts = Option(facetCounts.getTopChildren(3, IndexFields.OBJECT_TYPE))
+      val datasetCounts = Option(facetCounts.getTopChildren(10, IndexFields.DATASET))
+      val datasetSubCounts = datasetCounts.map(publisher =>
+        publisher.labelValues.toSeq.map(labelAndValue =>
+          (labelAndValue.label -> labelAndValue.value.intValue)))
+       */
+
        
       val total = topDocsCollector.getTotalHits
       val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
