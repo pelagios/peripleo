@@ -59,8 +59,24 @@ appending a `prettyprint=true` parameter. Example:
 ## Searching the API
 
 The main feature you'll probably want to use is __search__. You can currently search the API by __keyword query__, 
-__entity type__, __dataset__, __places__ and __time interval__ (or a combination of those). The base URL for 
-search is http://pelagios.org/api-v3/search, followed by any of these the filter parameters:
+__entity type__, __dataset__, __places__ and __time interval__ (or a combination of those). A typcial search result record
+looks like the example below. The __identifier__, __title__ and __object_type__ label (_Place_, _Item_ or _Dataset_) are always
+present. Depending on the object, the record can also include a short text __description__, the __bounds__ of the object in
+__space__ (geographic bounding box) and __time__ (minimum and maximum date, negative numbers for BC dates), as well as lists
+of image and thumbnail URLs. More detailed information about the object can be retrieved via the REST-style methods (see below),
+using the object's __identifier__ as a key.
+
+```json
+{
+  # Note: TODO!
+  "identifier" : "http://vici.org/vici/13214",
+  "title" : "Kirkintilloch (Denarius)",
+  "description" : "Kirkintilloch (Denarius)",
+  "object_type" : "Place"
+}
+```
+
+The base URL for search is http://pelagios.org/api-v3/search, followed by any of these the filter parameters:
 
 #### query 
 
