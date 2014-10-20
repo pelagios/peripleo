@@ -8,6 +8,7 @@ import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import org.pelagios.api.gazetteer.Place
 import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
+import com.vividsolutions.jts.geom.Envelope
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
@@ -91,6 +92,17 @@ object IndexedPlaceNetwork {
     val joinedDoc = new Document() 
     val allPlaces = networks.flatMap(_.places) :+ place
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
+    
+    // Bounding box accross all place geometries
+    val geometries = allPlaces.flatMap(_.geometry)
+    if (geometries.size > 0) {
+      val envelope = new Envelope() 
+      geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
+      val bbox = 
+        Seq(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY).mkString(",")
+      joinedDoc.add(new StoredField(IndexFields.BBOX, bbox))
+    }
+    
     new IndexedPlaceNetwork(joinedDoc)   
   }
       
