@@ -68,11 +68,19 @@ using the object's __identifier__ as a key.
 
 ```json
 {
-  # Note: TODO!
-  "identifier" : "http://vici.org/vici/13214",
-  "title" : "Kirkintilloch (Denarius)",
-  "description" : "Kirkintilloch (Denarius)",
-  "object_type" : "Place"
+  "identifier" : "bb4e2f4b0bc7f4d6c065cb5167f4d3f831ccf795af0204f2647f8ec1bbcabcba",
+  "title" : "Periplus of the Euxine Sea",
+  "object_type" : "Item",
+  "temporal_bounds" : {
+    "start" : 130,
+    "end" : 130
+  },
+  "geo_bounds" : {
+    "minLon" : 23.7195,
+    "maxLon" : 44.0,
+    "minLat" : 37.5197,
+    "maxLat" : 45.5
+  }
 }
 ```
 
