@@ -11,8 +11,8 @@ free to give it a spin.__
 
 Pelagios is a __community network__ with the goal to facilitate __better linking between online
 resources documenting the past__, based on the __places they refer to__. The purpose of the __Pelagios
-API__ is to make our network of links __browse-__ and __searchable__. The 'mental model' behind our API
-is simple, and consists of only three types of entities:
+API__ is to make our network of resources and links __browse-__ and __searchable__. The 'mental model' behind
+our API is simple, and consists of only three types of entities:
 
 * __Items__, such as archaeological artefacts, literary texts or photographs.
 * __Places__ to which the items are related, e.g. places mentioned in texts or findspots of artefacts.
@@ -59,7 +59,8 @@ appending a `prettyprint=true` parameter. Example:
 ## Searching the API
 
 The main feature you'll probably want to use is __search__. You can currently search the API by __keyword query__, 
-__entity type__, __dataset__, __places__ and __time interval__ (or a combination of those).
+__entity type__, __dataset__, __places__ and __time interval__ (or a combination of those). A typcial search result 
+record looks like the example below. 
 
 ```json
 {
@@ -79,12 +80,11 @@ __entity type__, __dataset__, __places__ and __time interval__ (or a combination
 }
 ```
 
-A typcial search result record looks like the example below. The `identifier`, `title` and `object_type` label 
-(_Place_, _Item_ or _Dataset_) are always present. Depending on the object, the record can also include a short textual
-`description`, the bounds of the object in space and time (`geo_bounds` and `temporal_bounds`, respectively), and
-lists of URLs to `images` and `thumbnails`. You can retrieve more detailed information about the object (such as all 
-related places and information about sub-items) via the __REST-style methods__ (see below), using the object's
-__identifier__ as a key.
+The `identifier`, `title` and `object_type` label (_Place_, _Item_ or _Dataset_) are always present. Depending on the
+object, the record can also include a short textual `description`, the bounds of the object in space and time (`geo_bounds` 
+and `temporal_bounds`, respectively), and lists of URLs to `images` and `thumbnails`. You can retrieve more detailed
+information about the object (such as all  related places and information about sub-items) via the __REST-style methods__
+(see below), using the object's `identifier` as a key.
 
 The base URL for search is http://pelagios.org/api-v3/search, followed by any of these 
 the filter parameters:
