@@ -153,11 +153,9 @@ The API also provides 'REST-style' access to the data via the following URL path
 * [/api-v3/datasets/{id}/items](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/items?prettyprint=true) - list all items contained in this dataset
 * [/api-v3/datasets/{id}/places](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/places?prettyprint=true) - list all places referenced in this dataset *)
 * [/api-v3/datasets/{id}/time](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/time?prettyprint=true) - get the 'temporal profile' of a dataset **)
-
 * [/api-v3/items/{id}](http://pelagios.org/api-v3/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa?prettyprint=true) - get metdata for the item with the specified ID
 * [/api-v3/items/{id}/items](http://pelagios.org/api-v3/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa/items?prettyPrint=true) - list sub-items to this item
 * [/api-v3/items/{id}/places](http://pelagios.org/api-v3/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa/places?prettyprint=true) - list all places that are referenced by this item
-
 * [/api-v3/places/{uri}](http://pelagios.org/api-v3/places/http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025?prettyprint=true) - get information about the place with the (URL-escaped!) URI
 
 *) Append `verbose=false` as query parameter to receive a less verbose response. This response will have additional performance benefits and load faster than
