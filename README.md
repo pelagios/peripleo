@@ -121,7 +121,7 @@ will return items related to __all__ of the places in the list. E.g. find everyt
 #### bbox
 
 Restrict to a geographic bounding box. The bounding box must be specified as a comma-separated list
-of decimal numbers, according to the format `bbox={minLon},{maxLon},{minLat},{maxLat}`. Example:
+of decimal (WGS-84 coordinate) numbers, according to the format `bbox={minLon},{maxLon},{minLat},{maxLat}`. Example:
 
 [http://pelagios.org/api-v3/search?bbox=23.716,23.7266,37.97,37.978&from=100&to=200](http://pelagios.org/api-v3/search?bbox=23.716,23.7266,37.97,37.978&from=100&to=200&prettyprint=true)
 
