@@ -7,7 +7,7 @@ is work in progress (which translates as "not everything works just yet").
 __Our development instance is online at [http://pelagios.org/api-v3](http://pelagios.org/api-v3) - feel
 free to give it a spin.__
 
-## API Basics
+## The Basics
 
 Pelagios is a __community network__ with the goal to facilitate __better linking between online
 resources documenting the past__, based on the __places they refer to__. From the [large numismatic dataset](http://pelagios.org/api-v3/pages/datasets/167d94d26e683d01a9fb3d7450b387ed908f9c70e7b17cf62aae27079184b092) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/952eb415d77623bff61eccca6c88c7b8ddd9a6967f660775ea72a2ae81f23f56) - all our members contribute one piece of the puzzle, which Pelagios hopes to combine into a coherent whole. 
