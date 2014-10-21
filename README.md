@@ -10,7 +10,7 @@ free to give it a spin.__
 ## The Basics
 
 Pelagios is a __community network__ with the goal to facilitate __better linking between online
-resources documenting the past__, based on the __places they refer to__. From the [large numismatic dataset](http://pelagios.org/api-v3/pages/datasets/167d94d26e683d01a9fb3d7450b387ed908f9c70e7b17cf62aae27079184b092) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/952eb415d77623bff61eccca6c88c7b8ddd9a6967f660775ea72a2ae81f23f56) - all our members contribute one piece of the puzzle, which Pelagios hopes to combine into a coherent whole. 
+resources documenting the past__, based on the __places they refer to__. From [large numismatic dataset](http://pelagios.org/api-v3/pages/datasets/167d94d26e683d01a9fb3d7450b387ed908f9c70e7b17cf62aae27079184b092) to [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/952eb415d77623bff61eccca6c88c7b8ddd9a6967f660775ea72a2ae81f23f56) - each one of our members contributes one piece of the puzzle which Pelagios hopes to combine into a coherent whole.
 
 The purpose of the __Pelagios API__ is to make our network __browse-__ and __searchable__. The 'mental model' behind
 our API is simple, and consists of only three types of entities:
