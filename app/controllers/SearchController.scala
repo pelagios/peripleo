@@ -5,6 +5,8 @@ import global.Global
 import index.{ Index, IndexedObjectTypes }
 import play.api.db.slick._
 import play.api.libs.json.Json
+import index.BoundingBox
+import com.vividsolutions.jts.geom.Coordinate
 
 object SearchController extends AbstractAPIController {
 
@@ -24,7 +26,8 @@ object SearchController extends AbstractAPIController {
     * @param yearTo end year for temporal constraint
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
-    places: Option[String], yearFrom: Option[Int], yearTo: Option[Int]) = DBAction { implicit session =>
+    places: Option[String], yearFrom: Option[Int], yearTo: Option[Int], bbox: Option[String], lat: Option[Double],
+    lon: Option[Double], radius: Option[Double]) = DBAction { implicit session =>
         
     // Map object types
     val objType = objectType.flatMap(name => name.toLowerCase match {
@@ -36,8 +39,10 @@ object SearchController extends AbstractAPIController {
     
     // Tokenize and normalize place URIs
     val placeURIs = places.map(_.split(",").map(s => Index.normalizeURI(s.trim())).toSeq).getOrElse(Seq.empty[String])
+    
+    val coord = if (lat.isDefined && lon.isDefined) Some(new Coordinate(lon.get, lat.get)) else None
             
-    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo)
+    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, bbox.flatMap(bounds => BoundingBox.fromString(bounds)), coord, radius)
     jsonOk(Json.toJson(results), session.request)
   }
 

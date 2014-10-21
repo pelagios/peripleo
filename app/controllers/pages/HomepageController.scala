@@ -37,7 +37,7 @@ object HomepageController extends Controller {
     // Tokenize and normalize place URIs
     val placeURIs = places.map(_.split(",").map(s => Index.normalizeURI(s.trim())).toSeq).getOrElse(Seq.empty[String])
     
-    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo)
+    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, None, None, None)
     
     Ok(views.html.searchResults(results, (System.currentTimeMillis - startTime)))
   }

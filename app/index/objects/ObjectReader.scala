@@ -9,13 +9,13 @@ import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, IndexSearcher, MultiCollector, NumericRangeQuery, Query, TermQuery, TopScoreDocCollector }
 import play.api.db.slick._
-import com.vividsolutions.jts.geom.Point
 import org.apache.lucene.spatial.query.SpatialArgs
 import org.apache.lucene.spatial.query.SpatialOperation
 import com.spatial4j.core.distance.DistanceUtils
 import org.apache.lucene.search.Filter
 import play.api.Logger
 import org.apache.lucene.facet.FacetResult
+import com.vividsolutions.jts.geom.Coordinate
 
 trait ObjectReader extends IndexBase {
 
@@ -29,7 +29,8 @@ trait ObjectReader extends IndexBase {
     * @query places filter search to items referencing specific places 
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
-      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int], toYear: Option[Int])(implicit s: Session): Page[IndexedObject] = {
+      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int], toYear: Option[Int],
+      bbox: Option[BoundingBox], coord: Option[Coordinate], radius: Option[Double])(implicit s: Session): Page[IndexedObject] = {
         
     val q = new BooleanQuery()
     
@@ -80,21 +81,15 @@ trait ObjectReader extends IndexBase {
       q.add(timeIntervalQuery, BooleanClause.Occur.MUST)
     }
     
-    /* Spatial filter
-    val spatialFilter = {
-      if (bbox.isDefined) {
-          // minLong, maxLong, minLat, maxLat
-          val bboxShape = spatialCtx.makeRectangle(bbox.get._1, bbox.get._2, bbox.get._3, bbox.get._4)
-          Some(new SpatialArgs(SpatialOperation.Intersects, bboxShape))
-        } else if (latLon.isDefined) {
-          val circle = spatialCtx.makeCircle(latLon.get._1, latLon.get._2, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
-          Some(new SpatialArgs(SpatialOperation.Intersects, circle))
-        } else {
-          None
-        }
-    }.map(spatialStrategy.makeFilter(_))
-    */
-
+    // Spatial filter
+    if (bbox.isDefined) {
+      val rectangle = spatialCtx.makeRectangle(bbox.get.minLon, bbox.get.maxLon, bbox.get.minLat, bbox.get.maxLat)
+      q.add(spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, rectangle)), BooleanClause.Occur.MUST)
+    } else if (coord.isDefined) {
+      // Warning - there appears to be a bug in Lucene spatial that flips coordinates!
+      val circle = spatialCtx.makeCircle(coord.get.y, coord.get.x, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
+      q.add(spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
+    }
       
     execute(q, limit, offset, query)
   }
@@ -109,10 +104,7 @@ trait ObjectReader extends IndexBase {
       val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)
       searcher.search(query, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
-      val facetCounts = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)
-      Logger.info(facetCounts.getAllDims(2).toString)
-      
-      // 
+      val facetCounts = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)      
       
       /* 
       val typeCounts = Option(facetCounts.getTopChildren(3, IndexFields.OBJECT_TYPE))
@@ -121,7 +113,6 @@ trait ObjectReader extends IndexBase {
         publisher.labelValues.toSeq.map(labelAndValue =>
           (labelAndValue.label -> labelAndValue.value.intValue)))
        */
-
        
       val total = topDocsCollector.getTotalHits
       val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
