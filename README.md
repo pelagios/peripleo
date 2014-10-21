@@ -83,8 +83,7 @@ record looks like this:
 The `identifier`, `title` and `object_type` labels are always present. Depending on the object, the record can also 
 include a short textual `description`, the bounds of the object in space and time (`geo_bounds` and `temporal_bounds`,
 respectively), and lists of URLs to `images` and `thumbnails`. You can retrieve more information about an 
-object (such as all places related to it, or information about sub-items) via the __REST-style methods__ (see below), 
-using the object's `identifier` as a key.
+object (such as all places related to it, or information about sub-items) through __REST-style access__ (see below), using the object's `identifier` as a key.
 
 The base URL for search is http://pelagios.org/api-v3/search, followed by any of these 
 the filter parameters:
@@ -145,9 +144,9 @@ Note: items in Pelagios that are __not dated will not appear in the results__. E
 [http://pelagios.org/api-v3/search?from=2014&to=2014](http://pelagios.org/api-v3/search?from=2014&to=2014&prettyprint=true)
 
 
-## REST-Style Access Methods
+## REST-Style Access
 
-The API also provides 'REST-style' access to the data via the following methods:
+The API also provides 'REST-style' access to the data via the following URL paths:
 
 * [/api-v3/datasets](http://pelagios.org/api-v3/datasets?prettyprint=true) - list all datasets
 * [/api-v3/datasets/:id](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947?prettyprint=true) - get the dataset with the specified ID
