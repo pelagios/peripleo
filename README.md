@@ -33,9 +33,7 @@ The API returns responses in JSON format. [CORS](http://de.wikipedia.org/wiki/Cr
   "total" : 112,
   "limit" : 20,
   "items" : [
-  
     ...
-  
   ]
 }
 ```
@@ -58,9 +56,10 @@ appending a `prettyprint=true` parameter. Example:
 
 ## Searching the API
 
-The main feature you'll probably want to use is __search__. You can currently search the API by __keyword query__, 
-__entity type__, __dataset__, __places__ and __time interval__ (or a combination of those). A typcial search result 
-record looks like the example below. 
+The main feature you'll probably want to use is __search__. You can search the API by __keyword__, 
+__place__ (gazetteer URIs), __space__ (geographic area), __time interval__, __dataset__,
+__object type__ (i.e. _place_, _item_ or _dataset_) - or any combination of those. A typical search result 
+record looks like this: 
 
 ```json
 {
@@ -80,11 +79,11 @@ record looks like the example below.
 }
 ```
 
-The `identifier`, `title` and `object_type` label (_Place_, _Item_ or _Dataset_) are always present. Depending on the
-object, the record can also include a short textual `description`, the bounds of the object in space and time (`geo_bounds` 
-and `temporal_bounds`, respectively), and lists of URLs to `images` and `thumbnails`. You can retrieve more detailed
-information about the object (such as all  related places and information about sub-items) via the __REST-style methods__
-(see below), using the object's `identifier` as a key.
+The `identifier`, `title` and `object_type` labels are always present. Depending on the object, the record can also 
+include a short textual `description`, the bounds of the object in space and time (`geo_bounds` and `temporal_bounds`,
+respectively), and lists of URLs to `images` and `thumbnails`. You can retrieve more information about an 
+object (such as all places related to it, or information about sub-items) via the __REST-style methods__ (see below), 
+using the object's `identifier` as a key.
 
 The base URL for search is http://pelagios.org/api-v3/search, followed by any of these 
 the filter parameters:
@@ -113,11 +112,26 @@ photo collection:
 
 #### places
 
-Restrict to one or more places. Places are identified by (a comma-separated list of) gazetteer URIs. Search by coordinate is not available yet,
-but under development. If more than one place is specified, they are logically combined to an AND query. That means the search will return 
-items that reference __all__ of the places in the list. E.g. find everything that referes to both Rome and Syria:
+Restrict to one or more places. Places are identified by a comma-separated list of gazetteer URIs. (URIs need to be
+URL-escaped!). If more than one place is specified, they are logically combined to an AND query. That means the search
+will return items related to __all__ of the places in the list. E.g. find everything that refers to both Rome AND Syria:
 
 [http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,htt...](http://pelagios.org/api-v3/search?places=http:%2F%2Fpleiades.stoa.org%2Fplaces%2F981550,http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025&prettyprint=true)
+
+#### bbox
+
+Restrict to a geographic bounding box. The bounding box must be specified as a comma-separated list
+of decimal numbers, according to the format `bbox={minLon},{maxLon},{minLat},{maxLat}`. Example:
+
+[http://pelagios.org/api-v3/search?bbox=23.716,23.7266,37.97,37.978&from=100&to=200](http://pelagios.org/api-v3/search?bbox=23.716,23.7266,37.97,37.978&from=100&to=200&prettyprint=true)
+
+#### lat, lon, radius
+
+Alternatively, you can restrict to a geographic area by specifying a center `lat`, `lon` coordinate for your 
+search, and a `radius` (in km). If you omit the radius, it will default to 10km. _Note: if you specify both a
+`bbox` parameter and a coordinate, coordinate and radius will be ignored, and the bounding box will take precedence._
+
+[http://pelagios.org/api-v3/search?query=athens&type=place&lat=37.97&lon=23.72&radius=3](http://pelagios.org/api-v3/search?query=athens&type=place&prettyprint=true&lat=37.97&lon=23.72&radius=3)
 
 #### from, to
 
