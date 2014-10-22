@@ -23,8 +23,10 @@ object JSONWrites {
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "is_part_of").writeNullable[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
-    (JsPath \ "temporal_bounds_start").writeNullable[Int] ~
-    (JsPath \ "temporal_bounds_end").writeNullable[Int] ~
+    (JsPath \ "description").writeNullable[String] ~
+    (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
+    // TODO geo_bounds
+    // TODO change image format
     (JsPath \ "thumbnails").writeNullable[Seq[String]] ~
     (JsPath \ "images").writeNullable[Seq[String]] ~
     (JsPath \ "num_subitems").writeNullable[Int] ~
@@ -42,8 +44,10 @@ object JSONWrites {
       thing.dataset,
       thing.isPartOf,
       thing.homepage,
-      thing.temporalBoundsStart,
-      thing.temporalBoundsEnd,
+      thing.description,
+      thing.temporalBoundsStart.map(start => Json.obj( 
+        "start" -> start,
+        "end" -> { val end = thing.temporalBoundsEnd.getOrElse(start); end })),
       thumbnails,
       depictions,
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
