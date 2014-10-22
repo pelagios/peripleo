@@ -9,7 +9,7 @@ free to give it a spin.__
 
 ## The Basics
 
-Pelagios (meaning 'of the Sea') is a __community network__ with the goal to facilitate __better linking between online resources documenting the past__, based on the __places they refer to__. From the [large numismatic database](http://pelagios.org/api-v3/pages/datasets/167d94d26e683d01a9fb3d7450b387ed908f9c70e7b17cf62aae27079184b092) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/952eb415d77623bff61eccca6c88c7b8ddd9a6967f660775ea72a2ae81f23f56), each of our partner datasets represents one piece of the grand puzzle which Pelagios aims to combine into a coherent whole, to facilitate connections, exchange and discovery - just as the Mediterranean Sea did for the people of the Ancient World.
+Pelagios (meaning 'of the Sea') is a __community network__ with the goal to facilitate __better linking between online resources documenting the past__, based on the __places they refer to__. From the [large numismatic database](http://pelagios.org/api-v3/pages/datasets/167d94d26e683d01a9fb3d7450b387ed908f9c70e7b17cf62aae27079184b092) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/952eb415d77623bff61eccca6c88c7b8ddd9a6967f660775ea72a2ae81f23f56), each of our partner datasets represents one piece of the grand puzzle. Pelagios aims to combine the pieces into a coherent whole; to facilitate connection, exchange and discovery - just as the Mediterranean Sea did in the Ancient World.
 
 The purpose of the __Pelagios API__ is to make our network __browse-__ and __searchable__. The 'mental model' behind
 our API is simple, and consists of only three types of entities:
