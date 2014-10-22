@@ -145,7 +145,7 @@ Note: items in Pelagios that are __not dated will not appear in the results__. E
 
 ## REST-Style Access
 
-The API also provides 'REST-style' access to the data via the following URL paths:
+The API provides 'REST-style' access to entity metadata via the following URL paths:
 
 * [/api-v3/datasets](http://pelagios.org/api-v3/datasets?prettyprint=true) - list all datasets
 * [/api-v3/datasets/{id}](http://pelagios.org/api-v3/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947?prettyprint=true) - get the dataset with the specified ID
