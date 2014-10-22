@@ -11,7 +11,7 @@ free to give it a spin.__
 
 Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large numismatic database](http://pelagios.org/api-v3/pages/datasets/167d94d26e683d01a9fb3d7450b387ed908f9c70e7b17cf62aae27079184b092) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/952eb415d77623bff61eccca6c88c7b8ddd9a6967f660775ea72a2ae81f23f56), each of our partner datasets represents one piece of the grand puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
 
-The purpose of the __Pelagios API__ is to make our network __browse-__ and __searchable__. The 'mental model' behind
+The __Pelagios API__ makes our network __browse-__ and __searchable__. The 'mental model' behind
 our API is simple, and consists of only three types of entities:
 
 * __Items__, such as archaeological artefacts, literary texts, photographs, etc.
