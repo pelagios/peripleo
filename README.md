@@ -14,7 +14,7 @@ Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __
 The __Pelagios API__ makes our network __browse-__ and __searchable__. The 'mental model' behind
 our API is simple! It consists of only three types of entities:
 
-* __Items__, such as archaeological artefacts, literary texts, photographs, etc.
+* __Items__ such as archaeological artefacts, literary texts, photographs, etc.
 * __Places__ to which these items are related, e.g. places mentioned in a text or the findspot of an artefact
 * __Datasets__ which are collections of items, e.g. a particular museum collection or data corpus published by an institution
 
