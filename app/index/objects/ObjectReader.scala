@@ -1,7 +1,7 @@
 package index.objects
 
 import index._
-import models.{ Datasets, Page }
+import models.{ BoundingBox, Datasets, Page }
 import org.apache.lucene.util.Version
 import org.apache.lucene.index.{ Term, MultiReader }
 import org.apache.lucene.facet.FacetsCollector

@@ -5,7 +5,7 @@ import global.Global
 import index.{ Index, IndexedObjectTypes }
 import play.api.db.slick._
 import play.api.libs.json.Json
-import index.BoundingBox
+import models.BoundingBox
 import com.vividsolutions.jts.geom.Coordinate
 
 object SearchController extends AbstractAPIController {
@@ -42,7 +42,7 @@ object SearchController extends AbstractAPIController {
     
     val coord = if (lat.isDefined && lon.isDefined) Some(new Coordinate(lon.get, lat.get)) else None
             
-    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, bbox.flatMap(bounds => BoundingBox.fromString(bounds)), coord, radius)
+    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, bbox.flatMap(bounds => BoundingBox.parse(bounds)), coord, radius)
     jsonOk(Json.toJson(results), session.request)
   }
 

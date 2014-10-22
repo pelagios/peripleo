@@ -2,7 +2,7 @@ package index
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.places.IndexedPlaceNetwork
-import models.{ AggregatedView, AnnotatedThing, Dataset }
+import models.{ AggregatedView, AnnotatedThing, BoundingBox, Dataset }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
@@ -37,6 +37,7 @@ case class IndexedObject(private val doc: Document) {
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
   
+  // TODO use typed bouding box
   val bbox = Option(doc.get(IndexFields.BBOX))
     .map(str => str.split(",").map(_.toDouble).toSeq)
     .map(c => (c(0), c(1), c(2), c(3)))
@@ -82,7 +83,7 @@ object IndexedObject {
       val envelope = new Envelope()
       geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
       val bbox = 
-        Seq(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY).mkString(",")
+        BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY).toString
       doc.add(new StoredField(IndexFields.BBOX, bbox))
     }
     
