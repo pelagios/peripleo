@@ -16,7 +16,7 @@ our API is simple! It consists of only three types of entities:
 
 * __Items__, such as archaeological artefacts, literary texts, photographs, etc.
 * __Places__ to which these items are related, e.g. places mentioned in a text or the findspot of an artefact
-* __Datasets__ which contain the items, e.g. a particular museum collection or data corpus published by an institution
+* __Datasets__ which are collections of items, e.g. a particular museum collection or data corpus published by an institution
 
 Datasets as well as items can be __hierarchical__. E.g. the [Pelagios 3 dataset](http://pelagios.org/api-v3/pages/datasets/2a10228dff4c608b91a953efff8dafb3f5c433035b3f31e687eec0297d799824)
 is sub-divided into a corpus of [Greek](http://pelagios.org/api-v3/pages/datasets/48ea51486cb33aae9e08501825a67fa0ba5770c5732742039e13a91ee75d5620)
