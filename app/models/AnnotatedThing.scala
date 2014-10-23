@@ -36,7 +36,10 @@ case class AnnotatedThing(
     * rather than an interval, temporalBoundsEnd must be the same as
     * temporalBoundsStart
     */   
-  temporalBoundsEnd: Option[Int])
+  temporalBoundsEnd: Option[Int],
+  
+  /** Bounding box of the places the item is annotated with **/
+  geoBounds: Option[BoundingBox])
 
 /** AnnotatedThing DB table **/
 class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotated_things") {
@@ -56,9 +59,11 @@ class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotat
   def temporalBoundsStart = column[Int]("temporal_bounds_start", O.Nullable)
 
   def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
+  
+  def geoBounds = column[BoundingBox]("geo_bounds", O.Nullable)
 
   def * = (id, datasetId, title, description.?, isPartOfId.?, homepage.?, temporalBoundsStart.?, 
-    temporalBoundsEnd.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
+    temporalBoundsEnd.?, geoBounds.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
   
   /** Foreign key constraints **/
   
@@ -89,6 +94,13 @@ object AnnotatedThings {
   /** Updates an AnnotatedThing **/
   def update(thing: AnnotatedThing)(implicit s: Session) = 
     query.where(_.id === thing.id).update(thing)
+  
+  /** Updates the geo-bounds for a batch of AnnotatedThings **/  
+  def updateGeoBounds(bounds: Seq[(String, BoundingBox)])(implicit s: Session) =
+    bounds.foreach { case (id, bbox) => {
+      val q = for { thing <- query if thing.id === id } yield thing.geoBounds
+      q.update(bbox)
+    }}
     
   /** Deletes an AnnotatedThing **/
   def delete(id: String)(implicit s: Session) =

@@ -21,7 +21,9 @@ object CSVImporter extends AbstractImporter {
     // Recogito CSVs represent exactly one top-level AnnotatedThing...
     val date = meta.get("date (numeric)").map(_.toInt)
     val parentThingIdPlain = dataset.id + " " + meta.get("author").getOrElse("") + meta.get("title").get + " " + meta.get("language").getOrElse("")
-    val parentThing = AnnotatedThing(sha256(parentThingIdPlain), dataset.id, meta.get("title").get, None, None, None, date, date)
+    
+    // Note: for performance reasons, geo-bounds are computed later, along with the aggregation tables 
+    val parentThing = AnnotatedThing(sha256(parentThingIdPlain), dataset.id, meta.get("title").get, None, None, None, date, date, None)
                   
     val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
     val uuidIdx = header.indexOf("uuid")
@@ -34,7 +36,7 @@ object CSVImporter extends AbstractImporter {
     }).groupBy(_._2)
     
     val parts = annotationsByPart.keys.map(title =>
-      AnnotatedThing(sha256(parentThing.id + " " + title), dataset.id, title, None, Some(parentThing.id), None, date, date))
+      AnnotatedThing(sha256(parentThing.id + " " + title), dataset.id, title, None, Some(parentThing.id), None, date, date, None))
     
     // TODO make use of 'quote' and 'offset' fields
     val annotations = annotationsByPart.values.flatten.map(t => {

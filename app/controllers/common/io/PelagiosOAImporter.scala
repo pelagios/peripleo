@@ -39,7 +39,8 @@ object PelagiosOAImporter extends AbstractImporter {
         None
       }
       
-      val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, oaThing.description, None, oaThing.homepage, tempBoundsStart, tempBoundsEnd)
+      // Note: for performance reasons, geo-bounds are computed later, along with the aggregation tables 
+      val thing = AnnotatedThing(thingId, dataset.id, oaThing.title, oaThing.description, None, oaThing.homepage, tempBoundsStart, tempBoundsEnd, None)
       
       val images = 
         oaThing.depictions.map(url => Image(None, dataset.id, thingId, url, false)) ++

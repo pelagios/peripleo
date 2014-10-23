@@ -71,7 +71,7 @@ private[models] case class PlacesByThing(
   /** ID of the annotated thing that is referencing the place **/
   annotatedThing: String, 
   
-  /** The start of the date interval this dataset encompasses (optional) **/ 
+  /** The start of the date interval this thing encompasses (optional) **/ 
   temporalBoundsStart: Option[Int],
   
   /** The end of the date interval this dataset encompasses (optional).
@@ -207,8 +207,20 @@ object AggregatedView {
         .toSeq
     }
     
-    // And we write to the DB
-    queryByThing.insertAll({ placesByLeafThing ++ placesByNonLeafThing }:_*)  
+    // We write to the aggregation table...
+    val placesByThing = placesByLeafThing ++ placesByNonLeafThing
+    queryByThing.insertAll(placesByThing:_*)  
+    
+    // ...and update the bounds for annotatedThings
+    val bounds = placesByThing
+      .groupBy(_.annotatedThing)
+      .mapValues(p => BoundingBox.compute(p.flatMap(_.place.geometry)))
+      .filter(_._2.isDefined)
+      .mapValues(_.get)
+      .toSeq
+      
+    Logger.info("Updating geo-bounds for annotated things")
+    AnnotatedThings.updateGeoBounds(bounds)
   } 
 
   def recompute(things: Seq[AnnotatedThing], annotations: Seq[Annotation])(implicit s: Session) = {
