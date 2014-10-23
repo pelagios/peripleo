@@ -142,7 +142,11 @@ object IndexedPlaceNetwork {
           
     // Index shape geometry
     if (place.geometry.isDefined)
-      spatialStrategy.createIndexableFields(spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
+      try {
+        spatialStrategy.createIndexableFields(spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
+      } catch {
+        case _: Throwable => Logger.info("Cannot index geometry: " + place.geometry.get)
+      }
     
     // Add the JSON-serialized place as a stored (but not indexed) field
     doc.add(new StoredField(IndexFields.PLACE_AS_JSON, place.toString))    
