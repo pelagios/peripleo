@@ -89,8 +89,7 @@ the filter parameters:
 
 #### query 
 
-A keyword query. Returns exact matches only (i.e. no fuzzy search). Supports AND and OR operators, and trailing
-asterisk for prefix queries. Examples:
+A keyword query. Returns exact matches only per default (i.e. no fuzzy search, which also matches similar - but not identical - terms). Supports AND and OR operators, and trailing asterisk for prefix queries. If you want to run a fuzzy search, append a ~ to your query term. Examples:
 
 [http://pelagios.org/api-v3/search?query=gold+AND+coin](http://pelagios.org/api-v3/search?query=gold+AND+coin&prettyprint=true)
 
