@@ -26,7 +26,7 @@ Likewise, an item such as Herodotus' _The Histories_ can be subdivided into indi
 ## Response Format
 
 The API returns responses in JSON format. [CORS](http://de.wikipedia.org/wiki/Cross-Origin_Resource_Sharing) and
-[JSONP](http://en.wikipedia.org/wiki/JSONP) are both supported. Most responses are __paginated__, i.e. you will get back only one "page" of search results:
+[JSONP](http://en.wikipedia.org/wiki/JSONP) are both supported. Most responses are __paginated__, i.e. you will get back only one "page" of results:
 
 ```json
 {
