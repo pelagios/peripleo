@@ -100,14 +100,19 @@ object Global extends GlobalSettings {
       }
       
       if (MTable.getTables("places_by_dataset").list.isEmpty && MTable.getTables("places_by_annotated_thing").list.isEmpty) {
-        Logger.info("Aggregated view tables do not exist - creating")
+        Logger.info("DB Tables 'places_by_dataset' and 'places_by_annotated_thing' do not exist - creating")
         AggregatedView.create
       }
       
       if (MTable.getTables("tags").list.isEmpty) {
         Logger.info("DB table 'tags' does not exist - creating")
         Tags.create
-      }      
+      }    
+      
+      if (MTable.getTables("access_log").list.isEmpty) {
+        Logger.info("DB table 'access_log' does not exit - creating")
+        AccessLog.create
+      }  
     }
     
     index.buildSpellchecker()
