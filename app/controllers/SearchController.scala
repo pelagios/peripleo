@@ -1,12 +1,12 @@
 package controllers
 
+import com.vividsolutions.jts.geom.Coordinate
 import controllers.common.io.JSONWrites._
 import global.Global
 import index.{ Index, IndexedObjectTypes }
+import models.BoundingBox
 import play.api.db.slick._
 import play.api.libs.json.Json
-import models.BoundingBox
-import com.vividsolutions.jts.geom.Coordinate
 
 object SearchController extends AbstractAPIController {
 
@@ -28,6 +28,8 @@ object SearchController extends AbstractAPIController {
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
     places: Option[String], yearFrom: Option[Int], yearTo: Option[Int], bbox: Option[String], lat: Option[Double],
     lon: Option[Double], radius: Option[Double]) = DBAction { implicit session =>
+        
+    logAccess
         
     // Map object types
     val objType = objectType.flatMap(name => name.toLowerCase match {

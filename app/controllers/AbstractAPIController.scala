@@ -1,6 +1,10 @@
 package controllers
 
+import java.sql.Timestamp
+import models.{ AccessLog, LogRecord }
 import play.api.Play
+import play.api.Logger
+import play.api.db.slick._
 import play.api.mvc.{ Accepting, Controller, RequestHeader }
 import play.api.libs.json.{ Json, JsValue }
 
@@ -16,9 +20,28 @@ abstract class AbstractAPIController extends Controller {
     
   private val CALLBACK = "callback"
   
+  private val HEADER_USERAGENT = "User-Agent"
+  
+  private val HEADER_REFERER = "Referer"
+  
+  private val HEADER_ACCEPT = "Accept"
+  
   protected val AcceptsRDFXML = Accepting("application/rdf+xml")
   
   protected val AcceptsTurtle = Accepting("text/turtle")
+  
+  protected def logAccess(implicit request: RequestHeader, session: Session) = {
+    val headers = request.headers
+    
+    AccessLog.insert(LogRecord(
+      None, 
+      new Timestamp(System.currentTimeMillis),
+      request.uri, 
+      request.remoteAddress,
+      headers.get(HEADER_USERAGENT).getOrElse("undefined"),
+      headers.get(HEADER_REFERER),
+      headers.get(HEADER_ACCEPT)))
+  }
   
   // TODO implement content negotiation according to the following pattern:
   //    render {
