@@ -43,7 +43,7 @@ object VoIDImporter extends AbstractImporter {
                         
         val datasetEntity = Dataset(id(d), d.title, publisher, license, created, created, 
           uri, d.description, d.homepage, parent.map(_.id), 
-          None, None, None)
+          None, None, None, None)
           
         val dumpfiles = d.datadumps.map(uri => DatasetDumpfile(uri, id(d), None))
   

@@ -5,6 +5,7 @@ import play.api.Logger
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 import play.api.libs.json.Json
+import index.places.IndexedPlace
 
 /** Helper entity to speed up 'how many places are in dataset XY'-type queries.
   *
@@ -141,6 +142,20 @@ object AggregatedView {
     queryByDataset.ddl.create
     queryByThing.ddl.create
   }
+  
+  def insert(ingestBatch: Seq[(AnnotatedThing, Seq[(IndexedPlace, Int)])])(implicit s: Session) = {
+    // Insert by-place records
+    val placesByThing = ingestBatch.flatMap { case (thing, places) =>
+      places.map { case (place, count) =>
+        PlacesByThing(None, thing.dataset, thing.id, thing.temporalBoundsStart, thing.temporalBoundsEnd, 
+          GazetteerReference(place.uri, place.label, place.geometryJson.map(Json.stringify(_))), count) }
+    } 
+    queryByThing.insertAll(placesByThing:_*)
+    
+    // Recompute by-dataset records
+    val affectedDatasets = ingestBatch.map(_._1.dataset).distinct
+    recomputeDatasets(affectedDatasets)
+  }
 
   private def recomputeDatasets(leafIds: Seq[String])(implicit s: Session) = {
     // IDs of all affected datasets, including parents in the hierarchy
@@ -162,8 +177,21 @@ object AggregatedView {
       // Write to DB
       queryByDataset.insertAll(placesInDataset:_*)
     })
+    
+    /* Update the convex hull for the dataset
+    val bounds = placesByThing
+      .groupBy(_.annotatedThing)
+      .mapValues(p => BoundingBox.compute(p.flatMap(_.place.geometry)))
+      .filter(_._2.isDefined)
+      .mapValues(_.get)
+      .toSeq
+      
+    Logger.info("Updating geo-bounds for annotated things")
+    AnnotatedThings.updateGeoBounds(bounds)
+    */
   }
   
+  /*
   private def recomputeAnnotatedThings(things: Seq[AnnotatedThing], annotations: Seq[Annotation])(implicit s: Session) = {
     // Drop them from the table first
     val allThingIds = things.map(_.id)
@@ -233,6 +261,7 @@ object AggregatedView {
     // Recompute stats for things
     recomputeAnnotatedThings(things, annotations)
   }
+  */
   
   def countDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Int =
     Query(queryByDataset.where(_.gazetteerURI === gazetteerURI).length).first

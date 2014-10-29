@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Envelope
 import com.vividsolutions.jts.io.WKTWriter
 import org.geotools.geometry.jts.JTS
 import org.apache.lucene.document.StoredField
+import index.places.IndexedPlace
 
 case class IndexedObject(private val doc: Document) {
  
@@ -55,7 +56,7 @@ object IndexedObject {
   private val spatialStrategy =
     new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
   
-  def toDoc(thing: AnnotatedThing, datasetHierarchy: Seq[Dataset])(implicit s: Session): Document = {
+  def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
     
     // ID, parent dataset ID, title, description, type = object
@@ -72,13 +73,15 @@ object IndexedObject {
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
     thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
-    
-    // Place URIs
-    val places = AggregatedView.findPlacesForThing(thing.id).items.map(_._1)
-    places.foreach(gazetteerRef => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(gazetteerRef.uri), Field.Store.NO)))
- 
+
     // Bounding box
-    val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
+    thing.geoBounds.map(bbox => doc.add(new StoredField(IndexFields.BBOX, bbox.toString)))
+
+    // Place URIs
+    // val places = AggregatedView.findPlacesForThing(thing.id).items.map(_._1)
+    places.foreach(place => doc.add(new StringField(IndexFields.PLACE_URI, place.uri, Field.Store.NO))) 
+    
+    /*
     if (geometries.size > 0) {
       val envelope = new Envelope()
       geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
@@ -86,8 +89,10 @@ object IndexedObject {
         BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY).toString
       doc.add(new StoredField(IndexFields.BBOX, bbox))
     }
+    */
     
     // Detailed geometry for spatial indexing
+    val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
     geometries.foreach(geom => spatialStrategy.createIndexableFields(spatialCtx.makeShape(geom)).foreach(doc.add(_)))
     
     doc   

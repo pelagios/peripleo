@@ -5,17 +5,19 @@ import models.{ Dataset, AnnotatedThing }
 import org.apache.lucene.index.{ IndexWriterConfig, Term }
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, TermQuery }
 import play.api.db.slick._
+import index.places.IndexedPlace
 
 trait ObjectWriter extends IndexBase {
   
-  def addAnnotatedThing(annotatedThing: AnnotatedThing, datasetHierarchy: Seq[Dataset])(implicit s: Session) =
-    addAnnotatedThings(Seq(annotatedThing), datasetHierarchy)
+  def addAnnotatedThing(annotatedThing: AnnotatedThing, places: Seq[IndexedPlace], datasetHierarchy: Seq[Dataset])(implicit s: Session) =
+    addAnnotatedThings(Seq((annotatedThing, places)), datasetHierarchy)
   
-  def addAnnotatedThings(annotatedThings: Seq[AnnotatedThing], datasetHierarchy: Seq[Dataset])(implicit s: Session) = {
+  def addAnnotatedThings(annotatedThings: Seq[(AnnotatedThing, Seq[IndexedPlace])], datasetHierarchy: Seq[Dataset])(implicit s: Session) = {
     val (indexWriter, taxonomyWriter) = newObjectWriter() 
     
-    annotatedThings.par.foreach(thing =>
-      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, datasetHierarchy))))
+    // NOTE: not sure parallelization is totally safe the way we're using it here
+    annotatedThings.par.foreach { case (thing, places) =>
+      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, places, datasetHierarchy)))}
     
     indexWriter.close()
     taxonomyWriter.close()   

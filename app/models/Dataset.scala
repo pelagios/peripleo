@@ -52,7 +52,9 @@ case class Dataset(
   temporalBoundsEnd: Option[Int],
   
   /** The full temporal profile and time histogram for the dataset **/
-  temporalProfile: Option[String])
+  temporalProfile: Option[String],
+  
+  convexHull: Option[ConvexHull])
     
 /** Dataset DB table **/
 class Datasets(tag: SlickTag) extends Table[Dataset](tag, "datasets") {
@@ -83,8 +85,10 @@ class Datasets(tag: SlickTag) extends Table[Dataset](tag, "datasets") {
   
   def temporalProfile = column[String]("temporal_profile", O.Nullable, O.DBType("text"))
   
-  def * = (id, title, publisher, license, created, modified, voidURI.?, description.?, 
-    homepage.?, isPartOfId.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?) <> (Dataset.tupled, Dataset.unapply)
+  def convexHull = column[ConvexHull]("convex_hull", O.Nullable, O.DBType("text"))
+  
+  def * = (id, title, publisher, license, created, modified, voidURI.?, description.?, homepage.?,
+      isPartOfId.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?, convexHull.?) <> (Dataset.tupled, Dataset.unapply)
   
   /** Foreign key constraints **/
     
@@ -130,7 +134,7 @@ object Datasets {
     // Update the DB record
     val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
       dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-      dataset.homepage, dataset.isPartOf, tempBoundsStart, tempBoundsEnd, tempProfile)
+      dataset.homepage, dataset.isPartOf, tempBoundsStart, tempBoundsEnd, tempProfile, dataset.convexHull)
     
     update(updatedDataset) 
   }
