@@ -141,8 +141,8 @@ object PelagiosOAImporter extends AbstractImporter {
     // Update aggregation table stats
     AggregatedView.insert(ingestBatch.map(t => (t._1, t._4)))
     
-    // Update the parent dataset with new temporal bounds and profile
-    Datasets.recomputeTemporalProfileRecursive(dataset)
+    // Update the parent dataset with new temporal profile and convex hull
+    Datasets.recomputeSpaceTimeBoundsRecursive(dataset)
     
     // Update index
     Logger.info("Updating Index") 

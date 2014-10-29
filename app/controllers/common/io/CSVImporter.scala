@@ -80,7 +80,7 @@ object CSVImporter extends AbstractImporter {
     AggregatedView.insert(ingestBatch.map(t => (t._1, t._3)))
 
     // Update the parent dataset with new temporal bounds and profile
-    Datasets.recomputeTemporalProfileRecursive(dataset)
+    Datasets.recomputeSpaceTimeBoundsRecursive(dataset)
 
     Logger.info("Updating Index") 
     val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)

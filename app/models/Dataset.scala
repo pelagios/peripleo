@@ -105,20 +105,23 @@ object Datasets {
   def create()(implicit s: Session) = query.ddl.create
   
   /** Recomputes the temporal profile for this dataset and all datasets above it in the hierarchy **/
-  def recomputeTemporalProfileRecursive(dataset: Dataset)(implicit s: Session): Unit = {
+  def recomputeSpaceTimeBoundsRecursive(dataset: Dataset)(implicit s: Session): Unit = {
     val datasetsAbove = getParentHierarchy(dataset.id) 
     val allDatasets = dataset +: findByIds(datasetsAbove)
     
     // Note: this will fetch subsets and things for each dataset from the DB in every loop, so could be optimized
     // but usually we won't have huge numbers of datasets, so optimization wouldn't have much impact
-    allDatasets.foreach(recomputeTemporalProfile(_))
+    allDatasets.foreach(recomputeSpaceTimeBounds(_))    
   }
 
-  private def recomputeTemporalProfile(dataset: Dataset)(implicit s: Session) = {
+  private def recomputeSpaceTimeBounds(dataset: Dataset)(implicit s: Session) = {
     Logger.info("Recomputing temporal profile for dataset " + dataset.title)
     
-    // Grab all toplevel things in this dataset and its subsets
-    val datedThings = AnnotatedThings.findByDataset(dataset.id, true, true).items.filter(_.temporalBoundsStart.isDefined)
+    // Grab all dated toplevel things in this dataset and its subsets
+    val datedThings = AnnotatedThings
+      .findByDataset(dataset.id, recursive = true, topLevelOnly = true)
+      // Note: query could be optimized by not fetching undated items from DB
+      .items.filter(_.temporalBoundsStart.isDefined) 
     
     // Compute the temporal profile from the things
     val (tempBoundsStart, tempBoundsEnd, tempProfile) = 
@@ -131,12 +134,19 @@ object Datasets {
         (Some(boundsStart), Some(boundsEnd), Some(profile.toString))
       }
     
+    // Grab all places for this dataset and compute the convex hull
+    Logger.info("Recomputing convex hull for this dataset")
+    val geometries = AggregatedView.findPlacesInDataset(dataset.id).items.flatMap(_._1.geometry)
+    val convexHull = ConvexHull.compute(geometries)
+
     // Update the DB record
     val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
       dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-      dataset.homepage, dataset.isPartOf, tempBoundsStart, tempBoundsEnd, tempProfile, dataset.convexHull)
+      dataset.homepage, dataset.isPartOf, tempBoundsStart, tempBoundsEnd, tempProfile, convexHull)
     
     update(updatedDataset) 
+    
+      
   }
   
   /** Inserts a single Dataset into the DB **/
