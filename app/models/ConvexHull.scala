@@ -10,6 +10,11 @@ import scala.collection.JavaConverters._
 
 case class ConvexHull(geometry: Geometry) {
   
+  lazy val bounds: BoundingBox = {
+    val envelope = geometry.getEnvelopeInternal()
+    BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+  }
+  
   override lazy val toString = new WKTWriter().write(geometry)
   
 }
