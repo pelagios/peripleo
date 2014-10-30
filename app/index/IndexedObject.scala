@@ -35,6 +35,8 @@ case class IndexedObject(private val doc: Document) {
     
   val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
   
+  val homepage: Option[String] = Option(doc.get(IndexFields.HOMEPAGE))
+  
   val temporalBoundsStart: Option[Int] = Option(doc.get(IndexFields.DATE_FROM)).map(_.toInt)
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
@@ -57,12 +59,13 @@ object IndexedObject {
   def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
     
-    // ID, publisher, parent dataset ID, title, description, type = AnnotatedThing
+    // ID, publisher, parent dataset ID, title, description, homepage, type = AnnotatedThing
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
     doc.add(new StringField(IndexFields.PUBLISHER, datasetHierarchy.head.publisher, Field.Store.NO))
     doc.add(new StringField(IndexFields.DATASET, thing.dataset, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
+    thing.homepage.map(homepage => new StoredField(IndexFields.HOMEPAGE, homepage))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
