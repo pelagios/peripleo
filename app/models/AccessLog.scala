@@ -6,7 +6,7 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 
 /** LogRecord model entity **/
-case class LogRecord(id: Option[Int], timestamp: Timestamp, path: String, ip: String, userAgent: String, referrer: Option[String], accept: Option[String])
+case class LogRecord(id: Option[Int], timestamp: Timestamp, path: String, ip: String, userAgent: String, referrer: Option[String], accept: Option[String], responseTime: Int)
 
 /** Tag DB table **/
 class AccessLog(slickTag: SlickTag) extends Table[LogRecord](slickTag, "access_log") {
@@ -24,8 +24,10 @@ class AccessLog(slickTag: SlickTag) extends Table[LogRecord](slickTag, "access_l
   def referrer = column[String]("referrer", O.Nullable)
   
   def accept = column[String]("accept", O.Nullable)
+  
+  def responseTime = column[Int]("response_time", O.NotNull)
 
-  def * = (id.?, timestamp, path, ip, userAgent, referrer.?, accept.?) <> (LogRecord.tupled, LogRecord.unapply)
+  def * = (id.?, timestamp, path, ip, userAgent, referrer.?, accept.?, responseTime) <> (LogRecord.tupled, LogRecord.unapply)
 	
 }
 

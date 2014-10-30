@@ -31,35 +31,33 @@ abstract class AbstractAPIController extends Controller {
   protected val AcceptsTurtle = Accepting("text/turtle")
   
   def loggingAction(f: DBSessionRequest[AnyContent] => SimpleResult) = {
-    DBAction(BodyParsers.parse.anyContent)(rs => { 
-      val startTime = System.currentTimeMillis
+    DBAction(BodyParsers.parse.anyContent)(implicit rs => {
+      // Extract loggable properties from request
+      val timestamp = System.currentTimeMillis
+      val uri = rs.request.uri
+      val ip = rs.request.remoteAddress
       
-      // TODO extract loggable parameters from request
+      val headers = rs.request.headers
+      val userAgent = headers.get(HEADER_USERAGENT)
+      val referrer = headers.get(HEADER_REFERER)
+      val accept = headers.get(HEADER_ACCEPT)
       
+      // Execute controller
       val result = f(rs) 
-      Logger.info("Took " + (System.currentTimeMillis - startTime) + "ms")
       
-      // TODO write to DB
+      AccessLog.insert(LogRecord(None, 
+        new Timestamp(timestamp), 
+        uri,
+        ip,
+        userAgent.getOrElse("undefined"),
+        referrer,
+        accept, 
+        { System.currentTimeMillis - timestamp }.toInt))
       
       result
     })
   }
-  
-  /*
-  protected def logAccess(implicit request: RequestHeader, session: Session) = {
-    val headers = request.headers
     
-    AccessLog.insert(LogRecord(
-      None, 
-      new Timestamp(System.currentTimeMillis),
-      request.uri, 
-      request.remoteAddress,
-      headers.get(HEADER_USERAGENT).getOrElse("undefined"),
-      headers.get(HEADER_REFERER),
-      headers.get(HEADER_ACCEPT)))
-  }
-  */
-  
   // TODO implement content negotiation according to the following pattern:
   //    render {
   //      case Accepts.Html() => Ok("") // views.html.list(items))

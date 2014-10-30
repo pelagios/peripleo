@@ -14,7 +14,7 @@ import models.Gazetteers
 
 object PlaceController extends AbstractAPIController {
 
-  def listAll(gazetteerName:String, bbox: Option[String], limit: Option[Int], offset: Option[Int]) = DBAction { implicit session => 
+  def listAll(gazetteerName:String, bbox: Option[String], limit: Option[Int], offset: Option[Int]) = loggingAction { implicit session => 
     // Map BBox coordinates
     val bboxTupled = bbox.flatMap(str => {
       val coords = str.split(",").map(_.trim)
@@ -34,24 +34,24 @@ object PlaceController extends AbstractAPIController {
     }
   }  
 
-  def getPlace(uri: String) = Action { implicit request =>
+  def getPlace(uri: String) = loggingAction { implicit session =>
     val place = Global.index.findPlaceByURI(uri)
     if (place.isDefined)
-      jsonOk(Json.toJson(place.get), request)
+      jsonOk(Json.toJson(place.get), session.request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
   
-  def getNetwork(uri: String) = Action { implicit request =>
+  def getNetwork(uri: String) = loggingAction { implicit session =>
     val network = Global.index.findNetworkByPlaceURI(uri)
     if(network.isDefined) {
-      jsonOk(Json.toJson(network), request)
+      jsonOk(Json.toJson(network), session.request)
     } else {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
     }
   }
   
-  def listOccurrences(uri: String, includeCloseMatches: Boolean) = DBAction { implicit request =>
+  def listOccurrences(uri: String, includeCloseMatches: Boolean) = loggingAction { implicit request =>
     val place = Global.index.findPlaceByURI(Index.normalizeURI(uri))
     if (place.isDefined) {
       val occurrences = 

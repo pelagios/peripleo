@@ -8,11 +8,11 @@ import play.api.libs.json.Json
 
 object AnnotationController extends AbstractAPIController {
 
-  def listAll(limit: Int, offset: Int) = DBAction { implicit session =>
+  def listAll(limit: Int, offset: Int) = loggingAction { implicit session =>
     jsonOk(Json.toJson(Annotations.listAll()), session.request)
   }
   
-  def getAnnotation(id: UUID) = DBAction { implicit session =>
+  def getAnnotation(id: UUID) = loggingAction { implicit session =>
     val annotation = Annotations.findByUUID(id)
     if (annotation.isDefined)
       jsonOk(Json.toJson(annotation.get), session.request)

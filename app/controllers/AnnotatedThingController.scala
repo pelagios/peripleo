@@ -7,7 +7,7 @@ import play.api.libs.json.{ Json, JsString, Writes }
 
 object AnnotatedThingController extends AbstractAPIController {
       
-  def listAll(limit: Int, offset: Int) = DBAction { implicit session =>
+  def listAll(limit: Int, offset: Int) = loggingAction { implicit session =>
     jsonOk(Json.toJson(AnnotatedThings.listAll(false, offset, limit)), session.request)
   }  
   
@@ -19,17 +19,17 @@ object AnnotatedThingController extends AbstractAPIController {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }  
   
-  def listSubThings(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
+  def listSubThings(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
     val subItems = AnnotatedThings.listChildren(id)
     jsonOk(Json.toJson(subItems), session.request)
   }
   
-  def listPlaces(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
+  def listPlaces(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
     val places = AggregatedView.findPlacesForThing(id)
     jsonOk(Json.toJson(places), session.request)
   } 
   
-  def listAnnotations(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
+  def listAnnotations(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
     val annotatedThing = AnnotatedThings.findById(id)
     if (annotatedThing.isDefined)
       jsonOk(Json.toJson(Annotations.findByAnnotatedThing(id)), session.request)

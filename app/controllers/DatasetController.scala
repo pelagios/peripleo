@@ -7,11 +7,11 @@ import play.api.libs.json.{ Json, JsValue }
 
 object DatasetController extends AbstractAPIController {
   
-  def listAll(limit: Int, offset: Int) = DBAction { implicit session =>
+  def listAll(limit: Int, offset: Int) = loggingAction { implicit session =>
     jsonOk(Json.toJson(Datasets.listAll(true, offset, limit)), session.request)
   }
   
-  def getDataset(id: String) = DBAction { implicit session =>
+  def getDataset(id: String) = loggingAction { implicit session =>
     val dataset = Datasets.findByIdWithDumpfiles(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(dataset.get), session.request)
@@ -19,7 +19,7 @@ object DatasetController extends AbstractAPIController {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
   
-  def getTemporalProfile(id: String) = DBAction { implicit session =>
+  def getTemporalProfile(id: String) = loggingAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined)
       jsonOk(Json.parse(dataset.get.temporalProfile.getOrElse("{}")), session.request)
@@ -27,7 +27,7 @@ object DatasetController extends AbstractAPIController {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
     
-  def listAnnotatedThings(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
+  def listAnnotatedThings(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
     val dataset = Datasets.findByIdWithDumpfiles(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(AnnotatedThings.findByDataset(id, true, true, offset, limit)), session.request)
@@ -35,7 +35,7 @@ object DatasetController extends AbstractAPIController {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
   
-  def listPlaces(id: String, limit: Int, offset: Int) = DBAction { implicit session =>
+  def listPlaces(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
     val places = AggregatedView.findPlacesInDataset(id, offset, limit)
     
     implicit val verbose = session.request.queryString
