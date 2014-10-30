@@ -3,17 +3,18 @@ package controllers.pages
 import models._
 import play.api.db.slick._
 import play.api.mvc.Controller
+import controllers.AbstractAPIController
 
-object DatasetPagesController extends Controller {
+object DatasetPagesController extends AbstractAPIController {
 
-  def listAll = DBAction { implicit session =>
+  def listAll = loggingAction { implicit session =>
     val datasets = Datasets.countAll()
     val things = AnnotatedThings.countAll(true)
     val annotations = Annotations.countAll
     Ok(views.html.datasetList(datasets, things, annotations))
   }
   
-  def getDataset(id: String) = DBAction { implicit session =>
+  def getDataset(id: String) = loggingAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined) {
       val id = dataset.get.id

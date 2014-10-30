@@ -7,14 +7,15 @@ import play.api.db.slick._
 import play.api.Logger
 import index.IndexedObjectTypes
 import index.Index
+import controllers.AbstractAPIController
 
-object HomepageController extends Controller {
+object HomepageController extends AbstractAPIController {
   
   private val DATASET = "dataset"
   private val ITEM = "item"
   private val PLACE = "place"
   
-  def index() = DBAction { implicit session =>
+  def index() = loggingAction { implicit session =>
     val datasets = Datasets.countAll()
     val items = AnnotatedThings.countAll(true)
     val gazetteers = Gazetteers.countAll
@@ -23,7 +24,7 @@ object HomepageController extends Controller {
   }
   
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
-      places: Option[String], yearFrom: Option[Int], yearTo: Option[Int]) = DBAction { implicit session =>
+      places: Option[String], yearFrom: Option[Int], yearTo: Option[Int]) = loggingAction { implicit session =>
         
     val startTime = System.currentTimeMillis
     // Map object types
