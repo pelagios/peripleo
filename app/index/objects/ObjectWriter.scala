@@ -35,6 +35,24 @@ trait ObjectWriter extends IndexBase {
     taxonomyWriter.close()    
   }
   
+  def updateDatasets(datasets: Seq[Dataset]) = {
+    val (indexWriter, taxonomyWriter) = newObjectWriter() 
+    
+    // Delete docs
+    val deleteQuery = new BooleanQuery()
+    deleteQuery.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)
+    datasets.foreach(dataset =>
+      deleteQuery.add(new TermQuery(new Term(IndexFields.ID, dataset.id)), BooleanClause.Occur.SHOULD))
+    indexWriter.deleteDocuments(deleteQuery)
+    
+    // Add updated versions
+    datasets.foreach(dataset =>
+      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))
+    
+    indexWriter.close()
+    taxonomyWriter.close()        
+  }
+  
   /** Removes datasets from the index. 
     *  
     * This method does NOT automatically take care of removing subsets - you need to 
