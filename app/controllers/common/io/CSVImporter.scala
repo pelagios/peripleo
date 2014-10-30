@@ -34,12 +34,17 @@ object CSVImporter extends AbstractImporter {
     val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
     val uuidIdx = header.indexOf("uuid")
     
-    val annotationsByPart = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
+    val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
       val uuid = if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID 
       val gazetteerURI = fields(header.indexOf("gazetteer_uri"))
-      val documentPart = fields(header.indexOf("document_part"))   
+      
+      // In case annotations are on the root thing, the document part is an empty string!
+      val documentPart = fields(header.indexOf("document_part")) 
       (uuid, documentPart, gazetteerURI)     
     }).groupBy(_._2)
+
+    val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3)))
+    val annotationsForParts = annotations.filter(!_._1.isEmpty)
 
     val ingestBatch: Seq[(AnnotatedThing, Seq[Annotation], Seq[(IndexedPlace, Int)])] = {
       // Root thing
@@ -47,10 +52,10 @@ object CSVImporter extends AbstractImporter {
       val rootThingId = sha256(dataset.id + " " + meta.get("author").getOrElse("") + rootTitle + " " + meta.get("language").getOrElse(""))
       val date = meta.get("date (numeric)").map(_.toInt)
       
-      val partIngestBatch = annotationsByPart.map { case (partTitle, csvAnnotations) =>
+      val partIngestBatch = annotationsForParts.map { case (partTitle, tuples) =>
         val partThingId = sha256(rootThingId + " " + partTitle)
         
-        val annotations = csvAnnotations.map { case (uuid, _, gazetteerURI) =>
+        val annotations = tuples.map { case (uuid, _, gazetteerURI) =>
           Annotation(uuid, dataset.id, partThingId, gazetteerURI, None, None) }
         
         val places = 
@@ -63,6 +68,7 @@ object CSVImporter extends AbstractImporter {
       }.toSeq
      
       // Root thing
+      val rootAnnotations = annotationsOnRoot.map(t => Annotation(t._1, dataset.id, rootThingId, t._2, None, None))
       val allPlaces = resolvePlaces(partIngestBatch.flatMap(_._2).map(_.gazetteerURI))
       val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, ConvexHull.fromPlaces(allPlaces.map(_._1)))
       
@@ -80,14 +86,12 @@ object CSVImporter extends AbstractImporter {
     AggregatedView.insert(ingestBatch.map(t => (t._1, t._3)))
 
     // Update the parent dataset with new temporal bounds and profile
-    val datasetsAbove = Datasets.getParentHierarchy(dataset.id) 
-    val affectedDatasets = dataset +: Datasets.findByIds(datasetsAbove)
-    val updatedDatasets = Datasets.recomputeSpaceTimeBounds(affectedDatasets)
+    val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)
 
     Logger.info("Updating Index") 
     val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
     Global.index.addAnnotatedThing(allThings.head, ingestBatch.head._3.map(_._1), parentHierarchy)
-    Global.index.updateDatasets(updatedDatasets)
+    Global.index.updateDatasets(affectedDatasets)
     Global.index.refresh()
     
     source.close()

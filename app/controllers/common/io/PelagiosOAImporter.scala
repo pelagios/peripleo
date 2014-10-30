@@ -142,15 +142,13 @@ object PelagiosOAImporter extends AbstractImporter {
     AggregatedView.insert(ingestBatch.map(t => (t._1, t._4)))
     
     // Update the parent dataset with new temporal profile and convex hull
-    val datasetsAbove = Datasets.getParentHierarchy(dataset.id) 
-    val affectedDatasets = dataset +: Datasets.findByIds(datasetsAbove)
-    val updatedDatasets = Datasets.recomputeSpaceTimeBounds(affectedDatasets)
+    val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)
     
     // Update index
     Logger.info("Updating Index") 
     val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
     Global.index.addAnnotatedThings(ingestBatch.map(t => (t._1, t._4.map(_._1))), parentHierarchy)
-    Global.index.updateDatasets(updatedDatasets)
+    Global.index.updateDatasets(affectedDatasets)
     Global.index.refresh()
   }
   

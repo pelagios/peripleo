@@ -104,11 +104,17 @@ object Datasets {
   /** Creates the DB table **/
   def create()(implicit s: Session) = query.ddl.create
   
-  /** Recomputes the temporal profile for the datasets in the list **/
-  def recomputeSpaceTimeBounds(datasets: Seq[Dataset])(implicit s: Session): Seq[Dataset] = {
+  /** Recomputes the temporal profile for the dataset and its supersets.
+    *
+    * @returns all datasets affected by the update
+    */
+  def recomputeSpaceTimeBounds(dataset: Dataset)(implicit s: Session): Seq[Dataset] = {
+    val datasetsAbove = Datasets.getParentHierarchy(dataset.id) 
+    val affectedDatasets = dataset +: Datasets.findByIds(datasetsAbove)
+    
     // Note: this will fetch subsets and things for each dataset from the DB in every loop, so could be optimized
     // but usually we won't have huge numbers of datasets, so optimization wouldn't have much impact
-    datasets.map(dataset => {
+    affectedDatasets.map(dataset => {
       Logger.info("Recomputing temporal profile for dataset " + dataset.title)
     
       // Grab all dated toplevel things in this dataset and its subsets
