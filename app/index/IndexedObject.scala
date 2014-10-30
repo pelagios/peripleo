@@ -16,21 +16,15 @@ import index.places.IndexedPlace
 import models.ConvexHull
 
 case class IndexedObject(private val doc: Document) {
- 
-  val objectType: IndexedObjectTypes.Value = { 
-    val typeField = doc.get(IndexFields.OBJECT_TYPE)
-    if (typeField != null) // The object type is defined through the value of the facet field    
-      IndexedObjectTypes.withName(typeField)
-    else // or it's a place network (in which case there is no facet field)
-      IndexedObjectTypes.PLACE
-  }
-  
+
+  val objectType: IndexedObjectTypes.Value = IndexedObjectTypes.withName(doc.get(IndexFields.OBJECT_TYPE))
+
   val identifier: String =
     if (objectType == IndexedObjectTypes.PLACE) 
       doc.get(IndexFields.PLACE_URI) // The identifier is the first URI in the list for the place network
     else
-      doc.get(IndexFields.ID) // or the ID for everything else
-    
+      doc.get(IndexFields.ID) // or the ID for everything else   
+      
   val title: String = doc.get(IndexFields.TITLE)
     
   val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
@@ -65,7 +59,7 @@ object IndexedObject {
     doc.add(new StringField(IndexFields.DATASET, thing.dataset, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
-    thing.homepage.map(homepage => new StoredField(IndexFields.HOMEPAGE, homepage))
+    thing.homepage.map(homepage => doc.add(new StoredField(IndexFields.HOMEPAGE, homepage)))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     

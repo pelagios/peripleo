@@ -10,6 +10,7 @@ import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
 import com.vividsolutions.jts.geom.Envelope
 import models.ConvexHull
+import index.IndexedObjectTypes
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
@@ -91,17 +92,23 @@ object IndexedPlaceNetwork {
   /** Merges the place and the networks into one network **/
   def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork = {
     val joinedDoc = new Document() 
+    joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))
+    
     val allPlaces = networks.flatMap(_.places) :+ place
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
     
     // Convex hull accross all place geometries
     val convexHull = ConvexHull.compute(allPlaces.flatMap(_.geometry))
-    convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, convexHull.toString)))
+    convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
 
     new IndexedPlaceNetwork(joinedDoc)   
   }
       
   private[places] def addPlaceToDoc(place: IndexedPlace, doc: Document): Document = {
+    // Place URI
+    doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(place.uri), Field.Store.YES))
+
+    // Title
     if (doc.get(IndexFields.TITLE) == null)
       // If the network is still be empty, its title is null. In this case, store the place title as network title
       doc.add(new TextField(IndexFields.TITLE, place.label, Field.Store.YES))
@@ -109,6 +116,7 @@ object IndexedPlaceNetwork {
       // Otherwise just index the place title, but don't store
       doc.add(new TextField(IndexFields.TITLE, place.label, Field.Store.NO))
       
+    // Description
     if (place.description.isDefined) {
       if (doc.get(IndexFields.DESCRIPTION) == null)
         // If there is no stored description, store (and index) this one 
@@ -120,9 +128,6 @@ object IndexedPlaceNetwork {
     
     // Index (but don't store) all names
     place.names.foreach(literal => doc.add(new TextField(IndexFields.PLACE_NAME, literal.chars, Field.Store.NO)))
-    
-    // Index & store place URI
-    doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(place.uri), Field.Store.YES))
     
     // Update list of source gazetteers, if necessary
     val sourceGazetteers = doc.getValues(IndexFields.PLACE_SOURCE_GAZETTEER).toSet

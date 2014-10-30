@@ -18,14 +18,14 @@ object JSONWrites {
   
   /** TODO this inlines subitem/annotation/place counts with a DB request - optimize via a Writes[(AnnotatedThing, Seq[Depiction], Seq[Thumbnail], Int, Int, Int)] **/ 
   implicit def annotatedThingWrites(implicit s: Session): Writes[AnnotatedThing] = (
-    (JsPath \ "id").write[String] ~
+    (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "is_part_of").writeNullable[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
-    // TODO geo_bounds
+    (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
     // TODO change image format
     (JsPath \ "thumbnails").writeNullable[Seq[String]] ~
     (JsPath \ "images").writeNullable[Seq[String]] ~
@@ -48,6 +48,7 @@ object JSONWrites {
       thing.temporalBoundsStart.map(start => Json.obj( 
         "start" -> start,
         "end" -> { val end = thing.temporalBoundsEnd.getOrElse(start); end })),
+      thing.convexHull.map(_.bounds),
       thumbnails,
       depictions,
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
@@ -148,7 +149,15 @@ object JSONWrites {
       (JsPath \ "num_occurrences").write[Int]
   )(t  => (t._1, t._2))     
       
-          
+  
+  implicit val bboxWrites: Writes[BoundingBox] = (
+    (JsPath \ "min_lon").write[Double] ~
+    (JsPath \ "max_lon").write[Double] ~
+    (JsPath \ "min_lat").write[Double] ~
+    (JsPath \ "max_lat").write[Double]
+  )(bbox => (bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat))
+  
+  
   implicit def pageWrites[A](implicit fmt: Writes[A]): Writes[Page[A]] = (
     (JsPath \ "total").write[Long] ~
     (JsPath \ "offset").writeNullable[Int] ~
@@ -176,28 +185,24 @@ object JSONWrites {
   /** Index entity serializations **/
   /**                             **/
       
-  // TODO create a separate BoundingBox mapper
-      
   implicit val indexedObjectWrites: Writes[IndexedObject] = (
     (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
+    (JsPath \ "homepage").writeNullable[String] ~
     (JsPath \ "object_type").write[String] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
-    (JsPath \ "geo_bounds").writeNullable[JsValue]
+    (JsPath \ "geo_bounds").writeNullable[BoundingBox]
   )(obj => (
       obj.identifier,
       obj.title,
       obj.description,
+      obj.homepage,
       obj.objectType.toString,
       obj.temporalBoundsStart.map(start => Json.obj( 
         "start" -> start,
         "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
-      obj.convexHull.map(cv => Json.obj(
-        "minLon" -> cv.bounds.minLon,
-        "maxLon" -> cv.bounds.maxLon,
-        "minLat" -> cv.bounds.minLat,
-        "maxLat" -> cv.bounds.maxLat))))    
+      obj.convexHull.map(_.bounds)))    
       
         
   implicit val placeWrites: Writes[IndexedPlace] = (

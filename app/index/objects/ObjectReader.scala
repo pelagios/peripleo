@@ -41,14 +41,8 @@ trait ObjectReader extends IndexBase {
     } 
       
     // Object type filter
-    if (objectType.isDefined) {
-      if (objectType.get == IndexedObjectTypes.PLACE) {
-        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST_NOT)
-        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString)), BooleanClause.Occur.MUST_NOT)
-      } else {
-        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.get.toString)), BooleanClause.Occur.MUST)
-      }
-    }
+    if (objectType.isDefined)
+      q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.get.toString)), BooleanClause.Occur.MUST)
     
     // Dataset filter
     if (dataset.isDefined) {
