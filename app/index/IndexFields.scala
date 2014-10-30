@@ -30,6 +30,6 @@ object IndexFields {
     
   val DATE_TO = "date_to"
     
-  val BBOX = "bbox"
+  val CONVEX_HULL = "convex_hull"
     
 }

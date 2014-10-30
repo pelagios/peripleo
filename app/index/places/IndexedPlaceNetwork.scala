@@ -9,6 +9,7 @@ import org.pelagios.api.gazetteer.Place
 import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
 import com.vividsolutions.jts.geom.Envelope
+import models.ConvexHull
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
@@ -93,16 +94,10 @@ object IndexedPlaceNetwork {
     val allPlaces = networks.flatMap(_.places) :+ place
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
     
-    // Bounding box accross all place geometries
-    val geometries = allPlaces.flatMap(_.geometry)
-    if (geometries.size > 0) {
-      val envelope = new Envelope() 
-      geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
-      val bbox = 
-        Seq(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY).mkString(",")
-      joinedDoc.add(new StoredField(IndexFields.BBOX, bbox))
-    }
-    
+    // Convex hull accross all place geometries
+    val convexHull = ConvexHull.compute(allPlaces.flatMap(_.geometry))
+    convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, convexHull.toString)))
+
     new IndexedPlaceNetwork(joinedDoc)   
   }
       

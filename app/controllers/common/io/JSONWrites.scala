@@ -176,6 +176,8 @@ object JSONWrites {
   /** Index entity serializations **/
   /**                             **/
       
+  // TODO create a separate BoundingBox mapper
+      
   implicit val indexedObjectWrites: Writes[IndexedObject] = (
     (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
@@ -191,11 +193,11 @@ object JSONWrites {
       obj.temporalBoundsStart.map(start => Json.obj( 
         "start" -> start,
         "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
-      obj.bbox.map(bbox => Json.obj(
-        "minLon" -> bbox._1,
-        "maxLon" -> bbox._2,
-        "minLat" -> bbox._3,
-        "maxLat" -> bbox._4))))    
+      obj.convexHull.map(cv => Json.obj(
+        "minLon" -> cv.bounds.minLon,
+        "maxLon" -> cv.bounds.maxLon,
+        "minLat" -> cv.bounds.minLat,
+        "maxLat" -> cv.bounds.maxLat))))    
       
         
   implicit val placeWrites: Writes[IndexedPlace] = (

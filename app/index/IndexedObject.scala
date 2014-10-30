@@ -13,6 +13,7 @@ import com.vividsolutions.jts.io.WKTWriter
 import org.geotools.geometry.jts.JTS
 import org.apache.lucene.document.StoredField
 import index.places.IndexedPlace
+import models.ConvexHull
 
 case class IndexedObject(private val doc: Document) {
  
@@ -38,11 +39,8 @@ case class IndexedObject(private val doc: Document) {
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
   
-  // TODO use typed bouding box
-  val bbox = Option(doc.get(IndexFields.BBOX))
-    .map(str => str.split(",").map(_.toDouble).toSeq)
-    .map(c => (c(0), c(1), c(2), c(3)))
-  
+  val convexHull: Option[ConvexHull] = Option(doc.get(IndexFields.CONVEX_HULL)).map(ConvexHull.fromWKT(_))
+      
   def toPlaceNetwork = new IndexedPlaceNetwork(doc)
  
 }
@@ -59,39 +57,29 @@ object IndexedObject {
   def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
     
-    // ID, parent dataset ID, title, description, type = object
+    // ID, publisher, parent dataset ID, title, description, type = AnnotatedThing
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
     doc.add(new StringField(IndexFields.PUBLISHER, datasetHierarchy.head.publisher, Field.Store.NO))
     doc.add(new StringField(IndexFields.DATASET, thing.dataset, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
+    thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
-    val datasetPath = datasetHierarchy(0).publisher +: datasetHierarchy.map(_.title)
-    doc.add(new FacetField(IndexFields.DATASET, datasetPath:_*))
+    // Dataset hierarchy as facet
+    doc.add(new FacetField(IndexFields.DATASET, datasetHierarchy.map(_.title):_*))
     
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
     thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
 
-    // Bounding box
-    thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.BBOX, cv.bounds.toString)))
+    // Convex hull
+    thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
 
     // Place URIs
-    // val places = AggregatedView.findPlacesForThing(thing.id).items.map(_._1)
     places.foreach(place => doc.add(new StringField(IndexFields.PLACE_URI, place.uri, Field.Store.NO))) 
     
-    /*
-    if (geometries.size > 0) {
-      val envelope = new Envelope()
-      geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
-      val bbox = 
-        BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY).toString
-      doc.add(new StoredField(IndexFields.BBOX, bbox))
-    }
-    */
-    
-    // Detailed geometry for spatial indexing
+    // Detailed geometry as spatially indexed features
     val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
     geometries.foreach(geom => spatialStrategy.createIndexableFields(spatialCtx.makeShape(geom)).foreach(doc.add(_)))
     
