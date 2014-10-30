@@ -37,7 +37,7 @@ object ConvexHull {
     }
   }
     
-  def fromIndexedPlaces(places: Seq[IndexedPlace]): Option[ConvexHull] =
+  def fromPlaces(places: Seq[IndexedPlace]): Option[ConvexHull] =
     compute(places.flatMap(_.geometry))
   
   def fromWKT(wkt: String): ConvexHull =

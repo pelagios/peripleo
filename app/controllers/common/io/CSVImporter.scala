@@ -57,14 +57,14 @@ object CSVImporter extends AbstractImporter {
           resolvePlaces(annotations.map(_.gazetteerURI))
 
         val thing = 
-          AnnotatedThing(partThingId, dataset.id, partTitle, None, Some(rootThingId), None, date, date, BoundingBox.fromPlaces(places.map(_._1)))
+          AnnotatedThing(partThingId, dataset.id, partTitle, None, Some(rootThingId), None, date, date, ConvexHull.fromPlaces(places.map(_._1)))
           
         (thing, annotations, places)
       }.toSeq
      
       // Root thing
       val allPlaces = resolvePlaces(partIngestBatch.flatMap(_._2).map(_.gazetteerURI))
-      val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, BoundingBox.fromPlaces(allPlaces.map(_._1)))
+      val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, ConvexHull.fromPlaces(allPlaces.map(_._1)))
       
       (rootThing, Seq.empty[Annotation], allPlaces) +: partIngestBatch
     }

@@ -115,7 +115,7 @@ object PelagiosOAImporter extends AbstractImporter {
                        oaThing.homepage, 
                        tempBoundsStart, 
                        tempBoundsEnd, 
-                       BoundingBox.fromPlaces(places.map(_._1)))
+                       ConvexHull.fromPlaces(places.map(_._1)))
       
       val images = 
         oaThing.depictions.map(url => Image(None, dataset.id, thingId, url, false)) ++

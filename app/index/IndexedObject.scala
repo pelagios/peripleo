@@ -75,7 +75,7 @@ object IndexedObject {
     thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
 
     // Bounding box
-    thing.geoBounds.map(bbox => doc.add(new StoredField(IndexFields.BBOX, bbox.toString)))
+    thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.BBOX, cv.bounds.toString)))
 
     // Place URIs
     // val places = AggregatedView.findPlacesForThing(thing.id).items.map(_._1)
