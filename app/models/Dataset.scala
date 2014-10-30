@@ -104,49 +104,45 @@ object Datasets {
   /** Creates the DB table **/
   def create()(implicit s: Session) = query.ddl.create
   
-  /** Recomputes the temporal profile for this dataset and all datasets above it in the hierarchy **/
-  def recomputeSpaceTimeBoundsRecursive(dataset: Dataset)(implicit s: Session): Unit = {
-    val datasetsAbove = getParentHierarchy(dataset.id) 
-    val allDatasets = dataset +: findByIds(datasetsAbove)
-    
+  /** Recomputes the temporal profile for the datasets in the list **/
+  def recomputeSpaceTimeBounds(datasets: Seq[Dataset])(implicit s: Session): Seq[Dataset] = {
     // Note: this will fetch subsets and things for each dataset from the DB in every loop, so could be optimized
     // but usually we won't have huge numbers of datasets, so optimization wouldn't have much impact
-    allDatasets.foreach(recomputeSpaceTimeBounds(_))    
-  }
+    datasets.map(dataset => {
+      Logger.info("Recomputing temporal profile for dataset " + dataset.title)
+    
+      // Grab all dated toplevel things in this dataset and its subsets
+      val datedThings = AnnotatedThings
+        .findByDataset(dataset.id, recursive = true, topLevelOnly = true)
+        // Note: query could be optimized by not fetching undated items from DB
+        .items.filter(_.temporalBoundsStart.isDefined) 
+    
+      // Compute the temporal profile from the things
+      val (tempBoundsStart, tempBoundsEnd, tempProfile) = 
+        if (datedThings.isEmpty) {
+          (None, None, None)
+        } else {
+          val boundsStart = datedThings.map(_.temporalBoundsStart.get).min
+          val boundsEnd = datedThings.map(_.temporalBoundsEnd.get).max
+          val profile = new TemporalProfile(datedThings.map(thing => (thing.temporalBoundsStart.get, thing.temporalBoundsEnd.get)))
+          (Some(boundsStart), Some(boundsEnd), Some(profile.toString))
+        }
+    
+      // Grab all places for this dataset and compute the convex hull
+      Logger.info("Recomputing convex hull for this dataset")
+      val geometries = AggregatedView.findPlacesInDataset(dataset.id).items.flatMap(_._1.geometry)
+      val convexHull = ConvexHull.compute(geometries)
 
-  private def recomputeSpaceTimeBounds(dataset: Dataset)(implicit s: Session) = {
-    Logger.info("Recomputing temporal profile for dataset " + dataset.title)
+      // Update the DB record
+      val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
+        dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
+        dataset.homepage, dataset.isPartOf, tempBoundsStart, tempBoundsEnd, tempProfile, convexHull)
     
-    // Grab all dated toplevel things in this dataset and its subsets
-    val datedThings = AnnotatedThings
-      .findByDataset(dataset.id, recursive = true, topLevelOnly = true)
-      // Note: query could be optimized by not fetching undated items from DB
-      .items.filter(_.temporalBoundsStart.isDefined) 
-    
-    // Compute the temporal profile from the things
-    val (tempBoundsStart, tempBoundsEnd, tempProfile) = 
-      if (datedThings.isEmpty) {
-        (None, None, None)
-      } else {
-        val boundsStart = datedThings.map(_.temporalBoundsStart.get).min
-        val boundsEnd = datedThings.map(_.temporalBoundsEnd.get).max
-        val profile = new TemporalProfile(datedThings.map(thing => (thing.temporalBoundsStart.get, thing.temporalBoundsEnd.get)))
-        (Some(boundsStart), Some(boundsEnd), Some(profile.toString))
-      }
-    
-    // Grab all places for this dataset and compute the convex hull
-    Logger.info("Recomputing convex hull for this dataset")
-    val geometries = AggregatedView.findPlacesInDataset(dataset.id).items.flatMap(_._1.geometry)
-    val convexHull = ConvexHull.compute(geometries)
-
-    // Update the DB record
-    val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,
-      dataset.created, new Date(System.currentTimeMillis), dataset.voidURI, dataset.description, 
-      dataset.homepage, dataset.isPartOf, tempBoundsStart, tempBoundsEnd, tempProfile, convexHull)
-    
-    update(updatedDataset) 
-    
+      update(updatedDataset)
       
+      // Return the updated dataset
+      updatedDataset
+    })
   }
   
   /** Inserts a single Dataset into the DB **/

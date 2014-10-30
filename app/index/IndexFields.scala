@@ -18,6 +18,8 @@ object IndexFields {
     
   val PUBLISHER = "publisher"
     
+  val IS_PART_OF = "is_part_of"
+    
   val PLACE_URI = "uri"
     
   val PLACE_SOURCE_GAZETTEER = "source_gazetteer"

@@ -85,13 +85,24 @@ object IndexedObject {
   
   def toDoc(dataset: Dataset): Document = {
     val doc = new Document()
+    
+    // ID, publisher, parent dataset ID, title, description, homepage, type = Dataset
     doc.add(new StringField(IndexFields.ID, dataset.id, Field.Store.YES))
+    doc.add(new StringField(IndexFields.PUBLISHER, dataset.publisher, Field.Store.NO))
+    dataset.isPartOf.map(isPartOf => doc.add(new StoredField(IndexFields.IS_PART_OF, isPartOf)))
     doc.add(new TextField(IndexFields.TITLE, dataset.title, Field.Store.YES))
     dataset.description.map(d => doc.add(new TextField(IndexFields.DESCRIPTION, d, Field.Store.YES)))
+    dataset.homepage.map(homepage => doc.add(new StoredField(IndexFields.HOMEPAGE, homepage)))
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString, Field.Store.YES))
-    dataset.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
-    dataset.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString))
+    
+    // Temporal bounds    
+    dataset.temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))
+    dataset.temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
+
+    // Convex hull
+    dataset.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
+
     doc
   }
   
