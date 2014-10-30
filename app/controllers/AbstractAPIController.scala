@@ -5,7 +5,7 @@ import models.{ AccessLog, LogRecord }
 import play.api.Play
 import play.api.Logger
 import play.api.db.slick._
-import play.api.mvc.{ Accepting, Controller, RequestHeader }
+import play.api.mvc.{ Accepting, AnyContent, BodyParsers, Controller, RequestHeader, SimpleResult }
 import play.api.libs.json.{ Json, JsValue }
 
 /** Controller base class.
@@ -30,6 +30,22 @@ abstract class AbstractAPIController extends Controller {
   
   protected val AcceptsTurtle = Accepting("text/turtle")
   
+  def loggingAction(f: DBSessionRequest[AnyContent] => SimpleResult) = {
+    DBAction(BodyParsers.parse.anyContent)(rs => { 
+      val startTime = System.currentTimeMillis
+      
+      // TODO extract loggable parameters from request
+      
+      val result = f(rs) 
+      Logger.info("Took " + (System.currentTimeMillis - startTime) + "ms")
+      
+      // TODO write to DB
+      
+      result
+    })
+  }
+  
+  /*
   protected def logAccess(implicit request: RequestHeader, session: Session) = {
     val headers = request.headers
     
@@ -42,6 +58,7 @@ abstract class AbstractAPIController extends Controller {
       headers.get(HEADER_REFERER),
       headers.get(HEADER_ACCEPT)))
   }
+  */
   
   // TODO implement content negotiation according to the following pattern:
   //    render {
@@ -80,3 +97,4 @@ abstract class AbstractAPIController extends Controller {
   }
 
 }
+

@@ -27,10 +27,8 @@ object SearchController extends AbstractAPIController {
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
     places: Option[String], yearFrom: Option[Int], yearTo: Option[Int], bbox: Option[String], lat: Option[Double],
-    lon: Option[Double], radius: Option[Double]) = DBAction { implicit session =>
-        
-    logAccess
-        
+    lon: Option[Double], radius: Option[Double]) = loggingAction { implicit session => 
+                
     // Map object types
     val objType = objectType.flatMap(name => name.toLowerCase match {
       case DATASET => Some(IndexedObjectTypes.DATASET)
