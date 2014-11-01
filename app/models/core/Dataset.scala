@@ -137,7 +137,7 @@ object Datasets {
         }
     
       // Grab all places for this dataset and compute the convex hull
-      Logger.info("Recomputing convex hull for this dataset")
+      Logger.info("Recomputing convex hull for dataset " + dataset.title)
       val geometries = Associations.findPlacesInDataset(dataset.id).items.flatMap(_._1.geometry)
       val convexHull = ConvexHull.compute(geometries)
 

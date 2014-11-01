@@ -38,12 +38,13 @@ trait ObjectWriter extends IndexBase {
   def updateDatasets(datasets: Seq[Dataset]) = {
     val (indexWriter, taxonomyWriter) = newObjectWriter() 
     
-    // Delete docs
-    val deleteQuery = new BooleanQuery()
-    deleteQuery.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)
-    datasets.foreach(dataset =>
-      deleteQuery.add(new TermQuery(new Term(IndexFields.ID, dataset.id)), BooleanClause.Occur.SHOULD))
-    indexWriter.deleteDocuments(deleteQuery)
+    // Delete
+    datasets.foreach(dataset => {
+      val q = new BooleanQuery()
+      q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)
+      q.add(new TermQuery(new Term(IndexFields.ID, dataset.id)), BooleanClause.Occur.MUST)
+      indexWriter.deleteDocuments(q)
+    })
     
     // Add updated versions
     datasets.foreach(dataset =>
@@ -61,18 +62,16 @@ trait ObjectWriter extends IndexBase {
   def dropDatasets(ids: Seq[String]) = {
     val (indexWriter, taxonomyWriter) = newObjectWriter()
     
-    // Delete annotated things - it's enough to purge everything that has a 'dataset' field == id
-    val deleteThingsQuery = new BooleanQuery()
-    ids.foreach(id =>
-      deleteThingsQuery.add(new TermQuery(new Term(IndexFields.ITEM_DATASET, id)), BooleanClause.Occur.SHOULD))   
-    indexWriter.deleteDocuments(deleteThingsQuery)
-    
-    // Delete dataset
-    val deleteDatasetsQuery = new BooleanQuery()
-    deleteDatasetsQuery.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)
-    ids.foreach(id =>
-      deleteDatasetsQuery.add(new TermQuery(new Term(IndexFields.ID, id)), BooleanClause.Occur.SHOULD))
-    indexWriter.deleteDocuments(deleteDatasetsQuery)
+    ids.foreach(id => {
+      // Delete annotated things for this dataset
+      indexWriter.deleteDocuments(new Term(IndexFields.ITEM_DATASET, id))
+      
+      // Delete the dataset
+      val q = new BooleanQuery()
+      q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)
+      q.add(new TermQuery(new Term(IndexFields.ID, id)), BooleanClause.Occur.MUST)
+      indexWriter.deleteDocuments(q)
+    })
     
     indexWriter.close()
     taxonomyWriter.close()
