@@ -1,7 +1,6 @@
-package index
+package index.objects
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
-import index.places.IndexedPlaceNetwork
 import models.core.{ AnnotatedThing, Dataset }
 import models.geo.ConvexHull
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
@@ -9,11 +8,10 @@ import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.db.slick._
-import com.vividsolutions.jts.geom.Envelope
-import com.vividsolutions.jts.io.WKTWriter
-import org.geotools.geometry.jts.JTS
 import org.apache.lucene.document.StoredField
 import index.places.IndexedPlace
+import index.IndexFields
+import index.places.IndexedPlaceNetwork
 
 case class IndexedObject(private val doc: Document) {
 
@@ -74,7 +72,7 @@ object IndexedObject {
     thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
 
     // Place URIs
-    places.foreach(place => doc.add(new StringField(IndexFields.PLACE_URI, place.uri, Field.Store.NO))) 
+    places.foreach(place => doc.add(new StringField(IndexFields.ITEM_PLACES, place.uri, Field.Store.NO))) 
     
     // Detailed geometry as spatially indexed features
     val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)

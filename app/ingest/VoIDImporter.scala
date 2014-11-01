@@ -1,5 +1,6 @@
 package ingest
 
+import global.Global
 import java.io.FileInputStream
 import java.sql.Date
 import models.core.{ Dataset, Datasets, DatasetDumpfile, DatasetDumpfiles }
@@ -8,13 +9,10 @@ import org.pelagios.api.dataset.{ Dataset => VoidDataset }
 import play.api.db.slick._
 import play.api.Logger
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.RequestHeader
-import global.Global
-import org.pelagios.api.dataset.{Dataset => VoidDataset}
 
 object VoIDImporter extends AbstractImporter {
   
-  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session, r: RequestHeader) = {
+  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session) = {
     Logger.info("Importing VoID file: " + filename)  
     val is = new FileInputStream(file.file)   
     val format = getFormat(filename)  

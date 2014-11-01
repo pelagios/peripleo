@@ -87,6 +87,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     spellcheckIndex.close()
   }
   
+  /** TODO - use this code sample for building a spellcheck feature! **/
   def buildSpellchecker() = {
 	// Logger.info("Building spellcheck index")
     // spellchecker.indexDictionary(new LuceneDictionary(placeIndexReader, IndexFields.PLACE_NAME), new IndexWriterConfig(Version.LUCENE_4_9, analyzer), true);

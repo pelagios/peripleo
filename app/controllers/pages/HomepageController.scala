@@ -6,7 +6,7 @@ import global.Global
 import play.api.mvc.{ Action, Controller }
 import play.api.db.slick._
 import play.api.Logger
-import index.IndexedObjectTypes
+import index.objects.IndexedObjectTypes
 import index.Index
 import controllers.AbstractController
 

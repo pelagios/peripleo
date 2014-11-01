@@ -3,7 +3,8 @@ package controllers
 import com.vividsolutions.jts.geom.Coordinate
 import controllers.common.JSONWrites._
 import global.Global
-import index.{ Index, IndexedObjectTypes }
+import index.{ Index }
+import index.objects.IndexedObjectTypes
 import models.geo.BoundingBox
 import play.api.db.slick._
 import play.api.libs.json.Json

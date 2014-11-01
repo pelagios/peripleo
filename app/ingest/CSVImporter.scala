@@ -1,16 +1,15 @@
 package ingest
 
+import global.Global
+import index.places.IndexedPlace
 import java.util.UUID
 import java.util.regex.Pattern
 import models.Associations
 import models.core._
 import models.geo._
+import play.api.Logger
 import play.api.db.slick._
 import scala.io.Source
-import global.Global
-import play.api.Logger
-import index.places.IndexedPlace
-import scala.Option.option2Iterable
 
 object CSVImporter extends AbstractImporter {
   

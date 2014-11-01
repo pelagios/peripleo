@@ -1,7 +1,7 @@
 package controllers.common
 
 import global.Global
-import index.IndexedObject
+import index.objects.IndexedObject
 import index.places._
 import models._
 import models.core._

@@ -10,7 +10,7 @@ import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
 import com.vividsolutions.jts.geom.Envelope
 import models.geo.ConvexHull
-import index.IndexedObjectTypes
+import index.objects.IndexedObjectTypes
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 

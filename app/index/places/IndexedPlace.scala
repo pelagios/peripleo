@@ -56,12 +56,12 @@ object IndexedPlace {
    
   /** JSON Writes **/
   
-  implicit val plainLiteralWrites: Writes[PlainLiteral] = (
+  private implicit val plainLiteralWrites: Writes[PlainLiteral] = (
     (JsPath \ "chars").write[String] ~
     (JsPath \ "lang").writeNullable[String]
   )(l => (l.chars, l.lang))
   
-  implicit val placeWrites: Writes[Place] = (
+  private implicit val placeWrites: Writes[Place] = (
     (JsPath \ "uri").write[String] ~
     (JsPath \ "label").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
@@ -80,7 +80,7 @@ object IndexedPlace {
       p.closeMatches.map(Index.normalizeURI(_)),
       p.exactMatches.map(Index.normalizeURI(_))))
   
-  implicit val placeFromGazetteerWrites: Writes[(Place, String)] = (
+  private implicit val placeFromGazetteerWrites: Writes[(Place, String)] = (
     (JsPath).write[Place] ~
     (JsPath \ "source_gazetteer").write[String]
   )(t => (t._1, t._2))
