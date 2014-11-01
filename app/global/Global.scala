@@ -1,5 +1,7 @@
 package global
 
+import akka.actor.Cancellable
+import global.housekeeping.AccessLogArchiver
 import index.Index
 import java.io.{ File, FileInputStream }
 import java.util.zip.GZIPInputStream
@@ -12,11 +14,12 @@ import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
-import models.geo.Gazetteers
 
 object Global extends GlobalSettings {
   
   private val GAZETTER_DATA_DIR = "gazetteer"
+    
+  private var accessLogArchiver: Option[Cancellable] = None
        
   lazy val index = {
     val idx = Index.open("index")
@@ -118,7 +121,11 @@ object Global extends GlobalSettings {
       }  
     }
     
+    // TODO implement!
     index.buildSpellchecker()
+    
+    // Start log archiving demon
+    accessLogArchiver = Some(AccessLogArchiver.start())
   }  
   
   override def onStop(app: Application): Unit = index.close()
