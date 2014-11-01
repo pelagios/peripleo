@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.common.io.JSONWrites._
+import controllers.common.JSONWrites._
 import global.Global
 import index.Index
 import index.places.IndexedPlace

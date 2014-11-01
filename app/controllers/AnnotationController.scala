@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.common.io.JSONWrites._
+import controllers.common.JSONWrites._
 import java.util.UUID
 import models.core.Annotations
 import play.api.db.slick._

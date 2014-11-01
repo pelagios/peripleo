@@ -1,23 +1,21 @@
-package controllers.common.io
+package ingest
 
 import global.Global
-import java.util.{ Calendar, UUID }
+import java.util.UUID
 import java.io.FileInputStream
-import java.sql.Date
 import models.Associations
 import models.core._
 import models.geo.ConvexHull
 import play.api.Logger
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile
-import play.api.mvc.RequestHeader
-import play.api.mvc.MultipartFormData.FilePart
-import org.openrdf.rio.RDFFormat
 import org.pelagios.Scalagios
 import org.pelagios.api.annotation.{ AnnotatedThing => OAThing, Annotation => OAnnotation }
 import index.places.IndexedPlace
+import org.pelagios.api.annotation.{AnnotatedThing => OAThing}
+import org.pelagios.api.annotation.{Annotation => OAnnotation}
 
-object PelagiosOAImporter extends AbstractImporter {
+object PelagiosOAImporter extends BaseImporter {
   
   /** Given a thing, this function returns a list of all things below it in the hierarchy **/
   private def flattenThingHierarchy(thing: OAThing): Seq[OAThing] =

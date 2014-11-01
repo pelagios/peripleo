@@ -1,4 +1,4 @@
-package controllers.common.io
+package controllers.common
 
 import global.Global
 import index.IndexedObject
@@ -10,7 +10,6 @@ import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import models.geo.GazetteerReference
 
 /** JSON writers for model and index classes. **/
 object JSONWrites {

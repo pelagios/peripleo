@@ -1,7 +1,7 @@
 package controllers
 
 import com.vividsolutions.jts.geom.Coordinate
-import controllers.common.io.JSONWrites._
+import controllers.common.JSONWrites._
 import global.Global
 import index.{ Index, IndexedObjectTypes }
 import models.geo.BoundingBox

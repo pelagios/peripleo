@@ -1,4 +1,4 @@
-package controllers.common.harvest
+package ingest
 
 import java.net.URL
 import java.io.File
@@ -8,7 +8,6 @@ import play.api.db.slick._
 import play.api.Logger
 import play.api.libs.Files.TemporaryFile
 import sys.process._
-import controllers.common.io.{ CSVImporter, PelagiosOAImporter }
 import scala.io.Source
 
 class HarvestWorker {

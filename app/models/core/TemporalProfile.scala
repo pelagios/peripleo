@@ -1,6 +1,6 @@
 package models.core
 
-import controllers.common.io.JSONWrites._
+import controllers.common.JSONWrites._
 import play.api.libs.json.Json
 
 class TemporalProfile(data: Seq[(Int, Int)]) {

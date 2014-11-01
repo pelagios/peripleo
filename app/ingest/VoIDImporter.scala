@@ -1,4 +1,4 @@
-package controllers.common.io
+package ingest
 
 import java.io.FileInputStream
 import java.sql.Date
@@ -9,10 +9,10 @@ import play.api.db.slick._
 import play.api.Logger
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.RequestHeader
-import play.api.mvc.MultipartFormData.FilePart
 import global.Global
+import org.pelagios.api.dataset.{Dataset => VoidDataset}
 
-object VoIDImporter extends AbstractImporter {
+object VoIDImporter extends BaseImporter {
   
   def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session, r: RequestHeader) = {
     Logger.info("Importing VoID file: " + filename)  

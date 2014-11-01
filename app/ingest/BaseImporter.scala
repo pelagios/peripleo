@@ -1,10 +1,10 @@
-package controllers.common.io
+package ingest
 
 import java.math.BigInteger
 import java.security.MessageDigest
 import org.pelagios.Scalagios
 
-abstract class AbstractImporter {
+abstract class BaseImporter {
   
   private val SHA256 = "SHA-256"
     

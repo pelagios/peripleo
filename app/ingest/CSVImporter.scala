@@ -1,4 +1,4 @@
-package controllers.common.io
+package ingest
 
 import java.util.UUID
 import java.util.regex.Pattern
@@ -10,8 +10,9 @@ import scala.io.Source
 import global.Global
 import play.api.Logger
 import index.places.IndexedPlace
+import scala.Option.option2Iterable
 
-object CSVImporter extends AbstractImporter {
+object CSVImporter extends BaseImporter {
   
   private val SEPARATOR = ";"
     

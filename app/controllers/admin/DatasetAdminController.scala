@@ -1,6 +1,5 @@
 package controllers.admin
 
-import controllers.common.io.{ CSVImporter, PelagiosOAImporter, VoIDImporter }
 import global.Global
 import java.io.File
 import java.net.URL
@@ -14,6 +13,7 @@ import play.api.Logger
 import play.api.libs.json.Json
 import scala.io.Source
 import sys.process._
+import ingest._
 
 object DatasetAdminController extends Controller with Secured {
   
@@ -104,7 +104,7 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def harvestDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    val worker = new controllers.common.harvest.HarvestWorker()
+    val worker = new ingest.HarvestWorker()
     worker.harvest(id)
     Ok("")
   }
