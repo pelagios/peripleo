@@ -99,9 +99,9 @@ object Global extends GlobalSettings {
         Gazetteers.create
       }
       
-      if (MTable.getTables("places_by_dataset").list.isEmpty && MTable.getTables("places_by_annotated_thing").list.isEmpty) {
-        Logger.info("DB Tables 'places_by_dataset' and 'places_by_annotated_thing' do not exist - creating")
-        AggregatedView.create
+      if (MTable.getTables("place_to_dataset_associations").list.isEmpty || MTable.getTables("place_to_thing_associations").list.isEmpty) {
+        Logger.info("DB Tables 'place_to_dataset_associations' and 'place_to_thing_associations' do not exist - creating")
+        Associations.create
       }
       
       if (MTable.getTables("tags").list.isEmpty) {

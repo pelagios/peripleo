@@ -7,29 +7,33 @@ import scala.slick.lifted.{ Tag => SlickTag }
 import play.api.libs.json.Json
 import index.places.IndexedPlace
 
-/** Helper entity to speed up 'how many places are in dataset XY'-type queries.
+private[models] case class PlaceToDataset(
+    
+    /** Auto-inc ID **/
+    id: Option[Int],
+    
+    /** Dataset ID **/
+    dataset: String, 
+    
+    /** Place reference **/
+    place: GazetteerReference, 
+    
+    /** Weight: how often is the place referenced in the dataset **/
+    count: Int)
+    
+
+/** A table holding associations between places and datasets. 
   *
-  * In a nutshell, this table contains links between datasets and places, plus a bit
-  * of 'cached' information about the place from the gazetteer, so that we don't
-  * need to do an extra gazetteer resolution step when retrieving the links from 
-  * the DB. 
-  */
-private[models] case class PlacesByDataset(
-    
-  /** Auto-inc ID **/
-  id: Option[Int], 
-    
-  /** ID of the dataset that is referencing the place **/
-  dataset: String, 
-          
-  /** Cached information about the place (URI, title and geometry) **/
-  place: GazetteerReference, 
-
-  /** Number of times the place is referenced **/
-  count: Int)
-
-    
-private[models] class PlacesByDatasetTable(tag: SlickTag) extends Table[PlacesByDataset](tag, "places_by_dataset") {
+  * These associations are a result of the connections between datasets, annotated things and 
+  * annotations. (I.e. annotations relate places to annotated things; and the things are related
+  * to datasets.)
+  * 
+  * In other words: this table introduces de-normalization for the sake of speeding up queries
+  * on place-to-dataset associations. The model is essentially identical to the typical data-
+  * warehouse star schema, with this table representing the fact table, and places and datasets
+  * representing the dimensions.
+  */ 
+private[models] class PlaceToDatasetAssociations(tag: SlickTag) extends Table[PlaceToDataset](tag, "place_to_dataset_associations") {
   
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -45,8 +49,8 @@ private[models] class PlacesByDatasetTable(tag: SlickTag) extends Table[PlacesBy
   
   // Solution for embedding GazetteerURI as multiple columns provided by the mighty @manuelbernhardt
   def * = (id.?, datasetId, (gazetteerURI, title, location.?), count).shaped <> (
-    { case (id, datasetId, gazetteerURI, count) => PlacesByDataset(id, datasetId, GazetteerReference.tupled.apply(gazetteerURI), count) },
-    { p: PlacesByDataset => Some(p.id, p.dataset, GazetteerReference.unapply(p.place).get, p.count) })
+    { case (id, datasetId, gazetteerURI, count) => PlaceToDataset(id, datasetId, GazetteerReference.tupled.apply(gazetteerURI), count) },
+    { p: PlaceToDataset => Some(p.id, p.dataset, GazetteerReference.unapply(p.place).get, p.count) })
   
   /** Foreign key constraints **/
   
@@ -60,37 +64,41 @@ private[models] class PlacesByDatasetTable(tag: SlickTag) extends Table[PlacesBy
   
 }
 
-/** Helper entity to speed up 'how many places are in annotated item XY'-type queries **/
-private[models] case class PlacesByThing(
+private[models] case class PlaceToThing(
     
-  /** Auto-inc ID **/
-  id: Option[Int], 
-  
-  /** ID of the dataset containing the annotating thing **/
-  dataset: String, 
-  
-  /** ID of the annotated thing that is referencing the place **/
-  annotatedThing: String, 
-  
-  /** The start of the date interval this thing encompasses (optional) **/ 
-  temporalBoundsStart: Option[Int],
-  
-  /** The end of the date interval this dataset encompasses (optional).
-    *
-    * If the dataset is dated (i.e. if it has a temporalBoundsStart value)
-    * this value MUST be set. In case the thing is dated with a datestamp
-    * rather than an interval, temporalBoundsEnd must be the same as
-    * temporalBoundsStart
-    */   
-  temporalBoundsEnd: Option[Int],
-  
-  /** Cached information about the place (URI, title and geometry) **/
-  place: GazetteerReference,
-  
-  /** Number of times the place is referenced **/
-  count: Int)
+    /** Auto-inc ID */
+    id: Option[Int], 
+    
+    /** Dataset ID **/
+    dataset: String,
+    
+    /** AnnotatedThing ID **/
+    annotatedThing: String, 
+    
+    /** Annotated Thing temporal bounds start **/
+    temporalBoundsStart: Option[Int], 
+    
+    /** Annotated Thing temporal bounds end **/
+    temporalBoundsEnd: Option[Int],
 
-private[models] class PlacesByThingTable(tag: SlickTag) extends Table[PlacesByThing](tag, "places_by_annotated_thing") {
+    /** Place reference **/
+    place: GazetteerReference, 
+
+    /** Weight: how often is the place referenced in the dataset **/
+    count: Int)
+    
+
+/** A table holding associations between places and annotated things. 
+  *
+  * These associations are a result of the connections between annotated things and 
+  * annotations (which related places to things).
+  * 
+  * In other words: this table introduces de-normalization for the sake of speeding up 
+  * queries on place-to-thing associations. The model is essentially identical to the typical
+  * data-warehouse star schema, with this table representing the fact table, and places and
+  * annotated things representing the dimensions.
+  */ 
+private[models] class PlaceToThingAssociations(tag: SlickTag) extends Table[PlaceToThing](tag, "place_to_thing_associations") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     
@@ -112,8 +120,8 @@ private[models] class PlacesByThingTable(tag: SlickTag) extends Table[PlacesByTh
   
   // Solution for embedding GazetteerURI as multiple columns provided by the mighty @manuelbernhardt
   def * = (id.?, datasetId, annotatedThingId, temporalBoundsStart.?, temporalBoundsEnd.?, (gazetteerURI, title, location.?), count).shaped <> (
-    { case (id, datasetId, annotatedThingId, temporalBoundsStart, temporalBoundsEnd, gazetteerURI, count) => PlacesByThing(id, datasetId, annotatedThingId, temporalBoundsStart, temporalBoundsEnd, GazetteerReference.tupled.apply(gazetteerURI), count) },
-    { p: PlacesByThing => Some(p.id, p.dataset, p.annotatedThing, p.temporalBoundsStart, p.temporalBoundsEnd, GazetteerReference.unapply(p.place).get, p.count) })
+    { case (id, datasetId, annotatedThingId, temporalBoundsStart, temporalBoundsEnd, gazetteerURI, count) => PlaceToThing(id, datasetId, annotatedThingId, temporalBoundsStart, temporalBoundsEnd, GazetteerReference.tupled.apply(gazetteerURI), count) },
+    { p: PlaceToThing => Some(p.id, p.dataset, p.annotatedThing, p.temporalBoundsStart, p.temporalBoundsEnd, GazetteerReference.unapply(p.place).get, p.count) })
   
   /** Foreign key constraints **/
   
@@ -132,11 +140,11 @@ private[models] class PlacesByThingTable(tag: SlickTag) extends Table[PlacesByTh
 }
 
 /** Queries **/
-object AggregatedView {
+object Associations {
   
-  private val queryByDataset = TableQuery[PlacesByDatasetTable]
+  private val queryByDataset = TableQuery[PlaceToDatasetAssociations]
   
-  private val queryByThing = TableQuery[PlacesByThingTable]
+  private val queryByThing = TableQuery[PlaceToThingAssociations]
   
   def create()(implicit s: Session) = {
     queryByDataset.ddl.create
@@ -147,7 +155,7 @@ object AggregatedView {
     // Insert by-place records
     val placesByThing = ingestBatch.flatMap { case (thing, places) =>
       places.map { case (place, count) =>
-        PlacesByThing(None, thing.dataset, thing.id, thing.temporalBoundsStart, thing.temporalBoundsEnd, 
+        PlaceToThing(None, thing.dataset, thing.id, thing.temporalBoundsStart, thing.temporalBoundsEnd, 
           GazetteerReference(place.uri, place.label, place.geometryJson.map(Json.stringify(_))), count) }
     } 
     queryByThing.insertAll(placesByThing:_*)
@@ -171,7 +179,7 @@ object AggregatedView {
         .map { case (uri, annotations) => (Global.index.findPlaceByURI(uri), annotations.size) } // Resolve place from index and just keep annotation count
         .filter(_._1.isDefined) // We restrict to places in the gazetteer
         .map { case (place, count) => 
-          PlacesByDataset(None, id, GazetteerReference(place.get.uri, place.get.label, place.get.geometryJson.map(Json.stringify(_))), count) }
+          PlaceToDataset(None, id, GazetteerReference(place.get.uri, place.get.label, place.get.geometryJson.map(Json.stringify(_))), count) }
         .toSeq
         
       // Write to DB

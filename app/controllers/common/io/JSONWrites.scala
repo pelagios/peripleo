@@ -53,7 +53,7 @@ object JSONWrites {
       depictions,
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),
-      AggregatedView.countPlacesForThing(thing.id))})
+      Associations.countPlacesForThing(thing.id))})
   
       
   implicit val annotationWrites: Writes[Annotation] = (
@@ -101,7 +101,7 @@ object JSONWrites {
        dataset.voidURI,
        AnnotatedThings.countByDataset(dataset.id),
        Annotations.countByDataset(dataset.id),
-       AggregatedView.countPlacesInDataset(dataset.id),
+       Associations.countPlacesInDataset(dataset.id),
        subsetsJson)})
       
        

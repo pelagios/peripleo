@@ -139,7 +139,7 @@ object PelagiosOAImporter extends AbstractImporter {
     Annotations.insertAll(allAnnotations)
             
     // Update aggregation table stats
-    AggregatedView.insert(ingestBatch.map(t => (t._1, t._4)))
+    Associations.insert(ingestBatch.map(t => (t._1, t._4)))
     
     // Update the parent dataset with new temporal profile and convex hull
     val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)

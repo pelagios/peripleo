@@ -2,7 +2,7 @@ package index
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.places.IndexedPlaceNetwork
-import models.{ AggregatedView, AnnotatedThing, BoundingBox, Dataset }
+import models.{ AnnotatedThing, Dataset }
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy

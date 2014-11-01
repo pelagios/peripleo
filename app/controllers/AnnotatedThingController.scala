@@ -25,7 +25,7 @@ object AnnotatedThingController extends AbstractAPIController {
   }
   
   def listPlaces(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
-    val places = AggregatedView.findPlacesForThing(id)
+    val places = Associations.findPlacesForThing(id)
     jsonOk(Json.toJson(places), session.request)
   } 
   

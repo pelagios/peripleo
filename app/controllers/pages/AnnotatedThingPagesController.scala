@@ -11,7 +11,7 @@ object AnnotatedThingPagesController extends AbstractAPIController {
     val thing = AnnotatedThings.findById(id)
     if (thing.isDefined) {
       val thumbnails = Images.findByAnnotatedThing(id)._1
-      val places = AggregatedView.countPlacesForThing(id)
+      val places = Associations.countPlacesForThing(id)
       val datasetHierarchy = Datasets.findByIds(thing.get.dataset +: Datasets.getParentHierarchy(thing.get.dataset)).reverse
       Ok(views.html.annotatedThingDetails(thing.get, thumbnails, datasetHierarchy))
     } else {

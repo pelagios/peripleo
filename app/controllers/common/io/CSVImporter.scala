@@ -83,7 +83,7 @@ object CSVImporter extends AbstractImporter {
     Annotations.insertAll(allAnnotations)
 
     // Update aggregation table stats
-    AggregatedView.insert(ingestBatch.map(t => (t._1, t._3)))
+    Associations.insert(ingestBatch.map(t => (t._1, t._3)))
 
     // Update the parent dataset with new temporal bounds and profile
     val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)

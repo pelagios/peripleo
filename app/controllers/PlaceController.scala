@@ -4,7 +4,7 @@ import controllers.common.io.JSONWrites._
 import global.Global
 import index.Index
 import index.places.IndexedPlace
-import models.{ AggregatedView, Dataset }
+import models.{ Associations, Dataset }
 import play.api.mvc.Action
 import play.api.db.slick._
 import play.api.libs.json._
@@ -57,9 +57,9 @@ object PlaceController extends AbstractAPIController {
       val occurrences = 
         if (includeCloseMatches) {
           val places = Global.index.findNetworkByPlaceURI(uri).get.places.map(_.uri)
-          AggregatedView.findOccurrences(places.toSet) 
+          Associations.findOccurrences(places.toSet) 
         } else {
-          AggregatedView.findOccurrences(place.get.uri)      
+          Associations.findOccurrences(place.get.uri)      
         }
       implicit val verbose = false
       jsonOk(Json.toJson((place.get, occurrences)), request.request)

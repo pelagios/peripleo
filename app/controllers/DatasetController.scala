@@ -36,7 +36,7 @@ object DatasetController extends AbstractAPIController {
   }
   
   def listPlaces(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
-    val places = AggregatedView.findPlacesInDataset(id, offset, limit)
+    val places = Associations.findPlacesInDataset(id, offset, limit)
     
     implicit val verbose = session.request.queryString
       .filter(_._1.toLowerCase.equals("verbose"))

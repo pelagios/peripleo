@@ -136,7 +136,7 @@ object Datasets {
     
       // Grab all places for this dataset and compute the convex hull
       Logger.info("Recomputing convex hull for this dataset")
-      val geometries = AggregatedView.findPlacesInDataset(dataset.id).items.flatMap(_._1.geometry)
+      val geometries = Associations.findPlacesInDataset(dataset.id).items.flatMap(_._1.geometry)
       val convexHull = ConvexHull.compute(geometries)
 
       // Update the DB record
