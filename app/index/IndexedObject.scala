@@ -56,7 +56,7 @@ object IndexedObject {
     // ID, publisher, parent dataset ID, title, description, homepage, type = AnnotatedThing
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
     doc.add(new StringField(IndexFields.PUBLISHER, datasetHierarchy.head.publisher, Field.Store.NO))
-    doc.add(new StringField(IndexFields.DATASET, thing.dataset, Field.Store.YES))
+    doc.add(new StringField(IndexFields.ITEM_DATASET, thing.dataset, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
     thing.homepage.map(homepage => doc.add(new StoredField(IndexFields.HOMEPAGE, homepage)))
@@ -64,7 +64,7 @@ object IndexedObject {
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
     // Dataset hierarchy as facet
-    doc.add(new FacetField(IndexFields.DATASET, datasetHierarchy.map(_.title):_*))
+    doc.add(new FacetField(IndexFields.ITEM_DATASET, datasetHierarchy.map(_.title):_*))
     
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))

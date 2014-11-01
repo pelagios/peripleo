@@ -46,11 +46,11 @@ trait ObjectReader extends IndexBase {
     if (dataset.isDefined) {
       val datasetHierarchy = dataset.get +: Datasets.listSubsetsRecursive(dataset.get)
       if (datasetHierarchy.size == 1) {
-        q.add(new TermQuery(new Term(IndexFields.DATASET, dataset.get)), BooleanClause.Occur.MUST)        
+        q.add(new TermQuery(new Term(IndexFields.ITEM_DATASET, dataset.get)), BooleanClause.Occur.MUST)        
       } else {
         val datasetQuery = new BooleanQuery()
         datasetHierarchy.foreach(id => {
-          datasetQuery.add(new TermQuery(new Term(IndexFields.DATASET, id)), BooleanClause.Occur.SHOULD)       
+          datasetQuery.add(new TermQuery(new Term(IndexFields.ITEM_DATASET, id)), BooleanClause.Occur.SHOULD)       
         })
         q.add(datasetQuery, BooleanClause.Occur.MUST)
       }

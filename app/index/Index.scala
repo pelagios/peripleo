@@ -42,7 +42,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
 
   protected val facetsConfig = new FacetsConfig()
   facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
-  facetsConfig.setHierarchical(IndexFields.DATASET, true)
+  facetsConfig.setHierarchical(IndexFields.ITEM_DATASET, true)
 
   protected val searcherTaxonomyMgr = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
   

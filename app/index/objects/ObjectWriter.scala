@@ -64,7 +64,7 @@ trait ObjectWriter extends IndexBase {
     // Delete annotated things - it's enough to purge everything that has a 'dataset' field == id
     val deleteThingsQuery = new BooleanQuery()
     ids.foreach(id =>
-      deleteThingsQuery.add(new TermQuery(new Term(IndexFields.DATASET, id)), BooleanClause.Occur.SHOULD))   
+      deleteThingsQuery.add(new TermQuery(new Term(IndexFields.ITEM_DATASET, id)), BooleanClause.Occur.SHOULD))   
     indexWriter.deleteDocuments(deleteThingsQuery)
     
     // Delete dataset

@@ -14,6 +14,7 @@ import play.api.libs.json.Json
 import scala.io.Source
 import sys.process._
 import ingest._
+import ingest.harvest.HarvestWorker
 
 object DatasetAdminController extends Controller with Secured {
   
@@ -104,7 +105,7 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def harvestDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    val worker = new ingest.HarvestWorker()
+    val worker = new HarvestWorker()
     worker.harvest(id)
     Ok("")
   }
