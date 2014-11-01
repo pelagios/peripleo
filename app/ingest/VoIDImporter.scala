@@ -12,7 +12,7 @@ import play.api.mvc.RequestHeader
 import global.Global
 import org.pelagios.api.dataset.{Dataset => VoidDataset}
 
-object VoIDImporter extends BaseImporter {
+object VoIDImporter extends AbstractImporter {
   
   def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session, r: RequestHeader) = {
     Logger.info("Importing VoID file: " + filename)  

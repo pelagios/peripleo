@@ -4,9 +4,9 @@ import models.Associations
 import models.core.{ Annotations, AnnotatedThings, Datasets }
 import play.api.db.slick._
 import play.api.mvc.Controller
-import controllers.AbstractAPIController
+import controllers.AbstractController
 
-object DatasetPagesController extends AbstractAPIController {
+object DatasetPagesController extends AbstractController {
 
   def listAll = loggingAction { implicit session =>
     val datasets = Datasets.countAll()

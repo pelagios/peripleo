@@ -4,7 +4,7 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import org.pelagios.Scalagios
 
-abstract class BaseImporter {
+abstract class AbstractImporter {
   
   private val SHA256 = "SHA-256"
     
@@ -21,7 +21,7 @@ abstract class BaseImporter {
   /** Utility method that produces a SHA256 hash from a string **/
   protected def sha256(str: String): String = {
     val md = MessageDigest.getInstance(SHA256).digest(str.getBytes(UTF8))
-    new BigInteger(1, md).toString(16)
+    (new BigInteger(1, md)).toString(16)
   }
 
 }

@@ -13,7 +13,7 @@ import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import models.geo.Gazetteers
 
-object PlaceController extends AbstractAPIController {
+object PlaceController extends AbstractController {
 
   def listAll(gazetteerName:String, bbox: Option[String], limit: Option[Int], offset: Option[Int]) = loggingAction { implicit session => 
     // Map BBox coordinates

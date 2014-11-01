@@ -5,9 +5,9 @@ import index.Index
 import models.geo.Gazetteers
 import play.api.db.slick._
 import play.api.mvc.{ Action, Controller }
-import controllers.AbstractAPIController
+import controllers.AbstractController
 
-object PlacePagesController extends AbstractAPIController {
+object PlacePagesController extends AbstractController {
   
   def getPlace(uri: String) = loggingAction { implicit session =>
     val network = Global.index.findNetworkByPlaceURI(Index.normalizeURI(uri))

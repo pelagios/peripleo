@@ -12,7 +12,7 @@ import play.api.Logger
 import index.places.IndexedPlace
 import scala.Option.option2Iterable
 
-object CSVImporter extends BaseImporter {
+object CSVImporter extends AbstractImporter {
   
   private val SEPARATOR = ";"
     

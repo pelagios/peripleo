@@ -12,7 +12,9 @@ import play.api.libs.json.{ Json, JsValue }
   *
   * @author Rainer Simon <rainer.simon@ait.ac.at> 
   */
-abstract class AbstractAPIController extends Controller {
+abstract class AbstractController extends Controller {
+  
+  /** Various constants **/
   
   private val CORS_ENABLED = Play.current.configuration.getBoolean("api.enable.cors").getOrElse(false)
   
@@ -30,6 +32,7 @@ abstract class AbstractAPIController extends Controller {
   
   protected val AcceptsTurtle = Accepting("text/turtle")
   
+  /** A wrapper around DBAction that provides analytics logging **/
   def loggingAction(f: DBSessionRequest[AnyContent] => SimpleResult) = {
     DBAction(BodyParsers.parse.anyContent)(implicit rs => {
       // Extract loggable properties from request

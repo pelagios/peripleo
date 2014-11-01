@@ -15,7 +15,7 @@ import index.places.IndexedPlace
 import org.pelagios.api.annotation.{AnnotatedThing => OAThing}
 import org.pelagios.api.annotation.{Annotation => OAnnotation}
 
-object PelagiosOAImporter extends BaseImporter {
+object PelagiosOAImporter extends AbstractImporter {
   
   /** Given a thing, this function returns a list of all things below it in the hierarchy **/
   private def flattenThingHierarchy(thing: OAThing): Seq[OAThing] =

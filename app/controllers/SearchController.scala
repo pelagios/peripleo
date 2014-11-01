@@ -8,7 +8,7 @@ import models.geo.BoundingBox
 import play.api.db.slick._
 import play.api.libs.json.Json
 
-object SearchController extends AbstractAPIController {
+object SearchController extends AbstractController {
 
   private val ITEM = "item"
   private val PLACE = "place"

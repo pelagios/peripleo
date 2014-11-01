@@ -4,9 +4,9 @@ import models.Associations
 import models.core.{ AnnotatedThings, Datasets, Images }
 import play.api.db.slick._
 import play.api.mvc.Controller
-import controllers.AbstractAPIController
+import controllers.AbstractController
 
-object AnnotatedThingPagesController extends AbstractAPIController {
+object AnnotatedThingPagesController extends AbstractController {
   
   def getAnnotatedThing(id: String) = loggingAction { implicit session =>
     val thing = AnnotatedThings.findById(id)

@@ -6,7 +6,7 @@ import models.core.Annotations
 import play.api.db.slick._
 import play.api.libs.json.Json
 
-object AnnotationController extends AbstractAPIController {
+object AnnotationController extends AbstractController {
 
   def listAll(limit: Int, offset: Int) = loggingAction { implicit session =>
     jsonOk(Json.toJson(Annotations.listAll()), session.request)

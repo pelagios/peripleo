@@ -8,9 +8,9 @@ import play.api.db.slick._
 import play.api.Logger
 import index.IndexedObjectTypes
 import index.Index
-import controllers.AbstractAPIController
+import controllers.AbstractController
 
-object HomepageController extends AbstractAPIController {
+object HomepageController extends AbstractController {
   
   private val DATASET = "dataset"
   private val ITEM = "item"
