@@ -1,8 +1,8 @@
-@(item: index.IndexedObject)(implicit s: play.api.db.slick.Config.driver.simple.Session)
+@(item: index.objects.IndexedObject)(implicit s: play.api.db.slick.Config.driver.simple.Session)
 
 @item.objectType match {
   
-    case index.IndexedObjectTypes.DATASET => {
+    case index.objects.IndexedObjectTypes.DATASET => {
       <li class="result dataset">
         <span class="title">
           <a href="@controllers.pages.routes.DatasetPagesController.getDataset(item.identifier)">@item.title</a>
@@ -11,7 +11,7 @@
       </li> 
     }
     
-    case index.IndexedObjectTypes.ANNOTATED_THING => {
+    case index.objects.IndexedObjectTypes.ANNOTATED_THING => {
       @defining(models.core.AnnotatedThings.findByIdWithDataset(item.identifier).get) { case (thing, dataset) =>
         @defining(models.core.Datasets.findByIds(models.core.Datasets.getParentHierarchy(dataset.id))) { supersets =>
           <li class="result item">
@@ -29,7 +29,7 @@
       }
     }
     
-    case index.IndexedObjectTypes.PLACE => {
+    case index.objects.IndexedObjectTypes.PLACE => {
       <li class="result place">
         <span class="title">
           <a href="@controllers.pages.routes.PlacePagesController.getPlace(item.identifier)">@item.title</a>
