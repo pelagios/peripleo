@@ -4,12 +4,15 @@ import index.Index
 import java.io.{ File, FileInputStream }
 import java.util.zip.GZIPInputStream
 import models._
+import models.core._
+import models.geo._
 import org.pelagios.api.gazetteer.Place
 import play.api.Play
 import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
+import models.geo.Gazetteers
 
 object Global extends GlobalSettings {
   

@@ -2,7 +2,9 @@ package controllers.common.io
 
 import java.util.UUID
 import java.util.regex.Pattern
-import models._
+import models.Associations
+import models.core._
+import models.geo._
 import play.api.db.slick._
 import scala.io.Source
 import global.Global

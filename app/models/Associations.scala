@@ -1,11 +1,12 @@
 package models
 
 import global.Global
-import play.api.Logger
-import play.api.db.slick.Config.driver.simple._
-import scala.slick.lifted.{ Tag => SlickTag }
-import play.api.libs.json.Json
 import index.places.IndexedPlace
+import models.core._
+import models.geo.GazetteerReference
+import play.api.db.slick.Config.driver.simple._
+import play.api.libs.json.Json
+import scala.slick.lifted.{ Tag => SlickTag }
 
 private[models] case class PlaceToDataset(
     
@@ -58,9 +59,9 @@ private[models] class PlaceToDatasetAssociations(tag: SlickTag) extends Table[Pl
   
   /** Indices **/
     
-  def annotatedThingIdx = index("idx_datasets_by_place", datasetId, unique = false)
+  def datasetIdx = index("idx_places_by_dataset", datasetId, unique = false)
 
-  def gazetterUriIdx = index("idx_places_by_dataset", gazetteerURI, unique = false)
+  def gazetterUriIdx = index("idx_datasets_by_place", gazetteerURI, unique = false)
   
 }
 
@@ -131,46 +132,46 @@ private[models] class PlaceToThingAssociations(tag: SlickTag) extends Table[Plac
   
   /** Indices **/
     
-  def datasetIdx = index("idx_datasets_by_place_and_thing", datasetId, unique = false)
+  def datasetIdx = index("idx_places_and_thigs_by_dataset", datasetId, unique = false)
   
-  def annotatedThingIdx = index("idx_things_by_place_and_dataset", annotatedThingId, unique = false)
+  def annotatedThingIdx = index("idx_places_by_thing", annotatedThingId, unique = false)
   
-  def gazetterUriIdx = index("idx_places_by_dataset_and_thing", gazetteerURI, unique = false)
+  def gazetterUriIdx = index("idx_things_by_place", gazetteerURI, unique = false)
   
 }
 
 /** Queries **/
 object Associations {
   
-  private val queryByDataset = TableQuery[PlaceToDatasetAssociations]
+  private val placesToDatasets = TableQuery[PlaceToDatasetAssociations]
   
-  private val queryByThing = TableQuery[PlaceToThingAssociations]
+  private val placesToThings = TableQuery[PlaceToThingAssociations]
   
   def create()(implicit s: Session) = {
-    queryByDataset.ddl.create
-    queryByThing.ddl.create
+    placesToDatasets.ddl.create
+    placesToThings.ddl.create
   }
   
   def insert(ingestBatch: Seq[(AnnotatedThing, Seq[(IndexedPlace, Int)])])(implicit s: Session) = {
-    // Insert by-place records
-    val placesByThing = ingestBatch.flatMap { case (thing, places) =>
+    // Insert place-to-thing associations
+    val placeToThingAssociations = ingestBatch.flatMap { case (thing, places) =>
       places.map { case (place, count) =>
         PlaceToThing(None, thing.dataset, thing.id, thing.temporalBoundsStart, thing.temporalBoundsEnd, 
           GazetteerReference(place.uri, place.label, place.geometryJson.map(Json.stringify(_))), count) }
     } 
-    queryByThing.insertAll(placesByThing:_*)
+    placesToThings.insertAll(placeToThingAssociations:_*)
     
-    // Recompute by-dataset records
+    // Recompute place-to-dataset associations
     val affectedDatasets = ingestBatch.map(_._1.dataset).distinct
-    recomputeDatasets(affectedDatasets)
+    recomputePlaceToDatasetAssociations(affectedDatasets)
   }
 
-  private def recomputeDatasets(leafIds: Seq[String])(implicit s: Session) = {
+  private def recomputePlaceToDatasetAssociations(leafIds: Seq[String])(implicit s: Session) = {
     // IDs of all affected datasets, including parents in the hierarchy
     val datasetIds = (leafIds ++ leafIds.flatMap(id => Datasets.getParentHierarchy(id))).distinct
 
     // Drop them from the table first...
-    queryByDataset.where(_.datasetId.inSet(datasetIds)).delete
+    placesToDatasets.where(_.datasetId.inSet(datasetIds)).delete
     
     // ...and then recompute
     datasetIds.foreach(id => {
@@ -183,19 +184,16 @@ object Associations {
         .toSeq
         
       // Write to DB
-      queryByDataset.insertAll(placesInDataset:_*)
+      placesToDatasets.insertAll(placesInDataset:_*)
     })
   }
   
   def countDatasetsForPlace(gazetteerURI: String)(implicit s: Session): Int =
-    Query(queryByDataset.where(_.gazetteerURI === gazetteerURI).length).first
+    Query(placesToDatasets.where(_.gazetteerURI === gazetteerURI).length).first
   
   /** Returns the datasets that reference a specific place.
     * 
-    * The results are tuples of
-    * (i) dataset
-    * (ii) no. of items in the set referencing the place
-    * (iii) no. of occurrences (= annotations) in the set referencing the place 
+    * The results are tuples of (dataset, no. of items in the set referencing the place).
     */
   def findOccurrences(gazetteerURI: String)(implicit s: Session): Seq[(Dataset, Int)] =
     findOccurrences(Set(gazetteerURI))
@@ -203,7 +201,7 @@ object Associations {
   def findOccurrences(gazetteerURIs: Set[String])(implicit s: Session): Seq[(Dataset, Int)] = {
     // Part 1: all things that reference the place
     val queryA = for { 
-      (datasetId, thingId) <- queryByThing.where(_.gazetteerURI inSet gazetteerURIs).map(t => (t.datasetId, t.annotatedThingId))
+      (datasetId, thingId) <- placesToThings.where(_.gazetteerURI inSet gazetteerURIs).map(t => (t.datasetId, t.annotatedThingId))
       thing <- AnnotatedThings.query if thingId === thing.id
     } yield (datasetId, thing)
     
@@ -217,11 +215,11 @@ object Associations {
   }
   
   def countThingsForPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Int =
-    Query(queryByThing.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI).length).first
+    Query(placesToThings.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI).length).first
   
   def findThingsForPlaceAndDataset(gazetteerURI: String, datasetId: String)(implicit s: Session): Seq[(AnnotatedThing, Int)] = {
     val query = for {
-      placesByThing <- queryByThing.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI)   
+      placesByThing <- placesToThings.where(_.datasetId === datasetId).where(_.gazetteerURI === gazetteerURI)   
       annotatedThing <- AnnotatedThings.query if placesByThing.annotatedThingId === annotatedThing.id
     } yield (annotatedThing, placesByThing.count)
     
@@ -229,27 +227,27 @@ object Associations {
   }
   
   def countPlacesInDataset(datasetId: String)(implicit s: Session): Int =
-    Query(queryByDataset.where(_.datasetId === datasetId).length).first
+    Query(placesToDatasets.where(_.datasetId === datasetId).length).first
  
   def deleteForDatasets(ids: Seq[String])(implicit s: Session) = {
-	 queryByThing.where(_.datasetId inSet ids).delete
-	 queryByDataset.where(_.datasetId inSet ids).delete
+	 placesToThings.where(_.datasetId inSet ids).delete
+	 placesToDatasets.where(_.datasetId inSet ids).delete
   }
  
   def findPlacesInDataset(datasetId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerReference, Int)] = {
     val total = countPlacesInDataset(datasetId)
-    val result = queryByDataset.where(_.datasetId === datasetId).sortBy(_.count.desc).drop(offset).take(limit).list
+    val result = placesToDatasets.where(_.datasetId === datasetId).sortBy(_.count.desc).drop(offset).take(limit).list
       .map(row => (row.place, row.count))
     
     Page(result, offset, limit, total)
   }
   
   def countPlacesForThing(thingId: String)(implicit s: Session): Int =
-    Query(queryByThing.where(_.annotatedThingId === thingId).length).first
+    Query(placesToThings.where(_.annotatedThingId === thingId).length).first
     
   def findPlacesForThing(thingId: String, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(GazetteerReference, Int)] = {
     val total = countPlacesForThing(thingId)
-    val result = queryByThing.where(_.annotatedThingId === thingId).sortBy(_.count.desc).drop(offset).take(limit).list
+    val result = placesToThings.where(_.annotatedThingId === thingId).sortBy(_.count.desc).drop(offset).take(limit).list
       .map(row => (row.place, row.count))
       
     Page(result, offset, limit, total)

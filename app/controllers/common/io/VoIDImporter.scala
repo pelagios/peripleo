@@ -2,7 +2,7 @@ package controllers.common.io
 
 import java.io.FileInputStream
 import java.sql.Date
-import models.{ Dataset, Datasets, DatasetDumpfile, DatasetDumpfiles }
+import models.core.{ Dataset, Datasets, DatasetDumpfile, DatasetDumpfiles }
 import org.pelagios.Scalagios
 import org.pelagios.api.dataset.{ Dataset => VoidDataset }
 import play.api.db.slick._

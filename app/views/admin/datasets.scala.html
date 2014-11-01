@@ -1,4 +1,4 @@
-@(datasets: Page[(Dataset, Seq[DatasetDumpfile])])(implicit flash: Flash, s: play.api.db.slick.Config.driver.simple.Session)
+@(datasets: Page[(models.core.Dataset, Seq[models.core.DatasetDumpfile])])(implicit flash: Flash, s: play.api.db.slick.Config.driver.simple.Session)
 <html>
   <head>
     <title>Pelagios API » Admin » Datasets</title>
@@ -108,7 +108,7 @@
         <tbody>
           @for((dataset, dumpfiles) <- datasets.items) {
           	<tr>
-              @if(models.Datasets.listSubsets(dataset.id).size > 0) {
+              @if(models.core.Datasets.listSubsets(dataset.id).size > 0) {
           	    <td class="icon plus plus-@dataset.id" onclick="toggleSubsets('@dataset.id'); return false;"></td>  
           	  } else {
           	    <td></td>
@@ -117,7 +117,7 @@
               <td><a href="@controllers.pages.routes.DatasetPagesController.getDataset(dataset.id)">@dataset.title</a></td>
               <td>@dataset.publisher</td>
               <td>@dataset.created</td>
-              <td class="center">@Annotations.countByDataset(dataset.id)</td>
+              <td class="center">@models.core.Annotations.countByDataset(dataset.id)</td>
               <td class="center">
                 @if(dataset.voidURI.isDefined) {                	
                   <a class="icon" title="@dataset.voidURI.get" href="@dataset.voidURI.get">&#xf0c1;</a>

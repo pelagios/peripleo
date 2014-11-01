@@ -4,13 +4,14 @@ import controllers.common.io.JSONWrites._
 import global.Global
 import index.Index
 import index.places.IndexedPlace
-import models.{ Associations, Dataset }
+import models.Associations
+import models.core.Dataset
 import play.api.mvc.Action
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import models.Gazetteers
+import models.geo.Gazetteers
 
 object PlaceController extends AbstractAPIController {
 

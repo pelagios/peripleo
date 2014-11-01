@@ -2,7 +2,8 @@ package index
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.places.IndexedPlaceNetwork
-import models.{ AnnotatedThing, Dataset }
+import models.core.{ AnnotatedThing, Dataset }
+import models.geo.ConvexHull
 import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
@@ -13,7 +14,6 @@ import com.vividsolutions.jts.io.WKTWriter
 import org.geotools.geometry.jts.JTS
 import org.apache.lucene.document.StoredField
 import index.places.IndexedPlace
-import models.ConvexHull
 
 case class IndexedObject(private val doc: Document) {
 
@@ -35,7 +35,7 @@ case class IndexedObject(private val doc: Document) {
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)
   
-  val convexHull: Option[ConvexHull] = Option(doc.get(IndexFields.CONVEX_HULL)).map(ConvexHull.fromWKT(_))
+  val convexHull: Option[ConvexHull] = Option(doc.get(IndexFields.CONVEX_HULL)).map(ConvexHull.fromGeoJSON(_))
       
   def toPlaceNetwork = new IndexedPlaceNetwork(doc)
  

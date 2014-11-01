@@ -1,6 +1,5 @@
-package models
+package models.geo
 
-import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 

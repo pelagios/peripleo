@@ -1,4 +1,4 @@
-package models
+package models.geo
 
 import play.api.db.slick.Config.driver.simple._
 import com.vividsolutions.jts.geom.{ Envelope, Geometry }

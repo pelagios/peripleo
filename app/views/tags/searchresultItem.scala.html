@@ -12,8 +12,8 @@
     }
     
     case index.IndexedObjectTypes.ANNOTATED_THING => {
-      @defining(AnnotatedThings.findByIdWithDataset(item.identifier).get) { case (thing, dataset) =>
-        @defining(Datasets.findByIds(Datasets.getParentHierarchy(dataset.id))) { supersets =>
+      @defining(models.core.AnnotatedThings.findByIdWithDataset(item.identifier).get) { case (thing, dataset) =>
+        @defining(models.core.Datasets.findByIds(models.core.Datasets.getParentHierarchy(dataset.id))) { supersets =>
           <li class="result item">
             <span class="title">
               <a href="@controllers.pages.routes.AnnotatedThingPagesController.getAnnotatedThing(item.identifier)">@item.title</a>

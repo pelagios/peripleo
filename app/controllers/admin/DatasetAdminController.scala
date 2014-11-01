@@ -4,7 +4,8 @@ import controllers.common.io.{ CSVImporter, PelagiosOAImporter, VoIDImporter }
 import global.Global
 import java.io.File
 import java.net.URL
-import models._
+import models.Associations
+import models.core._
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile
 import play.api.mvc.{ AnyContent, Controller, SimpleResult }

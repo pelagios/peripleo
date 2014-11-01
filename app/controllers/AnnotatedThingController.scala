@@ -1,7 +1,8 @@
 package controllers
 
 import controllers.common.io.JSONWrites._
-import models._
+import models.Associations
+import models.core.{ Annotations, AnnotatedThings }
 import play.api.db.slick._
 import play.api.libs.json.{ Json, JsString, Writes }
 

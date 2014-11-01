@@ -1,7 +1,7 @@
 package index.objects
 
 import index._
-import models.{ Dataset, AnnotatedThing }
+import models.core.{ Dataset, AnnotatedThing }
 import org.apache.lucene.index.{ IndexWriterConfig, Term }
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, TermQuery }
 import play.api.db.slick._

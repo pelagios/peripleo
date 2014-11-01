@@ -4,7 +4,7 @@ import com.vividsolutions.jts.geom.Coordinate
 import controllers.common.io.JSONWrites._
 import global.Global
 import index.{ Index, IndexedObjectTypes }
-import models.BoundingBox
+import models.geo.BoundingBox
 import play.api.db.slick._
 import play.api.libs.json.Json
 

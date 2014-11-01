@@ -1,21 +1,19 @@
 package index.objects
 
+import com.spatial4j.core.distance.DistanceUtils
+import com.vividsolutions.jts.geom.Coordinate
 import index._
-import models.{ BoundingBox, Datasets, Page }
+import models.Page
+import models.core.Datasets
+import models.geo.BoundingBox
 import org.apache.lucene.util.Version
 import org.apache.lucene.index.{ Term, MultiReader }
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
+import org.apache.lucene.search._
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
-import org.apache.lucene.search.{ BooleanQuery, BooleanClause, IndexSearcher, MultiCollector, NumericRangeQuery, Query, TermQuery, TopScoreDocCollector }
+import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import play.api.db.slick._
-import org.apache.lucene.spatial.query.SpatialArgs
-import org.apache.lucene.spatial.query.SpatialOperation
-import com.spatial4j.core.distance.DistanceUtils
-import org.apache.lucene.search.Filter
-import play.api.Logger
-import org.apache.lucene.facet.FacetResult
-import com.vividsolutions.jts.geom.Coordinate
 
 trait ObjectReader extends IndexBase {
 

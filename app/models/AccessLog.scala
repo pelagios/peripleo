@@ -8,7 +8,7 @@ import scala.slick.lifted.{ Tag => SlickTag }
 /** LogRecord model entity **/
 case class LogRecord(id: Option[Int], timestamp: Timestamp, path: String, ip: String, userAgent: String, referrer: Option[String], accept: Option[String], responseTime: Int)
 
-/** Tag DB table **/
+/** AccessLog DB table **/
 class AccessLog(slickTag: SlickTag) extends Table[LogRecord](slickTag, "access_log") {
 
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -36,7 +36,6 @@ object AccessLog {
   
   private[models] val query = TableQuery[AccessLog]
   
-  /** Creates the DB table **/
   def create()(implicit s: Session) = query.ddl.create
 
   def insert(logRecord: LogRecord)(implicit s: Session) = query.insert(logRecord)

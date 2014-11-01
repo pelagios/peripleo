@@ -1,6 +1,6 @@
 package models
 
-/** The API's 'category taxonomy' **/
+/** A simple category taxonomy for the API **/
 object Taxonomy {
   
   private val taxonomy = 

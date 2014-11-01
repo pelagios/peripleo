@@ -1,4 +1,4 @@
-package models
+package models.core
 
 import java.sql.Timestamp
 import play.api.Play.current

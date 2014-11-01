@@ -2,7 +2,7 @@ package controllers.pages
 
 import global.Global
 import index.Index
-import models.Gazetteers
+import models.geo.Gazetteers
 import play.api.db.slick._
 import play.api.mvc.{ Action, Controller }
 import controllers.AbstractAPIController

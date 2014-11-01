@@ -1,4 +1,4 @@
-package models
+package models.core
 
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._

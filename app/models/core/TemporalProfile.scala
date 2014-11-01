@@ -1,4 +1,4 @@
-package models
+package models.core
 
 import controllers.common.io.JSONWrites._
 import play.api.libs.json.Json

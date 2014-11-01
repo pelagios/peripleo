@@ -1,11 +1,12 @@
 package controllers.common.io
 
-import models.TemporalProfile
 import global.Global
 import java.util.{ Calendar, UUID }
 import java.io.FileInputStream
 import java.sql.Date
-import models._
+import models.Associations
+import models.core._
+import models.geo.ConvexHull
 import play.api.Logger
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile

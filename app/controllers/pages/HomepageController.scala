@@ -1,6 +1,7 @@
 package controllers.pages
 
-import models.{ AnnotatedThings, Datasets, Gazetteers }
+import models.core.{ AnnotatedThings, Datasets }
+import models.geo.Gazetteers
 import global.Global
 import play.api.mvc.{ Action, Controller }
 import play.api.db.slick._

@@ -4,10 +4,13 @@ import global.Global
 import index.IndexedObject
 import index.places._
 import models._
+import models.core._
+import models.geo._
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import models.geo.GazetteerReference
 
 /** JSON writers for model and index classes. **/
 object JSONWrites {

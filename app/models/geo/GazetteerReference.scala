@@ -1,10 +1,8 @@
-package models
+package models.geo
 
 import com.vividsolutions.jts.geom.{ Coordinate, Geometry }
 import org.geotools.geojson.geom.GeometryJSON
 import play.api.db.slick.Config.driver.simple._
-import play.api.libs.json.{ Json, JsValue }
-import play.api.libs.json.JsValue
 
 /** GazetteerReference model class.
   * 

@@ -2,7 +2,7 @@ package controllers.common.harvest
 
 import java.net.URL
 import java.io.File
-import models.Datasets
+import models.core.Datasets
 import play.api.Play.current
 import play.api.db.slick._
 import play.api.Logger
