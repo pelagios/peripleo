@@ -1,4 +1,4 @@
-package ingest
+package ingest.harvest
 
 import java.net.URL
 import java.io.File
@@ -9,6 +9,8 @@ import play.api.Logger
 import play.api.libs.Files.TemporaryFile
 import sys.process._
 import scala.io.Source
+import ingest.CSVImporter
+import ingest.PelagiosOAImporter
 
 class HarvestWorker {
   

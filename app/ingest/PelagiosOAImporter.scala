@@ -1,21 +1,22 @@
 package ingest
 
 import global.Global
+import index.places.IndexedPlace
 import java.util.UUID
 import java.io.FileInputStream
 import models.Associations
 import models.core._
 import models.geo.ConvexHull
+import org.pelagios.Scalagios
+import org.pelagios.api.annotation.{ AnnotatedThing => OAThing, Annotation => OAnnotation }
 import play.api.Logger
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile
-import org.pelagios.Scalagios
-import org.pelagios.api.annotation.{ AnnotatedThing => OAThing, Annotation => OAnnotation }
-import index.places.IndexedPlace
-import org.pelagios.api.annotation.{AnnotatedThing => OAThing}
-import org.pelagios.api.annotation.{Annotation => OAnnotation}
 
 object PelagiosOAImporter extends AbstractImporter {
+  
+  /** The maximum number of AnnotatedThings to ingest in one batch **/
+  private val BATCH_SIZE = 30000
   
   /** Given a thing, this function returns a list of all things below it in the hierarchy **/
   private def flattenThingHierarchy(thing: OAThing): Seq[OAThing] =
@@ -70,7 +71,7 @@ object PelagiosOAImporter extends AbstractImporter {
     val annotatedThings = Scalagios.readAnnotations(is, format)
     Logger.info("Importing " + annotatedThings.size + " annotated things with " + annotatedThings.flatMap(_.annotations).size + " annotations")
     
-    annotatedThings.grouped(30000).foreach(batch => {
+    annotatedThings.grouped(BATCH_SIZE).foreach(batch => {
       importBatch(batch, dataset)
       Logger.info("Importing next batch")      
     })
@@ -91,7 +92,7 @@ object PelagiosOAImporter extends AbstractImporter {
     }).toSeq
     
     // Ingest
-    val ingestBatch: Seq[(AnnotatedThing, Seq[Image], Seq[Annotation], Seq[(IndexedPlace, Int)])] = preparedForIngest.map { case (oaThing, places) => { 
+    val ingestBatch = preparedForIngest.map { case (oaThing, places) => { 
       val thingId = sha256(oaThing.uri)
       
       val tempBoundsStart = oaThing.temporal.map(_.start)
@@ -124,31 +125,11 @@ object PelagiosOAImporter extends AbstractImporter {
       val annotations = oaThing.annotations.map(a =>
         Annotation(UUID.randomUUID, dataset.id, thingId, a.places.head, None, None))     
         
-      (thing, images, annotations, places)
+      IngestRecord(thing, images, annotations, places)
     }}
       
     // Insert data into DB
-    val allThings = ingestBatch.map(_._1)
-    AnnotatedThings.insertAll(allThings)
-
-    val allImages = ingestBatch.flatMap(_._2)
-    Images.insertAll(allImages)
-
-    val allAnnotations = ingestBatch.flatMap(_._3)
-    Annotations.insertAll(allAnnotations)
-            
-    // Update aggregation table stats
-    Associations.insert(ingestBatch.map(t => (t._1, t._4)))
-    
-    // Update the parent dataset with new temporal profile and convex hull
-    val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)
-    
-    // Update index
-    Logger.info("Updating Index") 
-    val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
-    Global.index.addAnnotatedThings(ingestBatch.map(t => (t._1, t._4.map(_._1))), parentHierarchy)
-    Global.index.updateDatasets(affectedDatasets)
-    Global.index.refresh()
+    ingest(ingestBatch, dataset)
   }
   
 }

@@ -49,7 +49,7 @@ object CSVImporter extends AbstractImporter {
     val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3)))
     val annotationsForParts = annotations.filter(!_._1.isEmpty)
 
-    val ingestBatch: Seq[(AnnotatedThing, Seq[Annotation], Seq[(IndexedPlace, Int)])] = {
+    val ingestBatch = {
       // Root thing
       val rootTitle = meta.get("title").get
       val rootThingId = sha256(dataset.id + " " + meta.get("author").getOrElse("") + rootTitle + " " + meta.get("language").getOrElse(""))
@@ -67,35 +67,19 @@ object CSVImporter extends AbstractImporter {
         val thing = 
           AnnotatedThing(partThingId, dataset.id, partTitle, None, Some(rootThingId), None, date, date, ConvexHull.fromPlaces(places.map(_._1)))
           
-        (thing, annotations, places)
+        IngestRecord(thing, Seq.empty[Image], annotations, places)
       }.toSeq
      
       // Root thing
       val rootAnnotations = annotationsOnRoot.map(t => Annotation(t._1, dataset.id, rootThingId, t._2, None, None))
-      val allPlaces = resolvePlaces(partIngestBatch.flatMap(_._2).map(_.gazetteerURI))
+      val allPlaces = resolvePlaces(partIngestBatch.flatMap(_.annotations).map(_.gazetteerURI))
       val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, ConvexHull.fromPlaces(allPlaces.map(_._1)))
       
-      (rootThing, Seq.empty[Annotation], allPlaces) +: partIngestBatch
+      IngestRecord(rootThing, Seq.empty[Image], Seq.empty[Annotation], allPlaces) +: partIngestBatch
     }
 
     // Insert data into DB
-    val allThings = ingestBatch.map(_._1)
-    AnnotatedThings.insertAll(allThings)
-
-    val allAnnotations = ingestBatch.flatMap(_._2)
-    Annotations.insertAll(allAnnotations)
-
-    // Update aggregation table stats
-    Associations.insert(ingestBatch.map(t => (t._1, t._3)))
-
-    // Update the parent dataset with new temporal bounds and profile
-    val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)
-
-    Logger.info("Updating Index") 
-    val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
-    Global.index.addAnnotatedThing(allThings.head, ingestBatch.head._3.map(_._1), parentHierarchy)
-    Global.index.updateDatasets(affectedDatasets)
-    Global.index.refresh()
+    ingest(ingestBatch, dataset)
     
     source.close()
     Logger.info("Import complete")    
