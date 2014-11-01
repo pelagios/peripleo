@@ -39,6 +39,12 @@ object AccessLog {
   def create()(implicit s: Session) = query.ddl.create
 
   def insert(logRecord: LogRecord)(implicit s: Session) = query.insert(logRecord)
-
+  
+  def findAllBefore(timestamp: Long)(implicit s: Session) =
+    query.where(_.timestamp < new Timestamp(timestamp)).list
+    
+  def deleteAllBefore(timestamp: Long)(implicit s: Session) =
+    query.where(_.timestamp < new Timestamp(timestamp)).delete
+    
 }
 

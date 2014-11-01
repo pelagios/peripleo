@@ -58,7 +58,7 @@ trait ObjectReader extends IndexBase {
       
     // Places filter
     places.foreach(uri =>
-      q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
+      q.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
       
     // Timespan filter
     if (fromYear.isDefined || toYear.isDefined) {
