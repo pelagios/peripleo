@@ -62,7 +62,7 @@ class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotat
 
   def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
   
-  def convexHull = column[ConvexHull]("convex_hull", O.Nullable)
+  def convexHull = column[ConvexHull]("convex_hull", O.Nullable, O.DBType("text"))
 
   def * = (id, datasetId, title, description.?, isPartOfId.?, homepage.?, temporalBoundsStart.?, 
     temporalBoundsEnd.?, convexHull.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
