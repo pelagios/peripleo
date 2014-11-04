@@ -1,5 +1,6 @@
 package controllers
 
+import java.util.UUID
 import java.sql.Timestamp
 import models.{ AccessLog, LogRecord }
 import play.api.Play
@@ -32,30 +33,37 @@ abstract class AbstractController extends Controller {
   
   protected val AcceptsTurtle = Accepting("text/turtle")
   
+  private def isNoBot(userAgent: String): Boolean = {
+    // TODO add some basic rules to filter out at least Google and Twitter
+    true
+  }
+  
   /** A wrapper around DBAction that provides analytics logging **/
   def loggingAction(f: DBSessionRequest[AnyContent] => SimpleResult) = {
     DBAction(BodyParsers.parse.anyContent)(implicit rs => {
-      // Extract loggable properties from request
-      val timestamp = System.currentTimeMillis
-      val uri = rs.request.uri
-      val ip = rs.request.remoteAddress
-      
-      val headers = rs.request.headers
-      val userAgent = headers.get(HEADER_USERAGENT)
-      val referrer = headers.get(HEADER_REFERER)
-      val accept = headers.get(HEADER_ACCEPT)
+      val startTime = System.currentTimeMillis
       
       // Execute controller
       val result = f(rs) 
-      
-      AccessLog.insert(LogRecord(None, 
-        new Timestamp(timestamp), 
-        uri,
-        ip,
-        userAgent.getOrElse("undefined"),
-        referrer,
-        accept, 
-        { System.currentTimeMillis - timestamp }.toInt))
+ 
+      val headers = rs.request.headers
+      val userAgent = headers.get(HEADER_USERAGENT).getOrElse("undefined")      
+ 
+      if (isNoBot(userAgent)) {
+        val uri = rs.request.uri
+        val ip = rs.request.remoteAddress
+        val referrer = headers.get(HEADER_REFERER)
+        val accept = headers.get(HEADER_ACCEPT)
+        
+        AccessLog.insert(LogRecord(UUID.randomUUID, 
+          new Timestamp(startTime), 
+          uri,
+          ip,
+          userAgent,
+          referrer,
+          accept, 
+          { System.currentTimeMillis - startTime }.toInt))
+      }
       
       result
     })
