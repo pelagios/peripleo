@@ -4,14 +4,15 @@ import java.sql.Timestamp
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
+import java.util.UUID
 
 /** LogRecord model entity **/
-case class LogRecord(id: Option[Int], timestamp: Timestamp, path: String, ip: String, userAgent: String, referrer: Option[String], accept: Option[String], responseTime: Int)
+case class LogRecord(uuid: UUID, timestamp: Timestamp, path: String, ip: String, userAgent: String, referrer: Option[String], accept: Option[String], responseTime: Int)
 
 /** AccessLog DB table **/
 class AccessLog(slickTag: SlickTag) extends Table[LogRecord](slickTag, "access_log") {
 
-  def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
+  def uuid = column[UUID]("uuid", O.PrimaryKey, O.AutoInc)
   
   def timestamp = column[Timestamp]("timestamp", O.NotNull)
   
@@ -27,7 +28,7 @@ class AccessLog(slickTag: SlickTag) extends Table[LogRecord](slickTag, "access_l
   
   def responseTime = column[Int]("response_time", O.NotNull)
 
-  def * = (id.?, timestamp, path, ip, userAgent, referrer.?, accept.?, responseTime) <> (LogRecord.tupled, LogRecord.unapply)
+  def * = (uuid, timestamp, path, ip, userAgent, referrer.?, accept.?, responseTime) <> (LogRecord.tupled, LogRecord.unapply)
 	
 }
 
