@@ -50,8 +50,9 @@ abstract class AbstractImporter {
     
     // Update index
     Logger.info("Updating Index") 
-    val parentHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
-    Global.index.addAnnotatedThings(ingestBatch.map(record => (record.thing, record.places.map(_._1))), parentHierarchy)
+    val topLevelThings = ingestBatch.map(record => (record.thing, record.places.map(_._1))).filter(_._1.isPartOf.isEmpty)
+    val datasetHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
+    Global.index.addAnnotatedThings(topLevelThings, datasetHierarchy)
     Global.index.updateDatasets(affectedDatasets)
     Global.index.refresh()    
   }
