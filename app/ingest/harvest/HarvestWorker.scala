@@ -18,36 +18,43 @@ import org.apache.commons.codec.digest.DigestUtils
 import java.io.FileInputStream
 import ingest.VoIDImporter
 import org.pelagios.api.dataset.{ Dataset => VoIDDataset }
+import java.security.MessageDigest
+import java.math.BigInteger
 
 class HarvestWorker {
   
   private val TMP_DIR = System.getProperty("java.io.tmpdir")
+  
   private val UTF8 = "UTF-8"
+    
   private val CSV = "csv"
+  
+  private val MD5 = "MD5"
     
   /** Helper to compute the hash of a file **/
-  private def computeHash(file: File): String = {
-    /*
-    val is = new FileInputStream(file)
-    val hash = DigestUtils.md5Hex(is)
-    is.close()
-    hash
-    */
-    ""
-  }
+  private def computeHash(file: File): String = computeHash(Seq(file))
   
   /** Helper to compute a hash for multiple files **/
   private def computeHash(files: Seq[File]): String = {
-    ""
+    val md = MessageDigest.getInstance(MD5)
+    files.foreach(file => {
+      val is = new FileInputStream(file);
+      Stream.continually(is.read).takeWhile(_ != -1).map(_.toByte).grouped(1024).foreach(bytes => {
+        md.update(bytes.toArray, 0, bytes.size)
+      })
+    })
+    val mdBytes = md.digest()
+    new BigInteger(1, mdBytes).toString(16)
   }
   
   /** Helper to get datadump URLs for a dataset and all its subsets **/
   private def getDatadumpURLs(dataset: VoIDDataset): Seq[String] = {
-    if (dataset.subsets.isEmpty) {
+    // TODO wrong! We can't just import every dump into the top-level dataset
+    // Need to maintain link between datadump and the parent 
+    if (dataset.subsets.isEmpty)
       dataset.datadumps
-    } else {
+    else
       dataset.datadumps ++ dataset.subsets.flatMap(getDatadumpURLs(_))
-    }
   }
   
   /** Helper to drop a dataset and all its dependencies from DB and index 
@@ -86,6 +93,7 @@ class HarvestWorker {
 	  Logger.info("Download complete from " + voidURL)
     
 	  val voidHash = computeHash(voidTempFile.file)
+	  Logger.info("Got hash: " + voidHash)
 	
 	  // We only support one top-level dataset per VoID
 	  val dataset = VoIDImporter.readVoID(voidTempFile, voidFilename).head
@@ -106,6 +114,7 @@ class HarvestWorker {
 	  Logger.info("All downloads complete for VoID " + voidURL)
 	
 	  val dataHash = computeHash(dataDumps.map(_.file))
+	  Logger.info("Got hash: " + dataHash)
 	  	
 	  // TODO compare hashes and only ingest on change
 	
