@@ -21,10 +21,10 @@ object VoIDImporter extends AbstractImporter {
     datasets
   }
   
-  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session): Unit =
+  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session): Seq[Dataset] =
     importVoID(readVoID(file, filename), uri)
   
-  def importVoID(topLevelDatasets: Seq[VoIDDataset], uri: Option[String])(implicit s: Session): Unit = {
+  def importVoID(topLevelDatasets: Seq[VoIDDataset], uri: Option[String])(implicit s: Session): Seq[Dataset]= {
     // Helper to compute an ID for the dataset    
     def id(dataset: VoIDDataset) =
       if (dataset.uri.startsWith("http://")) {
@@ -63,12 +63,16 @@ object VoIDImporter extends AbstractImporter {
         => flattenHierarchy(d.subsets, Some(entity)) }
     }
     
-    val datasets = flattenHierarchy(topLevelDatasets) 
-    Datasets.insertAll(datasets.map(_._1))
-    DatasetDumpfiles.insertAll(datasets.flatMap(_._2))
+    val datasetsWithDumpfiles = flattenHierarchy(topLevelDatasets) 
+    val datasets = datasetsWithDumpfiles.map(_._1)
+    Datasets.insertAll(datasets)
+    DatasetDumpfiles.insertAll(datasetsWithDumpfiles.flatMap(_._2))
     
-    datasets.foreach(t => Global.index.addDataset(t._1))
+    datasets.foreach(Global.index.addDataset(_))
     Global.index.refresh()
+    
+    // Return only top-level sets
+    datasets.filter(_.isPartOf.isEmpty)
   }
   
 }

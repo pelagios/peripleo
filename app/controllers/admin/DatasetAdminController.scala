@@ -15,6 +15,7 @@ import scala.io.Source
 import sys.process._
 import ingest._
 import ingest.harvest.HarvestWorker
+import ingest.harvest.HarvestWorker
 
 object DatasetAdminController extends Controller with Secured {
   
@@ -68,6 +69,19 @@ object DatasetAdminController extends Controller with Secured {
         Redirect(routes.DatasetAdminController.index).flashing("success" -> { "New Dataset Created." })      
       }})
     }
+  }
+  
+  def reingestDataset(id: String) = adminAction { username => implicit requestWithSession =>
+    // TODO dummy implementation!
+    val dataset = Datasets.findById(id)
+    if (dataset.isDefined) {
+      val url = dataset.get.voidURI
+      if (url.isDefined) {
+        new HarvestWorker().fullHarvest(url.get, dataset)
+      }
+    }
+  
+    Ok("done")
   }
   
   def deleteDataset(id: String) = adminAction { username => implicit requestWithSession =>
