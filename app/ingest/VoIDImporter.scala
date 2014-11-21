@@ -5,27 +5,38 @@ import java.io.FileInputStream
 import java.sql.Date
 import models.core.{ Dataset, Datasets, DatasetDumpfile, DatasetDumpfiles }
 import org.pelagios.Scalagios
-import org.pelagios.api.dataset.{ Dataset => VoidDataset }
+import org.pelagios.api.dataset.{ Dataset => VoIDDataset }
 import play.api.db.slick._
 import play.api.Logger
 import play.api.libs.Files.TemporaryFile
 
 object VoIDImporter extends AbstractImporter {
   
-  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session) = {
-    Logger.info("Importing VoID file: " + filename)  
+  def readVoID(file: TemporaryFile, filename: String): Seq[VoIDDataset]= {
+    Logger.info("Reading VoID file: " + filename)  
     val is = new FileInputStream(file.file)   
     val format = getFormat(filename)  
-    val created = new Date(System.currentTimeMillis)
-    
-    def id(dataset: VoidDataset) =
+    val datasets = Scalagios.readVoID(is, format).toSeq
+    is.close()
+    datasets
+  }
+  
+  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session): Unit =
+    importVoID(readVoID(file, filename), uri)
+  
+  def importVoID(topLevelDatasets: Seq[VoIDDataset], uri: Option[String])(implicit s: Session): Unit = {
+    // Helper to compute an ID for the dataset    
+    def id(dataset: VoIDDataset) =
       if (dataset.uri.startsWith("http://")) {
         sha256(dataset.uri)          
       } else {
         sha256(dataset.title + " " + dataset.publisher)
       }
 
-    def flattenHierarchy(datasets: Seq[VoidDataset], parent: Option[Dataset] = None): Seq[(Dataset, Seq[DatasetDumpfile])] = { 
+    // Helper to flatten the hierachy (of VoIDDatasets) into a list of (API) Datasets
+    def flattenHierarchy(datasets: Seq[VoIDDataset], parent: Option[Dataset] = None): Seq[(Dataset, Seq[DatasetDumpfile])] = { 
+      val created = new Date(System.currentTimeMillis)
+
       val datasetEntities = datasets.map(d => {
         val publisher =
           if (d.publisher.isDefined)
@@ -52,14 +63,12 @@ object VoIDImporter extends AbstractImporter {
         => flattenHierarchy(d.subsets, Some(entity)) }
     }
     
-    val datasets = flattenHierarchy(Scalagios.readVoID(is, format).toSeq) 
+    val datasets = flattenHierarchy(topLevelDatasets) 
     Datasets.insertAll(datasets.map(_._1))
     DatasetDumpfiles.insertAll(datasets.flatMap(_._2))
     
     datasets.foreach(t => Global.index.addDataset(t._1))
     Global.index.refresh()
-    
-    is.close()
   }
   
 }

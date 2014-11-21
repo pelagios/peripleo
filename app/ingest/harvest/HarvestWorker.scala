@@ -2,7 +2,7 @@ package ingest.harvest
 
 import java.net.URL
 import java.io.File
-import models.core.Datasets
+import models.core.{ Dataset, Datasets }
 import play.api.Play.current
 import play.api.db.slick._
 import play.api.Logger
@@ -11,12 +11,73 @@ import sys.process._
 import scala.io.Source
 import ingest.CSVImporter
 import ingest.PelagiosOAImporter
+import java.util.UUID
+import org.apache.commons.codec.digest.DigestUtils
+import java.io.FileInputStream
+import ingest.VoIDImporter
+import org.pelagios.api.dataset.{ Dataset => VoIDDataset }
 
 class HarvestWorker {
   
   private val TMP_DIR = System.getProperty("java.io.tmpdir")
   private val UTF8 = "UTF-8"
   private val CSV = "csv"
+    
+  /** Helper to compute the hash of a file **/
+  private def computeHash(file: File): String = {
+    val is = new FileInputStream(file)
+    val hash = DigestUtils.md5Hex(is)
+    is.close()
+    hash
+  }
+  
+  /** Helper to get datadump URLs for a dataset and all its subsets **/
+  private def getDatadumpURLs(dataset: VoIDDataset): Seq[String] = {
+    if (dataset.subsets.isEmpty) {
+      dataset.datadumps
+    } else {
+      dataset.datadumps ++ dataset.subsets.flatMap(getDatadumpURLs(_))
+    }
+  }
+    
+  /** (Re-)Harvest a dataset from a VoID URL **/
+  def fullHarvest(voidURL: String, current: Option[Dataset]) = {
+    Logger.info("Downloading VoID from " + voidURL)
+    val startTime = System.currentTimeMillis
+   
+    // Assign a random (but unique) name, and keep the extension from the original file
+    val voidFilename = "void_" + UUID.randomUUID.toString + voidURL.substring(voidURL.lastIndexOf("."))
+    val voidTempFile = new TemporaryFile(new File(TMP_DIR, voidFilename))
+ 
+    // Download
+	new URL(voidURL) #> voidTempFile.file !!
+	
+	Logger.info("Download complete from " + voidURL)
+    
+	val voidHash = computeHash(voidTempFile.file)
+	val topLevelDatasets = VoIDImporter.readVoID(voidTempFile, voidFilename)
+	voidTempFile.finalize()
+	
+	topLevelDatasets.foreach(topLevelDataset => {
+	  val dataDumpURLs = getDatadumpURLs(topLevelDataset)
+	  val dataDumps = dataDumpURLs.par.map(url => {
+	    Logger.info("Downloading datadump from " + url)
+	    val dumpFilename = "data_" + UUID.randomUUID.toString + url.substring(voidURL.lastIndexOf("."))
+	    val dumpTempFile = new TemporaryFile(new File(TMP_DIR, dumpFilename))
+	    
+	    new URL(url) #> dumpTempFile.file !!
+	      
+	    Logger.info("Dowload complete from " + url)
+	    dumpTempFile
+	  }).seq
+	
+	  // TODO compute data hash
+	
+	  // TODO compare hashes
+	
+	  // TODO check for change -> re-ingest if change
+	})
+  }
 	
   def harvest(datasetId: String) = {
     DB.withSession { implicit session: Session =>
