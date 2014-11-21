@@ -2,7 +2,7 @@ package controllers
 
 import java.util.UUID
 import java.sql.Timestamp
-import models.{ AccessLog, LogRecord }
+import models.{ AccessLog, AccessLogRecord }
 import play.api.Play
 import play.api.Logger
 import play.api.db.slick._
@@ -55,7 +55,7 @@ abstract class AbstractController extends Controller {
         val referrer = headers.get(HEADER_REFERER)
         val accept = headers.get(HEADER_ACCEPT)
         
-        AccessLog.insert(LogRecord(UUID.randomUUID, 
+        AccessLog.insert(AccessLogRecord(UUID.randomUUID, 
           new Timestamp(startTime), 
           uri,
           ip,

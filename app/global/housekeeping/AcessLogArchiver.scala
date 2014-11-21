@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat
 import java.util.{ Calendar, Date }
 import java.util.zip.{ ZipEntry, ZipOutputStream }
 import java.util.concurrent.TimeUnit
-import models.{ AccessLog, LogRecord }
+import models.{ AccessLog, AccessLogRecord }
 import play.api.db.slick._
 import play.api.Play
 import play.api.Play.current
@@ -67,7 +67,7 @@ object AccessLogArchiver {
     Duration(c.getTimeInMillis - now.getTime, TimeUnit.MILLISECONDS)
   }
   
-  private def writeToZip(date: Calendar, records: Seq[LogRecord]) = {
+  private def writeToZip(date: Calendar, records: Seq[AccessLogRecord]) = {
     // Helper to add leading 0 to single-digit numbers
     def format(i: Int) = if (i < 10) "0" + i else i.toString
       
