@@ -183,20 +183,14 @@ object Datasets {
     * @param offset pagination offset
     * @param limit pagination limit (number of items to be returned)
     */
-  def listAll(topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[(Dataset, Seq[DatasetDumpfile])] = {
+  def listAll(topLevelOnly: Boolean = true, offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Page[Dataset] = {
     val total = countAll(topLevelOnly)
-    val datasets =
+    val result =
       if (topLevelOnly)
         query.where(_.isPartOfId.isNull).drop(offset).take(limit).list
       else 
         query.drop(offset).take(limit).list
-     
-    val dumpfiles = 
-      DatasetDumpfiles.query.where(_.datasetId inSet datasets.map(_.id)).list.groupBy(_.datasetId)
-          
-    val result = datasets.map(dataset =>
-      (dataset, dumpfiles.get(dataset.id).getOrElse(Seq.empty[DatasetDumpfile])))
-             
+                  
     Page(result, offset, limit, total)    
   }
 
@@ -207,14 +201,11 @@ object Datasets {
   /** Retrieves a batch of Datasets by their ID **/
   def findByIds(ids: Seq[String])(implicit s: Session): Seq[Dataset] =
     query.where(_.id.inSet(ids)).list
-  
-  /** Retrieves a single Dataset by its ID **/
-  def findByIdWithDumpfiles(id: String)(implicit s: Session): Option[(Dataset, Seq[DatasetDumpfile])] = {
-    val dataset = query.where(_.id === id).firstOption
-    dataset.map(d =>
-      (d, DatasetDumpfiles.query.where(_.datasetId === d.id).list))
-  }
     
+  /** Retrieves the top-level datasets for a particular VoID URI **/
+  def findTopLevelByVoID(uri: String)(implicit s: Session): Seq[Dataset] =
+    query.where(_.voidURI === uri).where(_.isPartOfId.isNull).list
+      
   /** Returns the number of direct subsets in a specific Dataset.
     * 
     * This method only counts the direct subsets - it does not traverse further down the hierarchy!

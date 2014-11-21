@@ -60,12 +60,12 @@ object DatasetAdminController extends Controller with Secured {
 	  new URL(url) #> tempFile.file !!
 	  
 	  Logger.info("Download complete - importing")
-	  VoIDImporter.importVoID(tempFile, filename, Some(url))
+	  VoIDImporter.importVoID(tempFile, Some(url))
 	  Logger.info("Import complete")
       Ok(Json.parse("{ \"message\": \"New Dataset Created.\" }"))   
     } else {
       processUpload("void", requestWithSession, { filepart => {
-        VoIDImporter.importVoID(filepart.ref, filepart.filename)
+        VoIDImporter.importVoID(filepart.ref)
         Redirect(routes.DatasetAdminController.index).flashing("success" -> { "New Dataset Created." })      
       }})
     }
@@ -75,9 +75,9 @@ object DatasetAdminController extends Controller with Secured {
     // TODO dummy implementation!
     val dataset = Datasets.findById(id)
     if (dataset.isDefined) {
-      val url = dataset.get.voidURI
-      if (url.isDefined) {
-        new HarvestWorker().fullHarvest(url.get, dataset)
+      val uri = dataset.get.voidURI
+      if (uri.isDefined) {
+        new HarvestWorker().fullHarvest(uri.get, Datasets.findTopLevelByVoID(uri.get))
       }
     }
   
@@ -92,7 +92,6 @@ object DatasetAdminController extends Controller with Secured {
     Associations.deleteForDatasets(subsetsRecursive)
     Images.deleteForDatasets(subsetsRecursive)
     AnnotatedThings.deleteForDatasets(subsetsRecursive)
-    DatasetDumpfiles.deleteForDatasets(subsetsRecursive)
     Datasets.delete(subsetsRecursive)
     
     // Purge from index
@@ -120,7 +119,7 @@ object DatasetAdminController extends Controller with Secured {
   
   def harvestDataset(id: String) = adminAction { username => implicit requestWithSession =>
     val worker = new HarvestWorker()
-    worker.harvest(id)
+    // worker.harvest(id)
     Ok("")
   }
   

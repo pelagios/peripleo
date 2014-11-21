@@ -94,11 +94,6 @@ object Global extends GlobalSettings {
         Logger.info("DB table 'annotations' does not exist - creating")
         Annotations.create
       }
-      
-      if (MTable.getTables("dataset_dumpfiles").list.isEmpty) {
-		 Logger.info("DB table 'dataset_dumpfiles' does not exist - creating")
-		 DatasetDumpfiles.create
-	  }
 
       if (MTable.getTables("gazetteers").list.isEmpty) {
         Logger.info("DB table 'gazetteers' does not exist - creating")

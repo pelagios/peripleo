@@ -31,6 +31,30 @@ class HarvestWorker {
   
   private val MD5 = "MD5"
     
+  private val MAX_RETRIES = 5
+  
+  /** Helper to download a file from a URL **/
+  private def downloadFile(url: String, filename: String, failedAttempts: Int = 0): Option[TemporaryFile] = {
+    try {
+      Logger.info("Downloading " + url)
+      val tempFile = new TemporaryFile(new File(TMP_DIR, filename))
+	  new URL(url) #> tempFile.file !!
+	  
+	  Logger.info("Download complete for " + url)
+	  Some(tempFile)
+    } catch {
+      case t: Throwable => {
+        if (failedAttempts < MAX_RETRIES) {
+          Logger.info("Download failed - retrying " + url)
+          downloadFile(url, filename, failedAttempts + 1)
+        } else {
+          Logger.info("Download failed " + failedAttempts + " - giving up")
+          None
+        }
+      }
+    }    
+  }
+  
   /** Helper to compute the hash of a file **/
   private def computeHash(file: File): String = computeHash(Seq(file))
   
@@ -48,13 +72,13 @@ class HarvestWorker {
   }
   
   /** Helper to get datadump URLs for a dataset and all its subsets **/
-  private def getDatadumpURLs(dataset: VoIDDataset): Seq[String] = {
-    // TODO wrong! We can't just import every dump into the top-level dataset
-    // Need to maintain link between datadump and the parent 
-    if (dataset.subsets.isEmpty)
-      dataset.datadumps
-    else
-      dataset.datadumps ++ dataset.subsets.flatMap(getDatadumpURLs(_))
+  private def getDataDumpURLs(datasets: Seq[VoIDDataset]): Seq[(String, VoIDDataset)] = {
+    datasets.flatMap(dataset => {
+      if (dataset.subsets.isEmpty)
+        dataset.datadumps.map(uri => (uri, dataset))
+      else
+        dataset.datadumps.map(uri => (uri, dataset)) ++ getDataDumpURLs(dataset.subsets)
+    })
   }
   
   /** Helper to drop a dataset and all its dependencies from DB and index 
@@ -69,82 +93,66 @@ class HarvestWorker {
     Associations.deleteForDatasets(subsetsRecursive)
     Images.deleteForDatasets(subsetsRecursive)
     AnnotatedThings.deleteForDatasets(subsetsRecursive)
-    DatasetDumpfiles.deleteForDatasets(subsetsRecursive)
     Datasets.delete(subsetsRecursive)
     
     // Purge from index
     Global.index.dropDatasets(subsetsRecursive)
     Global.index.refresh()    
   }
+  
+  private def importData(dataset: Dataset, dumpfiles: Seq[TemporaryFile])(implicit s: Session) = {
+    dumpfiles.foreach(dump => {
+	  Logger.info("Importing " + dump.file.getName)
+	  if (dump.file.getName.endsWith(CSV))
+        CSVImporter.importRecogitoCSV(Source.fromFile(dump.file, UTF8), dataset)
+      else
+        PelagiosOAImporter.importPelagiosAnnotations(dump, dump.file.getName, dataset)
+           
+      dump.finalize()
+      Logger.info(dump.file.getName + " - import complete.")
+	})    
+  }
       
   /** (Re-)Harvest a dataset from a VoID URL **/
-  def fullHarvest(voidURL: String, previous: Option[Dataset]) = {	  
+  def fullHarvest(voidURL: String, previous: Seq[Dataset]) = {	  
     Logger.info("Downloading VoID from " + voidURL)
     val startTime = System.currentTimeMillis
    
     // Assign a random (but unique) name, and keep the extension from the original file
     val voidFilename = "void_" + UUID.randomUUID.toString + voidURL.substring(voidURL.lastIndexOf("."))
-    val voidTempFile = new TemporaryFile(new File(TMP_DIR, voidFilename))
- 
-    try {
-      // Download
-	  new URL(voidURL) #> voidTempFile.file !!
-	
-	  Logger.info("Download complete from " + voidURL)
+    val voidTempFile = downloadFile(voidURL, voidFilename)
     
-	  val voidHash = computeHash(voidTempFile.file)
-	  Logger.info("Got hash: " + voidHash)
+    if (voidTempFile.isDefined) {	
+	  val voidHash = computeHash(voidTempFile.get.file)
 	
-	  // We only support one top-level dataset per VoID
-	  val dataset = VoIDImporter.readVoID(voidTempFile, voidFilename).head
-	  voidTempFile.finalize()
-	
-	  val dataDumpURLs = getDatadumpURLs(dataset)
-	  val dataDumps = dataDumpURLs.par.map(url => {
-	    Logger.info("Downloading datadump from " + url)
-	    val dumpFilename = "data_" + UUID.randomUUID.toString + url.substring(url.lastIndexOf("."))
-	    val dumpTempFile = new TemporaryFile(new File(TMP_DIR, dumpFilename))
-	    
-	    new URL(url) #> dumpTempFile.file !!
-	      
-	    Logger.info("Download complete from " + url)
-	   
-	    dumpTempFile
-	  }).seq
-	  Logger.info("All downloads complete for VoID " + voidURL)
-	
-	  val dataHash = computeHash(dataDumps.map(_.file))
-	  Logger.info("Got hash: " + dataHash)
-	  	
-	  // TODO compare hashes and only ingest on change
-	
-	  DB.withSession { implicit session: Session =>
-	    // Drop
-	    if (previous.isDefined)
-	      dropDatasetCascaded(previous.get.id)
-
-	    // Import
-	    Logger.info("Importing dataset " + dataset.title)
-	    val importedDataset = VoIDImporter.importVoID(Seq(dataset), Some(voidURL)).head
-	    Logger.info("Import complete for dataset " + dataset.title)
+	  val datasets = VoIDImporter.readVoID(voidTempFile.get)
+	  voidTempFile.get.finalize()
 	  
-	    dataDumps.foreach(dump => {
-	      Logger.info("Importing " + dump.file.getName)
-	      if (dump.file.getName.endsWith(CSV))
-            CSVImporter.importRecogitoCSV(Source.fromFile(dump.file, UTF8), importedDataset)
-          else
-            PelagiosOAImporter.importPelagiosAnnotations(dump, dump.file.getName, importedDataset)
-           
-          dump.finalize()
-          Logger.info(dump.file.getName + " - import complete.")
-	    })
-  	  }
-    } catch {
-      // TODO retry?
-      case t: Throwable => Logger.info(t.getMessage())
+	  val dataDumps = getDataDumpURLs(datasets).par.map { case (url, dataset) => {
+	    val dumpFilename = "data_" + UUID.randomUUID.toString + url.substring(url.lastIndexOf("."))
+	    (url, downloadFile(url, dumpFilename))
+	  }}.seq
+	  
+	  if (dataDumps.filter(_._1.isEmpty).size == 0) {
+	    
+	    // TODO compare hashes and only ingest on change
+	    
+	    DB.withSession { implicit session: Session =>	    
+	      previous.foreach(dataset => dropDatasetCascaded(dataset.id))
+	      
+	      val dumpfileMap = dataDumps.toMap.mapValues(_.get)	      
+	      val importedDatasetsWithDumpfiles = VoIDImporter.importVoID(datasets, Some(voidURL))
+	      importedDatasetsWithDumpfiles.foreach { case (dataset, uris) => {
+	        importData(dataset, uris.map(uri => dumpfileMap.get(uri).get))
+	      }}
+	    }
+	  } else {
+	    Logger.warn("Download failure - aborting " + voidURL)
+	  }
     }
   }
 	
+  /*
   def harvest(datasetId: String) = {
     DB.withSession { implicit session: Session =>
       val d = Datasets.findByIdWithDumpfiles(datasetId)
@@ -177,5 +185,6 @@ class HarvestWorker {
      }
     }
   }
+  */
 	
 }

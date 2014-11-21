@@ -105,24 +105,8 @@ object JSONWrites {
        Annotations.countByDataset(dataset.id),
        Associations.countPlacesInDataset(dataset.id),
        subsetsJson)})
-      
+
        
-  implicit val datasetDumpfileWrites: Writes[DatasetDumpfile] = (
-    (JsPath \ "uri").write[String] ~
-    (JsPath \ "dataset").write[String] ~
-    (JsPath \ "last_harvest").writeNullable[Long]
-  )(dumpfile => (
-      dumpfile.uri,
-      dumpfile.datasetId,
-      dumpfile.lastHarvest.map(_.getTime)))
-      
-      
-  implicit def datasetWithDumpsWrites(implicit s: Session): Writes[(Dataset, Seq[DatasetDumpfile])] = (
-    (JsPath).write[Dataset] ~
-    (JsPath \ "dumpfiles").write[Seq[DatasetDumpfile]]
-  )(t  => (t._1, t._2))   
-  
-  
   implicit def placeOccurrenceInDatasetWrites(implicit s: Session): Writes[(Dataset, Int)] = (
     (JsPath \ "dataset").write[Dataset] ~
     (JsPath \ "num_referencing_items").write[Int]

@@ -13,7 +13,7 @@ object DatasetController extends AbstractController {
   }
   
   def getDataset(id: String) = loggingAction { implicit session =>
-    val dataset = Datasets.findByIdWithDumpfiles(id)
+    val dataset = Datasets.findById(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(dataset.get), session.request)
     else
@@ -29,7 +29,7 @@ object DatasetController extends AbstractController {
   }
     
   def listAnnotatedThings(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
-    val dataset = Datasets.findByIdWithDumpfiles(id)
+    val dataset = Datasets.findById(id)
     if (dataset.isDefined)
       jsonOk(Json.toJson(AnnotatedThings.findByDataset(id, true, true, offset, limit)), session.request)
     else
