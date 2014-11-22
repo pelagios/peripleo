@@ -123,6 +123,14 @@ object Global extends GlobalSettings {
     accessLogArchiver = Some(AccessLogArchiver.start())
   }  
   
-  override def onStop(app: Application): Unit = index.close()
+  override def onStop(app: Application): Unit = {
+    index.close()
+    
+    if (accessLogArchiver.isDefined) {
+      Logger.info("Shutting down log archival background actor")
+      accessLogArchiver.get.cancel
+      accessLogArchiver = None
+    }
+  }
 
 }

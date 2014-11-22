@@ -47,7 +47,7 @@ GET     /api-v3/logout                           controllers.admin.AuthControlle
 # Admin
 GET     /api-v3/admin/datasets                   controllers.admin.DatasetAdminController.index
 POST    /api-v3/admin/datasets                   controllers.admin.DatasetAdminController.uploadDataset
-DELETE  /api-v3/admin/datasets/:id               controllers.admin.DatasetAdminController.reingestDataset(id: String)
+DELETE  /api-v3/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
 POST    /api-v3/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
 POST    /api-v3/admin/datasets/:id/harvests      controllers.admin.DatasetAdminController.harvestDataset(id: String)
 

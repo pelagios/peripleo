@@ -102,7 +102,7 @@ class HarvestWorker {
   
   private def importData(dataset: Dataset, dumpfiles: Seq[TemporaryFile])(implicit s: Session) = {
     dumpfiles.foreach(dump => {
-	  Logger.info("Importing " + dump.file.getName)
+	  Logger.info("Importing data from " + dump.file.getName + " to " + dataset.title)
 	  if (dump.file.getName.endsWith(CSV))
         CSVImporter.importRecogitoCSV(Source.fromFile(dump.file, UTF8), dataset)
       else
@@ -114,8 +114,7 @@ class HarvestWorker {
   }
       
   /** (Re-)Harvest a dataset from a VoID URL **/
-  def fullHarvest(voidURL: String, previous: Seq[Dataset]) = {	  
-    Logger.info("Downloading VoID from " + voidURL)
+  def harvest(voidURL: String, previous: Seq[Dataset] = Seq.empty[Dataset]) = {	  
     val startTime = System.currentTimeMillis
    
     // Assign a random (but unique) name, and keep the extension from the original file
@@ -141,6 +140,7 @@ class HarvestWorker {
 	      previous.foreach(dataset => dropDatasetCascaded(dataset.id))
 	      
 	      val dumpfileMap = dataDumps.toMap.mapValues(_.get)	      
+	      Logger.info("Importing dataset: " + datasets.map(_.title).mkString(", "))
 	      val importedDatasetsWithDumpfiles = VoIDImporter.importVoID(datasets, Some(voidURL))
 	      importedDatasetsWithDumpfiles.foreach { case (dataset, uris) => {
 	        importData(dataset, uris.map(uri => dumpfileMap.get(uri).get))
@@ -151,40 +151,5 @@ class HarvestWorker {
 	  }
     }
   }
-	
-  /*
-  def harvest(datasetId: String) = {
-    DB.withSession { implicit session: Session =>
-      val d = Datasets.findByIdWithDumpfiles(datasetId)
-      if (d.isEmpty) {
-	    // TODO error notification
-      } else {
-	    val (dataset, dumpfileURLs) = d.get
- 	    val dumpfiles = dumpfileURLs.par.map(d => { 
-	      val filename = d.uri.substring(d.uri.lastIndexOf("/") + 1)
-	      Logger.info("Downloading file " + filename + " from " + d.uri)
-	      val tempFile = new TemporaryFile(new File(TMP_DIR, filename))
-	      new URL(d.uri) #> tempFile.file !!
-	      
-	      Logger.info(filename + " - download complete.")
-	      tempFile
-	    }).seq
-	    Logger.info("All downloads complete.")
-	    
-	    dumpfiles.foreach(file => {
-	      Logger.info("Importing " + file.file.getName)
-	      if (file.file.getName.endsWith(CSV))
-            CSVImporter.importRecogitoCSV(Source.fromFile(file.file, UTF8), dataset)
-          else
-            PelagiosOAImporter.importPelagiosAnnotations(file, file.file.getName, dataset)
-           
-          file.finalize()
-          Logger.info(file.file.getName + " - import complete.")
-	    })
-	    Logger.info("All downloads imported.")
-     }
-    }
-  }
-  */
 	
 }

@@ -126,8 +126,8 @@
               <td class="center">
               </td>
               <td class="right">
-                <button class="button small" onclick="harvestDataset('@dataset.id')";>Harvest</button>
                 <button class="button upload small" data-input="import-annotations-@dataset.id"><span class="icon">&#xf016;</span>&nbsp; Import File</button>
+                <button class="button small" onclick="harvestDataset('@dataset.id');" title="Re-Harvest Dataset"><span class="icon">&#xf01e;</span></button>
                 <button class="button small red" onclick="deleteDataset('@dataset.id');" title="Drop Dataset"><span class="icon">&#xf05e;</span></button>
                 
 		        @helper.form(action = controllers.admin.routes.DatasetAdminController.uploadAnnotations(dataset.id), 'enctype -> "multipart/form-data") {

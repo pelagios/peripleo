@@ -53,15 +53,11 @@ object DatasetAdminController extends Controller with Secured {
     val json = requestWithSession.request.body.asJson
     if (json.isDefined) {
       val url = (json.get \ "url").as[String]
-      Logger.info("Downloading VoID from " + url)
+      Logger.info("Importing dataset from " + url)
       
-      val filename = url.substring(url.lastIndexOf("/") + 1)
-      val tempFile = new TemporaryFile(new File(TMP_DIR, filename))
-	  new URL(url) #> tempFile.file !!
-	  
-	  Logger.info("Download complete - importing")
-	  VoIDImporter.importVoID(tempFile, Some(url))
-	  Logger.info("Import complete")
+      // TODO make async
+      new HarvestWorker().harvest(url)
+      
       Ok(Json.parse("{ \"message\": \"New Dataset Created.\" }"))   
     } else {
       processUpload("void", requestWithSession, { filepart => {
@@ -71,13 +67,13 @@ object DatasetAdminController extends Controller with Secured {
     }
   }
   
-  def reingestDataset(id: String) = adminAction { username => implicit requestWithSession =>
+  def harvestDataset(id: String) = adminAction { username => implicit requestWithSession =>
     // TODO dummy implementation!
     val dataset = Datasets.findById(id)
     if (dataset.isDefined) {
       val uri = dataset.get.voidURI
       if (uri.isDefined) {
-        new HarvestWorker().fullHarvest(uri.get, Datasets.findTopLevelByVoID(uri.get))
+        new HarvestWorker().harvest(uri.get, Datasets.findTopLevelByVoID(uri.get))
       }
     }
   
@@ -85,20 +81,28 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def deleteDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    val subsetsRecursive = id +: Datasets.listSubsetsRecursive(id)
+    val dataset = Datasets.findById(id)
     
-    // Purge from database
-    Annotations.deleteForDatasets(subsetsRecursive)
-    Associations.deleteForDatasets(subsetsRecursive)
-    Images.deleteForDatasets(subsetsRecursive)
-    AnnotatedThings.deleteForDatasets(subsetsRecursive)
-    Datasets.delete(subsetsRecursive)
+    if (dataset.isDefined) {
+      Logger.info("Deleting dataset " + dataset.get.title)
+      
+      val subsetsRecursive = id +: Datasets.listSubsetsRecursive(id)
     
-    // Purge from index
-    Global.index.dropDatasets(subsetsRecursive)
-    Global.index.refresh()
+      // Purge from database
+      Annotations.deleteForDatasets(subsetsRecursive)
+      Associations.deleteForDatasets(subsetsRecursive)
+      Images.deleteForDatasets(subsetsRecursive)
+      AnnotatedThings.deleteForDatasets(subsetsRecursive)
+      Datasets.delete(subsetsRecursive)
     
-    Status(200)
+      // Purge from index
+      Global.index.dropDatasets(subsetsRecursive)
+      Global.index.refresh()
+    
+      Status(200)
+    } else {
+      NotFound
+    }
   }
   
   def uploadAnnotations(id: String) = adminAction { username => implicit requestWithSession => 
@@ -115,12 +119,6 @@ object DatasetAdminController extends Controller with Secured {
         NotFound
       }
     }})
-  }
-  
-  def harvestDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    val worker = new HarvestWorker()
-    // worker.harvest(id)
-    Ok("")
   }
   
 }
