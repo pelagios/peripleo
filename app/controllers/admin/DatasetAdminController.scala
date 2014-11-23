@@ -16,6 +16,7 @@ import sys.process._
 import ingest._
 import ingest.harvest.HarvestWorker
 import ingest.harvest.HarvestWorker
+import ingest.harvest.Harvester
 
 object DatasetAdminController extends Controller with Secured {
   
@@ -55,8 +56,7 @@ object DatasetAdminController extends Controller with Secured {
       val url = (json.get \ "url").as[String]
       Logger.info("Importing dataset from " + url)
       
-      // TODO make async
-      new HarvestWorker().harvest(url)
+      Harvester.harvest(url)
       
       Ok(Json.parse("{ \"message\": \"New Dataset Created.\" }"))   
     } else {
@@ -68,16 +68,15 @@ object DatasetAdminController extends Controller with Secured {
   }
   
   def harvestDataset(id: String) = adminAction { username => implicit requestWithSession =>
-    // TODO dummy implementation!
     val dataset = Datasets.findById(id)
     if (dataset.isDefined) {
       val uri = dataset.get.voidURI
       if (uri.isDefined) {
-        new HarvestWorker().harvest(uri.get, Datasets.findTopLevelByVoID(uri.get))
+        Harvester.harvest(uri.get, Datasets.findTopLevelByVoID(uri.get))
       }
     }
   
-    Ok("done")
+    Ok(Json.parse("{ \"message\": \"Harvest Running\" }"))
   }
   
   def deleteDataset(id: String) = adminAction { username => implicit requestWithSession =>
