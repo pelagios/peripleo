@@ -167,4 +167,33 @@ object IndexedPlaceNetwork {
     doc
   }
   
+  def buildNetworks(places: Seq[IndexedPlace]): Seq[IndexedPlaceNetwork] = {
+    
+    def isConnected(place: IndexedPlace, network: Seq[IndexedPlace]): Boolean = {
+      val networkURIs = network.map(_.uri)
+      val networkMatches = network.flatMap(_.matches)
+      
+      val outboundMatches = place.matches.exists(skosMatch => networkURIs.contains(skosMatch))
+      val inboundMatches = networkMatches.contains(place.uri)
+      val indirectMatches = place.matches.exists(skosMatch => networkMatches.contains(skosMatch))
+
+      outboundMatches || inboundMatches || indirectMatches      
+    }
+    
+    val networks = places.foldLeft(Seq.empty[Seq[IndexedPlace]])((networks, place) => {
+      val connectedNetworks = networks.filter(network => isConnected(place, places))
+      val disconnectedNetworks = networks.diff(connectedNetworks)
+      
+      if (connectedNetworks.size == 0) {
+        // Not connected with anything - add as a new network
+        networks :+ Seq(place)
+      } else {
+        // Connected with one or more networks - flatten and append
+        disconnectedNetworks :+ (connectedNetworks.flatten :+ place)
+      }
+    })
+    
+    networks.map(join(_))
+  }
+  
 }

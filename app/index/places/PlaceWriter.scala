@@ -96,38 +96,40 @@ trait PlaceWriter extends PlaceReader {
   def deleteGazetter(name: String) = {
     val searcher = placeSearcherManager.acquire()
     try {
-      deleteGazetteerInBatches(name, searcher, placeWriter)
+      // Need to loop through each affected record - so we'll do it in batches
+      deleteGazetteerRecordBatch(name, searcher)
       refresh()
     } finally {
       placeSearcherManager.release(searcher)            
     }
   }
     
-  private def deleteGazetteerInBatches(gazetteer: String, searcher: IndexSearcher, writer: IndexWriter, offset: Int = 0, batchSize: Int = 30000): Unit = {    
+  private def deleteGazetteerRecordBatch(gazetteer: String, searcher: IndexSearcher, offset: Int = 0, batchSize: Int = 30000): Unit = {    
     val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
     val collector = TopScoreDocCollector.create(offset + batchSize, true) 
     searcher.search(query, collector)
     
     val total = collector.getTotalHits
-    Logger.info("Removing places from " + total + " records")
-    
     val affectedNetworks = collector.topDocs(offset, batchSize).scoreDocs
       .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
-      
+
+    // First, we delete all place networks from the affected batch      
     affectedNetworks.foreach(network => 
-      writer.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
-        
-    Logger.info("Processing " + affectedNetworks.size + " affected records")
+      placeWriter.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
+    
+    // Then we update each place network and re-add to the index
     affectedNetworks.foreach(network => {
       val places = network.places.filter(_.sourceGazetteer != gazetteer)
+      
+      // If the network is empty afterwards, we don't need to re-add
       if (places.size > 0) {
-        val newNetwork = IndexedPlaceNetwork.join(places)
-        writer.addDocument(newNetwork.doc)
+        IndexedPlaceNetwork.buildNetworks(places)
+          .foreach(network => placeWriter.addDocument(network.doc))
       }
     })      
       
     if (total > offset + batchSize)
-      deleteGazetteerInBatches(gazetteer, searcher, writer, offset + batchSize, batchSize)
+      deleteGazetteerRecordBatch(gazetteer, searcher, offset + batchSize, batchSize)
   }
 
 }
