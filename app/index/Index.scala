@@ -16,9 +16,11 @@ import play.api.Logger
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
+import org.apache.lucene.search.SearcherManager
 
 private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {
   
+  // Fixed configuration settings
   protected val spatialCtx = JtsSpatialContext.GEO
   
   private val maxLevels = 11 //results in sub-meter precision for geohash
@@ -26,62 +28,67 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   protected val spatialStrategy =
     new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
   
+  protected val facetsConfig = new FacetsConfig()
+  facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
+  facetsConfig.setHierarchical(IndexFields.ITEM_DATASET, true)
+  
+  // Index directories
   private val placeIndex = FSDirectory.open(placeIndexDir)
   
   private val objectIndex = FSDirectory.open(objectIndexDir)
   
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
   
+  // Analyzer
+  protected val analyzer = new StandardAnalyzer(Version.LUCENE_4_9)
+  
+  // Place searcher manager  
+  protected val placeSearcherManager = new SearcherManager(placeIndex, new SearcherFactory())
+  
+  // Object searcher manager 
+  protected val objectSearcherManager = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
+  
+  // Spellcheck index
   private val spellcheckIndex = FSDirectory.open(spellcheckDir)
   
   private val spellchecker = new SpellChecker(spellcheckIndex)
-  
-  protected var placeIndexReader = DirectoryReader.open(placeIndex)
-  
-  protected val analyzer = new StandardAnalyzer(Version.LUCENE_4_9)
-
-  protected val facetsConfig = new FacetsConfig()
-  facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
-  facetsConfig.setHierarchical(IndexFields.ITEM_DATASET, true)
-
-  protected val searcherTaxonomyMgr = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
   
   protected def newObjectWriter(): (IndexWriter, TaxonomyWriter) =
     (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LUCENE_4_9, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
     
   protected def newPlaceWriter(): IndexWriter = 
     new IndexWriter(placeIndex, new IndexWriterConfig(Version.LUCENE_4_9, analyzer))
-  
-  protected def newPlaceSearcher(): IndexSearcher = 
-    new IndexSearcher(placeIndexReader)
 
   def numObjects: Int = {
-    val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
-    val numObjects = searcherAndTaxonomy.searcher.getIndexReader().numDocs()
-    searcherTaxonomyMgr.release(searcherAndTaxonomy)
+    val objectSearcher = objectSearcherManager.acquire()
+    val numObjects = objectSearcher.searcher.getIndexReader().numDocs()
+    objectSearcherManager.release(objectSearcher)
     numObjects
   }
   
-  def numPlaceNetworks: Int =
-    placeIndexReader.numDocs()
+  def numPlaceNetworks: Int = {
+    val searcher = placeSearcherManager.acquire()
+    try {
+      searcher.getIndexReader().numDocs()
+    } finally {
+      placeSearcherManager.release(searcher)
+    }
+  }
   
   def refresh() = {
     Logger.info("Refreshing index readers")
-    searcherTaxonomyMgr.maybeRefresh()
-    
-    placeIndexReader.close()
-    placeIndexReader = DirectoryReader.open(placeIndex)
+    objectSearcherManager.maybeRefresh()
+    placeSearcherManager.maybeRefresh()
   }
   
   def close() = {
     analyzer.close()
-    searcherTaxonomyMgr.close()
-    
-    placeIndex.close()
-    placeIndexReader.close()
+    objectSearcherManager.close()
+    placeSearcherManager.close()
     
     objectIndex.close()
     taxonomyIndex.close()
+    placeIndex.close()
     
     spellchecker.close()
     spellcheckIndex.close()

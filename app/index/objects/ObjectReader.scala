@@ -87,9 +87,10 @@ trait ObjectReader extends IndexBase {
   }
   
   private def execute(query: Query, limit: Int, offset: Int, queryString: Option[String]): Page[IndexedObject] = {
-    val searcherAndTaxonomy = searcherTaxonomyMgr.acquire()
-    val searcher = new IndexSearcher(new MultiReader(searcherAndTaxonomy.searcher.getIndexReader, placeIndexReader))
-    val taxonomyReader = searcherAndTaxonomy.taxonomyReader
+    val placeSearcher = placeSearcherManager.acquire()
+    val objectSearcher = objectSearcherManager.acquire()
+    val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.getIndexReader))
+    val taxonomyReader = objectSearcher.taxonomyReader
     
     try {      
       val facetsCollector = new FacetsCollector()
@@ -110,7 +111,8 @@ trait ObjectReader extends IndexBase {
       val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
       Page(results.toSeq, offset, limit, total, queryString)
     } finally {
-      searcherTaxonomyMgr.release(searcherAndTaxonomy)
+      placeSearcherManager.release(placeSearcher)
+      objectSearcherManager.release(objectSearcher)
     }     
   }
 
