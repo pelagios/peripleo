@@ -51,3 +51,5 @@ DELETE  /api-v3/admin/datasets/:id               controllers.admin.DatasetAdminC
 POST    /api-v3/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
 POST    /api-v3/admin/datasets/:id/harvests      controllers.admin.DatasetAdminController.harvestDataset(id: String)
 
+GET     /api-v3/admin/gazetteers                 controllers.admin.GazetteerAdminController.index
+DELETE  /api-v3/admin/gazetteers/:name           controllers.admin.GazetteerAdminController.deleteGazetteer(name: String)
