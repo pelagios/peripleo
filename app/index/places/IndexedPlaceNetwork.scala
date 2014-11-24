@@ -25,7 +25,7 @@ case class NetworkEdge(source: Int, target: Int, isInnerEdge: Boolean)
   * @author Rainer Simon <rainer.simon@ait.ac.at>
   */
 class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
-  
+   
   /** The first place URI added to the network **/
   val seedURI: String = doc.get(IndexFields.PLACE_URI)
 
@@ -84,6 +84,19 @@ object IndexedPlaceNetwork {
   /** Creates a new place network with a single place **/
   def createNew(): IndexedPlaceNetwork = 
     new IndexedPlaceNetwork(new Document())
+  
+  def join(places: Seq[IndexedPlace]) = {
+    val joinedDoc = new Document() 
+    joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))
+    
+    places.foreach(addPlaceToDoc(_, joinedDoc))
+    
+    // Convex hull accross all place geometries
+    val convexHull = ConvexHull.compute(places.flatMap(_.geometry))
+    convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
+
+    new IndexedPlaceNetwork(joinedDoc)
+  }
   
   /** Merges the place into the network **/
   def join(place: IndexedPlace, network: IndexedPlaceNetwork): IndexedPlaceNetwork =

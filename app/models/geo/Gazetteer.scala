@@ -69,6 +69,11 @@ object Gazetteers {
     
     query.list.groupBy(_._1).mapValues(_.map(_._2.prefix)).toSeq  
   }
+  
+  def delete(name: String)(implicit s: Session)= {
+    queryGazetteerPrefixes.where(_.gazetteer === name).delete
+    queryGazetteers.where(_.name === name).delete
+  } 
     
   def numDistinctPlaces()(implicit s: Session): Int =
     queryGazetteers.map(_.distinctPlaces).list.foldLeft(0)(_ + _)

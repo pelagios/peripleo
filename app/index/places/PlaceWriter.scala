@@ -9,6 +9,7 @@ import org.pelagios.Scalagios
 import org.pelagios.api.gazetteer.Place
 import play.api.Logger
 import scala.collection.mutable.Set
+import org.apache.lucene.search.IndexSearcher
 
 trait PlaceWriter extends PlaceReader {
   
@@ -90,6 +91,43 @@ trait PlaceWriter extends PlaceReader {
     // Add the place and write updated network to index
     val updatedNetwork = IndexedPlaceNetwork.join(place, affectedNetworks)
     writer.addDocument(updatedNetwork.doc)
+  }
+  
+  def deleteGazetter(name: String) = {
+    val searcher = placeSearcherManager.acquire()
+    try {
+      deleteGazetteerInBatches(name, searcher, placeWriter)
+      refresh()
+    } finally {
+      placeSearcherManager.release(searcher)            
+    }
+  }
+    
+  private def deleteGazetteerInBatches(gazetteer: String, searcher: IndexSearcher, writer: IndexWriter, offset: Int = 0, batchSize: Int = 30000): Unit = {    
+    val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
+    val collector = TopScoreDocCollector.create(offset + batchSize, true) 
+    searcher.search(query, collector)
+    
+    val total = collector.getTotalHits
+    Logger.info("Removing places from " + total + " records")
+    
+    val affectedNetworks = collector.topDocs(offset, batchSize).scoreDocs
+      .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
+      
+    affectedNetworks.foreach(network => 
+      writer.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
+        
+    Logger.info("Processing " + affectedNetworks.size + " affected records")
+    affectedNetworks.foreach(network => {
+      val places = network.places.filter(_.sourceGazetteer != gazetteer)
+      if (places.size > 0) {
+        val newNetwork = IndexedPlaceNetwork.join(places)
+        writer.addDocument(newNetwork.doc)
+      }
+    })      
+      
+    if (total > offset + batchSize)
+      deleteGazetteerInBatches(gazetteer, searcher, writer, offset + batchSize, batchSize)
   }
 
 }
