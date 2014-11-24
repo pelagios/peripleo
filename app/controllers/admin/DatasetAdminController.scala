@@ -97,7 +97,8 @@ object DatasetAdminController extends Controller with Secured {
       // Purge from index
       Global.index.dropDatasets(subsetsRecursive)
       Global.index.refresh()
-    
+      
+      Logger.info("Done.")
       Status(200)
     } else {
       NotFound

@@ -53,10 +53,10 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   
   private val spellchecker = new SpellChecker(spellcheckIndex)
   
-  protected def newObjectWriter(): (IndexWriter, TaxonomyWriter) =
+  protected lazy val objectWriter: (IndexWriter, TaxonomyWriter) =
     (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LUCENE_4_9, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
     
-  protected def newPlaceWriter(): IndexWriter = 
+  protected lazy val placeWriter: IndexWriter = 
     new IndexWriter(placeIndex, new IndexWriterConfig(Version.LUCENE_4_9, analyzer))
 
   def numObjects: Int = {
@@ -83,6 +83,11 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   
   def close() = {
     analyzer.close()
+    
+    objectWriter._1.close()
+    objectWriter._2.close()
+    placeWriter.close()
+    
     objectSearcherManager.close()
     placeSearcherManager.close()
     

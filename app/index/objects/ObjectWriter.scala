@@ -13,30 +13,24 @@ trait ObjectWriter extends IndexBase {
     addAnnotatedThings(Seq((annotatedThing, places)), datasetHierarchy)
   
   def addAnnotatedThings(annotatedThings: Seq[(AnnotatedThing, Seq[IndexedPlace])], datasetHierarchy: Seq[Dataset])(implicit s: Session) = {
-    val (indexWriter, taxonomyWriter) = newObjectWriter() 
+    val (indexWriter, taxonomyWriter) = objectWriter 
     
     // NOTE: not sure parallelization is totally safe the way we're using it here
     annotatedThings.par.foreach { case (thing, places) =>
       indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, places, datasetHierarchy)))}
-    
-    indexWriter.close()
-    taxonomyWriter.close()   
   }
   
   def addDataset(dataset: Dataset) = addDatasets(Seq(dataset))
   
   def addDatasets(datasets: Seq[Dataset]) = { 
-    val (indexWriter, taxonomyWriter) = newObjectWriter() 
+    val (indexWriter, taxonomyWriter) = objectWriter
     
     datasets.foreach(dataset =>
       indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))
-    
-    indexWriter.close()
-    taxonomyWriter.close()    
   }
   
   def updateDatasets(datasets: Seq[Dataset]) = {
-    val (indexWriter, taxonomyWriter) = newObjectWriter() 
+    val (indexWriter, taxonomyWriter) = objectWriter 
     
     // Delete
     datasets.foreach(dataset => {
@@ -48,10 +42,7 @@ trait ObjectWriter extends IndexBase {
     
     // Add updated versions
     datasets.foreach(dataset =>
-      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))
-    
-    indexWriter.close()
-    taxonomyWriter.close()        
+      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))   
   }
   
   /** Removes datasets from the index. 
@@ -60,7 +51,7 @@ trait ObjectWriter extends IndexBase {
     * hand the the whole dataset hierarchy
     */
   def dropDatasets(ids: Seq[String]) = {
-    val (indexWriter, taxonomyWriter) = newObjectWriter()
+    val (indexWriter, taxonomyWriter) = objectWriter
     
     ids.foreach(id => {
       // Delete annotated things for this dataset
@@ -72,9 +63,6 @@ trait ObjectWriter extends IndexBase {
       q.add(new TermQuery(new Term(IndexFields.ID, id)), BooleanClause.Occur.MUST)
       indexWriter.deleteDocuments(q)
     })
-    
-    indexWriter.close()
-    taxonomyWriter.close()
   }
 
 }

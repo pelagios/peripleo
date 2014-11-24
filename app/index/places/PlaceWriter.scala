@@ -13,36 +13,29 @@ import scala.collection.mutable.Set
 trait PlaceWriter extends PlaceReader {
   
   def addPlaces(places: Iterator[Place], sourceGazetteer: String): (Int, Seq[String]) =  { 
-    val writer = newPlaceWriter()
-    
     val uriPrefixes = Set.empty[String]
     val distinctNewPlaces = places.foldLeft(0)((distinctNewPlaces, place) => {
-      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, writer)
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter)
       if (isDistinct)
         distinctNewPlaces + 1 
       else
         distinctNewPlaces
     })
-
-    writer.close()
     (distinctNewPlaces, uriPrefixes.toSeq)
   }
   
-  def addPlaceStream(is: InputStream, filename: String, sourceGazetteer: String): (Int, Int, Seq[String]) = {
-    val writer = newPlaceWriter()
-    
+  def addPlaceStream(is: InputStream, filename: String, sourceGazetteer: String): (Int, Int, Seq[String]) = {    
     val uriPrefixes = Set.empty[String]
     var totalPlaces = 0
     var distinctNewPlaces = 0
     def placeHandler(place: Place): Unit = {
-      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, writer)
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter)
       totalPlaces += 1
       if (isDistinct)
         distinctNewPlaces += 1
     }
     
     Scalagios.streamPlaces(is, filename, placeHandler, true)
-    writer.close()
     (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
   }
   
