@@ -101,7 +101,7 @@ object Global extends GlobalSettings {
       }
       
       if (MTable.getTables("place_to_dataset_associations").list.isEmpty || MTable.getTables("place_to_thing_associations").list.isEmpty) {
-        Logger.info("DB Tables 'place_to_dataset_associations' and 'place_to_thing_associations' do not exist - creating")
+        Logger.info("DB tables 'place_to_dataset_associations' and 'place_to_thing_associations' do not exist - creating")
         Associations.create
       }
       

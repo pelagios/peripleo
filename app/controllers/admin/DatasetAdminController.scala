@@ -31,7 +31,7 @@ object DatasetAdminController extends BaseUploadController with Secured {
       Ok(Json.parse("{ \"message\": \"New Dataset Created.\" }"))   
     } else {
       processUpload("void", requestWithSession, { filepart => {
-        VoIDImporter.importVoID(filepart.ref)
+        VoIDImporter.importVoID(filepart.ref, filepart.filename)
         Redirect(routes.DatasetAdminController.index).flashing("success" -> { "New Dataset Created." })      
       }})
     }

@@ -124,7 +124,7 @@ class HarvestWorker {
     if (voidTempFile.isDefined) {	
 	  val voidHash = computeHash(voidTempFile.get.file)
 	
-	  val datasets = VoIDImporter.readVoID(voidTempFile.get)
+	  val datasets = VoIDImporter.readVoID(voidTempFile.get, voidFilename)
 	  voidTempFile.get.finalize()
 	  
 	  val dataDumps = getDataDumpURLs(datasets).par.map { case (url, dataset) => {

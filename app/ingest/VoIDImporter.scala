@@ -12,17 +12,17 @@ import play.api.libs.Files.TemporaryFile
 
 object VoIDImporter extends AbstractImporter {
   
-  def readVoID(file: TemporaryFile): Seq[VoIDDataset]= {
-    Logger.info("Reading VoID file: " + file.file.getName)  
+  def readVoID(file: TemporaryFile, filename: String): Seq[VoIDDataset]= {
+    Logger.info("Reading VoID file: " + filename)  
     val is = new FileInputStream(file.file)   
-    val format = getFormat(file.file.getName)  
+    val format = getFormat(filename)  
     val datasets = Scalagios.readVoID(is, format).toSeq
     is.close()
     datasets
   }
   
-  def importVoID(file: TemporaryFile, uri: Option[String] = None)(implicit s: Session): Seq[(Dataset, Seq[String])] =
-    importVoID(readVoID(file), uri)
+  def importVoID(file: TemporaryFile, filename: String, uri: Option[String] = None)(implicit s: Session): Seq[(Dataset, Seq[String])] =
+    importVoID(readVoID(file, filename), uri)
   
   def importVoID(topLevelDatasets: Seq[VoIDDataset], uri: Option[String])(implicit s: Session): Seq[(Dataset, Seq[String])]= {
     // Helper to compute an ID for the dataset    
