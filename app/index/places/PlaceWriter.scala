@@ -123,8 +123,9 @@ trait PlaceWriter extends PlaceReader {
       
       // If the network is empty afterwards, we don't need to re-add
       if (places.size > 0) {
-        IndexedPlaceNetwork.buildNetworks(places)
-          .foreach(network => placeWriter.addDocument(network.doc))
+        val networksAfterRemoval = IndexedPlaceNetwork.buildNetworks(places)
+        if (networksAfterRemoval.size > 1)
+          networksAfterRemoval.foreach(network => placeWriter.addDocument(network.doc))
       }
     })      
       

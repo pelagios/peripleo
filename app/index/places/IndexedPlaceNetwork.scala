@@ -180,8 +180,8 @@ object IndexedPlaceNetwork {
       outboundMatches || inboundMatches || indirectMatches      
     }
     
-    val networks = places.foldLeft(Seq.empty[Seq[IndexedPlace]])((networks, place) => {
-      val connectedNetworks = networks.filter(network => isConnected(place, places))
+    val networks = places.foldLeft(Seq.empty[Seq[IndexedPlace]])((networks, place) => {  
+      val connectedNetworks = networks.filter(network => isConnected(place, network))
       val disconnectedNetworks = networks.diff(connectedNetworks)
       
       if (connectedNetworks.size == 0) {
