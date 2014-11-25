@@ -4,7 +4,7 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 
 /** Gazetteer model entity **/
-case class Gazetteer(name: String, totalPlaces: Int, distinctPlaces: Int)
+case class Gazetteer(name: String, totalPlaces: Int)
 
 /** Gazetteer DB table **/
 class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
@@ -13,9 +13,7 @@ class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
   
   def totalPlaces = column[Int]("total_places", O.NotNull)
   
-  def distinctPlaces = column[Int]("distinct_places", O.NotNull)
-  
-  def * = (name, totalPlaces, distinctPlaces) <> (Gazetteer.tupled, Gazetteer.unapply)
+  def * = (name, totalPlaces) <> (Gazetteer.tupled, Gazetteer.unapply)
   
 }
 
@@ -74,9 +72,6 @@ object Gazetteers {
     queryGazetteerPrefixes.where(_.gazetteer === name).delete
     queryGazetteers.where(_.name === name).delete
   } 
-    
-  def numDistinctPlaces()(implicit s: Session): Int =
-    queryGazetteers.map(_.distinctPlaces).list.foldLeft(0)(_ + _)
     
   def numTotalPlaces()(implicit s: Session): Int =
     queryGazetteers.map(_.totalPlaces).list.foldLeft(0)(_ + _)

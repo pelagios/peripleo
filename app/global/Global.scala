@@ -64,7 +64,7 @@ object Global extends GlobalSettings {
           idx.refresh()
           
           // Insert gazetteer meta in to DB
-          Gazetteers.insert(Gazetteer(name, totalPlaces, distinctPlaces), uriPrefixes)
+          Gazetteers.insert(Gazetteer(name, totalPlaces), uriPrefixes)
         }}
       }
     }

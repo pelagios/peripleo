@@ -1,50 +1,20 @@
 package controllers.admin
 
 import global.Global
-import java.io.File
-import java.net.URL
 import models.Associations
 import models.core._
 import play.api.db.slick._
-import play.api.libs.Files.TemporaryFile
-import play.api.mvc.{ AnyContent, Controller, SimpleResult }
-import play.api.mvc.MultipartFormData.FilePart
 import play.api.Logger
 import play.api.libs.json.Json
 import scala.io.Source
-import sys.process._
 import ingest._
-import ingest.harvest.HarvestWorker
-import ingest.harvest.HarvestWorker
 import ingest.harvest.Harvester
 
-object DatasetAdminController extends Controller with Secured {
+object DatasetAdminController extends BaseUploadController with Secured {
   
   private val UTF8 = "UTF-8"
   private val CSV = "csv"
   private val TMP_DIR = System.getProperty("java.io.tmpdir")
-  
-  /** Generic boiler plate code needed for file upload **/
-  private def processUpload(formFieldName: String, requestWithSession: DBSessionRequest[AnyContent], action: FilePart[TemporaryFile] => SimpleResult) = {
-      val formData = requestWithSession.request.body.asMultipartFormData
-      if (formData.isDefined) {
-        try  {
-          Logger.info("Processing upload...")
-          val f = formData.get.file(formFieldName)
-          if (f.isDefined)
-            action(f.get) // This is where we execute the handler - the rest is sanity checking boilerplate
-          else
-            BadRequest(Json.parse("{\"message\": \"Invalid form data - missing file\"}"))
-        } catch {
-          case t: Throwable => {
-            t.printStackTrace()
-            Redirect(routes.DatasetAdminController.index).flashing("error" -> { "There is something wrong with the upload: " + t.getMessage })
-          }
-        }
-      } else {
-        BadRequest(Json.parse("{\"message\": \"Invalid form data\"}"))
-      }      
-  }
   
   def index = adminAction { username => implicit requestWithSession =>
     Ok(views.html.admin.datasets(Datasets.listAll()))

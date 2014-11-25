@@ -31,13 +31,13 @@
       <div id="admin-actions">
         <h4>Import Gazetteer</h4>
         <ul>
-          <li><a href="#" onclick="return false;" class="upload" data-input="upload-rdf">Upload RDF File</a></li>
+          <li><a href="#" onclick="return false;" class="upload" data-input="upload-dump">Upload RDF File</a></li>
           <li><a href="#" onclick="return false;" class="register-url">Fetch RDF from URL</a></li>
         </ul>
       </div>
     
-      @helper.form(action = controllers.admin.routes.DatasetAdminController.uploadDataset(), 'enctype -> "multipart/form-data") {
-        <input type="file" id="upload-void" name="void">
+      @helper.form(action = controllers.admin.routes.GazetteerAdminController.uploadGazetteerDump(), 'enctype -> "multipart/form-data") {
+        <input type="file" id="upload-dump" name="rdf">
       }
       
       <table class="list">
@@ -45,7 +45,6 @@
           <tr>
             <th>Name</th>
             <th>Total Places</th>
-            <th>Distinct Places</th>
             <th></th> <!-- Actions -->
           </tr>
         </thead>
@@ -54,7 +53,6 @@
           	<tr>
               <td>@gazetteer.name</a></td>
               <td>@gazetteer.totalPlaces</td>
-              <td>@gazetteer.distinctPlaces</td>
               <td class="right">
                 <button class="button small" title="Re-Harvest Gazetteer"><span class="icon">&#xf01e;</span></button>
                 <button class="button small red" onclick="deleteGazetteer('@gazetteer.name');" title="Drop Gazetteer"><span class="icon">&#xf05e;</span></button>
