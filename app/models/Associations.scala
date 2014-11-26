@@ -143,7 +143,7 @@ private[models] class PlaceToThingAssociations(tag: SlickTag) extends Table[Plac
 /** Queries **/
 object Associations {
   
-  private val placesToDatasets = TableQuery[PlaceToDatasetAssociations]
+  private[models] val placesToDatasets = TableQuery[PlaceToDatasetAssociations]
   
   private val placesToThings = TableQuery[PlaceToThingAssociations]
   
