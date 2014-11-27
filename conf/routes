@@ -36,6 +36,8 @@ GET     /api-v3/pages/places/:uri                controllers.pages.PlacePagesCon
 GET     /api-v3/pages/gazetteers/:name           controllers.pages.PlacePagesController.showGazetteer(name)
 GET     /api-v3/pages/search                     controllers.pages.HomepageController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int])
 GET     /api-v3/pages/advanced-search            controllers.pages.HomepageController.defineAdvancedSearch
+GET     /api-v3/pages/map                        controllers.pages.MapController.index
+GET     /api-v3/pages/map/data                   controllers.pages.MapController.masterHeatmap
 GET     /api-v3/                                 controllers.pages.HomepageController.index 
 GET     /api-v3                                  controllers.pages.HomepageController.index
 

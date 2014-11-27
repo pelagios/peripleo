@@ -58,13 +58,23 @@ object DatasetAdminController extends BaseUploadController with Secured {
       val subsetsRecursive = id +: Datasets.listSubsetsRecursive(id)
     
       // Purge from database
+      Logger.info("Dropping annotations")
       Annotations.deleteForDatasets(subsetsRecursive)
+      
+      Logger.info("Dropping associations")
       Associations.deleteForDatasets(subsetsRecursive)
+      
+      Logger.info("Dropping images")
       Images.deleteForDatasets(subsetsRecursive)
+      
+      Logger.info("Dropping annotated things")
       AnnotatedThings.deleteForDatasets(subsetsRecursive)
+      
+      Logger.info("Dropping datasets")
       Datasets.delete(subsetsRecursive)
     
       // Purge from index
+      Logger.info("Updating index")
       Global.index.dropDatasets(subsetsRecursive)
       Global.index.refresh()
       

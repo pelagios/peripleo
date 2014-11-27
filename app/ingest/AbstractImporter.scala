@@ -9,6 +9,7 @@ import models.core._
 import org.pelagios.Scalagios
 import play.api.db.slick._
 import play.api.Logger
+import models.MasterHeatmap
 
 /** One 'ingest record' **/
 case class IngestRecord(
@@ -55,6 +56,10 @@ abstract class AbstractImporter {
     Global.index.addAnnotatedThings(topLevelThings, datasetHierarchy)
     Global.index.updateDatasets(affectedDatasets)
     Global.index.refresh()    
+    
+    // Update the master heatmap
+    Logger.info("Updating master heatmap") 
+    MasterHeatmap.rebuild()
   }
     
   /** Utility method that returns the RDF format corresponding to a particular file extension **/

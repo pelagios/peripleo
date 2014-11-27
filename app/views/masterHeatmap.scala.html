@@ -1,0 +1,50 @@
+@()
+<html>
+  <head>
+    <title>Pelagios API - Map</title>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
+    <style>
+      html, body {
+        width:100%,
+        height:100%;
+        padding:0;
+        margin:0;
+      }
+      
+      #map {
+        width:100%;
+        height:100%;
+      }
+    </style>
+    <script>
+      jQuery(document).ready(function() {
+        // Quick hack        
+        var awmcLayer = L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
+          attribution: 'Tiles and Data &copy; 2013 <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
+                       '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC 3.0</a>'});
+    		  
+        var map = new L.Map('map', {
+          center: new L.LatLng(41.893588, 12.488022),
+          zoom: 3,
+          layers: [awmcLayer]
+        });
+        
+        jQuery.getJSON('@controllers.pages.routes.MapController.masterHeatmap', function(data) {
+          var latLons = [];
+          
+          jQuery.each(data, function(idx, pt) {
+            latLons.push([pt.lat, pt.lon]);
+          });
+          
+          L.heatLayer(latLons, { max: 1.5, maxZoom: 0, radius: 5, blur: 6 }).addTo(map);
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+</html>

@@ -30,16 +30,11 @@ object MasterHeatmap {
     query.ddl.create
   }
   
-  def deleteAll()(implicit s: Session) = {
-    // TODO
-  }
-  
-  def insertAll(points: Seq[HeatmapPoint])(implicit s: Session) = {
-    // TODO
-  }
+  def listAll()(implicit s: Session): Seq[HeatmapPoint] =
+    query.list
   
   def rebuild()(implicit s: Session) = {
-    val query = 
+    val q = 
       Associations.placesToDatasets
         .where(_.location.isNotNull)
         .map(row => (row.gazetteerURI, row.location, row.count))
@@ -48,15 +43,17 @@ object MasterHeatmap {
           (uri, location, group.map(_._3).sum) }
     
     val geoJson = new GeometryJSON()
-    val rows = query.list.map { case (uri, geometryJson, weight) => {
+    val points = q.list.map { case (uri, geometryJson, weight) => {
       val centroid = geoJson.read(geometryJson).getCentroid.getCoordinate
       // TODO why is weight an Option[Int]?!
       HeatmapPoint(None, uri, centroid.y, centroid.x, weight.getOrElse(0))
     }}
     
-    // TODO purge table
+    // Delete table
+    query.delete
     
-    // TODO insert the new heatmap
+    // Insert the new master heatmap
+    query.insertAll(points:_*)
   }
     
 }

@@ -76,7 +76,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   }
   
   def refresh() = {
-    Logger.info("Commiting index writes and refreshing readers")
+    Logger.info("Committing index writes and refreshing readers")
     
     objectWriter._1.commit()
     objectWriter._2.commit()
