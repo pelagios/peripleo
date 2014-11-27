@@ -4,7 +4,7 @@
     <title>Pelagios API - Map</title>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/tinycolor.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
     <style>
       html, body {
@@ -33,16 +33,37 @@
         });
         
         jQuery.getJSON('@controllers.pages.routes.MapController.masterHeatmap', function(data) {
-          var latLons = [], minWeight = 9007199254740992, maxWeight = 0;
+          var markers = [], minWeight = 9007199254740992, maxWeight = 0;
           
           jQuery.each(data, function(idx, pt) {
             if (pt.weight > maxWeight)
               maxWeight = pt.weight;
               
-            latLons.push([pt.lat, pt.lon, pt.weight]);
+            markers.push([pt.lat, pt.lon, pt.weight]);
           });
           
-          L.heatLayer(latLons, { max: maxWeight/40, maxZoom: 6, radius: 8, blur: 8 }).addTo(map);
+          markers.sort(function(a, b) {
+            return a[2] - b[2];
+          });
+          
+          jQuery.each(markers, function(idx, marker) {
+            // Between 0 and 2
+            var weightLog = Math.log10(marker[2] / maxWeight) + 2;
+            var relative = 0.25 + weightLog / 4
+            
+            var colStr = 'hsl(35, 90%,' + relative * 100 + '%)';
+
+            var opts = {
+              stroke: false,
+              radius: Math.max(3, 4 * weightLog),
+              fillOpacity: 0.6,
+              fillColor: tinycolor(colStr)
+            }
+            
+            L.circleMarker(marker, opts).addTo(map);
+          });
+          
+          // L.heatLayer(latLons, { max: maxWeight/40, maxZoom: 6, radius: 8, blur: 8 }).addTo(map);
         });
       });
     </script>
