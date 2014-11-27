@@ -33,13 +33,16 @@
         });
         
         jQuery.getJSON('@controllers.pages.routes.MapController.masterHeatmap', function(data) {
-          var latLons = [];
+          var latLons = [], minWeight = 9007199254740992, maxWeight = 0;
           
           jQuery.each(data, function(idx, pt) {
-            latLons.push([pt.lat, pt.lon]);
+            if (pt.weight > maxWeight)
+              maxWeight = pt.weight;
+              
+            latLons.push([pt.lat, pt.lon, pt.weight]);
           });
           
-          L.heatLayer(latLons, { max: 1.5, maxZoom: 0, radius: 5, blur: 6 }).addTo(map);
+          L.heatLayer(latLons, { max: maxWeight/40, maxZoom: 6, radius: 8, blur: 8 }).addTo(map);
         });
       });
     </script>
