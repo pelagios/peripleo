@@ -2,10 +2,12 @@
 <html>
   <head>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/searchresults.css")"/>
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.twbsPagination.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -63,6 +65,33 @@
       });
       
       util.formatNumbers();
+      
+      jQuery(document).ready(function() {
+        // Quick hack        
+        var awmcLayer = L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
+          attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
+                       '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'});
+    		  
+        var map = new L.Map('map', {
+          center: new L.LatLng(41.893588, 12.488022),
+          zoom: 3,
+          layers: [awmcLayer]
+        });
+        
+        var bounds = [
+          @results.items.flatMap(_.convexHull).map(cv => { 
+            val b = cv.bounds 
+            "L.latLngBounds([" + b.minLat + "," + b.minLon + "], [" + b.maxLat + "," + b.maxLon + "])"
+          }).mkString(",\n")
+        ];
+        
+        var envelope = L.latLngBounds(bounds);
+        map.fitBounds(envelope, {padding: [50, 50]});
+        
+        jQuery.each(bounds, function(idx, b) {
+          L.marker(b.getCenter()).addTo(map);
+        }); 
+      });
     </script>
   </body>
 </html>
