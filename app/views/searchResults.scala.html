@@ -106,7 +106,7 @@
           map.fitBounds(envelope, {padding: [50, 50]});
         
         jQuery.each(bounds, function(idx, b) {
-          L.marker(b.getCenter()).addTo(map);
+          // L.marker(b.getCenter()).addTo(map);
         }); 
         
         loadNextBatch(0, 10000);
