@@ -8,6 +8,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -50,6 +51,7 @@
     
     <script>
       var totalPages = @{ Math.ceil(results.total.toDouble / results.limit) };
+      
       $('.pagination ul').twbsPagination({
         totalPages: totalPages,
         startPage: @{ Math.ceil(results.offset.toDouble / results.limit) + 1 }, 
@@ -69,14 +71,28 @@
       jQuery(document).ready(function() {
         // Quick hack        
         var awmcLayer = L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
-          attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
-                       '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'});
-    		  
-        var map = new L.Map('map', {
-          center: new L.LatLng(41.893588, 12.488022),
-          zoom: 3,
-          layers: [awmcLayer]
-        });
+              attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
+                           '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'}),
+                           
+            map = new L.Map('map', {
+              center: new L.LatLng(41.893588, 12.488022),
+              zoom: 3,
+              layers: [awmcLayer]
+            });
+        
+        var loadNextBatch = function(offset, limit) {
+          var search = util.buildPageRequestURL(offset, limit);
+          var points = [];
+          jQuery.getJSON('@{controllers.pages.routes.HomepageController.index}search?' + search, function(data) {
+            jQuery.each(data.items, function(idx, result) {
+              if (result.geo_bounds) {
+                points.push([(result.geo_bounds.min_lat + result.geo_bounds.max_lat) / 2, (result.geo_bounds.min_lon + result.geo_bounds.max_lon) / 2]);
+              }
+            });
+            L.heatLayer(points, { max: 1.5, maxZoom: 3, radius: 4, blur: 6 }).addTo(map);
+          });
+        };
+      
         
         var bounds = [
           @results.items.flatMap(_.convexHull).map(cv => { 
@@ -86,11 +102,14 @@
         ];
         
         var envelope = L.latLngBounds(bounds);
-        map.fitBounds(envelope, {padding: [50, 50]});
+        if (envelope.isValid())
+          map.fitBounds(envelope, {padding: [50, 50]});
         
         jQuery.each(bounds, function(idx, b) {
           L.marker(b.getCenter()).addTo(map);
         }); 
+        
+        loadNextBatch(0, 10000);
       });
     </script>
   </body>
