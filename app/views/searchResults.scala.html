@@ -81,33 +81,43 @@
             });
         
         var loadNextBatch = function(offset, limit) {
-          var search = util.buildPageRequestURL(offset, limit);
-          var points = [];
+          var search = util.buildPageRequestURL(offset, limit),
+              minLat = 9007199254740992, minLon = 9007199254740992, 
+              maxLat = 0, maxLon = 0,
+              points = [];
+              
           jQuery.getJSON('@{controllers.pages.routes.HomepageController.index}search?' + search, function(data) {
+            var bbox;
             jQuery.each(data.items, function(idx, result) {
               if (result.geo_bounds) {
-                points.push([(result.geo_bounds.min_lat + result.geo_bounds.max_lat) / 2, (result.geo_bounds.min_lon + result.geo_bounds.max_lon) / 2]);
+                bbox = result.geo_bounds;
+                
+                if (bbox.min_lat < minLat) minLat = bbox.min_lat;
+                if (bbox.min_lon < minLon) minLon = bbox.min_lon;
+                if (bbox.max_lat > maxLat) maxLat = bbox.max_lat;
+                if (bbox.max_lon > maxLon) maxLon = bbox.max_lon;
+                
+                points.push([(bbox.min_lat + bbox.max_lat) / 2, (bbox.min_lon + bbox.max_lon) / 2]);
               }
             });
+            
+            map.fitBounds(L.latLngBounds([[minLat, minLon], [maxLat, maxLon]]), { animate:false });
             L.heatLayer(points, { max: 1.5, maxZoom: 3, radius: 4, blur: 6 }).addTo(map);
           });
+          
+          
         };
-      
         
-        var bounds = [
-          @results.items.flatMap(_.convexHull).map(cv => { 
-            val b = cv.bounds 
-            "L.latLngBounds([" + b.minLat + "," + b.minLon + "], [" + b.maxLat + "," + b.maxLon + "])"
-          }).mkString(",\n")
-        ];
-        
-        var envelope = L.latLngBounds(bounds);
-        if (envelope.isValid())
-          map.fitBounds(envelope, {padding: [50, 50]});
+        @* var bounds = [
+        //   @results.items.flatMap(_.convexHull).map(cv => { 
+        //     val b = cv.bounds 
+        //    "L.latLngBounds([" + b.minLat + "," + b.minLon + "], [" + b.maxLat + "," + b.maxLon + "])"
+        //   }).mkString(",\n")
+        // ]; 
         
         jQuery.each(bounds, function(idx, b) {
           // L.marker(b.getCenter()).addTo(map);
-        }); 
+        }); *@
         
         loadNextBatch(0, 10000);
       });
