@@ -142,7 +142,7 @@ object JSONWrites {
     (JsPath \ "min_lat").write[Double] ~
     (JsPath \ "max_lat").write[Double]
   )(bbox => (bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat))
-  
+
   
   implicit def pageWrites[A](implicit fmt: Writes[A]): Writes[Page[A]] = (
     (JsPath \ "total").write[Long] ~
@@ -178,14 +178,15 @@ object JSONWrites {
   /** Index entity serializations **/
   /**                             **/
       
-  implicit val indexedObjectWrites: Writes[IndexedObject] = (
+  implicit def indexedObjectWrites(implicit verbose: Boolean = false): Writes[IndexedObject] = (
     (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
     (JsPath \ "object_type").write[String] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
-    (JsPath \ "geo_bounds").writeNullable[BoundingBox]
+    (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
+    (JsPath \ "convex_hull").writeNullable[JsValue]
   )(obj => (
       obj.identifier,
       obj.title,
@@ -195,7 +196,8 @@ object JSONWrites {
       obj.temporalBoundsStart.map(start => Json.obj( 
         "start" -> start,
         "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
-      obj.convexHull.map(_.bounds)))    
+      obj.convexHull.map(_.bounds),
+      { if (verbose) obj.convexHull.map(_.asGeoJSON) else None }))    
       
         
   implicit val placeWrites: Writes[IndexedPlace] = (

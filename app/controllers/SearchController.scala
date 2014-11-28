@@ -29,7 +29,11 @@ object SearchController extends AbstractController {
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
     places: Option[String], yearFrom: Option[Int], yearTo: Option[Int], bbox: Option[String], lat: Option[Double],
     lon: Option[Double], radius: Option[Double]) = loggingAction { implicit session => 
-                
+      
+    implicit val verbose = session.request.queryString
+      .filter(_._1.toLowerCase.equals("verbose"))
+      .headOption.flatMap(_._2.headOption.map(_.toBoolean)).getOrElse(false)
+      
     // Map object types
     val objType = objectType.flatMap(name => name.toLowerCase match {
       case DATASET => Some(IndexedObjectTypes.DATASET)

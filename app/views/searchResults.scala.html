@@ -78,10 +78,20 @@
               center: new L.LatLng(41.893588, 12.488022),
               zoom: 3,
               layers: [awmcLayer]
-            });
+            }),
+            
+            getCoords = function(convexHull) {
+              if (convexHull.type === 'Point') {
+                return [ convexHull.coordinates ];  
+              } else if (convexHull.type === 'LineString') {
+                return convexHull.coordinates;
+              } else if (convexHull.type === 'Polygon') {
+                return convexHull.coordinates[0];
+              }
+            };
         
         var loadNextBatch = function(offset, limit) {
-          var search = util.buildPageRequestURL(offset, limit),
+          var search = util.buildPageRequestURL(offset, limit) + '&verbose=true', // Grab convex hulls
               minLat = 9007199254740992, minLon = 9007199254740992, 
               maxLat = 0, maxLon = 0,
               points = [];
@@ -96,8 +106,10 @@
                 if (bbox.min_lon < minLon) minLon = bbox.min_lon;
                 if (bbox.max_lat > maxLat) maxLat = bbox.max_lat;
                 if (bbox.max_lon > maxLon) maxLon = bbox.max_lon;
-                
-                points.push([(bbox.min_lat + bbox.max_lat) / 2, (bbox.min_lon + bbox.max_lon) / 2]);
+               
+                jQuery.each(getCoords(result.convex_hull), function(idx, coord) {
+                  points.push([ coord[1], coord[0] ]);
+                });
               }
             });
             
