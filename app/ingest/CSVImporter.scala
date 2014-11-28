@@ -47,7 +47,7 @@ object CSVImporter extends AbstractImporter {
 
     val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3)))
     val annotationsForParts = annotations.filter(!_._1.isEmpty)
-
+    
     val ingestBatch = {
       // Root thing
       val rootTitle = meta.get("title").get
@@ -71,10 +71,11 @@ object CSVImporter extends AbstractImporter {
      
       // Root thing
       val rootAnnotations = annotationsOnRoot.map(t => Annotation(t._1, dataset.id, rootThingId, t._2, None, None))
+      val rootPlaces = resolvePlaces(rootAnnotations.map(_.gazetteerURI))
       val allPlaces = resolvePlaces(partIngestBatch.flatMap(_.annotations).map(_.gazetteerURI))
       val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, ConvexHull.fromPlaces(allPlaces.map(_._1)))
       
-      IngestRecord(rootThing, Seq.empty[Image], Seq.empty[Annotation], allPlaces) +: partIngestBatch
+      IngestRecord(rootThing, Seq.empty[Image], rootAnnotations, rootPlaces) +: partIngestBatch
     }
 
     // Insert data into DB
