@@ -50,7 +50,7 @@ object CSVImporter extends AbstractImporter {
     
     val ingestBatch = {
       // Root thing
-      val rootTitle = meta.get("title").get
+      val rootTitle = meta.get("author").map(_ + ": ").getOrElse("") + meta.get("title").get + meta.get("language").map(" (" + _ + ")").getOrElse("")
       val rootThingId = sha256(dataset.id + " " + meta.get("author").getOrElse("") + rootTitle + " " + meta.get("language").getOrElse(""))
       val date = meta.get("date (numeric)").map(_.toInt)
       
@@ -71,11 +71,17 @@ object CSVImporter extends AbstractImporter {
      
       // Root thing
       val rootAnnotations = annotationsOnRoot.map(t => Annotation(t._1, dataset.id, rootThingId, t._2, None, None))
+      
+      // The places of the root thing consist of the places *directly* on the root thing and the places on all parts
+      // Usually, only one list will be non-empty - but we add them, just in case
       val rootPlaces = resolvePlaces(rootAnnotations.map(_.gazetteerURI))
-      val allPlaces = resolvePlaces(partIngestBatch.flatMap(_.annotations).map(_.gazetteerURI))
+      val partPlaces = resolvePlaces(partIngestBatch.flatMap(_.annotations).map(_.gazetteerURI))
+      val allPlaces = (rootPlaces ++ partPlaces).groupBy(_._1).foldLeft(Seq.empty[(IndexedPlace, Int)]){ case (result, (place, list)) =>
+        result :+ (place, list.map(_._2).sum) }
+      
       val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, ConvexHull.fromPlaces(allPlaces.map(_._1)))
       
-      IngestRecord(rootThing, Seq.empty[Image], rootAnnotations, rootPlaces) +: partIngestBatch
+      IngestRecord(rootThing, Seq.empty[Image], rootAnnotations, allPlaces) +: partIngestBatch
     }
 
     // Insert data into DB
