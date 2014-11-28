@@ -9,6 +9,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet-heat.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/time-histogram.js")"></script>
   </head>
   <body>
     <div id="header">
@@ -39,6 +40,10 @@
       <div class="row">
         <div class="sidebar">
           <div id="map"></div>
+          <div id="time-histogram">
+            <span class="time-label from"></span>
+            <span class="time-label to"></span>
+          </div>
         </div>
       
         <ul id="results">
@@ -88,6 +93,33 @@
               } else if (convexHull.type === 'Polygon') {
                 return convexHull.coordinates[0];
               }
+            },
+            
+            buildTemporalProfile = function(searchResults) {
+              var histogram = {}, bounds, i,
+                  inc = function(year) {
+                    var current = histogram[year];
+                    if (current)
+                      current += 1;
+                    else
+                      current = 1;
+                    histogram[year] = current;
+                  };
+                  
+              jQuery.each(searchResults, function(idx, result) {
+                if (result.temporal_bounds) {
+                  bounds = result.temporal_bounds;
+                  if (bounds.start === bounds.end) {
+                    inc(bounds.start);
+                  } else {
+                    for(i = bounds.start; i <= bounds.end; i++) {
+                      inc(i);
+                    }
+                  }
+                }
+              });
+              
+              return histogram;
             };
         
         var loadNextBatch = function(offset, limit) {
@@ -113,23 +145,14 @@
               }
             });
             
+            var histogram = new TimeHistogram(document.getElementById('time-histogram'), buildTemporalProfile(data.items));
+            $('.time-label.from').html(histogram.minYear);
+            $('.time-label.to').html(histogram.maxYear);
+            
             map.fitBounds(L.latLngBounds([[minLat, minLon], [maxLat, maxLon]]), { animate:false });
             L.heatLayer(points, { max: 1.5, maxZoom: 3, radius: 4, blur: 6 }).addTo(map);
           });
-          
-          
         };
-        
-        @* var bounds = [
-        //   @results.items.flatMap(_.convexHull).map(cv => { 
-        //     val b = cv.bounds 
-        //    "L.latLngBounds([" + b.minLat + "," + b.minLon + "], [" + b.maxLat + "," + b.maxLon + "])"
-        //   }).mkString(",\n")
-        // ]; 
-        
-        jQuery.each(bounds, function(idx, b) {
-          // L.marker(b.getCenter()).addTo(map);
-        }); *@
         
         loadNextBatch(0, 10000);
       });

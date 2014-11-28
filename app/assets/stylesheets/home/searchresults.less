@@ -63,6 +63,29 @@
       height:320px;
     }
     
+    #time-histogram {
+      position:relative;
+      box-sizing:border-box;
+      width:100%;
+      height:80px;
+      padding:0 40px;
+      
+      .time-label {
+        position:absolute;
+        top:34px;
+        font-size:12px;
+      }
+      
+      .time-label.from { left:3px; }
+      .time-label.to { right:3px; }
+      
+      canvas {
+        width:100%;
+        height:100%;
+      }
+      
+    }
+    
   } /*.sidebar */
   
 }
