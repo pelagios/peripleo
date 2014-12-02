@@ -39,13 +39,14 @@ object CSVImporter extends AbstractImporter {
     val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
       val uuid = if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID 
       val gazetteerURI = fields(header.indexOf("gazetteer_uri"))
+      val toponym = fields(header.indexOf("toponym"))
       
       // In case annotations are on the root thing, the document part is an empty string!
       val documentPart = fields(header.indexOf("document_part")) 
-      (uuid, documentPart, gazetteerURI)     
+      (uuid, documentPart, gazetteerURI, toponym)     
     }).groupBy(_._2)
 
-    val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3)))
+    val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3, t._4)))
     val annotationsForParts = annotations.filter(!_._1.isEmpty)
     
     val ingestBatch = {
@@ -57,8 +58,8 @@ object CSVImporter extends AbstractImporter {
       val partIngestBatch = annotationsForParts.map { case (partTitle, tuples) =>
         val partThingId = sha256(rootThingId + " " + partTitle)
         
-        val annotations = tuples.map { case (uuid, _, gazetteerURI) =>
-          Annotation(uuid, dataset.id, partThingId, gazetteerURI, None, None) }
+        val annotations = tuples.zipWithIndex.map { case ((uuid, _, gazetteerURI, toponym), index) => 
+          Annotation(uuid, dataset.id, partThingId, gazetteerURI, Some(toponym), Some(index)) }
         
         val places = 
           resolvePlaces(annotations.map(_.gazetteerURI))
@@ -70,7 +71,7 @@ object CSVImporter extends AbstractImporter {
       }.toSeq
      
       // Root thing
-      val rootAnnotations = annotationsOnRoot.map(t => Annotation(t._1, dataset.id, rootThingId, t._2, None, None))
+      val rootAnnotations = annotationsOnRoot.zipWithIndex.map { case ((uuid, gazetteerURI, toponym), index) => Annotation(uuid, dataset.id, rootThingId, gazetteerURI, Some(toponym), Some(index)) }
       
       // The places of the root thing consist of the places *directly* on the root thing and the places on all parts
       // Usually, only one list will be non-empty - but we add them, just in case
