@@ -62,12 +62,16 @@ object JSONWrites {
     (JsPath \ "uuid").write[String] ~
     (JsPath \ "in_dataset").write[String] ~
     (JsPath \ "annotated_item").write[String] ~
-    (JsPath \ "place_uri").write[String]
+    (JsPath \ "place_uri").write[String] ~
+    (JsPath \ "quote").writeNullable[String] ~
+    (JsPath \ "anchor").writeNullable[JsValue]
   )(a => (
       a.uuid.toString,
       a.dataset,
       a.annotatedThing,
-      a.gazetteerURI))
+      a.gazetteerURI,
+      a.quote,
+      a.offset.map(offset => Json.obj("type" -> "TEXT_OFFSET", "offset" -> offset))))
       
       
   /** TODO this inlines thing/annotation/place counts and subset meta - optimize via Writes[(Dataset, Seq[Datasets], Int, Int, Int)] **/
