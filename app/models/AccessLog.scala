@@ -49,6 +49,40 @@ object AccessLog {
     
   def deleteAllBefore(timestamp: Long)(implicit s: Session) =
     query.where(_.timestamp < new Timestamp(timestamp)).delete
-    
+       
+}
+
+class AccessLogAnalytics(log: Seq[AccessLogRecord]) {
+  
+  /** Number of hits to page URLs **/
+  lazy val pageHits: Int = log.count(record => record.path.contains("/pages"))
+  
+  /** Number of hits to API URLs **/
+  lazy val apiHits: Int = log.size - pageHits
+  
+  private lazy val searchRecords = log.filter(_.path.contains("/search"))
+  
+  private def getSearchTerm(path: String): Option[String] = {
+    val startIdx = path.indexOf("query=")
+    if (startIdx > -1) {
+      val endIdx = path.indexOf('&', startIdx + 6)
+      if (endIdx > -1)
+        Some(path.substring(startIdx + 6, endIdx))
+      else
+        Some(path.substring(startIdx + 6))
+    } else {
+      None
+    }
+  }
+  
+  /** Most frequent search terms on the API **/
+  lazy val searches: Seq[(String, Int)] =
+    searchRecords
+      .flatMap(record => getSearchTerm(record.path))
+      .groupBy(term => term)
+      .map(t => (t._1, t._2.size))
+      .toSeq
+      .sortBy(- _._2)
+  
 }
 

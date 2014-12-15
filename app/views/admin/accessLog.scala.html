@@ -1,4 +1,4 @@
-@(logRecords: Seq[AccessLogRecord])
+@(analytics: AccessLogAnalytics)
 <html>
   <head>
     <title>Pelagios API » Admin » Access Analytics</title>
@@ -8,6 +8,22 @@
   
   <body>
     <div id="content">
+      <table>
+        <tr>
+          <td>Number of API hits:</td>
+          <td>@analytics.apiHits</td>
+        </tr>
+        
+        <tr>
+          <td>Number of page hits:</td>
+          <td>@analytics.pageHits</td>
+        </tr>
+        
+        <tr>
+          <td>Most frequent searches:</td>
+          <td>@analytics.searches.map(_._1).mkString(", ")</td>
+        </tr>
+      </table>
     </div>    
   </body>
 </html>
