@@ -12,7 +12,7 @@ case class AccessLogRecord(uuid: UUID, timestamp: Timestamp, path: String, ip: S
 /** AccessLog DB table **/
 class AccessLog(slickTag: SlickTag) extends Table[AccessLogRecord](slickTag, "access_log") {
 
-  def uuid = column[UUID]("uuid", O.PrimaryKey, O.AutoInc)
+  def uuid = column[UUID]("uuid", O.PrimaryKey)
   
   def timestamp = column[Timestamp]("timestamp", O.NotNull)
   
@@ -41,7 +41,10 @@ object AccessLog {
 
   def insert(logRecord: AccessLogRecord)(implicit s: Session) = query.insert(logRecord)
   
-  def findAllBefore(timestamp: Long)(implicit s: Session) =
+  def listAll()(implicit s: Session): Seq[AccessLogRecord] =
+    query.list
+  
+  def findAllBefore(timestamp: Long)(implicit s: Session): Seq[AccessLogRecord] =
     query.where(_.timestamp < new Timestamp(timestamp)).list
     
   def deleteAllBefore(timestamp: Long)(implicit s: Session) =
