@@ -253,4 +253,9 @@ object Associations {
     Page(result, offset, limit, total)
   }
   
+  def findPlaceVectorsForThings(thingIds: Seq[String])(implicit s: Session): Map[String, Seq[String]] =
+    placesToThings.where(_.annotatedThingId inSet thingIds).map(row => (row.annotatedThingId, row.gazetteerURI)).list
+      .groupBy(_._1)
+      .mapValues(_.map(_._2))
+  
 }

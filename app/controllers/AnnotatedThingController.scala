@@ -12,6 +12,19 @@ object AnnotatedThingController extends AbstractController {
     jsonOk(Json.toJson(AnnotatedThings.listAll(false, offset, limit)), session.request)
   }  
   
+  def listPlaceVectors(limit: Int, offset: Int) = DBAction { implicit session =>
+    val things = AnnotatedThings.listAll(true, offset, limit)
+    val vectors = Associations.findPlaceVectorsForThings(things.items.map(_.id))
+
+    val response = things.items.map(thing => {
+      thing.id + ";" +
+      thing.title + ";" +
+      vectors.get(thing.id).map(_.mkString(",")).getOrElse("")
+    }).mkString("\n")
+    
+    Ok(response)
+  }
+  
   def getAnnotatedThing(id: String) = DBAction { implicit session =>
     val thing = AnnotatedThings.findById(id)
     if (thing.isDefined)

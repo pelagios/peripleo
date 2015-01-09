@@ -12,6 +12,9 @@ GET     /api-v3/datasets/:id/time                controllers.DatasetController.g
 GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
 
+# Temporary hack
+GET     /api-v3/vectors                          controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
+
 GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
 GET     /api-v3/items/:id/items                  controllers.AnnotatedThingController.listSubThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
