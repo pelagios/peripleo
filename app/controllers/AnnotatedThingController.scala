@@ -19,6 +19,8 @@ object AnnotatedThingController extends AbstractController {
     val response = things.items.map(thing => {
       thing.id + ";" +
       thing.title + ";" +
+      thing.dataset + ";" +
+      Annotations.countByAnnotatedThing(thing.id, true) + ";" +
       vectors.get(thing.id).map(_.mkString(",")).getOrElse("")
     }).mkString("\n")
     

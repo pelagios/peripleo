@@ -257,5 +257,10 @@ object Associations {
     placesToThings.where(_.annotatedThingId inSet thingIds).map(row => (row.annotatedThingId, row.gazetteerURI)).list
       .groupBy(_._1)
       .mapValues(_.map(_._2))
+      
+  def findThingVectorsForPlaces()(implicit s: Session): Map[String, Seq[String]] =
+    placesToThings.map(row => (row.gazetteerURI, row.annotatedThingId)).list
+      .groupBy(_._1)
+      .mapValues(_.map(_._2))
   
 }

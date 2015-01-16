@@ -13,7 +13,8 @@ GET     /api-v3/datasets/:id/items               controllers.DatasetController.l
 GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
 
 # Temporary hack
-GET     /api-v3/vectors                          controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
+GET     /api-v3/item-vectors                     controllers.PlaceController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
 
 GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)

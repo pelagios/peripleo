@@ -31,7 +31,21 @@ object PlaceController extends AbstractController {
     } else {
       NotFound(Json.parse("{ \"message\": \"Place not found.\" }"))
     }
-  }  
+  } 
+  
+  def listItemVectors(limit: Int, offset: Int) = DBAction { implicit session =>
+    // val places = Global.index.listAllPlaceNetworks(offset, limit).flatMap(_.places).map(p => (p.label, p.uri))
+    val vectors = Associations.findThingVectorsForPlaces()
+    val response = vectors.keySet.map(uri => {
+      val place = Global.index.findPlaceByURI(uri)
+    
+      uri + ";" +
+        place.map(_.label).getOrElse("?") + ";" +
+        vectors.get(uri).map(_.mkString(",")).getOrElse("")
+    }).mkString("\n")
+    
+    Ok(response)
+  }
 
   def getPlace(uri: String) = loggingAction { implicit session =>
     val place = Global.index.findPlaceByURI(uri)
