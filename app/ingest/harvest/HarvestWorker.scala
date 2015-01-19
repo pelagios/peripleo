@@ -110,7 +110,7 @@ class HarvestWorker {
            
       dump.finalize()
       Logger.info(dump.file.getName + " - import complete.")
-	})    
+	  })    
   }
       
   /** (Re-)Harvest a dataset from a VoID URL **/
@@ -134,7 +134,13 @@ class HarvestWorker {
 	  voidTempFile.get.finalize()
 	  
 	  val dataDumps = getDataDumpURLs(datasets).par.map { case (url, dataset) => {
-	    val dumpFilename = "data_" + UUID.randomUUID.toString + url.substring(url.lastIndexOf("."))
+	    val dumpFilename = {
+        val extension = url.substring(url.lastIndexOf("."))
+        if (extension.indexOf("?") < 0)
+          "data_" + UUID.randomUUID.toString + extension
+        else
+          "data_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
+      }
 	    (url, downloadFile(url, dumpFilename))
 	  }}.seq
 	  
