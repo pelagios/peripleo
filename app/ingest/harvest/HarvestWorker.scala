@@ -38,10 +38,10 @@ class HarvestWorker {
     try {
       Logger.info("Downloading " + url)
       val tempFile = new TemporaryFile(new File(TMP_DIR, filename))
-	  new URL(url) #> tempFile.file !!
+	    new URL(url) #> tempFile.file !!
 	  
-	  Logger.info("Download complete for " + url)
-	  Some(tempFile)
+	    Logger.info("Download complete for " + url)
+	    Some(tempFile)
     } catch {
       case t: Throwable => {
         if (failedAttempts < MAX_RETRIES) {
@@ -118,7 +118,13 @@ class HarvestWorker {
     val startTime = System.currentTimeMillis
    
     // Assign a random (but unique) name, and keep the extension from the original file
-    val voidFilename = "void_" + UUID.randomUUID.toString + voidURL.substring(voidURL.lastIndexOf("."))
+    val voidFilename = { 
+      val extension = voidURL.substring(voidURL.lastIndexOf("."))
+      if (extension.indexOf("?") < 0)
+        "void_" + UUID.randomUUID.toString + extension
+      else
+        "void_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
+    }
     val voidTempFile = downloadFile(voidURL, voidFilename)
     
     if (voidTempFile.isDefined) {	
