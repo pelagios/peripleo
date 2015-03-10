@@ -3,7 +3,10 @@
 # ~~~~
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /api-v3/static/*file              controllers.Assets.at(path="/public", file)
+GET     /api-v3/static/*file                     controllers.Assets.at(path="/public", file)
+
+GET     /api-v3/new/search                       controllers.pages.SearchController.search(q: Option[String] ?= None)
+GET     /api-v3/new/autosuggest                  controllers.pages.SearchController.autoSuggest(q: String)
 
 # API routes
 GET     /api-v3/datasets                         controllers.DatasetController.listAll(limit: Int ?= 20, offset: Int ?= 0)
@@ -60,5 +63,7 @@ POST    /api-v3/admin/datasets/:id/harvests      controllers.admin.DatasetAdminC
 GET     /api-v3/admin/gazetteers                 controllers.admin.GazetteerAdminController.index
 POST    /api-v3/admin/gazetteers                 controllers.admin.GazetteerAdminController.uploadGazetteerDump
 DELETE  /api-v3/admin/gazetteers/:name           controllers.admin.GazetteerAdminController.deleteGazetteer(name: String)
+
+GET     /api-v3/admin/rebuild-suggester          controllers.admin.DatasetAdminController.rebuildAutoSuggestionIndex
 
 GET     /api-v3/admin/analytics                  controllers.admin.AnalyticsController.index

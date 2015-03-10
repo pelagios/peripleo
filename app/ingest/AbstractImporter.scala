@@ -49,13 +49,17 @@ abstract class AbstractImporter {
     // Update the parent dataset with new temporal profile and convex hull
     val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)
     
-    // Update index
+    // Update object index
     Logger.info("Updating Index") 
     val topLevelThings = ingestBatch.map(record => (record.thing, record.places.map(_._1))).filter(_._1.isPartOf.isEmpty)
     val datasetHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
     Global.index.addAnnotatedThings(topLevelThings, datasetHierarchy)
     Global.index.updateDatasets(affectedDatasets)
-    Global.index.refresh()    
+    
+    // Update suggestion index
+    val titlesAndDescriptions = topLevelThings.flatMap(t => Seq(Some(t._1.title), t._1.description).flatten)
+    Global.index.suggester.addTerms(titlesAndDescriptions.toSet)
+    Global.index.refresh()
     
     // Update the master heatmap
     Logger.info("Updating master heatmap") 

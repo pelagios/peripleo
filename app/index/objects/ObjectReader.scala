@@ -13,7 +13,16 @@ import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.search._
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
+import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester
+import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.search.spell.LuceneDictionary
 import play.api.db.slick._
+import scala.collection.JavaConverters._
+import play.api.Logger
+import org.apache.lucene.search.suggest.analyzing.FreeTextSuggester
+import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester
+import org.apache.lucene.index.DirectoryReader
+import org.apache.lucene.search.spell.SpellChecker
 
 trait ObjectReader extends IndexBase {
 
@@ -27,15 +36,15 @@ trait ObjectReader extends IndexBase {
     * @query places filter search to items referencing specific places 
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
-      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int], toYear: Option[Int],
-      bbox: Option[BoundingBox], coord: Option[Coordinate], radius: Option[Double])(implicit s: Session): Page[IndexedObject] = {
+      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int] = None, toYear: Option[Int] = None,
+      bbox: Option[BoundingBox] = None, coord: Option[Coordinate] = None, radius: Option[Double] = None)(implicit s: Session): Page[IndexedObject] = {
         
     val q = new BooleanQuery()
     
     // Keyword query
     if (query.isDefined) {
       val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
-      q.add(new MultiFieldQueryParser(Version.LUCENE_4_9, fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
+      q.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
     } 
       
     // Object type filter

@@ -1,42 +1,36 @@
-@(item: index.objects.IndexedObject)(implicit s: play.api.db.slick.Config.driver.simple.Session)
+@(item: index.objects.IndexedObject)
 
 @item.objectType match {
   
     case index.objects.IndexedObjectTypes.DATASET => {
       <li class="result dataset">
-        <span class="title">
+        <p class="title">
           <a href="@controllers.pages.routes.DatasetPagesController.getDataset(item.identifier)">@item.title</a>
-        </span>
-        @if(item.description.isDefined) { <span class="description">@item.description</span> }
+          <span class="category">[Dataset]</span>
+        </p>
+        @if(item.description.isDefined) { <p class="description">@item.description</p> }
       </li> 
     }
     
     case index.objects.IndexedObjectTypes.ANNOTATED_THING => {
-      @defining(models.core.AnnotatedThings.findByIdWithDataset(item.identifier).get) { case (thing, dataset) =>
-        @defining(models.core.Datasets.findByIds(models.core.Datasets.getParentHierarchy(dataset.id))) { supersets =>
-          <li class="result item">
-            <span class="title">
-              <a href="@controllers.pages.routes.AnnotatedThingPagesController.getAnnotatedThing(item.identifier)">@item.title</a>
-            </span>
-            @if(item.description.isDefined) { <span class="description">@item.description</span> }
-            In:
-            @for(superset <- supersets) {
-              <a href="@controllers.pages.routes.DatasetPagesController.getDataset(superset.id)">@superset.title</a> &raquo;
-            } 
-            <a href="@controllers.pages.routes.DatasetPagesController.getDataset(dataset.id)">@dataset.title</a>
-          </li> 
-        }
-      }
+      <li class="result item">
+        <p class="title">
+          <a href="@controllers.pages.routes.AnnotatedThingPagesController.getAnnotatedThing(item.identifier)">@item.title</a>
+          <span class="category">[Item]</span>
+        </p>
+        @if(item.description.isDefined) { <p class="description">@item.description</p> }
+      </li>
     }
     
     case index.objects.IndexedObjectTypes.PLACE => {
       <li class="result place">
-        <span class="title">
+        <p class="title">
           <a href="@controllers.pages.routes.PlacePagesController.getPlace(item.identifier)">@item.title</a>
+          <span class="category">[Place]</span>
           @for(place <- item.toPlaceNetwork.places) {
             @tags.gazetteerURI(place.uri, true)
           }
-        </span>
+        </p>
         @if(item.description.isDefined) { <span class="description">@item.description</span> }
       </li> 
     }

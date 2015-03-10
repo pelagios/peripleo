@@ -1,0 +1,100 @@
+@(results: Page[index.objects.IndexedObject], took: Long)
+<html>
+  <head>
+    <title>Pelagios Search</title>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/search/main.css")"/>   
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/typeahead/typeahead.jquery.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.twbsPagination.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
+    <script>
+      jQuery(document).ready(function() {
+        var form = jQuery('#search-form form'),
+            searchField = jQuery('#query'),
+            totalResultPages = @{ Math.ceil(results.total.toDouble / results.limit) };
+        
+        /** Search auto-complete **/
+        searchField.typeahead({
+          hint: true,
+          highlight: true,
+          minLength: 1
+        },{
+          displayKey: 'key',
+          source: function(query, callback) {
+            jQuery.getJSON('/api-v3/new/autosuggest?q=' + query, function(results) {
+              callback(results);
+            });
+          }
+        });
+        
+        searchField.on('typeahead:selected', function(e) {
+          form.submit();
+        });
+        
+        form.keypress(function (e) {
+          if (e.which == 13)
+            form.submit();
+        });
+        
+        /** Pagination **/
+        $('.pagination ul').twbsPagination({
+          totalPages: totalResultPages,
+          startPage: @{ Math.ceil(results.offset.toDouble / results.limit) + 1 }, 
+          first: '&#xf100;',
+          prev: '&#xf104;',
+          next: '&#xf105;',
+          last: '&#xf101;',
+          
+          onPageClick: function (event, page) {
+            var offset = (page - 1) * @results.limit;
+            $('#results').html('');
+            location.search = util.buildPageRequestURL(offset, @results.limit);
+          }
+        });
+        
+        /** Format numbers **/
+        util.formatNumbers();
+      });
+    </script>
+  </head>
+  <body>
+    <div id="header">
+      <div id="logo">
+        <a onclick="return false;" href="@controllers.pages.routes.HomepageController.index">PELAGIOS</a>
+      </div>
+     
+      <div id="search-form">
+        <form method="GET" action="/api-v3/new/search">
+        	<div class="form-container">
+            <input type="text" id="query" name="q" value="@results.query">
+          </div>
+        </form>
+      </div>
+      
+      <div id="nav">
+        <ul>
+          <li><a href="@controllers.pages.routes.HomepageController.index">Map</a></li>
+          <li><a href="#">About</a></li>
+        </ul>
+      </div>
+    </div> <!-- #header -->
+    
+    <div id="content">
+      <div id="result-summary">
+        <span class="number">@results.total</span> Results (@{ took.toDouble / 1000 } seconds)
+      </div>
+      
+      <ul id="results">
+        @for(item <- results.items) {
+        	@tags.searchresultItem(item)
+        }
+      </ul>
+      
+      <div class="pagination">
+        <ul></ul>
+      </div>
+    </div> <!-- #content -->
+
+  </body>
+</html>

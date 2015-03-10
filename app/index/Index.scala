@@ -17,48 +17,56 @@ import com.spatial4j.core.context.jts.JtsSpatialContext
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import org.apache.lucene.search.SearcherManager
+import index.suggest.SuggestIndex
 
 private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {
   
-  // Fixed configuration settings
+  /** Spatial indexing settings **/
   protected val spatialCtx = JtsSpatialContext.GEO
   
-  private val maxLevels = 11 //results in sub-meter precision for geohash
+  private val maxLevels = 11 
   
   protected val spatialStrategy =
     new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
   
+  
+  /** Object index facets **/
   protected val facetsConfig = new FacetsConfig()
   facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
   facetsConfig.setHierarchical(IndexFields.ITEM_DATASET, true)
+
   
-  // Index directories
+  /** Indices **/
   private val placeIndex = FSDirectory.open(placeIndexDir)
   
   private val objectIndex = FSDirectory.open(objectIndexDir)
   
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
   
-  // Analyzer
-  protected val analyzer = new StandardAnalyzer(Version.LUCENE_4_9)
-  
-  // Place searcher manager  
+
+  /** Index searcher managers **/
   protected val placeSearcherManager = new SearcherManager(placeIndex, new SearcherFactory())
   
-  // Object searcher manager 
   protected val objectSearcherManager = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
   
-  // Spellcheck index
-  private val spellcheckIndex = FSDirectory.open(spellcheckDir)
   
-  private val spellchecker = new SpellChecker(spellcheckIndex)
+  /** We're using our own 3-word phrase analyzer **/
+  protected val analyzer = new NGramAnalyzer(3)
   
+  
+  /** Suggestion engine **/
+  val suggester = new SuggestIndex(spellcheckDir, placeSearcherManager, objectSearcherManager, analyzer)  
+  
+  
+  /** Index writers **/
   protected lazy val objectWriter: (IndexWriter, TaxonomyWriter) =
-    (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LUCENE_4_9, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
+    (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LATEST, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
     
   protected lazy val placeWriter: IndexWriter = 
-    new IndexWriter(placeIndex, new IndexWriterConfig(Version.LUCENE_4_9, analyzer))
+    new IndexWriter(placeIndex, new IndexWriterConfig(Version.LATEST, analyzer))
 
+  
+  /** Returns the number of objects in the object index **/
   def numObjects: Int = {
     val objectSearcher = objectSearcherManager.acquire()
     val numObjects = objectSearcher.searcher.getIndexReader().numDocs()
@@ -66,6 +74,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     numObjects
   }
   
+  /** Returns the number of places in the gazetteer index **/
   def numPlaceNetworks: Int = {
     val searcher = placeSearcherManager.acquire()
     try {
@@ -75,6 +84,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     }
   }
   
+  /** Commits all writes and refreshes the readers **/
   def refresh() = {
     Logger.info("Committing index writes and refreshing readers")
     
@@ -86,6 +96,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     placeSearcherManager.maybeRefresh()
   }
   
+  /** Closes all indices **/
   def close() = {
     analyzer.close()
     
@@ -100,16 +111,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     taxonomyIndex.close()
     placeIndex.close()
     
-    spellchecker.close()
-    spellcheckIndex.close()
-  }
-  
-  /** TODO - use this code sample for building a spellcheck feature! **/
-  def buildSpellchecker() = {
-	// Logger.info("Building spellcheck index")
-    // spellchecker.indexDictionary(new LuceneDictionary(placeIndexReader, IndexFields.PLACE_NAME), new IndexWriterConfig(Version.LUCENE_4_9, analyzer), true);
-    // val test = spellchecker.suggestSimilar("vindobuna", 5)
-    // test.foreach(s => Logger.info(s))
+    suggester.close()
   }
       
 }
@@ -144,7 +146,7 @@ object Index {
   private def createIfNotExists(dir: File): File = {
     if (!dir.exists) {
       dir.mkdirs()  
-      val initConfig = new IndexWriterConfig(Version.LUCENE_4_9, new StandardAnalyzer(Version.LUCENE_4_9))
+      val initConfig = new IndexWriterConfig(Version.LATEST, new StandardAnalyzer())
       val initializer = new IndexWriter(FSDirectory.open(dir), initConfig)
       initializer.close()      
     }

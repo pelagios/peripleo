@@ -101,4 +101,9 @@ object DatasetAdminController extends BaseUploadController with Secured {
     }})
   }
   
+  def rebuildAutoSuggestionIndex = adminAction { username => implicit requestWithSession => 
+    Global.index.suggester.build()
+    Status(200)
+  }
+  
 }

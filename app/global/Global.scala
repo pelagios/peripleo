@@ -67,6 +67,9 @@ object Global extends GlobalSettings {
           Gazetteers.insert(Gazetteer(name, totalPlaces), uriPrefixes)
         }}
       }
+      
+      // Rebuild the suggestion index
+      idx.suggester.build()
     }
 
     idx
@@ -120,9 +123,6 @@ object Global extends GlobalSettings {
         AccessLog.create
       }  
     }
-    
-    // TODO implement!
-    index.buildSpellchecker()
     
     // Start log archiving demon
     accessLogArchiver = Some(AccessLogArchiver.start())
