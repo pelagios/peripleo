@@ -1,24 +1,47 @@
 package index.suggest
 
-import index.IndexFields
+import index.{ IndexFields, NGramAnalyzer }
 import java.io.{ File, StringReader }
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager
-import org.apache.lucene.index.IndexWriterConfig
+import org.apache.lucene.index.{ DirectoryReader, IndexWriterConfig }
 import org.apache.lucene.search.SearcherManager
-import org.apache.lucene.search.spell.{ LuceneDictionary, SpellChecker }
+import org.apache.lucene.search.spell.{ LuceneDictionary, SpellChecker, PlainTextDictionary }
+import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.Version
 import play.api.Logger
-import org.apache.lucene.search.suggest.FileDictionary
-import org.apache.lucene.search.spell.PlainTextDictionary
-import index.NGramAnalyzer
+import scala.collection.JavaConverters._
+import org.apache.lucene.analysis.standard.StandardAnalyzer
+import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester
+import org.apache.lucene.search.suggest.analyzing.FreeTextSuggester
+import org.apache.lucene.search.suggest.analyzing.FuzzySuggester
 
 class SuggestIndex(directory: File, placeSearcherManager: SearcherManager, objectSearcherManager: SearcherTaxonomyManager, analyzer: Analyzer) {
   
   protected val spellcheckIndex = FSDirectory.open(directory)
   
   protected val spellchecker = new SpellChecker(spellcheckIndex)
+  
+  lazy val suggester = {
+    Logger.info("Initializing suggester")
+    
+    val reader = DirectoryReader.open(spellcheckIndex)  
+    val dictionary = new LuceneDictionary(reader, SpellChecker.F_WORD)  
+    
+    // val suggester = new AnalyzingSuggester(analyzer)
+    // val suggester = new AnalyzingInfixSuggester(Version.LATEST, FSDirectory.open(new File(directory.getParent, "infix-suggester")), analyzer)
+    
+    val suggester = new FuzzySuggester(analyzer, analyzer, 
+        AnalyzingSuggester.EXACT_FIRST, 256, -1, true, 1, true, 
+        FuzzySuggester.DEFAULT_NON_FUZZY_PREFIX, FuzzySuggester.DEFAULT_MIN_FUZZY_LENGTH, false)
+    
+    suggester.build(dictionary)
+    reader.close()
+
+    Logger.info("Suggester initialized")
+    suggester
+  }
 
   /** (Re-)builds the spellcheck index **/
   def build() = {
@@ -54,9 +77,11 @@ class SuggestIndex(directory: File, placeSearcherManager: SearcherManager, objec
   }
   
   def suggestSimilar(query: String, limit: Int): Seq[String] =
-    spellchecker.suggestSimilar(query, limit)
+    // spellchecker.suggestSimilar(query, limit)
+    suggester.lookup(query, false, limit).asScala.map(_.key.toString).sortBy(_.size)
   
   def close() = {
+    // suggester.close()
     spellchecker.close()
     spellcheckIndex.close()    
   }

@@ -5,10 +5,9 @@ import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.analysis.Analyzer.TokenStreamComponents
 import org.apache.lucene.analysis.core.{ LowerCaseFilter, StopAnalyzer, StopFilter }
 import org.apache.lucene.analysis.shingle.ShingleFilter
-import org.apache.lucene.analysis.standard.{ StandardAnalyzer, StandardTokenizer }
+import org.apache.lucene.analysis.standard.StandardTokenizer
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute
 import org.apache.lucene.util.Version
-import org.apache.lucene.analysis.shingle.ShingleAnalyzerWrapper
 import play.api.Logger
 import scala.collection.mutable.ListBuffer
 
@@ -35,17 +34,15 @@ object NGramAnalyzer {
   def tokenize(phrases: Set[String], size: Int = 3): Seq[String] = {
     val reader = new StringReader(phrases.mkString("\n"))
     
-    val stream = new StandardAnalyzer().tokenStream(CONTENTS, reader)
-    
+    val stream = new StopAnalyzer().tokenStream(CONTENTS, reader)
     val shingleFilter = new ShingleFilter(stream, size)
     val lowerCaseFilter = new LowerCaseFilter(shingleFilter)
-    val stopFilter = new StopFilter(lowerCaseFilter, StopAnalyzer.ENGLISH_STOP_WORDS_SET)
     
-    val charTermAttribute = stopFilter.getAttribute(classOf[CharTermAttribute])
+    val charTermAttribute = lowerCaseFilter.getAttribute(classOf[CharTermAttribute])
     
-    stopFilter.reset()
+    lowerCaseFilter.reset()
     val buffer = ListBuffer.empty[String]
-    while(stopFilter.incrementToken) {
+    while(lowerCaseFilter.incrementToken) {
       // Remove Lucene's '_' stopword markers
       val token = charTermAttribute.toString.trim
       
