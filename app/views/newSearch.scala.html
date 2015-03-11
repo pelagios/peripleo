@@ -1,4 +1,4 @@
-@(results: Page[index.objects.IndexedObject], took: Long)
+@(results: Page[index.objects.IndexedObject], facets: Option[index.FacetTree], took: Long)
 <html>
   <head>
     <title>Pelagios Search</title>
@@ -83,6 +83,24 @@
     <div id="content">
       <div id="result-summary">
         <span class="number">@results.total</span> Results (@{ took.toDouble / 1000 } seconds)
+      </div>
+      
+      <div id="facets">
+        <ul>
+          @if(facets.isDefined) {
+            @for(dimension <- facets.get.dimensions()) {
+              <li>
+                <span class="facet-dimension">@dimension</span>
+                <ul>
+                  @for((label, count) <- facets.get.getTopChildren(dimension)) {
+                    <li>@label (@count)</li>
+                  }
+                </ul>
+              </li>
+            }
+            
+          }
+        </ul>
       </div>
       
       <ul id="results">

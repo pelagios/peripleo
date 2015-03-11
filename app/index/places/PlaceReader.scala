@@ -39,8 +39,8 @@ trait PlaceReader extends IndexBase {
     val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
     
     val bboxFilter = bbox.map(bounds => {
-      val shape = spatialCtx.makeRectangle(bounds._1, bounds._2, bounds._3, bounds._4)
-      spatialStrategy.makeFilter(new SpatialArgs(SpatialOperation.Intersects, shape))
+      val shape = Index.spatialCtx.makeRectangle(bounds._1, bounds._2, bounds._3, bounds._4)
+      Index.spatialStrategy.makeFilter(new SpatialArgs(SpatialOperation.Intersects, shape))
     })
  
     val searcher = placeSearcherManager.acquire()

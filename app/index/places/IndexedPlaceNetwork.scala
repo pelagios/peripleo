@@ -74,13 +74,6 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
 
 object IndexedPlaceNetwork {
   
-  private val spatialCtx = JtsSpatialContext.GEO
-  
-  private val maxLevels = 9 // 11 results in sub-meter precision for geohash
-  
-  private val spatialStrategy =
-    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
-  
   /** Creates a new place network with a single place **/
   def createNew(): IndexedPlaceNetwork = 
     new IndexedPlaceNetwork(new Document())
@@ -156,7 +149,7 @@ object IndexedPlaceNetwork {
     // Index shape geometry
     if (place.geometry.isDefined)
       try {
-        spatialStrategy.createIndexableFields(spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
+        Index.spatialStrategy.createIndexableFields(Index.spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
       } catch {
         case _: Throwable => Logger.info("Cannot index geometry: " + place.geometry.get)
       }

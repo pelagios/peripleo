@@ -1,7 +1,7 @@
 @(datasets: Int, items: Int, gazetteers:Int, places: Int)
 <html>
   <head>
-    <title>Pelagios API - Home</title>
+    <title>Pelagios - Home</title>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/index.css")"/>   
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
@@ -11,11 +11,12 @@
     <div id="header">
       <div id="header-menu">
         <div class="row">
-          <a class="pelagios-logo" onclick="return false;" href="@controllers.pages.routes.HomepageController.index">PELAGIOS API</a>
+          <a class="pelagios-logo" onclick="return false;" href="@controllers.pages.routes.HomepageController.index">PELAGIOS</a>
           <ul>
             <li class="current"><a onclick="return false;" href="@controllers.pages.routes.HomepageController.index">Home</a></li>
-            <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
-            <li><a href="#">Places</a></li>
+            <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Map</a></li>
+            <li><a href="http://pelagios-project.blogspot.co.uk">Blog</a></li>
+            <li><a href="#">About</a></li>
           </ul>
         </div> <!-- .row -->
       </div> <!-- #header-menu -->

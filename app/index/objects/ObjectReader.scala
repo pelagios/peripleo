@@ -37,7 +37,7 @@ trait ObjectReader extends IndexBase {
     */
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
       dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int] = None, toYear: Option[Int] = None,
-      bbox: Option[BoundingBox] = None, coord: Option[Coordinate] = None, radius: Option[Double] = None)(implicit s: Session): Page[IndexedObject] = {
+      bbox: Option[BoundingBox] = None, coord: Option[Coordinate] = None, radius: Option[Double] = None)(implicit s: Session): (Page[IndexedObject], FacetTree) = {
         
     val q = new BooleanQuery()
     
@@ -84,18 +84,18 @@ trait ObjectReader extends IndexBase {
     
     // Spatial filter
     if (bbox.isDefined) {
-      val rectangle = spatialCtx.makeRectangle(bbox.get.minLon, bbox.get.maxLon, bbox.get.minLat, bbox.get.maxLat)
-      q.add(spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, rectangle)), BooleanClause.Occur.MUST)
+      val rectangle = Index.spatialCtx.makeRectangle(bbox.get.minLon, bbox.get.maxLon, bbox.get.minLat, bbox.get.maxLat)
+      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, rectangle)), BooleanClause.Occur.MUST)
     } else if (coord.isDefined) {
       // Warning - there appears to be a bug in Lucene spatial that flips coordinates!
-      val circle = spatialCtx.makeCircle(coord.get.y, coord.get.x, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
-      q.add(spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
+      val circle = Index.spatialCtx.makeCircle(coord.get.y, coord.get.x, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
+      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
     }
       
     execute(q, limit, offset, query)
   }
   
-  private def execute(query: Query, limit: Int, offset: Int, queryString: Option[String]): Page[IndexedObject] = {
+  private def execute(query: Query, limit: Int, offset: Int, queryString: Option[String]): (Page[IndexedObject], FacetTree) = {
     val placeSearcher = placeSearcherManager.acquire()
     val objectSearcher = objectSearcherManager.acquire()
     val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.getIndexReader))
@@ -106,19 +106,11 @@ trait ObjectReader extends IndexBase {
       val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)
       searcher.search(query, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
-      val facetCounts = new FastTaxonomyFacetCounts(taxonomyReader, facetsConfig, facetsCollector)      
-      
-      /* 
-      val typeCounts = Option(facetCounts.getTopChildren(3, IndexFields.OBJECT_TYPE))
-      val datasetCounts = Option(facetCounts.getTopChildren(10, IndexFields.DATASET))
-      val datasetSubCounts = datasetCounts.map(publisher =>
-        publisher.labelValues.toSeq.map(labelAndValue =>
-          (labelAndValue.label -> labelAndValue.value.intValue)))
-       */
+      val facetTree = new FacetTree(new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, facetsCollector))      
        
       val total = topDocsCollector.getTotalHits
       val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
-      Page(results.toSeq, offset, limit, total, queryString)
+      (Page(results.toSeq, offset, limit, total, queryString), facetTree)
     } finally {
       placeSearcherManager.release(placeSearcher)
       objectSearcherManager.release(objectSearcher)

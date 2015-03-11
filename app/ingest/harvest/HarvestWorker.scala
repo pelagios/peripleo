@@ -128,39 +128,42 @@ class HarvestWorker {
     val voidTempFile = downloadFile(voidURL, voidFilename)
     
     if (voidTempFile.isDefined) {	
-	  val voidHash = computeHash(voidTempFile.get.file)
+	    val voidHash = computeHash(voidTempFile.get.file)
 	
-	  val datasets = VoIDImporter.readVoID(voidTempFile.get, voidFilename)
-	  voidTempFile.get.finalize()
+	    val datasets = VoIDImporter.readVoID(voidTempFile.get, voidFilename)
+	    voidTempFile.get.finalize()
 	  
-	  val dataDumps = getDataDumpURLs(datasets).par.map { case (url, dataset) => {
-	    val dumpFilename = {
-        val extension = url.substring(url.lastIndexOf("."))
-        if (extension.indexOf("?") < 0)
-          "data_" + UUID.randomUUID.toString + extension
-        else
-          "data_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
-      }
-	    (url, downloadFile(url, dumpFilename))
-	  }}.seq
+	    val dataDumps = getDataDumpURLs(datasets).par.map { case (url, dataset) => {
+	      val dumpFilename = {
+          val extension = url.substring(url.lastIndexOf("."))
+          if (extension.indexOf("?") < 0)
+            "data_" + UUID.randomUUID.toString + extension
+          else
+            "data_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
+        }
+	      (url, downloadFile(url, dumpFilename))
+	    }}.seq
 	  
-	  if (dataDumps.filter(_._1.isEmpty).size == 0) {
+      val failedDownloads = dataDumps.filter(_._2.isEmpty)
+	    if (failedDownloads.size == 0) {
 	    
-	    // TODO compare hashes and only ingest on change
+	      // TODO compare hashes and only ingest on change
 	    
-	    DB.withSession { implicit session: Session =>	    
-	      previous.foreach(dataset => dropDatasetCascaded(dataset.id))
+	      DB.withSession { implicit session: Session =>	    
+	        previous.foreach(dataset => dropDatasetCascaded(dataset.id))
 	      
-	      val dumpfileMap = dataDumps.toMap.mapValues(_.get)	      
-	      Logger.info("Importing dataset: " + datasets.map(_.title).mkString(", "))
-	      val importedDatasetsWithDumpfiles = VoIDImporter.importVoID(datasets, Some(voidURL))
-	      importedDatasetsWithDumpfiles.foreach { case (dataset, uris) => {
-	        importData(dataset, uris.map(uri => dumpfileMap.get(uri).get))
-	      }}
+  	      val dumpfileMap = dataDumps.toMap.mapValues(_.get)	      
+	        Logger.info("Importing dataset: " + datasets.map(_.title).mkString(", "))
+	        val importedDatasetsWithDumpfiles = VoIDImporter.importVoID(datasets, Some(voidURL))
+	        importedDatasetsWithDumpfiles.foreach { case (dataset, uris) => {
+	          importData(dataset, uris.map(uri => dumpfileMap.get(uri).get))
+	        }}
+	      }
+	    } else {
+        Logger.warn("The following file(s) failed to download:")
+        failedDownloads.foreach { case (downloadURL, _) => Logger.warn(downloadURL) }
+        Logger.warn("Aborting " + voidURL)
 	    }
-	  } else {
-	    Logger.warn("Download failure - aborting " + voidURL)
-	  }
     }
   }
 	

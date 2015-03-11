@@ -17,7 +17,7 @@ trait ObjectWriter extends IndexBase {
     
     // NOTE: not sure parallelization is totally safe the way we're using it here
     annotatedThings.par.foreach { case (thing, places) =>
-      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, places, datasetHierarchy)))}
+      indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, places, datasetHierarchy)))}
   }
   
   def addDataset(dataset: Dataset) = addDatasets(Seq(dataset))
@@ -26,7 +26,7 @@ trait ObjectWriter extends IndexBase {
     val (indexWriter, taxonomyWriter) = objectWriter
     
     datasets.foreach(dataset =>
-      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))
+      indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))
   }
   
   def updateDatasets(datasets: Seq[Dataset]) = {
@@ -42,7 +42,7 @@ trait ObjectWriter extends IndexBase {
     
     // Add updated versions
     datasets.foreach(dataset =>
-      indexWriter.addDocument(facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))   
+      indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))   
   }
   
   /** Removes datasets from the index. 

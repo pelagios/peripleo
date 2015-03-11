@@ -48,7 +48,7 @@ object SearchController extends AbstractController {
     val coord = if (lat.isDefined && lon.isDefined) Some(new Coordinate(lon.get, lat.get)) else None
             
     val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, bbox.flatMap(bounds => BoundingBox.fromString(bounds)), coord, radius)
-    jsonOk(Json.toJson(results), session.request)
+    jsonOk(Json.toJson(results._1), session.request)
   }
 
 }

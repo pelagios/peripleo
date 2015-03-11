@@ -19,23 +19,8 @@ import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import org.apache.lucene.search.SearcherManager
 import index.suggest.SuggestIndex
 
-private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {
-  
-  /** Spatial indexing settings **/
-  protected val spatialCtx = JtsSpatialContext.GEO
-  
-  private val maxLevels = 11 
-  
-  protected val spatialStrategy =
-    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
-  
-  
-  /** Object index facets **/
-  protected val facetsConfig = new FacetsConfig()
-  facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
-  facetsConfig.setHierarchical(IndexFields.ITEM_DATASET, true)
-
-  
+private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {  
+    
   /** Indices **/
   private val placeIndex = FSDirectory.open(placeIndexDir)
   
@@ -43,7 +28,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
   
-
+  
   /** Index searcher managers **/
   protected val placeSearcherManager = new SearcherManager(placeIndex, new SearcherFactory())
   
@@ -124,6 +109,21 @@ class Index private(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File
     with PlaceWriter
   
 object Index {
+  
+  /** Spatial indexing settings **/
+  private[index] val spatialCtx = JtsSpatialContext.GEO
+  
+  private[index] val maxLevels = 11 
+  
+  private[index] val spatialStrategy =
+    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
+  
+  
+  /** Object index facets **/
+  private[index] val facetsConfig = new FacetsConfig()
+  facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
+  facetsConfig.setHierarchical(IndexFields.ITEM_DATASET, true) 
+  
   
   def open(indexDir: String): Index = {
     val baseDir = new File(indexDir)

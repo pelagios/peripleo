@@ -41,7 +41,7 @@ object HomepageController extends AbstractController {
     
     val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, None, None, None)
     
-    Ok(views.html.searchResults(results, (System.currentTimeMillis - startTime)))
+    Ok(views.html.searchResults(results._1, (System.currentTimeMillis - startTime)))
   }
   
   def defineAdvancedSearch() = Action {

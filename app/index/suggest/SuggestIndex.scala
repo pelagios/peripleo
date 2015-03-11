@@ -29,12 +29,12 @@ class SuggestIndex(directory: File, placeSearcherManager: SearcherManager, objec
     val reader = DirectoryReader.open(spellcheckIndex)  
     val dictionary = new LuceneDictionary(reader, SpellChecker.F_WORD)  
     
-    // val suggester = new AnalyzingSuggester(analyzer)
+    val suggester = new AnalyzingSuggester(analyzer)
     // val suggester = new AnalyzingInfixSuggester(Version.LATEST, FSDirectory.open(new File(directory.getParent, "infix-suggester")), analyzer)
     
-    val suggester = new FuzzySuggester(analyzer, analyzer, 
-        AnalyzingSuggester.EXACT_FIRST, 256, -1, true, 1, true, 
-        FuzzySuggester.DEFAULT_NON_FUZZY_PREFIX, FuzzySuggester.DEFAULT_MIN_FUZZY_LENGTH, false)
+    // val suggester = new FuzzySuggester(analyzer, analyzer, 
+    //  AnalyzingSuggester.EXACT_FIRST, 256, -1, true, 1, true, 
+    //  3, FuzzySuggester.DEFAULT_MIN_FUZZY_LENGTH, false)
     
     suggester.build(dictionary)
     reader.close()
@@ -76,9 +76,11 @@ class SuggestIndex(directory: File, placeSearcherManager: SearcherManager, objec
     spellchecker.indexDictionary(dictionary, new IndexWriterConfig(Version.LATEST, analyzer), true)
   }
   
-  def suggestSimilar(query: String, limit: Int): Seq[String] =
-    // spellchecker.suggestSimilar(query, limit)
+  def suggestCompletion(query: String, limit: Int): Seq[String] =
     suggester.lookup(query, false, limit).asScala.map(_.key.toString).sortBy(_.size)
+  
+  def suggestSimilar(query: String, limit: Int): Seq[String] =
+    spellchecker.suggestSimilar(query, limit)
   
   def close() = {
     // suggester.close()

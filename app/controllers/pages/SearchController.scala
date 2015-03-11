@@ -15,15 +15,21 @@ object SearchController extends AbstractController {
     if (query.isDefined) {
       val startTime = System.currentTimeMillis
       val results = Global.index.search(20, 0, query)
-      Ok(views.html.newSearch(results, System.currentTimeMillis - startTime))
+      Ok(views.html.newSearch(results._1, Some(results._2), System.currentTimeMillis - startTime))
     } else {
       // TODO redirect to home
-      Ok(views.html.newSearch(Page.empty[IndexedObject], 0))
+      Ok(views.html.newSearch(Page.empty[IndexedObject], None, 0))
     }
   }
   
   def autoSuggest(query: String) = Action {
-    val suggestions = Global.index.suggester.suggestSimilar(query, 5)
+    val suggestions = { 
+      val exactMatches = Global.index.suggester.suggestCompletion(query, 5)
+      if (exactMatches.size > 0)
+        exactMatches
+      else
+        Global.index.suggester.suggestSimilar(query, 5)
+    }
     val asJson = suggestions.map(result => Json.obj(
       "key" -> result
     ))

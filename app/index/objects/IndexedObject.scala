@@ -12,6 +12,7 @@ import org.apache.lucene.document.StoredField
 import index.places.IndexedPlace
 import index.IndexFields
 import index.places.IndexedPlaceNetwork
+import play.api.Logger
 
 case class IndexedObject(private val doc: Document) {
 
@@ -62,7 +63,7 @@ object IndexedObject {
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
     // Dataset hierarchy as facet
-    doc.add(new FacetField(IndexFields.ITEM_DATASET, datasetHierarchy.map(_.title):_*))
+    doc.add(new FacetField(IndexFields.ITEM_DATASET, datasetHierarchy.map(_.title).reverse:_*))
     
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
