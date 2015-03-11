@@ -16,7 +16,6 @@ import play.api.Logger
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
-import org.apache.lucene.search.SearcherManager
 import index.suggest.SuggestIndex
 
 private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {  
@@ -29,8 +28,8 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
   
   
-  /** Index searcher managers **/
-  protected val placeSearcherManager = new SearcherManager(placeIndex, new SearcherFactory())
+  /** Index searcher managers **/  
+  protected val placeSearcherManager = new SearcherTaxonomyManager(placeIndex, taxonomyIndex, new SearcherFactory())
   
   protected val objectSearcherManager = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
   
@@ -44,8 +43,11 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   
   
   /** Index writers **/
-  protected lazy val objectWriter: (IndexWriter, TaxonomyWriter) =
-    (new IndexWriter(objectIndex, new IndexWriterConfig(Version.LATEST, analyzer)), new DirectoryTaxonomyWriter(taxonomyIndex))
+  protected lazy val taxonomyWriter: TaxonomyWriter = 
+    new DirectoryTaxonomyWriter(taxonomyIndex)
+  
+  protected lazy val objectWriter: IndexWriter =
+    new IndexWriter(objectIndex, new IndexWriterConfig(Version.LATEST, analyzer))
     
   protected lazy val placeWriter: IndexWriter = 
     new IndexWriter(placeIndex, new IndexWriterConfig(Version.LATEST, analyzer))
@@ -61,11 +63,11 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   
   /** Returns the number of places in the gazetteer index **/
   def numPlaceNetworks: Int = {
-    val searcher = placeSearcherManager.acquire()
+    val searcherAndTaxonomy = placeSearcherManager.acquire()
     try {
-      searcher.getIndexReader().numDocs()
+      searcherAndTaxonomy.searcher.getIndexReader().numDocs()
     } finally {
-      placeSearcherManager.release(searcher)
+      placeSearcherManager.release(searcherAndTaxonomy)
     }
   }
   
@@ -73,11 +75,11 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   def refresh() = {
     Logger.info("Committing index writes and refreshing readers")
     
-    objectWriter._1.commit()
-    objectWriter._2.commit()
-    objectSearcherManager.maybeRefresh()
-    
+    objectWriter.commit()
     placeWriter.commit()
+    taxonomyWriter.commit()
+    
+    objectSearcherManager.maybeRefresh()
     placeSearcherManager.maybeRefresh()
   }
   
@@ -85,9 +87,9 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
   def close() = {
     analyzer.close()
     
-    objectWriter._1.close()
-    objectWriter._2.close()
+    objectWriter.close()
     placeWriter.close()
+    taxonomyWriter.close()
     
     objectSearcherManager.close()
     placeSearcherManager.close()

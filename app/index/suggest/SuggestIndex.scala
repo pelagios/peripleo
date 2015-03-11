@@ -7,17 +7,13 @@ import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager
 import org.apache.lucene.index.{ DirectoryReader, IndexWriterConfig }
 import org.apache.lucene.search.SearcherManager
 import org.apache.lucene.search.spell.{ LuceneDictionary, SpellChecker, PlainTextDictionary }
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester
+import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.util.Version
 import play.api.Logger
 import scala.collection.JavaConverters._
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester
-import org.apache.lucene.search.suggest.analyzing.FreeTextSuggester
-import org.apache.lucene.search.suggest.analyzing.FuzzySuggester
 
-class SuggestIndex(directory: File, placeSearcherManager: SearcherManager, objectSearcherManager: SearcherTaxonomyManager, analyzer: Analyzer) {
+class SuggestIndex(directory: File, placeSearcherManager: SearcherTaxonomyManager, objectSearcherManager: SearcherTaxonomyManager, analyzer: Analyzer) {
   
   protected val spellcheckIndex = FSDirectory.open(directory)
   
@@ -54,7 +50,7 @@ class SuggestIndex(directory: File, placeSearcherManager: SearcherManager, objec
     
     val dictionarySources =
       // Relevant fields from the place index
-      Seq(IndexFields.TITLE, IndexFields.PLACE_NAME, IndexFields.DESCRIPTION).map((_, placeSearcher.getIndexReader)) ++
+      Seq(IndexFields.TITLE, IndexFields.PLACE_NAME, IndexFields.DESCRIPTION).map((_, placeSearcher.searcher.getIndexReader)) ++
       // Relevant fields from the object index
       Seq(IndexFields.TITLE, IndexFields.DESCRIPTION).map((_, objectSearcher.searcher.getIndexReader))
       

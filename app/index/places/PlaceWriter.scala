@@ -10,13 +10,14 @@ import org.pelagios.api.gazetteer.Place
 import play.api.Logger
 import scala.collection.mutable.Set
 import org.apache.lucene.search.IndexSearcher
+import org.apache.lucene.facet.taxonomy.TaxonomyWriter
 
 trait PlaceWriter extends PlaceReader {
   
   def addPlaces(places: Iterator[Place], sourceGazetteer: String): (Int, Seq[String]) =  { 
     val uriPrefixes = Set.empty[String]
     val distinctNewPlaces = places.foldLeft(0)((distinctNewPlaces, place) => {
-      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter)
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter, taxonomyWriter)
       if (isDistinct)
         distinctNewPlaces + 1 
       else
@@ -30,7 +31,7 @@ trait PlaceWriter extends PlaceReader {
     var totalPlaces = 0
     var distinctNewPlaces = 0
     def placeHandler(place: Place): Unit = {
-      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter)
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter, taxonomyWriter)
       totalPlaces += 1
       if (isDistinct)
         distinctNewPlaces += 1
@@ -40,7 +41,7 @@ trait PlaceWriter extends PlaceReader {
     (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
   }
   
-  private def addPlace(place: Place, sourceGazetteer: String, uriPrefixes: Set[String], writer: IndexWriter): Boolean = {
+  private def addPlace(place: Place, sourceGazetteer: String, uriPrefixes: Set[String], indexWriter: IndexWriter, taxonomyWriter: TaxonomyWriter): Boolean = {
       val normalizedUri = Index.normalizeURI(place.uri)
       
       // Enforce uniqueness
@@ -76,31 +77,32 @@ trait PlaceWriter extends PlaceReader {
         val allMatches = indexedMatches ++ indirectlyConnectedPlaces
 
         // Update the index
-        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allMatches.distinct, writer);
+        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allMatches.distinct, indexWriter, taxonomyWriter);
         
         // If this place didn't have any closeMatches at all, it's a new distinct contribution
         allMatches.size == 0
       }      
   }
   
-  private def updateIndex(place: IndexedPlace, affectedNetworks: Seq[IndexedPlaceNetwork], writer: IndexWriter) = {
+  private def updateIndex(place: IndexedPlace, affectedNetworks: Seq[IndexedPlaceNetwork], indexWriter: IndexWriter, taxonomyWriter: TaxonomyWriter) = {
     // Delete affected networks from index
     affectedNetworks.foreach(network => 
-      writer.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
+      indexWriter.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
 
     // Add the place and write updated network to index
     val updatedNetwork = IndexedPlaceNetwork.join(place, affectedNetworks)
-    writer.addDocument(updatedNetwork.doc)
+    
+    indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, updatedNetwork.doc))
   }
   
   def deleteGazetter(name: String) = {
-    val searcher = placeSearcherManager.acquire()
+    val searcherAndTaxonomy = placeSearcherManager.acquire()
     try {
       // Need to loop through each affected record - so we'll do it in batches
-      deleteGazetteerRecordBatch(name, searcher)
+      deleteGazetteerRecordBatch(name, searcherAndTaxonomy.searcher)
       refresh()
     } finally {
-      placeSearcherManager.release(searcher)            
+      placeSearcherManager.release(searcherAndTaxonomy)            
     }
   }
     
@@ -125,7 +127,7 @@ trait PlaceWriter extends PlaceReader {
       if (places.size > 0) {
         val networksAfterRemoval = IndexedPlaceNetwork.buildNetworks(places)
         if (networksAfterRemoval.size > 1)
-          networksAfterRemoval.foreach(network => placeWriter.addDocument(network.doc))
+          networksAfterRemoval.foreach(network => placeWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, network.doc)))
       }
     })      
       

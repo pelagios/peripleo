@@ -98,7 +98,7 @@ trait ObjectReader extends IndexBase {
   private def execute(query: Query, limit: Int, offset: Int, queryString: Option[String]): (Page[IndexedObject], FacetTree) = {
     val placeSearcher = placeSearcherManager.acquire()
     val objectSearcher = objectSearcherManager.acquire()
-    val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.getIndexReader))
+    val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
     val taxonomyReader = objectSearcher.taxonomyReader
     
     try {      

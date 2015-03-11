@@ -3,6 +3,7 @@ package index.places
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.{ Index, IndexFields }
 import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField }
+import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import org.pelagios.api.gazetteer.Place
@@ -81,6 +82,7 @@ object IndexedPlaceNetwork {
   def join(places: Seq[IndexedPlace]) = {
     val joinedDoc = new Document() 
     joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))
+    joinedDoc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString))
     
     places.foreach(addPlaceToDoc(_, joinedDoc))
     
@@ -99,6 +101,7 @@ object IndexedPlaceNetwork {
   def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork = {
     val joinedDoc = new Document() 
     joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))
+    joinedDoc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString))
     
     val allPlaces = networks.flatMap(_.places) :+ place
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))

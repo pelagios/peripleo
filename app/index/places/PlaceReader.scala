@@ -16,7 +16,8 @@ import models.Page
 trait PlaceReader extends IndexBase {
   
   def listAllPlaceNetworks(offset: Int = 0, limit: Int = 20): Seq[IndexedPlaceNetwork] = {
-    val searcher = placeSearcherManager.acquire()
+    val searcherAndTaxonomy = placeSearcherManager.acquire()
+    val searcher = searcherAndTaxonomy.searcher
     val collector = TopScoreDocCollector.create(offset + limit, true)
     
     try {
@@ -25,7 +26,7 @@ trait PlaceReader extends IndexBase {
       collector.topDocs(offset, limit).scoreDocs
         .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
     } finally {
-      placeSearcherManager.release(searcher)
+      placeSearcherManager.release(searcherAndTaxonomy)
     }
   }
  
@@ -43,7 +44,8 @@ trait PlaceReader extends IndexBase {
       Index.spatialStrategy.makeFilter(new SpatialArgs(SpatialOperation.Intersects, shape))
     })
  
-    val searcher = placeSearcherManager.acquire()
+    val searcherAndTaxonomy = placeSearcherManager.acquire()
+    val searcher = searcherAndTaxonomy.searcher
     val collector = TopScoreDocCollector.create(offset + limit, true)
     
     try {
@@ -59,7 +61,7 @@ trait PlaceReader extends IndexBase {
       
       Page(results, offset, limit, total)
     } finally {
-      placeSearcherManager.release(searcher)
+      placeSearcherManager.release(searcherAndTaxonomy)
     }
   }
   
@@ -69,21 +71,23 @@ trait PlaceReader extends IndexBase {
   def findNetworkByPlaceURI(uri: String): Option[IndexedPlaceNetwork] = {
     val q = new TermQuery(new Term(IndexFields.PLACE_URI, Index.normalizeURI(uri)))
     
-    val searcher = placeSearcherManager.acquire()
+    val searcherAndTaxonomy = placeSearcherManager.acquire()
+    val searcher = searcherAndTaxonomy.searcher
     val collector = TopScoreDocCollector.create(1, true)
     try {
       searcher.search(q, collector)
     
       collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).headOption
     } finally {
-      placeSearcherManager.release(searcher)
+      placeSearcherManager.release(searcherAndTaxonomy)
     }
   }
 
   def findNetworkByCloseMatch(uri: String): Seq[IndexedPlaceNetwork] = {
     val q = new TermQuery(new Term(IndexFields.PLACE_MATCH, Index.normalizeURI(uri)))
     
-    val searcher = placeSearcherManager.acquire()
+    val searcherAndTaxonomy = placeSearcherManager.acquire()
+    val searcher = searcherAndTaxonomy.searcher
     val numHits = Math.max(1, numPlaceNetworks) // Has to be minimum 1, but can never exceed size of index
     val collector = TopScoreDocCollector.create(numHits, true)
     try {
@@ -91,7 +95,7 @@ trait PlaceReader extends IndexBase {
     
       collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc)))
     } finally {
-      placeSearcherManager.release(searcher)
+      placeSearcherManager.release(searcherAndTaxonomy)
     }
   }
   
