@@ -1,4 +1,4 @@
-@(results: Page[index.objects.IndexedObject], facets: Option[index.FacetTree], took: Long)
+@(results: Page[index.objects.IndexedObject], facets: Option[index.FacetTree], filters: Map[String, String], took: Long)(implicit request: RequestHeader)
 <html>
   <head>
     <title>Pelagios Search</title>
@@ -8,55 +8,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.twbsPagination.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
-    <script>
-      jQuery(document).ready(function() {
-        var form = jQuery('#search-form form'),
-            searchField = jQuery('#query'),
-            totalResultPages = @{ Math.ceil(results.total.toDouble / results.limit) };
-        
-        /** Search auto-complete **/
-        searchField.typeahead({
-          hint: true,
-          highlight: true,
-          minLength: 1
-        },{
-          displayKey: 'key',
-          source: function(query, callback) {
-            jQuery.getJSON('/api-v3/new/autosuggest?q=' + query, function(results) {
-              callback(results);
-            });
-          }
-        });
-        
-        searchField.on('typeahead:selected', function(e) {
-          form.submit();
-        });
-        
-        form.keypress(function (e) {
-          if (e.which == 13)
-            form.submit();
-        });
-        
-        /** Pagination **/
-        $('.pagination ul').twbsPagination({
-          totalPages: totalResultPages,
-          startPage: @{ Math.ceil(results.offset.toDouble / results.limit) + 1 }, 
-          first: '&#xf100;',
-          prev: '&#xf104;',
-          next: '&#xf105;',
-          last: '&#xf101;',
-          
-          onPageClick: function (event, page) {
-            var offset = (page - 1) * @results.limit;
-            $('#results').html('');
-            location.search = util.buildPageRequestURL(offset, @results.limit);
-          }
-        });
-        
-        /** Format numbers **/
-        util.formatNumbers();
-      });
-    </script>
+    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/search").url)
   </head>
   <body>
     <div id="header">
@@ -64,7 +16,7 @@
         <a onclick="return false;" href="@controllers.pages.routes.HomepageController.index">PELAGIOS</a>
       </div>
      
-      <div id="search-form">
+      <div id="search">
         <form method="GET" action="/api-v3/new/search">
         	<div class="form-container">
             <input type="text" id="query" name="q" value="@results.query">
@@ -75,43 +27,66 @@
       <div id="nav">
         <ul>
           <li><a href="@controllers.pages.routes.HomepageController.index">Map</a></li>
+          <li><a href="http://pelagios-project.blogspot.co.uk">Blog</a></li>
           <li><a href="#">About</a></li>
         </ul>
       </div>
     </div> <!-- #header -->
     
     <div id="content">
-      <div id="result-summary">
-        <span class="number">@results.total</span> Results (@{ took.toDouble / 1000 } seconds)
-      </div>
       
-      <div id="facets">
-        <ul>
-          @if(facets.isDefined) {
+      <div id="left-column">
+        <div id="query-took">
+          <span class="number">@results.total</span> Results (@{ took.toDouble / 1000 } seconds)
+        </div>
+
+        @if(facets.isDefined) {        
+          <ul id="facets">
             @for(dimension <- facets.get.dimensions()) {
-              <li>
-                <span class="facet-dimension">@dimension</span>
+              <li class="dimension">
+                <h3>@dimension.toUpperCase</h3>
                 <ul>
                   @for((label, count) <- facets.get.getTopChildren(dimension)) {
-                    <li>@label (@count)</li>
+                    <li class="classification">@tags.facetItem(dimension, label, count)</li>
                   }
                 </ul>
               </li>
             }
-            
+          </ul>
+        }
+      </div>
+      
+      <div id="center-column">
+        @if(filters.size > 0) {
+          <div id="filters">
+            <h2>Filters</h2>
+            <div>
+              <ul>
+                @for((dimension, value) <- filters) {
+                  @tags.filterItem(dimension, value)
+                }
+              </ul>
+            </div>
+          </div> <!-- #filters -->
+        }
+        
+        <ul id="results" @if(filters.size > 0) { class="with-filters" }>
+          @for(item <- results.items) {
+        	  @tags.searchresultItem(item)
           }
         </ul>
       </div>
       
-      <ul id="results">
-        @for(item <- results.items) {
-        	@tags.searchresultItem(item)
-        }
-      </ul>
+      <div id="right-column">
+      </div>
+      
+      
+      @*
+
       
       <div class="pagination">
         <ul></ul>
-      </div>
+      </div --> *@
     </div> <!-- #content -->
 
   </body>

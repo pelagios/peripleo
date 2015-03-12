@@ -33,6 +33,11 @@ abstract class AbstractController extends Controller {
   
   protected val AcceptsTurtle = Accepting("text/turtle")
   
+  protected def getQueryParam(key: String, request: RequestHeader): Option[String] = 
+    request.queryString
+      .filter(_._1.equalsIgnoreCase(key))
+      .headOption.flatMap(_._2.headOption)
+  
   private def isNoBot(userAgent: String): Boolean = {
     // TODO add some basic rules to filter out at least Google and Twitter
     true
@@ -79,14 +84,8 @@ abstract class AbstractController extends Controller {
   
   /** Helper for creating pretty-printed JSON responses with proper content-type header **/
   protected def jsonOk(obj: JsValue, request: RequestHeader) = {
-    val prettyPrint = request.queryString
-      .filter(_._1.toLowerCase.equals(PRETTY_PRINT))
-      .headOption.flatMap(_._2.headOption)
-      .map(_.toBoolean).getOrElse(false)
-      
-    val callback = request.queryString
-      .filter(_._1.toLowerCase.equals(CALLBACK))
-      .headOption.flatMap(_._2.headOption)
+    val prettyPrint = getQueryParam(PRETTY_PRINT, request).map(_.toBoolean).getOrElse(false)
+    val callback = getQueryParam(CALLBACK, request)
     
     val headers = if (CORS_ENABLED) Seq(("Access-Control-Allow-Origin" -> "*")) else Seq.empty[(String, String)]
     if (callback.isDefined) {

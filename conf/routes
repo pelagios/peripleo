@@ -5,7 +5,7 @@
 # Map static resources from the /public folder to the /assets URL path
 GET     /api-v3/static/*file                     controllers.Assets.at(path="/public", file)
 
-GET     /api-v3/new/search                       controllers.pages.SearchController.search(q: Option[String] ?= None)
+GET     /api-v3/new/search                       controllers.pages.SearchController.search
 GET     /api-v3/new/autosuggest                  controllers.pages.SearchController.autoSuggest(q: String)
 
 # API routes

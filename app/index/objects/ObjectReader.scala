@@ -28,16 +28,36 @@ trait ObjectReader extends IndexBase {
 
   /** Search the index.
     *  
-    * @param limit search result page size
-    * @param offset search result page offset
-    * @query query keyword query
-    * @query objectType filter search to a specific object type ('PLACE', 'ANNOTATED_THING' or 'DATASET')
-    * @query dataset filter search to items in a specific dataset
-    * @query places filter search to items referencing specific places 
-    */
-  def search(limit: Int, offset: Int, query: Option[String], objectType: Option[IndexedObjectTypes.Value] = None, 
-      dataset: Option[String] = None, places: Seq[String] = Seq.empty[String], fromYear: Option[Int] = None, toYear: Option[Int] = None,
-      bbox: Option[BoundingBox] = None, coord: Option[Coordinate] = None, radius: Option[Double] = None)(implicit s: Session): (Page[IndexedObject], FacetTree) = {
+    * In principle, every parameter is optional. Recommended use of the constructor 
+    * is via named arguments. Some combinations obviously don't make sense (e.g. a
+    * bounding box restriction combined with a filter for places outside the bounding
+    * box), so a minimum of common sense will be required when choosing your arguments.
+    * 
+    * @param query a query according to Lucene syntax
+    * @param objectType restriction to specific object types (place, item, or dataset)
+    * @param dataset restriction to a specific dataset
+    * @param fromYear temporal restriction: start date
+    * @param toYear temporal restriction: end date
+    * @param places restriction to specific places (gazetteer URIs)
+    * @param bbox restriction to a geographic bounding box
+    * @param coord search around a specific center coordinate (requires 'radius' argument)
+    * @param radius search radius around a 'coord' center
+    * @param limit number of maximum hits to return
+    * @param offset offset in the search result list 
+    */ 
+  def search(
+      query: Option[String] = None,
+      objectType: Option[IndexedObjectTypes.Value] = None,
+      dataset: Option[String] = None,
+      fromYear: Option[Int] = None,
+      toYear: Option[Int] = None,      
+      places: Seq[String] = Seq.empty[String], 
+      bbox: Option[BoundingBox] = None,
+      coord: Option[Coordinate] = None, 
+      radius: Option[Double] = None,
+      limit: Int = 20, 
+      offset: Int = 0
+    )(implicit s: Session): (Page[IndexedObject], FacetTree) = {
         
     val q = new BooleanQuery()
     
@@ -50,6 +70,7 @@ trait ObjectReader extends IndexBase {
     // Object type filter
     if (objectType.isDefined)
       q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.get.toString)), BooleanClause.Occur.MUST)
+    
     
     // Dataset filter
     if (dataset.isDefined) {
@@ -103,6 +124,7 @@ trait ObjectReader extends IndexBase {
     
     try {      
       val facetsCollector = new FacetsCollector()
+      
       val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)
       searcher.search(query, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
@@ -110,6 +132,7 @@ trait ObjectReader extends IndexBase {
        
       val total = topDocsCollector.getTotalHits
       val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
+
       (Page(results.toSeq, offset, limit, total, queryString), facetTree)
     } finally {
       placeSearcherManager.release(placeSearcher)

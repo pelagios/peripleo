@@ -1,5 +1,6 @@
 @import "../globals.less";
 @import "../base-layout.less";
+@import "../common/autocomplete";
 
 #header {
 
@@ -16,18 +17,17 @@
        display:inline-block;
      
        input[type="text"] {
-         float:left;
+       
          font-size:15px;
          display:block;
          width:340px;
          margin:0;
-         border-style:solid;
-         border-width:1px 0 1px 1px;
-         border-color:#727272 #ccc #ccc #727272;
+         border-width:0;
          padding:8px;
          outline:none;
          height:31px;
-         .rounded-corners-left(5px); 
+         .rounded-corners(5px); 
+         box-shadow:inset 1px 1px 1px rgba(0,0,0,0.5);
        }
      
        input[type="submit"] {

@@ -13,6 +13,8 @@ import index.places.IndexedPlace
 import index.IndexFields
 import index.places.IndexedPlaceNetwork
 import play.api.Logger
+import org.apache.lucene.facet.taxonomy.AssociationFacetField
+import org.apache.lucene.util.BytesRef
 
 case class IndexedObject(private val doc: Document) {
 
@@ -59,11 +61,12 @@ object IndexedObject {
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
     thing.homepage.map(homepage => doc.add(new StoredField(IndexFields.HOMEPAGE, homepage)))
+    
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
-    // Dataset hierarchy as facet
-    doc.add(new FacetField(IndexFields.ITEM_DATASET, datasetHierarchy.map(_.title).reverse:_*))
+    // Dataset hierarchy as facet (facet field uses {label}#{id} syntax to store human-readable title plus ID at the same time
+    doc.add(new FacetField(IndexFields.ITEM_DATASET, datasetHierarchy.map(d => d.title + "#" + d.id).reverse:_*))
     
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))

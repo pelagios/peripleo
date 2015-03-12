@@ -77,6 +77,8 @@ class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotat
   
   def datasetIdx = index("idx_things_by_dataset", datasetId, unique = false)
   
+  def isPartOfIdx = index("idx_is_part_of_thing", isPartOfId, unique = false)
+  
 }
 
 /** Queries **/

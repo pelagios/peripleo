@@ -46,9 +46,12 @@ object SearchController extends AbstractController {
     val placeURIs = places.map(_.split(",").map(s => Index.normalizeURI(s.trim())).toSeq).getOrElse(Seq.empty[String])
     
     val coord = if (lat.isDefined && lon.isDefined) Some(new Coordinate(lon.get, lat.get)) else None
-            
+    
+    /*
     val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, bbox.flatMap(bounds => BoundingBox.fromString(bounds)), coord, radius)
     jsonOk(Json.toJson(results._1), session.request)
+    */
+    jsonOk(Json.parse("{ \"message\": \"Temporarily unavailable\" }"), session.request)
   }
 
 }

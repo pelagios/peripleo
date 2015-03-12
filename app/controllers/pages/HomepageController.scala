@@ -26,7 +26,8 @@ object HomepageController extends AbstractController {
   
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
       places: Option[String], yearFrom: Option[Int], yearTo: Option[Int]) = loggingAction { implicit session =>
-        
+      
+    /*
     val startTime = System.currentTimeMillis
     // Map object types
     val objType = objectType.flatMap(name => name.toLowerCase match {
@@ -42,6 +43,9 @@ object HomepageController extends AbstractController {
     val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, None, None, None)
     
     Ok(views.html.searchResults(results._1, (System.currentTimeMillis - startTime)))
+    */
+        
+    Ok("")
   }
   
   def defineAdvancedSearch() = Action {

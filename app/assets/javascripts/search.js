@@ -1,11 +1,11 @@
-require([], function() {
+require(['common/formatting'], function(Formatting) {
 
   jQuery(document).ready(function() {
-    var form = jQuery('#search-form form'),
-        searchField = jQuery('#query');
+    var form = jQuery('#search form'),
+        textInput = jQuery('#search input[type="text"]');
         
     /** Search auto-complete **/
-    searchField.typeahead({
+    textInput.typeahead({
       hint: true,
       highlight: true,
       minLength: 1
@@ -18,7 +18,7 @@ require([], function() {
       }
     });
         
-    searchField.on('typeahead:selected', function(e) {
+    textInput.on('typeahead:selected', function(e) {
       form.submit();
     });
         
@@ -26,6 +26,9 @@ require([], function() {
       if (e.which == 13)
         form.submit();
     });
+    
+    /** Format numbers **/
+    Formatting.formatNumbers();
   });  
   
 });

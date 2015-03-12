@@ -1,8 +1,8 @@
 package index
 
+import models.core.Dataset
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import scala.collection.JavaConverters._
-import play.api.Logger
 
 /** A helper datastructure for easier access to search result facets **/
 class FacetTree(facetCounts: FastTaxonomyFacetCounts) {
@@ -15,3 +15,4 @@ class FacetTree(facetCounts: FastTaxonomyFacetCounts) {
       result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))).getOrElse(Seq.empty[(String, Int)])
 
 }
+

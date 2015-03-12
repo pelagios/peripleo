@@ -4,8 +4,9 @@
     <title>Pelagios - Home</title>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/home/index.css")"/>   
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/typeahead/typeahead.jquery.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
-    <script type="text/javascript" src="@routes.Assets.at("javascripts/page-utils.js")"></script>
+    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/search").url)
   </head>
   <body>
     <div id="header">
@@ -22,11 +23,10 @@
       </div> <!-- #header-menu -->
       
       <div id="header-body">
-        <div class="row">
-          <form method="GET" action="@{controllers.pages.routes.HomepageController.index}pages/search">
+        <div id="search" class="row">
+          <form method="GET" action="@{controllers.pages.routes.HomepageController.index}new/search">
           	<div class="form-container">
-              <input type="text" name="query" autocomplete="off" placeholder="@tags.queryExample()">
-              <input type="submit" value="Find!">
+              <input type="text" name="q" autocomplete="off" placeholder="@tags.queryExample()">
             </div>
           </form>
           
@@ -37,10 +37,5 @@
         </div> <!-- .row -->
       </div> <!-- #header-body -->
     </div> <!-- #header -->
-    <script>
-      (function() {
-        util.formatNumbers();
-      })();
-    </script>
   </body>
 </html>
