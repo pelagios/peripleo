@@ -23,7 +23,7 @@ import org.apache.lucene.search.suggest.analyzing.FreeTextSuggester
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.search.spell.SpellChecker
-// import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
+import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import com.spatial4j.core.context.SpatialContextFactory
 import com.spatial4j.core.shape.impl.RectangleImpl
 import org.apache.lucene.spatial.prefix.tree.QuadPrefixTree
@@ -132,8 +132,9 @@ trait ObjectReader extends IndexBase {
       
       /** HEATMAP test code **/
 
-      // val heatmapFacetCounter = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, null, new RectangleImpl(-90, 90, -90, 90, null), 4, 1000)
-      // Logger.info(heatmapFacetCounter.toString das)
+      val filter = new QueryWrapperFilter(query)
+      val heatmapFacetCounter = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, new RectangleImpl(-90, 90, -90, 90, null), 2, 1000)
+      Logger.info(heatmapFacetCounter.toString)
       
       /** HEATMAP test code end **/
       
