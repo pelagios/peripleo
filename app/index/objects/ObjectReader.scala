@@ -28,6 +28,7 @@ import com.spatial4j.core.context.SpatialContextFactory
 import com.spatial4j.core.shape.impl.RectangleImpl
 import org.apache.lucene.spatial.prefix.tree.QuadPrefixTree
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
+import com.spatial4j.core.shape.Rectangle
 
 trait ObjectReader extends IndexBase {
 
@@ -62,7 +63,7 @@ trait ObjectReader extends IndexBase {
       radius: Option[Double] = None,
       limit: Int = 20, 
       offset: Int = 0
-    )(implicit s: Session): (Page[IndexedObject], FacetTree) = {
+    )(implicit s: Session): (Page[IndexedObject], FacetTree, Seq[(Double, Double, Int)]) = {
         
     val q = new BooleanQuery()
     
@@ -121,7 +122,7 @@ trait ObjectReader extends IndexBase {
     execute(q, limit, offset, query)
   }
   
-  private def execute(query: Query, limit: Int, offset: Int, queryString: Option[String]): (Page[IndexedObject], FacetTree) = {
+  private def execute(query: Query, limit: Int, offset: Int, queryString: Option[String]): (Page[IndexedObject], FacetTree, Seq[(Double, Double, Int)]) = {
     val placeSearcher = placeSearcherManager.acquire()
     val objectSearcher = objectSearcherManager.acquire()
     val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
@@ -133,8 +134,25 @@ trait ObjectReader extends IndexBase {
       /** HEATMAP test code **/
 
       val filter = new QueryWrapperFilter(query)
-      val heatmapFacetCounter = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, new RectangleImpl(-90, 90, -90, 90, null), 2, 1000)
-      Logger.info(heatmapFacetCounter.toString)
+      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, new RectangleImpl(-90, 90, -90, 90, null), 3, 18000)
+      
+      // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
+      val nonEmptyCells = 
+        Seq.range(0, heatmap.rows).flatMap(row => {
+          Seq.range(0, heatmap.columns).map(column => (column, row, heatmap.getCount(column, row)))
+        }).filter(_._3 > 0)
+
+      // Convert non-zero grid cells to map points
+      val region = heatmap.region
+      val (minX, minY) = (region.getMinX, region.getMinY)
+      val cellWidth = region.getWidth / heatmap.columns
+      val cellHeight = region.getHeight / heatmap.rows
+      
+      val lonLats = nonEmptyCells.map { case (x, y, count) =>
+        val lon = DistanceUtils.normLonDEG(minX + x * cellWidth + cellWidth / 2)
+        val lat = DistanceUtils.normLatDEG(minY + y * cellHeight + cellHeight / 2)
+        (lon, lat, count)
+      }
       
       /** HEATMAP test code end **/
       
@@ -146,7 +164,7 @@ trait ObjectReader extends IndexBase {
       val total = topDocsCollector.getTotalHits
       val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
 
-      (Page(results.toSeq, offset, limit, total, queryString), facetTree)
+      (Page(results.toSeq, offset, limit, total, queryString), facetTree, lonLats)
     } finally {
       placeSearcherManager.release(placeSearcher)
       objectSearcherManager.release(objectSearcher)

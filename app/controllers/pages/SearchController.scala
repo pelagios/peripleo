@@ -48,10 +48,10 @@ object SearchController extends AbstractController {
         objectType = objectType,
         dataset = dataset)
       
-      Ok(views.html.newSearch(results._1, Some(results._2), filters, System.currentTimeMillis - startTime))
+      Ok(views.html.newSearch(results._1, Some(results._2), filters, results._3, System.currentTimeMillis - startTime))
     } else {
       // TODO redirect to home
-      Ok(views.html.newSearch(Page.empty[IndexedObject], None, Map.empty[String, String], 0))
+      Ok(views.html.newSearch(Page.empty[IndexedObject], None, Map.empty[String, String], Seq.empty[(Double, Double, Int)], 0))
     }
   }
   
