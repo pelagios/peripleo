@@ -2,7 +2,8 @@ package index
 
 import index.objects._
 import index.places._
-import java.io.File
+import index.suggest.SuggestIndex
+import java.nio.file.Path
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.facet.FacetsConfig
 import org.apache.lucene.facet.taxonomy.{ TaxonomyWriter, SearcherTaxonomyManager }
@@ -10,15 +11,15 @@ import org.apache.lucene.facet.taxonomy.directory.{ DirectoryTaxonomyReader, Dir
 import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig, MultiReader }
 import org.apache.lucene.search.{ IndexSearcher, SearcherFactory }
 import org.apache.lucene.store.FSDirectory
-import org.apache.lucene.util.Version
 import org.apache.lucene.search.spell.{ SpellChecker, LuceneDictionary }
 import play.api.Logger
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
-import index.suggest.SuggestIndex
+import java.nio.file.FileSystems
+import java.nio.file.Files
 
-private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File) {  
+private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, spellcheckDir: Path) {  
     
   /** Indices **/
   private val placeIndex = FSDirectory.open(placeIndexDir)
@@ -47,10 +48,10 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
     new DirectoryTaxonomyWriter(taxonomyIndex)
   
   protected lazy val objectWriter: IndexWriter =
-    new IndexWriter(objectIndex, new IndexWriterConfig(Version.LATEST, analyzer))
+    new IndexWriter(objectIndex, new IndexWriterConfig(analyzer))
     
   protected lazy val placeWriter: IndexWriter = 
-    new IndexWriter(placeIndex, new IndexWriterConfig(Version.LATEST, analyzer))
+    new IndexWriter(placeIndex, new IndexWriterConfig(analyzer))
 
   
   /** Returns the number of objects in the object index **/
@@ -103,7 +104,7 @@ private[index] class IndexBase(placeIndexDir: File, objectIndexDir: File, taxono
       
 }
 
-class Index private(placeIndexDir: File, objectIndexDir: File, taxonomyDir: File, spellcheckDir: File)
+class Index private(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, spellcheckDir: Path)
   extends IndexBase(placeIndexDir, objectIndexDir, taxonomyDir, spellcheckDir)
     with ObjectReader
     with ObjectWriter
@@ -128,27 +129,28 @@ object Index {
   
   
   def open(indexDir: String): Index = {
-    val baseDir = new File(indexDir)
+    val fs = FileSystems.getDefault()
+    val baseDir = fs.getPath(indexDir)
       
-    val placeIndexDir = createIfNotExists(new File(baseDir, "gazetteer"))
-    val objectIndexDir = createIfNotExists(new File(baseDir, "objects"))
+    val placeIndexDir = createIfNotExists(baseDir.resolve("gazetteer"))
+    val objectIndexDir = createIfNotExists(baseDir.resolve("objects"))
     
-    val taxonomyDirectory = new File(baseDir, "taxonomy")
-    if (!taxonomyDirectory.exists) {
-      taxonomyDirectory.mkdirs()
+    val taxonomyDirectory = baseDir.resolve("taxonomy")
+    if (!Files.exists(taxonomyDirectory)) {
+      Files.createDirectories(taxonomyDirectory)
       val taxonomyInitializer = new DirectoryTaxonomyWriter(FSDirectory.open(taxonomyDirectory))
       taxonomyInitializer.close()
     }
     
-    val spellcheckIndexDir = createIfNotExists(new File(baseDir, "spellcheck"))
+    val spellcheckIndexDir = createIfNotExists(baseDir.resolve("spellcheck"))
     
     new Index(placeIndexDir, objectIndexDir, taxonomyDirectory, spellcheckIndexDir)
   }
   
-  private def createIfNotExists(dir: File): File = {
-    if (!dir.exists) {
-      dir.mkdirs()  
-      val initConfig = new IndexWriterConfig(Version.LATEST, new StandardAnalyzer())
+  private def createIfNotExists(dir: Path): Path = {
+    if (!Files.exists(dir)) {
+      Files.createDirectories(dir)
+      val initConfig = new IndexWriterConfig(new StandardAnalyzer())
       val initializer = new IndexWriter(FSDirectory.open(dir), initConfig)
       initializer.close()      
     }

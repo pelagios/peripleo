@@ -1,7 +1,8 @@
 package index.suggest
 
 import index.{ IndexFields, NGramAnalyzer }
-import java.io.{ File, StringReader }
+import java.io.StringReader
+import java.nio.file.Path
 import org.apache.lucene.analysis.Analyzer
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager
 import org.apache.lucene.index.{ DirectoryReader, IndexWriterConfig }
@@ -9,11 +10,10 @@ import org.apache.lucene.search.SearcherManager
 import org.apache.lucene.search.spell.{ LuceneDictionary, SpellChecker, PlainTextDictionary }
 import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester
 import org.apache.lucene.store.FSDirectory
-import org.apache.lucene.util.Version
 import play.api.Logger
 import scala.collection.JavaConverters._
 
-class SuggestIndex(directory: File, placeSearcherManager: SearcherTaxonomyManager, objectSearcherManager: SearcherTaxonomyManager, analyzer: Analyzer) {
+class SuggestIndex(directory: Path, placeSearcherManager: SearcherTaxonomyManager, objectSearcherManager: SearcherTaxonomyManager, analyzer: Analyzer) {
   
   protected val spellcheckIndex = FSDirectory.open(directory)
   
@@ -56,7 +56,7 @@ class SuggestIndex(directory: File, placeSearcherManager: SearcherTaxonomyManage
       
     try {
       dictionarySources.foreach { case (fieldName, reader) =>
-        spellchecker.indexDictionary(new LuceneDictionary(reader, fieldName), new IndexWriterConfig(Version.LATEST, analyzer), true)
+        spellchecker.indexDictionary(new LuceneDictionary(reader, fieldName), new IndexWriterConfig(analyzer), true)
       }
     } finally {
       placeSearcherManager.release(placeSearcher)
@@ -69,7 +69,7 @@ class SuggestIndex(directory: File, placeSearcherManager: SearcherTaxonomyManage
   def addTerms(terms: Set[String]) = {
     val nGrams = NGramAnalyzer.tokenize(terms)
     val dictionary = new PlainTextDictionary(new StringReader(nGrams.mkString("\n")))
-    spellchecker.indexDictionary(dictionary, new IndexWriterConfig(Version.LATEST, analyzer), true)
+    spellchecker.indexDictionary(dictionary, new IndexWriterConfig(analyzer), true)
   }
   
   def suggestCompletion(query: String, limit: Int): Seq[String] =

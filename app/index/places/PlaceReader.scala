@@ -18,12 +18,12 @@ trait PlaceReader extends IndexBase {
   def listAllPlaceNetworks(offset: Int = 0, limit: Int = 20): Seq[IndexedPlaceNetwork] = {
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     val searcher = searcherAndTaxonomy.searcher
-    val collector = TopScoreDocCollector.create(offset + limit, true)
+    // val collector = TopScoreDocCollector.create(offset + limit, true)
     
     try {
-      searcher.search(new MatchAllDocsQuery(), collector)
+      val topDocs = searcher.search(new MatchAllDocsQuery(), offset + limit)
     
-      collector.topDocs(offset, limit).scoreDocs
+      topDocs.scoreDocs.drop(offset)
         .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
     } finally {
       placeSearcherManager.release(searcherAndTaxonomy)
@@ -46,16 +46,17 @@ trait PlaceReader extends IndexBase {
  
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     val searcher = searcherAndTaxonomy.searcher
-    val collector = TopScoreDocCollector.create(offset + limit, true)
+    // val collector = TopScoreDocCollector.create(offset + limit, true)
     
     try {
-      if (bboxFilter.isDefined)
-        searcher.search(query, bboxFilter.get, collector)
-      else
-        searcher.search(query, collector)
+      val topDocs = 
+        if (bboxFilter.isDefined)
+          searcher.search(query, bboxFilter.get, offset + limit)
+        else
+          searcher.search(query, offset + limit)
     
-      val total = collector.getTotalHits
-      val results = collector.topDocs(offset, limit).scoreDocs
+      val total = topDocs.totalHits //.getTotalHits
+      val results = topDocs.scoreDocs.drop(offset)
         .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
         .map(_.places.filter(_.sourceGazetteer == gazetteer).head)
       
@@ -73,11 +74,10 @@ trait PlaceReader extends IndexBase {
     
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     val searcher = searcherAndTaxonomy.searcher
-    val collector = TopScoreDocCollector.create(1, true)
     try {
-      searcher.search(q, collector)
+      val topDocs = searcher.search(q, 1)
     
-      collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).headOption
+      topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).headOption
     } finally {
       placeSearcherManager.release(searcherAndTaxonomy)
     }
@@ -89,11 +89,10 @@ trait PlaceReader extends IndexBase {
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     val searcher = searcherAndTaxonomy.searcher
     val numHits = Math.max(1, numPlaceNetworks) // Has to be minimum 1, but can never exceed size of index
-    val collector = TopScoreDocCollector.create(numHits, true)
     try {
-      searcher.search(q, collector)
+      val topDocs = searcher.search(q, numHits)
     
-      collector.topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc)))
+      topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc)))
     } finally {
       placeSearcherManager.release(searcherAndTaxonomy)
     }

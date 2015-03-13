@@ -13,8 +13,8 @@ import scala.collection.mutable.ListBuffer
 
 class NGramAnalyzer(size: Int) extends Analyzer {
 
-  override def createComponents(fieldName: String, reader: Reader) = {
-    val source = new StandardTokenizer(reader)
+  override def createComponents(fieldName: String) = {
+    val source = new StandardTokenizer()
 
     val shingleFilter = new ShingleFilter(source, size)
     val lowerCaseFilter = new LowerCaseFilter(shingleFilter)

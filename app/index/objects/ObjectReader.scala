@@ -23,6 +23,11 @@ import org.apache.lucene.search.suggest.analyzing.FreeTextSuggester
 import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester
 import org.apache.lucene.index.DirectoryReader
 import org.apache.lucene.search.spell.SpellChecker
+// import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
+import com.spatial4j.core.context.SpatialContextFactory
+import com.spatial4j.core.shape.impl.RectangleImpl
+import org.apache.lucene.spatial.prefix.tree.QuadPrefixTree
+import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 
 trait ObjectReader extends IndexBase {
 
@@ -125,7 +130,14 @@ trait ObjectReader extends IndexBase {
     try {      
       val facetsCollector = new FacetsCollector()
       
-      val topDocsCollector = TopScoreDocCollector.create(offset + limit, true)
+      /** HEATMAP test code **/
+
+      // val heatmapFacetCounter = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, null, new RectangleImpl(-90, 90, -90, 90, null), 4, 1000)
+      // Logger.info(heatmapFacetCounter.toString das)
+      
+      /** HEATMAP test code end **/
+      
+      val topDocsCollector = TopScoreDocCollector.create(offset + limit)
       searcher.search(query, MultiCollector.wrap(topDocsCollector, facetsCollector))
       
       val facetTree = new FacetTree(new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, facetsCollector))      
