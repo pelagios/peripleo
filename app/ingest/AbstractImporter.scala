@@ -4,12 +4,16 @@ import global.Global
 import index.places.IndexedPlace
 import java.math.BigInteger
 import java.security.MessageDigest
-import models.Associations
+import models.{ Associations, MasterHeatmap }
+import models.adjacency.PlaceAdjacency
 import models.core._
+import models.geo.GazetteerReference
 import org.pelagios.Scalagios
 import play.api.db.slick._
+import play.api.libs.json.Json
 import play.api.Logger
-import models.MasterHeatmap
+import models.adjacency.PlaceAdjacencys
+
 
 /** One 'ingest record' **/
 case class IngestRecord(
@@ -17,20 +21,55 @@ case class IngestRecord(
     /** The annotated thing **/
     thing: AnnotatedThing, 
     
-    /** Images related to the annotated thing **/
-    images: Seq[Image], 
-    
     /** Annotations on the annotated thing **/
     annotations: Seq[Annotation],
     
     /** Places associated with the annotated thing, with place count **/
-    places: Seq[(IndexedPlace, Int)])
+    places: Seq[(IndexedPlace, Int)],
+
+    /** Fulltext connected to the thing, if any **/
+    fulltext: Option[String],
+
+    /** Images related to the annotated thing **/
+    images: Seq[Image]
+    
+)
 
 abstract class AbstractImporter {
   
   private val SHA256 = "SHA-256"
     
   private val UTF8 = "UTF-8"
+    
+  private def computePlaceAdjacency(thingId: String, annotations: Seq[Annotation], places: Map[String, IndexedPlace]): Seq[PlaceAdjacency] = {
+    // Pairs of adjacent annotations (i.e. those that follow in the list)
+    val annotationAdjacencyPairs = annotations.sliding(2).toSeq
+    
+    // Now we group our pairs by (place, adjacentPlace)
+    annotationAdjacencyPairs
+      .groupBy(pair => (pair.head.gazetteerURI, pair.last.gazetteerURI)).toSeq
+      .map { case ((placeURI, nextPlaceURI), pairs) => {
+        val place = places.get(placeURI)
+        val nextPlace = places.get(nextPlaceURI)
+        
+        if (place.isDefined && nextPlace.isDefined && place.map(_.uri) != nextPlace.map(_.uri)) {
+          Some(PlaceAdjacency(
+            None, 
+            pairs.head.head.annotatedThing,
+            place.map(p => GazetteerReference(p.uri, p.label, p.geometryJson.map(Json.stringify(_)))).get,
+            nextPlace.map(p => GazetteerReference(p.uri, p.label, p.geometryJson.map(Json.stringify(_)))).get,
+            pairs.size
+          ))
+        } else {
+          None
+        }
+      }}.flatten
+  }
+  
+  private def buildFullText(parent: IngestRecord, ingestBatch: Seq[IngestRecord]): Seq[String] = {
+    val children = ingestBatch.filter(_.thing.isPartOf == Some(parent.thing.id))
+    (parent.fulltext +: children.map(_.fulltext)).flatten ++ children.flatMap(r => buildFullText(r, ingestBatch))
+  }
    
   protected def ingest(ingestBatch: Seq[IngestRecord], dataset: Dataset)(implicit s: Session) {
     // Insert data into DB
@@ -42,21 +81,57 @@ abstract class AbstractImporter {
 
     val allAnnotations = ingestBatch.flatMap(_.annotations)
     Annotations.insertAll(allAnnotations)
-            
+                
+    val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._1.uri, p._1))).toMap
+    
     // Update aggregation table stats
     Associations.insert(ingestBatch.map(record => (record.thing, record.places)))
+    
+    // Place adjacency (only for annotated things with 2+ annotations!)
+    val allAdjacencies = 
+      ingestBatch.filter(_.annotations.size > 1)
+        .flatMap(record => computePlaceAdjacency(record.thing.id, record.annotations, placeLookup))
+      
+    PlaceAdjacencys.insertAll(allAdjacencies)
     
     // Update the parent dataset with new temporal profile and convex hull
     val affectedDatasets = Datasets.recomputeSpaceTimeBounds(dataset)
     
-    // Update object index
+    // Update object index - note: we only index metadata for top-level items, but want fulltext from children as well
     Logger.info("Updating Index") 
-    val topLevelThings = ingestBatch.map(record => (record.thing, record.places.map(_._1))).filter(_._1.isPartOf.isEmpty)
+    val topLevelThings = ingestBatch.filter(_.thing.isPartOf.isEmpty).map(r => {
+      val collapsedFulltext = {
+        val childTexts = buildFullText(r, ingestBatch)
+        if (childTexts.isEmpty)
+          None
+        else
+          Some(childTexts.mkString(" "))
+      }
+      
+      (r.thing, r.places.map(_._1), collapsedFulltext)
+    })
     val datasetHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
+    Logger.info("Indexing the item")
     Global.index.addAnnotatedThings(topLevelThings, datasetHierarchy)
     Global.index.updateDatasets(affectedDatasets)
     
+    // Update annotation index
+    val annotationsWithTimeAndPlace = ingestBatch.flatMap(record => {
+      // Temporal bounds of the annotation are those of their annotated thing
+      val tempBoundsStart = record.thing.temporalBoundsStart
+      val tempBoundsEnd = record.thing.temporalBoundsEnd
+      
+      record.annotations.map(annotation => {
+        // Geometry is that of the gazetteer
+        val geom = placeLookup.get(annotation.gazetteerURI).flatMap(_.geometry)
+        geom.map(g => (annotation, tempBoundsStart, tempBoundsEnd, g))
+      })
+    }).flatten // The annotation index is to support heatmaps, so we're not interested in annotation without geometry
+    Logger.info("Indexing annotations")
+    Global.index.addAnnotations(annotationsWithTimeAndPlace)
+    
     // Update suggestion index
+    Logger.info("Updating the suggestion index")
     val titlesAndDescriptions = topLevelThings.flatMap(t => Seq(Some(t._1.title), t._1.description).flatten)
     Global.index.suggester.addTerms(titlesAndDescriptions.toSet)
     Global.index.refresh()

@@ -49,6 +49,16 @@ object CSVImporter extends AbstractImporter {
     val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3, t._4)))
     val annotationsForParts = annotations.filter(!_._1.isEmpty)
     
+    // For CSVs, 'fulltext' is simply a concatenation of all distinct toponyms in the table
+    val fulltextOnRoot = {
+      val fulltext = annotationsOnRoot.map(_._3).distinct.mkString(" ")
+      if (fulltext.isEmpty)
+        None
+      else
+        Some(fulltext)
+    }
+    val fulltextForParts = annotationsForParts.mapValues(t => t.map(_._4).mkString(" "))
+    
     val ingestBatch = {
       // Root thing
       val rootTitle = meta.get("author").map(_ + ": ").getOrElse("") + meta.get("title").get + meta.get("language").map(" (" + _ + ")").getOrElse("")
@@ -67,7 +77,7 @@ object CSVImporter extends AbstractImporter {
         val thing = 
           AnnotatedThing(partThingId, dataset.id, partTitle, None, Some(rootThingId), None, date, date, ConvexHull.fromPlaces(places.map(_._1)))
           
-        IngestRecord(thing, Seq.empty[Image], annotations, places)
+        IngestRecord(thing, annotations, places, fulltextForParts.get(partTitle), Seq.empty[Image])
       }.toSeq
      
       // Root thing
@@ -82,7 +92,7 @@ object CSVImporter extends AbstractImporter {
       
       val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, ConvexHull.fromPlaces(allPlaces.map(_._1)))
       
-      IngestRecord(rootThing, Seq.empty[Image], rootAnnotations, allPlaces) +: partIngestBatch
+      IngestRecord(rootThing, rootAnnotations, allPlaces, fulltextOnRoot, Seq.empty[Image]) +: partIngestBatch
     }
 
     // Insert data into DB

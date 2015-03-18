@@ -9,13 +9,13 @@ import index.places.IndexedPlace
 
 trait ObjectWriter extends IndexBase {
   
-  def addAnnotatedThing(annotatedThing: AnnotatedThing, places: Seq[IndexedPlace], datasetHierarchy: Seq[Dataset])(implicit s: Session) =
-    addAnnotatedThings(Seq((annotatedThing, places)), datasetHierarchy)
+  def addAnnotatedThing(annotatedThing: AnnotatedThing, places: Seq[IndexedPlace], fulltext: Option[String], datasetHierarchy: Seq[Dataset])(implicit s: Session) =
+    addAnnotatedThings(Seq((annotatedThing, places, fulltext)), datasetHierarchy)
   
-  def addAnnotatedThings(annotatedThings: Seq[(AnnotatedThing, Seq[IndexedPlace])], datasetHierarchy: Seq[Dataset])(implicit s: Session) =
+  def addAnnotatedThings(annotatedThings: Seq[(AnnotatedThing, Seq[IndexedPlace], Option[String])], datasetHierarchy: Seq[Dataset])(implicit s: Session) =
     // NOTE: not sure parallelization is totally safe the way we're using it here
-    annotatedThings.par.foreach { case (thing, places) =>
-      objectWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, places, datasetHierarchy)))}
+    annotatedThings.par.foreach { case (thing, places, fulltext) =>
+      objectWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(thing, places, fulltext, datasetHierarchy)))}
   
   def addDataset(dataset: Dataset) = addDatasets(Seq(dataset))
   

@@ -20,4 +20,8 @@ object AnnotatedThingPagesController extends AbstractController {
     }
   }
   
+  def getAdjacencyGraph(id: String) = loggingAction { implicit session =>
+    Ok(views.html.placeAdjacencyHack(id))
+  }
+  
 }

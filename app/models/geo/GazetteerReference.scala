@@ -1,6 +1,7 @@
 package models.geo
 
 import com.vividsolutions.jts.geom.{ Coordinate, Geometry }
+import index.places.IndexedPlace
 import org.geotools.geojson.geom.GeometryJSON
 import play.api.db.slick.Config.driver.simple._
 

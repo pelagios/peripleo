@@ -2,9 +2,11 @@ package controllers
 
 import controllers.common.JSONWrites._
 import models.Associations
+import models.adjacency.PlaceAdjacencys
 import models.core.{ Annotations, AnnotatedThings }
 import play.api.db.slick._
 import play.api.libs.json.{ Json, JsString, Writes }
+
 
 object AnnotatedThingController extends AbstractController {
       
@@ -52,5 +54,14 @@ object AnnotatedThingController extends AbstractController {
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   } 
+  
+  def getAdjacencyGraph(id: String) = loggingAction { implicit session =>
+    val annotatedThing = AnnotatedThings.findById(id)
+    if (annotatedThing.isDefined) {
+      jsonOk(Json.toJson(PlaceAdjacencys.findByAnnotatedThingRecursive(id)), session.request)
+    } else {
+      NotFound(Json.parse("{ \"message\": \"Not found\" }"))
+    }
+  }
   
 }

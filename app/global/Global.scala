@@ -6,6 +6,7 @@ import index.Index
 import java.io.{ File, FileInputStream }
 import java.util.zip.GZIPInputStream
 import models._
+import models.adjacency._
 import models.core._
 import models.geo._
 import org.pelagios.api.gazetteer.Place
@@ -111,7 +112,12 @@ object Global extends GlobalSettings {
       if (MTable.getTables("tags").list.isEmpty) {
         Logger.info("DB table 'tags' does not exist - creating")
         Tags.create
-      }    
+      }  
+
+      if (MTable.getTables("adjacency_places").list.isEmpty) {
+        Logger.info("DB table 'adjacency_place' does not exist - creating")
+        PlaceAdjacencys.create
+      }  
       
       if (MTable.getTables("master_heatmap").list.isEmpty) {
         Logger.info("DB table 'master_heatmap' does not exist - creating")

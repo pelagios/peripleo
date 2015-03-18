@@ -9,8 +9,6 @@ object IndexFields {
   val TITLE = "title"
     
   val DESCRIPTION = "description"
-    
-  val PUBLISHER = "publisher"
   
   val OBJECT_TYPE = "type"
 
@@ -32,6 +30,8 @@ object IndexFields {
   val ITEM_DATASET = "dataset"    
     
   val ITEM_PLACES = "place_uri"
+  
+  val ITEM_FULLTEXT = "fulltext"
     
     
   /** Place-specific fields **/
@@ -46,4 +46,15 @@ object IndexFields {
     
   val PLACE_AS_JSON = "place"
   
+  
+  /** Annotation-specific fields **/
+    
+  val ANNOTATION_DATASET = "dataset"
+  
+  val ANNOTATION_THING = "annotated_thing"
+  
+  val ANNOTATION_PLACE = "place_uri"
+  
+  val ANNOTATION_QUOTE = "quote"
+    
 }

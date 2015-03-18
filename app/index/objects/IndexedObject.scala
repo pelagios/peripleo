@@ -15,6 +15,7 @@ import index.places.IndexedPlaceNetwork
 import play.api.Logger
 import org.apache.lucene.facet.taxonomy.AssociationFacetField
 import org.apache.lucene.util.BytesRef
+import index.Index
 
 case class IndexedObject(private val doc: Document) {
 
@@ -43,20 +44,12 @@ case class IndexedObject(private val doc: Document) {
 }
 
 object IndexedObject {
-	
-  private val spatialCtx = JtsSpatialContext.GEO
   
-  private val maxLevels = 11 //results in sub-meter precision for geohash
-  
-  private val spatialStrategy =
-    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
-  
-  def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], datasetHierarchy: Seq[Dataset]): Document = {
+  def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
     
     // ID, publisher, parent dataset ID, title, description, homepage, type = AnnotatedThing
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
-    doc.add(new StringField(IndexFields.PUBLISHER, datasetHierarchy.head.publisher, Field.Store.NO))
     doc.add(new StringField(IndexFields.ITEM_DATASET, thing.dataset, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
@@ -71,7 +64,10 @@ object IndexedObject {
     // Temporal bounds
     thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
     thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
-
+    
+    // Fulltext
+    fulltext.map(text => doc.add(new TextField(IndexFields.ITEM_FULLTEXT, text, Field.Store.NO)))
+    
     // Convex hull
     thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
 
@@ -80,7 +76,7 @@ object IndexedObject {
     
     // Detailed geometry as spatially indexed features
     val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
-    geometries.foreach(geom => spatialStrategy.createIndexableFields(spatialCtx.makeShape(geom)).foreach(doc.add(_)))
+    geometries.foreach(geom => Index.spatialStrategy.createIndexableFields(Index.spatialCtx.makeShape(geom)).foreach(doc.add(_)))
     
     doc   
   }
@@ -90,7 +86,6 @@ object IndexedObject {
     
     // ID, publisher, parent dataset ID, title, description, homepage, type = Dataset
     doc.add(new StringField(IndexFields.ID, dataset.id, Field.Store.YES))
-    doc.add(new StringField(IndexFields.PUBLISHER, dataset.publisher, Field.Store.NO))
     dataset.isPartOf.map(isPartOf => doc.add(new StoredField(IndexFields.IS_PART_OF, isPartOf)))
     doc.add(new TextField(IndexFields.TITLE, dataset.title, Field.Store.YES))
     dataset.description.map(d => doc.add(new TextField(IndexFields.DESCRIPTION, d, Field.Store.YES)))

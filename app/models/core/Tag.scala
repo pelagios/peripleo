@@ -25,6 +25,10 @@ class Tags(slickTag: SlickTag) extends Table[Tag](slickTag, "tags") {
   def datasetFk = foreignKey("dataset_fk", datasetId, Datasets.query)(_.id)
   
   def annotatedThingFk = foreignKey("annotated_thing_fk", annotatedThingId, AnnotatedThings.query)(_.id)
+  
+  /** Indices **/
+  
+  def annotatedThingIdx = index("idx_tags_by_thing", annotatedThingId, unique = false)
 	
 }
 

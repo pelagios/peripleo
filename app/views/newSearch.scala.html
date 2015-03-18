@@ -1,4 +1,4 @@
-@(results: Page[index.objects.IndexedObject], facets: Option[index.FacetTree], filters: Map[String, String], heatmap: Seq[(Double, Double, Int)], took: Long)(implicit request: RequestHeader)
+@(results: Page[index.objects.IndexedObject], facets: Option[index.FacetTree], filters: Map[String, String], heatmap: index.Heatmap, took: Long)(implicit request: RequestHeader)
 <html>
   <head>
     <title>Pelagios Search</title>
@@ -39,22 +39,24 @@
                 zoom: 3,
                 layers: [awmcLayer, heatmapLayer]
               });
-            
-        @defining(heatmap.map(_._3)) { weights =>
-          var minWeight = @weights.min;
-          var maxWeight = @weights.max;
-          var delta = maxWeight - minWeight + 0.00001; // to take care of min = max cases
-        }
+              
+        @if(!heatmap.isEmpty) {
+          @defining(heatmap.cells.map(_._3)) { weights =>
+            var minWeight = @weights.min;
+            var maxWeight = @weights.max;
+            var delta = maxWeight - minWeight + 0.00001; // to take care of min = max cases
+          }
         
-        @for((lng, lat, weight) <- heatmap) {
-          points.push({ lat: @lat, lng: @lng, count: @weight });
-          // L.circleMarker(L.latLng(@lat, @lng), { stroke: false, radius: 3, fillColor:'#7b4173', fillOpacity: 1 - ((maxWeight - @weight)/delta) * 0.65 }).addTo(map);
-        }
+          @for((lng, lat, weight) <- heatmap.cells) {
+            points.push({ lat: @lat, lng: @lng, count: @weight });
+            // L.circleMarker(L.latLng(@lat, @lng), { stroke: false, radius: 3, fillColor:'#7b4173', fillOpacity: 1 - ((maxWeight - @weight)/delta) * 0.65 }).addTo(map);
+          }
         
-        heatmapLayer.setData({
-          max: maxWeight,
-          data: points
-        });
+          heatmapLayer.setData({
+            max: maxWeight,
+            data: points
+          });
+        }
       });
     </script>
   </head>

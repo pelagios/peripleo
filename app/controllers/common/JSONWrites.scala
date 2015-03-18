@@ -4,12 +4,14 @@ import global.Global
 import index.objects.IndexedObject
 import index.places._
 import models._
+import models.adjacency._
 import models.core._
 import models.geo._
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
+import models.adjacency.PlaceAdjacencyGraph
 
 /** JSON writers for model and index classes. **/
 object JSONWrites {
@@ -177,6 +179,14 @@ object JSONWrites {
     (JsPath \ "lon").write[Double] ~
     (JsPath \ "weight").write[Int]
   )(pt => (pt.uri, pt.lat, pt.lon, pt.weight))
+  
+  /** TODO just a hack **/
+  
+  implicit def placeAdjacencyWrites(implicit verbose: Boolean = false): Writes[PlaceAdjacencyGraph] = (
+    (JsPath \ "nodes").write[Seq[GazetteerReference]] ~
+    (JsPath \ "links").write[Seq[JsValue]]
+  )(graph =>
+    (graph.nodes, graph.edges.map(e => Json.obj("source" -> e.from, "target" -> e.to, "weight" -> e.weight))))
       
   /**                             **/
   /** Index entity serializations **/

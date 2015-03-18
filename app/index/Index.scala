@@ -1,25 +1,24 @@
 package index
 
+import com.spatial4j.core.context.jts.JtsSpatialContext
+import index.annotations._
 import index.objects._
 import index.places._
 import index.suggest.SuggestIndex
-import java.nio.file.Path
+import java.nio.file.{ Files, FileSystems, Path }
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.facet.FacetsConfig
 import org.apache.lucene.facet.taxonomy.{ TaxonomyWriter, SearcherTaxonomyManager }
 import org.apache.lucene.facet.taxonomy.directory.{ DirectoryTaxonomyReader, DirectoryTaxonomyWriter }
 import org.apache.lucene.index.{ DirectoryReader, IndexWriter, IndexWriterConfig, MultiReader }
-import org.apache.lucene.search.{ IndexSearcher, SearcherFactory }
+import org.apache.lucene.search.{ IndexSearcher, SearcherFactory, SearcherManager }
 import org.apache.lucene.store.FSDirectory
 import org.apache.lucene.search.spell.{ SpellChecker, LuceneDictionary }
-import play.api.Logger
-import com.spatial4j.core.context.jts.JtsSpatialContext
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
-import java.nio.file.FileSystems
-import java.nio.file.Files
+import play.api.Logger
 
-private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, spellcheckDir: Path) {  
+private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, annotationDir: Path, spellcheckDir: Path) {  
     
   /** Indices **/
   private val placeIndex = FSDirectory.open(placeIndexDir)
@@ -28,11 +27,15 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   
   private val taxonomyIndex = FSDirectory.open(taxonomyDir)
   
+  private val annotationIndex = FSDirectory.open(annotationDir)
+  
   
   /** Index searcher managers **/  
   protected val placeSearcherManager = new SearcherTaxonomyManager(placeIndex, taxonomyIndex, new SearcherFactory())
   
   protected val objectSearcherManager = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
+  
+  protected val annotationSearcherManager = new SearcherManager(annotationIndex, new SearcherFactory())
   
   
   /** We're using our own 3-word phrase analyzer **/
@@ -43,16 +46,19 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   val suggester = new SuggestIndex(spellcheckDir, placeSearcherManager, objectSearcherManager, analyzer)  
   
   
-  /** Index writers **/
-  protected lazy val taxonomyWriter: TaxonomyWriter = 
-    new DirectoryTaxonomyWriter(taxonomyIndex)
+  /** Index writers **/  
+  protected lazy val placeWriter: IndexWriter = 
+    new IndexWriter(placeIndex, new IndexWriterConfig(analyzer))
   
   protected lazy val objectWriter: IndexWriter =
     new IndexWriter(objectIndex, new IndexWriterConfig(analyzer))
-    
-  protected lazy val placeWriter: IndexWriter = 
-    new IndexWriter(placeIndex, new IndexWriterConfig(analyzer))
-
+  
+  protected lazy val taxonomyWriter: TaxonomyWriter = 
+    new DirectoryTaxonomyWriter(taxonomyIndex)
+  
+  protected lazy val annotationWriter: IndexWriter = 
+    new IndexWriter(annotationIndex, new IndexWriterConfig(analyzer))
+  
   
   /** Returns the number of objects in the object index **/
   def numObjects: Int = {
@@ -75,41 +81,48 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   /** Commits all writes and refreshes the readers **/
   def refresh() = {
     Logger.info("Committing index writes and refreshing readers")
-    
-    objectWriter.commit()
+
     placeWriter.commit()
+    objectWriter.commit()
     taxonomyWriter.commit()
+    annotationWriter.commit()
     
-    objectSearcherManager.maybeRefresh()
     placeSearcherManager.maybeRefresh()
+    objectSearcherManager.maybeRefresh()
+    annotationSearcherManager.maybeRefresh()
   }
   
   /** Closes all indices **/
   def close() = {
     analyzer.close()
     
-    objectWriter.close()
     placeWriter.close()
+    objectWriter.close()
     taxonomyWriter.close()
+    annotationWriter.close()
     
-    objectSearcherManager.close()
     placeSearcherManager.close()
+    objectSearcherManager.close()
+    annotationSearcherManager.close()
     
+    placeIndex.close()
     objectIndex.close()
     taxonomyIndex.close()
-    placeIndex.close()
+    annotationIndex.close()
     
     suggester.close()
   }
       
 }
 
-class Index private(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, spellcheckDir: Path)
-  extends IndexBase(placeIndexDir, objectIndexDir, taxonomyDir, spellcheckDir)
+class Index private(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, annotationDir: Path, spellcheckDir: Path)
+  extends IndexBase(placeIndexDir, objectIndexDir, taxonomyDir, annotationDir, spellcheckDir)
     with ObjectReader
     with ObjectWriter
     with PlaceReader
     with PlaceWriter
+    with AnnotationReader
+    with AnnotationWriter
   
 object Index {
   
@@ -134,6 +147,7 @@ object Index {
       
     val placeIndexDir = createIfNotExists(baseDir.resolve("gazetteer"))
     val objectIndexDir = createIfNotExists(baseDir.resolve("objects"))
+    val annotationIndexDir = createIfNotExists(baseDir.resolve("annotations"))
     
     val taxonomyDirectory = baseDir.resolve("taxonomy")
     if (!Files.exists(taxonomyDirectory)) {
@@ -144,7 +158,7 @@ object Index {
     
     val spellcheckIndexDir = createIfNotExists(baseDir.resolve("spellcheck"))
     
-    new Index(placeIndexDir, objectIndexDir, taxonomyDirectory, spellcheckIndexDir)
+    new Index(placeIndexDir, objectIndexDir, taxonomyDirectory, annotationIndexDir, spellcheckIndexDir)
   }
   
   private def createIfNotExists(dir: Path): Path = {

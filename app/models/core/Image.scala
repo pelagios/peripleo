@@ -32,6 +32,10 @@ class Images(tag: SlickTag) extends Table[Image](tag, "images") {
   def datasetFk = foreignKey("dataset_fk", datasetId, Datasets.query)(_.id)
   
   def annotatedThingFk = foreignKey("annotated_thing_fk", annotatedThingId, AnnotatedThings.query)(_.id)
+  
+  /** Indices **/
+  
+  def annotatedThingIdx = index("idx_images_by_thing", annotatedThingId, unique = false)
 
 }
 

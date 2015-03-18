@@ -1,15 +1,15 @@
 package controllers.pages
 
 import controllers.AbstractController
+import global.Global
+import index.Heatmap
+import index.objects.{ IndexedObject, IndexedObjectTypes }
+import models.Page
+import models.core.Datasets
 import play.api.Logger
 import play.api.mvc.{ Action, RequestHeader }
-import global.Global
 import play.api.libs.json.Json
-import models.Page
-import index.objects.IndexedObject
 import play.api.db.slick._
-import index.objects.IndexedObjectTypes
-import models.core.Datasets
 
 object SearchController extends AbstractController {
   
@@ -51,7 +51,7 @@ object SearchController extends AbstractController {
       Ok(views.html.newSearch(results._1, Some(results._2), filters, results._3, System.currentTimeMillis - startTime))
     } else {
       // TODO redirect to home
-      Ok(views.html.newSearch(Page.empty[IndexedObject], None, Map.empty[String, String], Seq.empty[(Double, Double, Int)], 0))
+      Ok(views.html.newSearch(Page.empty[IndexedObject], None, Map.empty[String, String], Heatmap.empty, 0))
     }
   }
   

@@ -125,7 +125,7 @@ object PelagiosOAImporter extends AbstractImporter {
       val annotations = oaThing.annotations.map(a =>
         Annotation(UUID.randomUUID, dataset.id, thingId, a.places.head, None, None))     
         
-      IngestRecord(thing, images, annotations, places)
+      IngestRecord(thing, annotations, places, None, images)
     }}
       
     // Insert data into DB
