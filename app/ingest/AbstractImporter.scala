@@ -22,7 +22,7 @@ case class IngestRecord(
     thing: AnnotatedThing, 
     
     /** Annotations on the annotated thing **/
-    annotations: Seq[Annotation],
+    annotationsWithText: Seq[(Annotation, Option[String])],
     
     /** Places associated with the annotated thing, with place count **/
     places: Seq[(IndexedPlace, Int)],
@@ -79,7 +79,7 @@ abstract class AbstractImporter {
     val allImages = ingestBatch.flatMap(_.images)
     Images.insertAll(allImages)
 
-    val allAnnotations = ingestBatch.flatMap(_.annotations)
+    val allAnnotations = ingestBatch.flatMap(_.annotationsWithText.map(_._1))
     Annotations.insertAll(allAnnotations)
                 
     val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._1.uri, p._1))).toMap
@@ -89,8 +89,8 @@ abstract class AbstractImporter {
     
     // Place adjacency (only for annotated things with 2+ annotations!)
     val allAdjacencies = 
-      ingestBatch.filter(_.annotations.size > 1)
-        .flatMap(record => computePlaceAdjacency(record.thing.id, record.annotations, placeLookup))
+      ingestBatch.filter(_.annotationsWithText.size > 1)
+        .flatMap(record => computePlaceAdjacency(record.thing.id, record.annotationsWithText.map(_._1), placeLookup))
       
     PlaceAdjacencys.insertAll(allAdjacencies)
     
@@ -116,19 +116,19 @@ abstract class AbstractImporter {
     Global.index.updateDatasets(affectedDatasets)
     
     // Update annotation index
-    val annotationsWithTimeAndPlace = ingestBatch.flatMap(record => {
+    val annotationsWithContext = ingestBatch.flatMap(record => {
       // Temporal bounds of the annotation are those of their annotated thing
       val tempBoundsStart = record.thing.temporalBoundsStart
       val tempBoundsEnd = record.thing.temporalBoundsEnd
       
-      record.annotations.map(annotation => {
+      record.annotationsWithText.map { case (annotation, text) => {
         // Geometry is that of the gazetteer
         val geom = placeLookup.get(annotation.gazetteerURI).flatMap(_.geometry)
-        geom.map(g => (annotation, tempBoundsStart, tempBoundsEnd, g))
-      })
+        geom.map(g => (annotation, tempBoundsStart, tempBoundsEnd, g, text))
+      }}
     }).flatten // The annotation index is to support heatmaps, so we're not interested in annotation without geometry
     Logger.info("Indexing annotations")
-    Global.index.addAnnotations(annotationsWithTimeAndPlace)
+    Global.index.addAnnotations(annotationsWithContext)
     
     // Update suggestion index
     Logger.info("Updating the suggestion index")

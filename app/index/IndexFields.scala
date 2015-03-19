@@ -56,5 +56,7 @@ object IndexFields {
   val ANNOTATION_PLACE = "place_uri"
   
   val ANNOTATION_QUOTE = "quote"
+  
+  val ANNOTATION_FULLTEXT = "fulltext"
     
 }
