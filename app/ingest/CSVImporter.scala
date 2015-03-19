@@ -32,32 +32,53 @@ object CSVImporter extends AbstractImporter {
   // TODO this only works on hierarchical docs now!
   def importRecogitoCSV(source: Source, dataset: Dataset)(implicit s: Session) = {
     val data = source.getLines.toSeq
-    val meta = toMap(data.takeWhile(_.startsWith("#")))                   
-    val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
-    val uuidIdx = header.indexOf("uuid")
+    val meta = toMap(data.takeWhile(_.startsWith("#")))  
     
+    val header = data.drop(meta.size).take(1).toSeq.head.split(SEPARATOR, -1).toSeq
+    
+    // Mandatory columns
+    val uuidIdx = header.indexOf("uuid")
+    val uriIdx = header.indexOf("gazetteer_uri")
+    val toponymIdx = header.indexOf("toponym")
+    
+    // Optional columns (with a little shorthand function)
+    def getOptIdx(key: String): Option[Int] = header.indexOf(key) match {
+      case -1 => None
+      case i => Some(i)
+    }
+      
+    val fulltextPrefixIdx = getOptIdx("fulltext_prefix")
+    val fulltextSuffixIdx = getOptIdx("fulltext_suffix")
+
     val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
       val uuid = if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID 
-      val gazetteerURI = fields(header.indexOf("gazetteer_uri"))
-      val toponym = fields(header.indexOf("toponym"))
+      val gazetteerURI = fields(header.indexOf(uriIdx))
+      val toponym = fields(toponymIdx)
+      
+      val fulltextPrefix = fulltextPrefixIdx.map(fields(_))
+      val fulltextSuffix = fulltextSuffixIdx.map(fields(_))
       
       // In case annotations are on the root thing, the document part is an empty string!
       val documentPart = fields(header.indexOf("document_part")) 
-      (uuid, documentPart, gazetteerURI, toponym)     
+      (uuid, documentPart, gazetteerURI, toponym, fulltextPrefix, fulltextSuffix)     
     }).groupBy(_._2)
 
-    val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3, t._4)))
+    val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3, t._4, t._5, t._6)))
     val annotationsForParts = annotations.filter(!_._1.isEmpty)
     
-    // For CSVs, 'fulltext' is simply a concatenation of all distinct toponyms in the table
-    val fulltextOnRoot = {
-      val fulltext = annotationsOnRoot.map(_._3).distinct.mkString(" ")
-      if (fulltext.isEmpty)
+    // For document indexing, we'll just concatenate the fulltext (prefix, toponym) pairs, and add the final suffix
+    def concatAnnotationText(toponymPrefixSuffix: Seq[(String, Option[String], Option[String])]): Option[String] = {
+      val text = toponymPrefixSuffix.map { case (toponym, prefix, _) =>
+        (prefix.getOrElse("") + " " + toponym).trim }.mkString(" ") + toponymPrefixSuffix.lastOption.getOrElse("")
+        
+      if (text.isEmpty)
         None
       else
-        Some(fulltext)
+        Some(text)
     }
-    val fulltextForParts = annotationsForParts.mapValues(t => t.map(_._4).mkString(" "))
+    
+    val fulltextOnRoot = concatAnnotationText(annotationsOnRoot.map(t => (t._3, t._4, t._5)))
+    val fulltextForParts = annotationsForParts.mapValues(values => concatAnnotationText(values.map(t => (t._4, t._5, t._6))))
     
     val ingestBatch = {
       // Root thing
@@ -68,7 +89,7 @@ object CSVImporter extends AbstractImporter {
       val partIngestBatch = annotationsForParts.map { case (partTitle, tuples) =>
         val partThingId = sha256(rootThingId + " " + partTitle)
         
-        val annotations = tuples.zipWithIndex.map { case ((uuid, _, gazetteerURI, toponym), index) => 
+        val annotations = tuples.zipWithIndex.map { case ((uuid, _, gazetteerURI, toponym, _, _), index) => 
           Annotation(uuid, dataset.id, partThingId, gazetteerURI, Some(toponym), Some(index)) }
         
         val places = 
@@ -77,11 +98,11 @@ object CSVImporter extends AbstractImporter {
         val thing = 
           AnnotatedThing(partThingId, dataset.id, partTitle, None, Some(rootThingId), None, date, date, ConvexHull.fromPlaces(places.map(_._1)))
           
-        IngestRecord(thing, annotations, places, fulltextForParts.get(partTitle), Seq.empty[Image])
+        IngestRecord(thing, annotations, places, fulltextForParts.get(partTitle).flatten, Seq.empty[Image])
       }.toSeq
      
       // Root thing
-      val rootAnnotations = annotationsOnRoot.zipWithIndex.map { case ((uuid, gazetteerURI, toponym), index) => Annotation(uuid, dataset.id, rootThingId, gazetteerURI, Some(toponym), Some(index)) }
+      val rootAnnotations = annotationsOnRoot.zipWithIndex.map { case ((uuid, gazetteerURI, toponym, _, _), index) => Annotation(uuid, dataset.id, rootThingId, gazetteerURI, Some(toponym), Some(index)) }
       
       // The places of the root thing consist of the places *directly* on the root thing and the places on all parts
       // Usually, only one list will be non-empty - but we add them, just in case
