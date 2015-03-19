@@ -30,7 +30,7 @@ trait AnnotationReader extends IndexBase {
     
     // Keyword query
     if (query.isDefined) {
-      val fields = Seq(IndexFields.ANNOTATION_QUOTE).toArray       
+      val fields = Seq(IndexFields.ANNOTATION_QUOTE, IndexFields.ANNOTATION_FULLTEXT).toArray       
       q.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
     }     
     

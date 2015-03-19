@@ -71,7 +71,7 @@ object CSVImporter extends AbstractImporter {
 
     val annotations = data.drop(meta.size + 1).map(_.split(SPLIT_REGEX, -1)).map(fields => {
       val uuid = if (uuidIdx > -1) UUID.fromString(fields(uuidIdx)) else UUID.randomUUID 
-      val gazetteerURI = fields(header.indexOf(uriIdx))
+      val gazetteerURI = fields(uriIdx)
       val toponym = fields(toponymIdx)
       
       val fulltextPrefix = fulltextPrefixIdx.map(fields(_))
