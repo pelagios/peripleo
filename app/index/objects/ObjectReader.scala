@@ -1,6 +1,7 @@
 package index.objects
 
 import com.spatial4j.core.distance.DistanceUtils
+import com.spatial4j.core.shape.impl.RectangleImpl
 import com.vividsolutions.jts.geom.Coordinate
 import index._
 import index.annotations.AnnotationReader
@@ -11,26 +12,22 @@ import org.apache.lucene.util.Version
 import org.apache.lucene.index.{ Term, MultiReader }
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
 import org.apache.lucene.search._
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
+import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester
 import org.apache.lucene.analysis.standard.StandardAnalyzer
 import org.apache.lucene.search.spell.LuceneDictionary
 import play.api.db.slick._
-import scala.collection.JavaConverters._
+import org.apache.lucene.search.highlight.SimpleHTMLFormatter
+import org.apache.lucene.search.highlight.Highlighter
+import org.apache.lucene.search.highlight.QueryScorer
 import play.api.Logger
-import org.apache.lucene.search.suggest.analyzing.FreeTextSuggester
-import org.apache.lucene.search.suggest.analyzing.AnalyzingInfixSuggester
-import org.apache.lucene.index.DirectoryReader
-import org.apache.lucene.search.spell.SpellChecker
-import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
-import com.spatial4j.core.context.SpatialContextFactory
-import com.spatial4j.core.shape.impl.RectangleImpl
-import org.apache.lucene.spatial.prefix.tree.QuadPrefixTree
-import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
-import com.spatial4j.core.shape.Rectangle
-import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
+import org.apache.lucene.search.highlight.SimpleFragmenter
+import org.apache.lucene.search.highlight.SimpleSpanFragmenter
+import org.apache.lucene.search.highlight.TokenSources
 
 trait ObjectReader extends AnnotationReader {
 
@@ -65,7 +62,7 @@ trait ObjectReader extends AnnotationReader {
       radius: Option[Double] = None,
       limit: Int = 20, 
       offset: Int = 0
-    )(implicit s: Session): (Page[IndexedObject], FacetTree, Heatmap) = {
+    )(implicit s: Session): (Page[(IndexedObject, Option[String])], FacetTree, Heatmap) = {
      
     // The part of the query that is common for search and heatmap calculation
     val baseQuery = prepareBaseQuery(objectType, dataset, fromYear, toYear, places, bbox, coord, radius)
@@ -168,7 +165,7 @@ trait ObjectReader extends AnnotationReader {
   }
   
   private def executeSearch(query: Query, limit: Int, offset: Int, queryString: Option[String], 
-      searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader): (Page[IndexedObject], FacetTree) = {
+      searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader): (Page[(IndexedObject, Option[String])], FacetTree) = {
     
     val facetsCollector = new FacetsCollector() 
     val topDocsCollector = TopScoreDocCollector.create(offset + limit)
@@ -176,7 +173,24 @@ trait ObjectReader extends AnnotationReader {
       
     val facetTree = new FacetTree(new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, facetsCollector))      
     val total = topDocsCollector.getTotalHits
-    val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc)))
+    
+    val previewFormatter = new SimpleHTMLFormatter("<strong>", "</strong>")
+    val scorer = new QueryScorer(query)
+    val highlighter = new Highlighter(previewFormatter, scorer)
+    highlighter.setTextFragmenter(new SimpleFragmenter(200))
+    highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE)  
+        
+    val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => {      
+      val document = searcher.doc(scoreDoc.doc)
+      
+      val previewSnippet = Option(document.get(IndexFields.ITEM_FULLTEXT)).map(fulltext => {  
+        val stream = TokenSources.getAnyTokenStream(searcher.getIndexReader, scoreDoc.doc, IndexFields.ITEM_FULLTEXT, analyzer)
+        highlighter.getBestFragments(stream, fulltext, 4, " ... ")
+      })
+      
+      (new IndexedObject(document), previewSnippet) 
+    })
+    
     (Page(results.toSeq, offset, limit, total, queryString), facetTree)
   }
   

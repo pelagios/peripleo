@@ -17,6 +17,10 @@ object CSVImporter extends AbstractImporter {
     
   private val SPLIT_REGEX = "(?<!\\\\)" + Pattern.quote(SEPARATOR)
   
+  /** Some basic CSV unescaping **/
+  private def unesc(text: String) =
+    text.replace("\\;", ";")
+  
   private def resolvePlaces(uris: Seq[String]): Seq[(IndexedPlace, Int)] = {
     val allReferencedPlaces = uris.distinct
       .map(uri => (uri, Global.index.findPlaceByURI(uri)))
@@ -74,8 +78,8 @@ object CSVImporter extends AbstractImporter {
       val gazetteerURI = fields(uriIdx)
       val toponym = fields(toponymIdx)
       
-      val fulltextPrefix = fulltextPrefixIdx.map(fields(_))
-      val fulltextSuffix = fulltextSuffixIdx.map(fields(_))
+      val fulltextPrefix = fulltextPrefixIdx.map(idx => unesc(fields(idx)))
+      val fulltextSuffix = fulltextSuffixIdx.map(idx => unesc(fields(idx)))
       
       // In case annotations are on the root thing, the document part is an empty string!
       val documentPart = fields(header.indexOf("document_part")) 

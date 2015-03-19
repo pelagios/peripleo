@@ -1,5 +1,7 @@
 package index
 
+import org.apache.lucene.document.{ FieldType, TextField }
+
 object IndexFields {
   
   /** General fields **/
@@ -32,7 +34,9 @@ object IndexFields {
   val ITEM_PLACES = "place_uri"
   
   val ITEM_FULLTEXT = "fulltext"
-    
+  
+  val ITEM_FULLTEXT_OFFSETS = "fulltext_offsets"
+  
     
   /** Place-specific fields **/
     

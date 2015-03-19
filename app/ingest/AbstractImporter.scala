@@ -132,8 +132,9 @@ abstract class AbstractImporter {
     
     // Update suggestion index
     Logger.info("Updating the suggestion index")
-    val titlesAndDescriptions = topLevelThings.flatMap(t => Seq(Some(t._1.title), t._1.description).flatten)
-    Global.index.suggester.addTerms(titlesAndDescriptions.toSet)
+    val titlesAndDescriptions = topLevelThings.flatMap(t => Seq(Some(t._1.title), t._1.description).flatten).distinct
+    val fulltext = topLevelThings.map(_._3).flatten
+    Global.index.suggester.addTerms(titlesAndDescriptions ++ fulltext)
     Global.index.refresh()
     
     // Update the master heatmap

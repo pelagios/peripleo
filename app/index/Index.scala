@@ -37,13 +37,12 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   
   protected val annotationSearcherManager = new SearcherManager(annotationIndex, new SearcherFactory())
   
-  
-  /** We're using our own 3-word phrase analyzer **/
-  protected val analyzer = new NGramAnalyzer(3)
+  /** Analyzer **/
+  protected val analyzer = new StandardAnalyzer() 
   
   
   /** Suggestion engine **/
-  val suggester = new SuggestIndex(spellcheckDir, placeSearcherManager, objectSearcherManager, analyzer)  
+  val suggester = new SuggestIndex(spellcheckDir, placeSearcherManager, objectSearcherManager, new NGramAnalyzer(3))  
   
   
   /** Index writers **/  

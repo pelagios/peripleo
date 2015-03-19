@@ -66,7 +66,7 @@ class SuggestIndex(directory: Path, placeSearcherManager: SearcherTaxonomyManage
     Logger.info("Suggest index updated")
   }
   
-  def addTerms(terms: Set[String]) = {
+  def addTerms(terms: Seq[String]) = {
     val nGrams = NGramAnalyzer.tokenize(terms)
     val dictionary = new PlainTextDictionary(new StringReader(nGrams.mkString("\n")))
     spellchecker.indexDictionary(dictionary, new IndexWriterConfig(analyzer), true)

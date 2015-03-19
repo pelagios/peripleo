@@ -1,21 +1,16 @@
 package index.objects
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
+import index.Index
+import index.IndexFields
+import index.places.{ IndexedPlace, IndexedPlaceNetwork }
 import models.core.{ AnnotatedThing, Dataset }
 import models.geo.ConvexHull
-import org.apache.lucene.document.{ Document, Field, StringField, TextField, IntField }
+import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.db.slick._
-import org.apache.lucene.document.StoredField
-import index.places.IndexedPlace
-import index.IndexFields
-import index.places.IndexedPlaceNetwork
-import play.api.Logger
-import org.apache.lucene.facet.taxonomy.AssociationFacetField
-import org.apache.lucene.util.BytesRef
-import index.Index
 
 case class IndexedObject(private val doc: Document) {
 
@@ -66,7 +61,8 @@ object IndexedObject {
     thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
     
     // Fulltext
-    fulltext.map(text => doc.add(new TextField(IndexFields.ITEM_FULLTEXT, text, Field.Store.NO)))
+    // fulltext.map(text => doc.add(new Field(IndexFields.ITEM_FULLTEXT_OFFSETS, text, IndexFields.Types.HIGHLIGHTED_FIELD)))
+    fulltext.map(text => doc.add(new TextField(IndexFields.ITEM_FULLTEXT, text, Field.Store.YES)))
     
     // Convex hull
     thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))

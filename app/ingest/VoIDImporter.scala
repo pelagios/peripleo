@@ -67,8 +67,8 @@ object VoIDImporter extends AbstractImporter {
     
     datasets.foreach(Global.index.addDataset(_))
     
-    val titlesAndDescriptions = datasets.flatMap(d => Seq(Some(d.title), d.description).flatten)
-    Global.index.suggester.addTerms(titlesAndDescriptions.toSet)
+    val titlesAndDescriptions = datasets.flatMap(d => Seq(Some(d.title), d.description).flatten).distinct
+    Global.index.suggester.addTerms(titlesAndDescriptions)
     Global.index.refresh()
     
     datasetsWithDumpfiles

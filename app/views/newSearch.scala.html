@@ -1,4 +1,4 @@
-@(results: Page[index.objects.IndexedObject], facets: Option[index.FacetTree], filters: Map[String, String], heatmap: index.Heatmap, took: Long)(implicit request: RequestHeader)
+@(results: Page[(index.objects.IndexedObject, Option[String])], facets: Option[index.FacetTree], filters: Map[String, String], heatmap: index.Heatmap, took: Long)(implicit request: RequestHeader)
 <html>
   <head>
     <title>Pelagios Search</title>
@@ -120,8 +120,8 @@
         }
         
         <ul id="results" @if(filters.size > 0) { class="with-filters" }>
-          @for(item <- results.items) {
-        	  @tags.searchresultItem(item)
+          @for((item, snippet) <- results.items) {
+        	  @tags.searchresultItem(item, snippet)
           }
         </ul>
       </div>

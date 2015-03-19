@@ -1,4 +1,4 @@
-@(item: index.objects.IndexedObject)
+@(item: index.objects.IndexedObject, snippet: Option[String])
 
 @item.objectType match {
   
@@ -19,6 +19,9 @@
           <span class="category">[Item]</span>
         </p>
         @if(item.description.isDefined) { <p class="description">@item.description</p> }
+        @if(snippet.isDefined) {
+          <p class="snippet">@Html(snippet.get)</p>
+        }
       </li>
     }
     

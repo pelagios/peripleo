@@ -51,7 +51,7 @@ object SearchController extends AbstractController {
       Ok(views.html.newSearch(results._1, Some(results._2), filters, results._3, System.currentTimeMillis - startTime))
     } else {
       // TODO redirect to home
-      Ok(views.html.newSearch(Page.empty[IndexedObject], None, Map.empty[String, String], Heatmap.empty, 0))
+      Ok(views.html.newSearch(Page.empty[(IndexedObject, Option[String])], None, Map.empty[String, String], Heatmap.empty, 0))
     }
   }
   

@@ -11,7 +11,7 @@ import org.apache.lucene.util.Version
 import play.api.Logger
 import scala.collection.mutable.ListBuffer
 
-class NGramAnalyzer(size: Int) extends Analyzer {
+class NGramAnalyzer(val size: Int) extends Analyzer {
 
   override def createComponents(fieldName: String) = {
     val source = new StandardTokenizer()
@@ -31,7 +31,7 @@ object NGramAnalyzer {
   
   private val UNDERSCORE = "_"
   
-  def tokenize(phrases: Set[String], size: Int = 3): Seq[String] = {
+  def tokenize(phrases: Seq[String], size: Int = 3): Seq[String] = {
     val reader = new StringReader(phrases.mkString("\n"))
     
     val stream = new StopAnalyzer().tokenStream(CONTENTS, reader)
