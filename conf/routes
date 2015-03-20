@@ -41,7 +41,7 @@ GET     /api-v3/places/:uri                      controllers.PlaceController.get
 GET     /api-v3/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
 GET     /api-v3/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
 
-GET     /api-v3/search                           controllers.SearchController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int], bbox: Option[String], lon: Option[Double], lat: Option[Double], radius: Option[Double])
+GET     /api-v3/search                           controllers.SearchController.search
 
 # HTML view routes
 GET     /api-v3/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.getAnnotatedThing(id: String)

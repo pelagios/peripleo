@@ -1,19 +1,12 @@
 package controllers
 
-import com.vividsolutions.jts.geom.Coordinate
 import controllers.common.JSONWrites._
 import global.Global
-import index.{ Index }
-import index.objects.IndexedObjectTypes
-import models.geo.BoundingBox
 import play.api.db.slick._
 import play.api.libs.json.Json
+import scala.util.{ Success, Failure }
 
 object SearchController extends AbstractController {
-
-  private val ITEM = "item"
-  private val PLACE = "place"
-  private val DATASET = "dataset"
     
   /** API search method controller.
     * 
@@ -26,32 +19,19 @@ object SearchController extends AbstractController {
     * @param yearFrom start year for temporal constraint
     * @param yearTo end year for temporal constraint
     */
-  def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
-    places: Option[String], yearFrom: Option[Int], yearTo: Option[Int], bbox: Option[String], lat: Option[Double],
-    lon: Option[Double], radius: Option[Double]) = loggingAction { implicit session => 
+  def search() = loggingAction { implicit session =>
+    parseSearchParams(session.request) match {
+      case Success(params) => {
+        val results = 
+          Global.index.search(params.query, params.objectType, params.dataset, params.from, params.to,
+            params.places, params.bbox, params.coord, params.radius, params.limit, params.offset)
+            
+        implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)
+        jsonOk(Json.toJson(results._1.map(_._1)), session.request)        
+      }
       
-    implicit val verbose = session.request.queryString
-      .filter(_._1.toLowerCase.equals("verbose"))
-      .headOption.flatMap(_._2.headOption.map(_.toBoolean)).getOrElse(false)
-      
-    // Map object types
-    val objType = objectType.flatMap(name => name.toLowerCase match {
-      case DATASET => Some(IndexedObjectTypes.DATASET)
-      case ITEM => Some(IndexedObjectTypes.ANNOTATED_THING)
-      case PLACE => Some(IndexedObjectTypes.PLACE)
-      case _=> None
-    })
-    
-    // Tokenize and normalize place URIs
-    val placeURIs = places.map(_.split(",").map(s => Index.normalizeURI(s.trim())).toSeq).getOrElse(Seq.empty[String])
-    
-    val coord = if (lat.isDefined && lon.isDefined) Some(new Coordinate(lon.get, lat.get)) else None
-    
-    /*
-    val results = Global.index.search(limit, offset, query, objType, dataset, placeURIs, yearFrom, yearTo, bbox.flatMap(bounds => BoundingBox.fromString(bounds)), coord, radius)
-    jsonOk(Json.toJson(results._1), session.request)
-    */
-    jsonOk(Json.parse("{ \"message\": \"Temporarily unavailable\" }"), session.request)
+      case Failure(exception) => BadRequest(Json.parse("{ \"error\": \"" + exception.getMessage + "\" }"))
+    }
   }
 
 }
