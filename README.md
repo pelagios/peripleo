@@ -42,10 +42,10 @@ You can traverse pages using an `offset` and `limit` (= page size) parameter. If
 default to a page size of 20. Example:
 
 Results 1 - 20:
-[http://pelagios.org/api-v3/search?query=gold+AND+coin](http://pelagios.org/api-v3/search?query=gold+AND+coin&prettyprint=true)
+[http://pelagios.org/api-v3/search?query=gold](http://pelagios.org/api-v3/search?query=gold&prettyprint=true)
 
 Results 21 - 40:
-[http://pelagios.org/api-v3/search?query=gold+AND+coin&offset=20](http://pelagios.org/api-v3/search?query=gold+AND+coin&offset=20&prettyprint=true)
+[http://pelagios.org/api-v3/search?query=gold&offset=20](http://pelagios.org/api-v3/search?query=gold&offset=20&prettyprint=true)
 
 ## Pretty Printing
 
