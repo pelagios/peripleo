@@ -34,19 +34,10 @@ object CSVImporter extends AbstractImporter {
   }
 
   /** Helper: for document fulltext indexing, we'll concatenate (prefix, toponym) pairs and add the final suffix **/
-  private def concatTextForThing(toponymPrefixSuffix: Seq[(String, Option[String], Option[String])]): Option[String] = {
+  private def concatText(toponymPrefixSuffix: Seq[(String, Option[String], Option[String])]): Option[String] = {
     val text = toponymPrefixSuffix.map { case (toponym, prefix, _) =>
       (prefix.getOrElse("") + " " + toponym).trim }.mkString(" ") + toponymPrefixSuffix.lastOption.getOrElse("")
         
-    if (text.isEmpty)
-      None
-    else
-      Some(text)
-  }
-  
-  /** Helper: for annotation fulltext indexing, we'll concatenate the (prefix, toponym, suffix) tuple **/
-  private def concatTextForAnnotation(toponym: String, prefix: Option[String], suffix: Option[String]): Option[String] = {
-    val text = prefix.getOrElse("") + " " + toponym + suffix.getOrElse("")
     if (text.isEmpty)
       None
     else
@@ -89,8 +80,8 @@ object CSVImporter extends AbstractImporter {
     val annotationsOnRoot = annotations.filter(_._1.isEmpty).toSeq.flatMap(_._2.map(t => (t._1, t._3, t._4, t._5, t._6)))
     val annotationsForParts = annotations.filter(!_._1.isEmpty)
     
-    val fulltextOnRoot = concatTextForThing(annotationsOnRoot.map(t => (t._3, t._4, t._5)))
-    val fulltextForParts = annotationsForParts.mapValues(values => concatTextForThing(values.map(t => (t._4, t._5, t._6))))
+    val fulltextOnRoot = concatText(annotationsOnRoot.map(t => (t._3, t._4, t._5)))
+    val fulltextForParts = annotationsForParts.mapValues(values => concatText(values.map(t => (t._4, t._5, t._6))))
     
     val ingestBatch = {
       // Root thing
@@ -102,7 +93,7 @@ object CSVImporter extends AbstractImporter {
         val partThingId = sha256(rootThingId + " " + partTitle)
         
         val annotationsWithText = tuples.zipWithIndex.map { case ((uuid, _, gazetteerURI, toponym, prefix, suffix), index) => 
-          (Annotation(uuid, dataset.id, partThingId, gazetteerURI, Some(toponym), Some(index)), concatTextForAnnotation(toponym, prefix, suffix)) }
+          (Annotation(uuid, dataset.id, partThingId, gazetteerURI, Some(toponym), Some(index)), prefix, suffix) }
         
         val places = 
           resolvePlaces(annotationsWithText.map(_._1.gazetteerURI))
@@ -116,7 +107,7 @@ object CSVImporter extends AbstractImporter {
       // Root thing
       val rootAnnotationsWithText = 
         annotationsOnRoot.zipWithIndex.map { case ((uuid, gazetteerURI, toponym, prefix, suffix), index) => 
-          (Annotation(uuid, dataset.id, rootThingId, gazetteerURI, Some(toponym), Some(index)), concatTextForAnnotation(toponym, prefix, suffix)) }
+          (Annotation(uuid, dataset.id, rootThingId, gazetteerURI, Some(toponym), Some(index)), prefix, suffix) }
       
       // The places of the root thing consist of the places *directly* on the root thing and the places on all parts
       // Usually, only one list will be non-empty - but we add them, just in case

@@ -51,21 +51,21 @@ trait ObjectReader extends AnnotationReader {
     * @param offset offset in the search result list 
     */ 
   def search(
-      query: Option[String] = None,
-      objectType: Option[IndexedObjectTypes.Value] = None,
-      dataset: Option[String] = None,
-      fromYear: Option[Int] = None,
-      toYear: Option[Int] = None,      
-      places: Seq[String] = Seq.empty[String], 
-      bbox: Option[BoundingBox] = None,
-      coord: Option[Coordinate] = None, 
-      radius: Option[Double] = None,
-      limit: Int = 20, 
-      offset: Int = 0
-    )(implicit s: Session): (Page[(IndexedObject, Option[String])], FacetTree, Heatmap) = {
+      query:      Option[String],
+      objectType: Option[IndexedObjectTypes.Value],
+      dataset:    Option[String],
+      gazetteer:  Option[String],
+      fromYear:   Option[Int],
+      toYear:     Option[Int],      
+      places:     Seq[String], 
+      bbox:       Option[BoundingBox],
+      coord:      Option[Coordinate], 
+      radius:     Option[Double],
+      limit:      Int = 20, 
+      offset:     Int = 0)(implicit s: Session): (Page[(IndexedObject, Option[String])], FacetTree, Heatmap) = {
      
     // The part of the query that is common for search and heatmap calculation
-    val baseQuery = prepareBaseQuery(objectType, dataset, fromYear, toYear, places, bbox, coord, radius)
+    val baseQuery = prepareBaseQuery(objectType, dataset, gazetteer, fromYear, toYear, places, bbox, coord, radius)
     
     // Finalize search query and build heatmap filter
     val searchQuery = {
@@ -79,7 +79,7 @@ trait ObjectReader extends AnnotationReader {
     
     val heatmapFilter = {
       if (query.isDefined) {
-        // We don't search the fulltext field! Fulltext heatmaps are handled by the annotation index
+        // We don't search the fulltext field for the heatmap - text-based heatmaps are handled by the annotation index
         val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
         baseQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
       }
@@ -105,14 +105,15 @@ trait ObjectReader extends AnnotationReader {
   
   /** Constructs the query as far as it's common for search and heatmap computation **/
   private def prepareBaseQuery(
-      objectType: Option[IndexedObjectTypes.Value] = None,
-      dataset: Option[String] = None,
-      fromYear: Option[Int] = None,
-      toYear: Option[Int] = None,      
-      places: Seq[String] = Seq.empty[String], 
-      bbox: Option[BoundingBox] = None,
-      coord: Option[Coordinate] = None, 
-      radius: Option[Double] = None)(implicit s: Session): BooleanQuery = {
+      objectType: Option[IndexedObjectTypes.Value],
+      dataset:    Option[String],
+      gazetteer:  Option[String],
+      fromYear:   Option[Int],
+      toYear:     Option[Int],      
+      places:     Seq[String], 
+      bbox:       Option[BoundingBox],
+      coord:      Option[Coordinate], 
+      radius:     Option[Double])(implicit s: Session): BooleanQuery = {
     
     val q = new BooleanQuery()
       
@@ -133,6 +134,10 @@ trait ObjectReader extends AnnotationReader {
         q.add(datasetQuery, BooleanClause.Occur.MUST)
       }
     }
+    
+    // Gazetteer filter
+    if (gazetteer.isDefined)
+      q.add(new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
       
     // Timespan filter
     if (fromYear.isDefined || toYear.isDefined) {

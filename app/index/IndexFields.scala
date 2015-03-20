@@ -61,6 +61,8 @@ object IndexFields {
   
   val ANNOTATION_QUOTE = "quote"
   
-  val ANNOTATION_FULLTEXT = "fulltext"
+  val ANNOTATION_FULLTEXT_PREFIX = "fulltext_prefix"
+  
+  val ANNOTATION_FULLTEXT_SUFFIX = "fulltext_suffix"
     
 }

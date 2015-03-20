@@ -26,7 +26,7 @@ object SearchController extends AbstractController {
 
         // Search
         val results = 
-          Global.index.search(params.query, params.objectType, params.dataset, params.from, params.to,
+          Global.index.search(params.query, params.objectType, params.dataset, params.gazetteer, params.from, params.to,
             params.places, params.bbox, params.coord, params.radius, params.limit, params.offset)
             
         Ok(views.html.newSearch(results._1, Some(results._2), filters, results._3, System.currentTimeMillis - startTime))

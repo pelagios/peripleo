@@ -22,7 +22,7 @@ case class IngestRecord(
     thing: AnnotatedThing, 
     
     /** Annotations on the annotated thing **/
-    annotationsWithText: Seq[(Annotation, Option[String])],
+    annotationsWithText: Seq[(Annotation, Option[String], Option[String])],
     
     /** Places associated with the annotated thing, with place count **/
     places: Seq[(IndexedPlace, Int)],
@@ -121,10 +121,10 @@ abstract class AbstractImporter {
       val tempBoundsStart = record.thing.temporalBoundsStart
       val tempBoundsEnd = record.thing.temporalBoundsEnd
       
-      record.annotationsWithText.map { case (annotation, text) => {
+      record.annotationsWithText.map { case (annotation, prefix, suffix) => {
         // Geometry is that of the gazetteer
         val geom = placeLookup.get(annotation.gazetteerURI).flatMap(_.geometry)
-        geom.map(g => (annotation, tempBoundsStart, tempBoundsEnd, g, text))
+        geom.map(g => (annotation, tempBoundsStart, tempBoundsEnd, g, prefix, suffix))
       }}
     }).flatten // The annotation index is to support heatmaps, so we're not interested in annotation without geometry
     Logger.info("Indexing annotations")

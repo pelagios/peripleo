@@ -23,7 +23,7 @@ object SearchController extends AbstractController {
     parseSearchParams(session.request) match {
       case Success(params) => {
         val results = 
-          Global.index.search(params.query, params.objectType, params.dataset, params.from, params.to,
+          Global.index.search(params.query, params.objectType, params.dataset, params.gazetteer, params.from, params.to,
             params.places, params.bbox, params.coord, params.radius, params.limit, params.offset)
             
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)

@@ -18,7 +18,9 @@ class IndexedAnnotation(private val doc: Document) {
 
 object IndexedAnnotation {
 
-  def toDoc(annotation: Annotation, temporalBoundsStart: Option[Int], temporalBoundsEnd: Option[Int], geometry: Geometry, fulltext: Option[String]): Document = {
+  def toDoc(annotation: Annotation, temporalBoundsStart: Option[Int], temporalBoundsEnd: Option[Int], geometry: Geometry,
+      fulltextPrefix: Option[String], fulltextSuffix: Option[String]): Document = {
+    
     val doc = new Document()
     
     // UUID, containing dataset & annotated thing
@@ -32,7 +34,8 @@ object IndexedAnnotation {
     
     // Text
     annotation.quote.map(quote => doc.add(new TextField(IndexFields.ANNOTATION_QUOTE, quote, Field.Store.NO)))
-    fulltext.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT, text, Field.Store.NO)))
+    fulltextPrefix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_PREFIX, text, Field.Store.NO)))
+    fulltextSuffix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_SUFFIX, text, Field.Store.NO)))
     
     // Place & geometry
     doc.add(new StringField(IndexFields.ANNOTATION_PLACE, annotation.gazetteerURI, Field.Store.NO)) 
