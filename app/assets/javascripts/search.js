@@ -12,7 +12,7 @@ require(['common/formatting'], function(Formatting) {
     },{
       displayKey: 'key',
       source: function(query, callback) {
-        jQuery.getJSON('/api-v3/new/autosuggest?query=' + query, function(results) {
+        jQuery.getJSON('/api-v3/new/autosuggest?q=' + query, function(results) {
           callback(results);
         });
       }
