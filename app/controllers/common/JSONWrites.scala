@@ -12,6 +12,7 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import models.adjacency.PlaceAdjacencyGraph
+import index.objects.IndexedObjectTypes
 
 /** JSON writers for model and index classes. **/
 object JSONWrites {
@@ -200,7 +201,8 @@ object JSONWrites {
     (JsPath \ "object_type").write[String] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
     (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
-    (JsPath \ "convex_hull").writeNullable[JsValue]
+    (JsPath \ "convex_hull").writeNullable[JsValue] ~
+    (JsPath \ "matches").writeNullable[Seq[String]]
   )(obj => (
       obj.identifier,
       obj.title,
@@ -211,7 +213,14 @@ object JSONWrites {
         "start" -> start,
         "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
       obj.convexHull.map(_.bounds),
-      { if (verbose) obj.convexHull.map(_.asGeoJSON) else None }))    
+      { if (verbose) obj.convexHull.map(_.asGeoJSON) else None },
+      if (obj.objectType == IndexedObjectTypes.PLACE) {
+        val alternatives = obj.toPlaceNetwork.alternativeURIs
+        if (alternatives.isEmpty) None else Some(alternatives)
+      } else {
+        None
+      }
+    ))
       
         
   implicit val placeWrites: Writes[IndexedPlace] = (
