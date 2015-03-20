@@ -23,5 +23,9 @@ libraryDependencies ++= Seq(
   "org.openrdf.sesame" % "sesame-rio-n3" % "2.7.5",
   "org.openrdf.sesame" % "sesame-rio-rdfxml" % "2.7.5",
   "org.slf4j" % "slf4j-simple" % "1.7.7"
-)   
+)  
+
+requireJs ++= Seq("search.js", "placeAdjacencyNetwork.js")
+
+requireJsShim += "build.js" 
 
