@@ -37,7 +37,8 @@
               map = new L.Map('map', {
                 center: new L.LatLng(41.893588, 12.488022),
                 zoom: 3,
-                layers: [awmcLayer, heatmapLayer]
+                layers: [awmcLayer, heatmapLayer],
+                zoomControl:false
               });
               
         @if(!heatmap.isEmpty) {
@@ -93,10 +94,9 @@
         </ul>  
       </div>
       
-      <div id="map">
-        
-      </div>
+      <div id="map"></div>
       
+      <div id="filter-panel"></div>
     </div>
 
     <!-- div id="content">    
