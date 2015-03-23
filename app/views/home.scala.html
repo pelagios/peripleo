@@ -26,7 +26,7 @@
         <div id="search" class="row">
           <form method="GET" action="@{controllers.pages.routes.HomepageController.index}new/search">
           	<div class="form-container">
-              <input type="text" name="query" autocomplete="off" placeholder="@tags.queryExample()">
+              <input type="text" name="query" autocomplete="off">
             </div>
           </form>
           
@@ -37,5 +37,28 @@
         </div> <!-- .row -->
       </div> <!-- #header-body -->
     </div> <!-- #header -->
+    
+    <div id="content">
+      <div class="row">
+        <h2>Explore</h2>
+        <p>
+          Pelagios (Greek for 'of the Sea') is a community network that facilitates linking 
+          of online resources that document the past, based on the places they refer to. 
+          This Website is a demo <strong>search and exploration</strong> tool, running on 
+          a limited test set of <strong>classical literature</strong>, <strong>historic
+          maps</strong>, and information from databases of historic places and artefacts from
+          our partner network. Start by searching for a <strong>place</strong>, <strong>object</strong> 
+          or <strong>topic</strong> you are interested in. Narrow down your search, or combine
+          multiple searches to explore similarities, differences and connections.
+        </p>
+
+        <h2>Join</h2>
+        <p>
+          Find out more about us on our <a href="http://pelagios-project.blogspot.co.uk">blog</a>,
+          or learn how to get your own data connected to the Pelagios network in our
+          <a href="https://github.com/pelagios/pelagios-cookbook/wiki">Cookbook.</a>
+        </p>
+      </div>
+    </div>
   </body>
 </html>

@@ -82,8 +82,24 @@
         </ul>
       </div>
     </div> <!-- #header -->
+    
+    <div id="content">
+      
+      <div id="results-list">
+        <ul>
+          @for((item, snippet) <- results.items) {
+        	  @tags.searchresultItem(item, snippet)
+          }
+        </ul>  
+      </div>
+      
+      <div id="map">
+        
+      </div>
+      
+    </div>
 
-    <div id="content">    
+    <!-- div id="content">    
       <div id="left-column">
         <div id="query-took">
           <span class="number">@results.total</span> Results (@{ took.toDouble / 1000 } seconds)
@@ -116,14 +132,10 @@
                 }
               </ul>
             </div>
-          </div> <!-- #filters -->
+          </div> 
         }
         
-        <ul id="results" @if(filters.size > 0) { class="with-filters" }>
-          @for((item, snippet) <- results.items) {
-        	  @tags.searchresultItem(item, snippet)
-          }
-        </ul>
+
       </div>
       
       <div id="right-column">
