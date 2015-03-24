@@ -5,13 +5,55 @@ html, body, #map {
   height:100%;
 }
 
+form {
+  margin:0;
+  padding:0;
+}
+
 #controls {
   position:fixed;
   top:10px;
   right:10px;
+  padding:0;
+  .gradient(#4c5562, #444c58);
+  .box-shadow(1px, 1px, 12px, 0, rgba(0, 0, 0, 0.4));
+  border:1px solid #3e4550;
+}
+
+#text-query {
+  padding:6px;
+  color:#fff;
+  position:relative;
+  
+  .icon { 
+    position:absolute;
+    top:14px;
+    right:18px;
+    color:#ccc;
+  }
+  
+  input[type="text"] {
+    background-color:#6a717a;
+    border:1px solid #3e4550;
+    padding:6px;
+    width:260px;
+    outline:none;
+    color:#fff;
+  }
   
 }
 
-
 #result-stats {
+  padding:6px;
+  background-color:#929292; 
+  border-top:1px solid #3e4550;
+  color:#fff;
+  text-align:right;
+}
+
+#facet-charts {
+  padding:6px;
+  background-color:#929292; 
+  border-top:1px solid #3e4550;
+  color:#fff;
 }

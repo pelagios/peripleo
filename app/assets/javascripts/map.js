@@ -51,18 +51,30 @@ require([], function() {
         },
         
         updateHM = function(e) {
-        
           var b = map.getBounds(),
               bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth();
-          
 
             pendingRequest = true;
-            jQuery.getJSON('/api-v3/search?limit=1&gazetteer=pleiades&heatmap=true&bbox=' + bboxParam, function(response) {
+            jQuery.getJSON('/api-v3/search?limit=1&bbox=' + bboxParam, function(response) {
               resultStats.html(numeral(response.total).format('0,0') + ' Results');
               updateHeatmap(response.heatmap);              
-            });
- 
+            });            
         };
+        
+        updateFacets = function(facets) {
+          var listItems = jQuery.map(facets, function(facet) {
+            return '<li class="dimension">' +
+                   '  <h3>' + facet.dimension + '</h3>' +
+                   '  <ul>' +
+                      jQuery.map(facet.top_children, function(val) {
+                        return '<li class="classification">' + val.label + ' - ' + val.count + '</li>';
+                      }).join('') +
+                   '  </ul>' +
+                   '</li>';
+          });
+
+          jQuery('#facet-charts').html(listItems.join(''));
+        },
         
         updateCount = function(e) {
           var b = map.getBounds(),
@@ -70,8 +82,11 @@ require([], function() {
           
           if (!pendingRequest) {    
             pendingRequest = true;
-            jQuery.getJSON('/api-v3/search?limit=1&bbox=' + bboxParam, function(response) {
-              resultStats.html(numeral(response.total).format('0,0') + ' Results');         
+            jQuery.getJSON('/api-v3/search?facets=true&bbox=' + bboxParam, function(response) {
+              resultStats.html(numeral(response.total).format('0,0') + ' Results');   
+              updateFacets(response.facets);      
+            })
+            .always(function() {
               pendingRequest = false;
             });
           }
@@ -79,6 +94,7 @@ require([], function() {
     
     /** Listen to all map changes **/    
     map.on('move', updateCount);
+    updateCount();
     // map.on('moveend', updateHM);
         
   });

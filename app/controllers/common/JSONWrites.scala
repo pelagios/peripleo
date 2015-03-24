@@ -13,6 +13,7 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import models.adjacency.PlaceAdjacencyGraph
+import index.FacetTree
 
 /** JSON writers for model and index classes. **/
 object JSONWrites {
@@ -193,6 +194,11 @@ object JSONWrites {
     (JsPath \ "heatmap").write[Seq[JsValue]].contramap(_.cells.map { case (x, y, weight) => 
       Json.obj("x" -> x, "y" -> y, "weight" -> weight) })
       
+  implicit val facetTreeWrites: Writes[FacetTree] =
+    (JsPath \ "facets").write[Seq[JsValue]].contramap(tree => tree.dimensions().map(dimension => {
+      val topChildren = tree.getTopChildren(dimension)
+        .map { case (label, count) => Json.obj("label" -> label, "count" -> count) }
+      Json.obj("dimension" -> dimension, "top_children" -> Json.toJson(topChildren)) }))      
   /**                             **/
   /** Index entity serializations **/
   /**                             **/

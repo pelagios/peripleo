@@ -8,7 +8,8 @@ import scala.util.{ Success, Failure }
 import play.api.libs.json.JsObject
 
 object SearchController extends AbstractController {
-  
+
+  private val KEY_FACETS = "facets"
   private val KEY_HEATMAP = "heatmap"
     
   /** API search method controller.
@@ -29,16 +30,18 @@ object SearchController extends AbstractController {
           Global.index.search(params.query, params.objectType, params.dataset, params.gazetteer, params.from, params.to,
             params.places, params.bbox, params.coord, params.radius, params.limit, params.offset)
             
-        val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false) 
-        implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)
+        // Factes and heatmaps are optional in JSON response
+        val includeFacets = getQueryParam(KEY_FACETS, session.request).map(_.toBoolean).getOrElse(false)
+        val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false)
+        val extraPayload = Seq(
+              { if (includeFacets) Some(Json.toJson(results._2).as[JsObject]) else None },
+              { if (includeHeatmap) Some(Json.toJson(results._3).as[JsObject]) else None }).flatten
+            
+        implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)          
+        val response =
+          extraPayload.foldLeft(Json.toJson(results._1.map(_._1)).as[JsObject])((response, payload) => response ++ payload)
         
-        if (includeHeatmap) { 
-          val items = Json.toJson(results._1.map(_._1)).as[JsObject]
-          val heatmap = Json.toJson(results._3).as[JsObject]
-          jsonOk(items ++ heatmap, session.request)
-        } else {
-          jsonOk(Json.toJson(results._1.map(_._1)), session.request)
-        }
+        jsonOk(response, session.request)
       }
       
       case Failure(exception) => BadRequest(Json.parse("{ \"error\": \"" + exception.getMessage + "\" }"))
