@@ -78,7 +78,7 @@ require([], function() {
         };
     
     /** Listen to all map changes **/    
-    // map.on('move', updateCount);
+    map.on('move', updateCount);
     // map.on('moveend', updateHM);
         
   });
