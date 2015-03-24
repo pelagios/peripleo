@@ -216,7 +216,7 @@ trait ObjectReader extends AnnotationReader {
         }
       }
     }
-    Logger.info("Heatmap at level " + level)
+    // Logger.info("Heatmap at level " + level)
       
     // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
     val nonEmptyCells = 

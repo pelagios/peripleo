@@ -57,7 +57,7 @@ require([], function() {
           
 
             pendingRequest = true;
-            jQuery.getJSON('/api-v3/search?limit=1&type=item&heatmap=true&bbox=' + bboxParam, function(response) {
+            jQuery.getJSON('/api-v3/search?limit=1&gazetteer=pleiades&heatmap=true&bbox=' + bboxParam, function(response) {
               resultStats.html(numeral(response.total).format('0,0') + ' Results');
               updateHeatmap(response.heatmap);              
             });
