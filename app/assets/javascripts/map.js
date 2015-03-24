@@ -19,7 +19,7 @@ require([], function() {
             highlight: "#5AD3D1",
             label: "Item"
           }],
-        typeChart = new Chart(typeChartCtx).Pie(typeChartData, { percentageInnerCutout: 70 });
+        typeChart = new Chart(typeChartCtx).Pie(typeChartData, { percentageInnerCutout: 50, animationSteps : 10, animationEasing: false });
         
         sourceChartCtx = document.getElementById('source-chart').getContext('2d'),
         sourceChartData = [{
@@ -33,7 +33,7 @@ require([], function() {
             highlight: "#5AD3D1",
             label: "Green"
           }],
-        sourceChart = new Chart(sourceChartCtx).Pie(sourceChartData, { percentageInnerCutout: 70 });
+        sourceChart = new Chart(sourceChartCtx).Pie(sourceChartData, { percentageInnerCutout: 50, animationSteps : 10, animationEasing: false });
          
         /*
         heatmapConfig = {
