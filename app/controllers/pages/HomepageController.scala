@@ -24,6 +24,10 @@ object HomepageController extends AbstractController {
     Ok(views.html.home(datasets, items, gazetteers, places))
   }
   
+  def map() = loggingAction { implicit session =>
+    Ok(views.html.browsableMap())
+  }
+  
   def search(limit: Int, offset: Int, query: Option[String], objectType: Option[String], dataset: Option[String], 
       places: Option[String], yearFrom: Option[Int], yearTo: Option[Int]) = loggingAction { implicit session =>
       

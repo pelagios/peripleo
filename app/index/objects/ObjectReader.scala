@@ -1,6 +1,7 @@
 package index.objects
 
 import com.spatial4j.core.distance.DistanceUtils
+import com.spatial4j.core.shape.Rectangle
 import com.spatial4j.core.shape.impl.RectangleImpl
 import com.vividsolutions.jts.geom.Coordinate
 import index._
@@ -65,7 +66,8 @@ trait ObjectReader extends AnnotationReader {
       offset:     Int = 0)(implicit s: Session): (Page[(IndexedObject, Option[String])], FacetTree, Heatmap) = {
      
     // The part of the query that is common for search and heatmap calculation
-    val baseQuery = prepareBaseQuery(objectType, dataset, gazetteer, fromYear, toYear, places, bbox, coord, radius)
+    val rectangle = bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
+    val baseQuery = prepareBaseQuery(objectType, dataset, gazetteer, fromYear, toYear, places, rectangle, coord, radius)
     
     // Finalize search query and build heatmap filter
     val searchQuery = {
@@ -93,7 +95,7 @@ trait ObjectReader extends AnnotationReader {
     try {   
       val (results, facets) = executeSearch(searchQuery, limit, offset, query, searcher, objectSearcher.taxonomyReader)
       val heatmap = 
-        calculateItemHeatmap(heatmapFilter, searcher) +
+        calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
         calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, bbox, coord, radius)
         
       (results, facets, heatmap)
@@ -111,7 +113,7 @@ trait ObjectReader extends AnnotationReader {
       fromYear:   Option[Int],
       toYear:     Option[Int],      
       places:     Seq[String], 
-      bbox:       Option[BoundingBox],
+      bbox:       Option[Rectangle],
       coord:      Option[Coordinate], 
       radius:     Option[Double])(implicit s: Session): BooleanQuery = {
     
@@ -158,8 +160,7 @@ trait ObjectReader extends AnnotationReader {
     
     // Spatial filter
     if (bbox.isDefined) {
-      val rectangle = Index.spatialCtx.makeRectangle(bbox.get.minLon, bbox.get.maxLon, bbox.get.minLat, bbox.get.maxLat)
-      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, rectangle)), BooleanClause.Occur.MUST)
+      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, bbox.get)), BooleanClause.Occur.MUST)
     } else if (coord.isDefined) {
       // Warning - there appears to be a bug in Lucene spatial that flips coordinates!
       val circle = Index.spatialCtx.makeCircle(coord.get.y, coord.get.x, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
@@ -199,8 +200,23 @@ trait ObjectReader extends AnnotationReader {
     (Page(results.toSeq, offset, limit, total, queryString), facetTree)
   }
   
-  private def calculateItemHeatmap(filter: Filter, searcher: IndexSearcher): Heatmap = {
-    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, new RectangleImpl(-90, 90, -90, 90, null), 3, 18000)
+  private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {
+    val rect = bbox.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
+    
+    // Horrible hack!
+    var heatmap: HeatmapFacetCounter.Heatmap = null; // Semicolon just to honour the old Java tradition
+    var level = Index.maxLevels
+    while (heatmap == null) {
+      try {
+        heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 100000)
+      } catch {
+        case t: Throwable => {
+          level -= 1
+          heatmap = null
+        }
+      }
+    }
+    Logger.info("Heatmap at level " + level)
       
     // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
     val nonEmptyCells = 

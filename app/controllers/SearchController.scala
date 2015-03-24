@@ -5,8 +5,11 @@ import global.Global
 import play.api.db.slick._
 import play.api.libs.json.Json
 import scala.util.{ Success, Failure }
+import play.api.libs.json.JsObject
 
 object SearchController extends AbstractController {
+  
+  private val KEY_HEATMAP = "heatmap"
     
   /** API search method controller.
     * 
@@ -19,15 +22,23 @@ object SearchController extends AbstractController {
     * @param yearFrom start year for temporal constraint
     * @param yearTo end year for temporal constraint
     */
-  def search() = loggingAction { implicit session =>
+  def search() = loggingAction { implicit session =>      
     parseSearchParams(session.request) match {
       case Success(params) => {
         val results = 
           Global.index.search(params.query, params.objectType, params.dataset, params.gazetteer, params.from, params.to,
             params.places, params.bbox, params.coord, params.radius, params.limit, params.offset)
             
+        val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false) 
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)
-        jsonOk(Json.toJson(results._1.map(_._1)), session.request)        
+        
+        if (includeHeatmap) { 
+          val items = Json.toJson(results._1.map(_._1)).as[JsObject]
+          val heatmap = Json.toJson(results._3).as[JsObject]
+          jsonOk(items ++ heatmap, session.request)
+        } else {
+          jsonOk(Json.toJson(results._1.map(_._1)), session.request)
+        }
       }
       
       case Failure(exception) => BadRequest(Json.parse("{ \"error\": \"" + exception.getMessage + "\" }"))

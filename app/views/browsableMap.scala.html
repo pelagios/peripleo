@@ -1,0 +1,34 @@
+@()
+<html>
+  <head>
+    <title>Pelagios</title>
+    <link rel="stylesheet" href="@routes.Assets.at("stylesheets/map/main.css")"/>   
+    <link rel="stylesheet" href="@routes.Assets.at("javascripts/lib/leaflet/leaflet.css")"/>
+    
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/typeahead/typeahead.jquery.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/heatmap/heatmap.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/heatmap/leaflet-heatmap.js")"></script>
+
+    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/map").url)
+  </head>
+  <body>
+    <div id="map"></div>
+    
+    <div id="controls">
+      
+      <div id="text-query">
+        <form>
+        	<div class="form-container">
+            <input type="text" id="query" name="query">
+          </div>
+        </form>
+      </div> <!-- #text-query -->
+      
+      <div id="result-stats"></div>
+      
+    </div> <!-- #controls -->
+  </body>
+</html>

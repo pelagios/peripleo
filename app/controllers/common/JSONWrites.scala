@@ -1,8 +1,9 @@
 package controllers.common
 
 import global.Global
-import index.objects.IndexedObject
+import index.Heatmap
 import index.places._
+import index.objects.{ IndexedObject, IndexedObjectTypes }
 import models._
 import models.adjacency._
 import models.core._
@@ -12,7 +13,6 @@ import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
 import models.adjacency.PlaceAdjacencyGraph
-import index.objects.IndexedObjectTypes
 
 /** JSON writers for model and index classes. **/
 object JSONWrites {
@@ -188,6 +188,10 @@ object JSONWrites {
     (JsPath \ "links").write[Seq[JsValue]]
   )(graph =>
     (graph.nodes, graph.edges.map(e => Json.obj("source" -> e.from, "target" -> e.to, "weight" -> e.weight))))
+    
+  implicit val heatmapWrites: Writes [Heatmap] = 
+    (JsPath \ "heatmap").write[Seq[JsValue]].contramap(_.cells.map { case (x, y, weight) => 
+      Json.obj("x" -> x, "y" -> y, "weight" -> weight) })
       
   /**                             **/
   /** Index entity serializations **/

@@ -18,6 +18,7 @@ GET     /api-v3/datasets/:id/places              controllers.DatasetController.l
 
 ### Temporary hack ###
 
+GET     /api-v3/map                              controllers.pages.HomepageController.map
 GET     /api-v3/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/item-vectors                     controllers.PlaceController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
 GET     /api-v3/items/:id/network                controllers.AnnotatedThingController.getAdjacencyGraph(id: String)
