@@ -7,8 +7,35 @@ require([], function() {
           attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
           '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'}),    
           
-        // debugHeatmapLayer = L.layerGroup(),
-          
+        typeChartCtx = document.getElementById('type-chart').getContext('2d'),
+        typeChartData = [{
+            value: 300,
+            color:"#F7464A",
+            highlight: "#FF5A5E",
+            label: "Place"
+          },{
+            value: 50,
+            color: "#46BFBD",
+            highlight: "#5AD3D1",
+            label: "Item"
+          }],
+        typeChart = new Chart(typeChartCtx).Pie(typeChartData, { percentageInnerCutout: 70 });
+        
+        sourceChartCtx = document.getElementById('source-chart').getContext('2d'),
+        sourceChartData = [{
+            value: 300,
+            color:"#F7464A",
+            highlight: "#FF5A5E",
+            label: "Red"
+          },{
+            value: 50,
+            color: "#46BFBD",
+            highlight: "#5AD3D1",
+            label: "Green"
+          }],
+        sourceChart = new Chart(sourceChartCtx).Pie(sourceChartData, { percentageInnerCutout: 70 });
+         
+        /*
         heatmapConfig = {
           radius: 24,
           useLocalExtrema:false,
@@ -21,16 +48,18 @@ require([], function() {
         },
         
         heatmapLayer = new HeatmapOverlay(heatmapConfig),
+        */
         
         map = new L.Map('map', {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
-          layers: [ awmcLayer, heatmapLayer ],
+          layers: [ awmcLayer],
           zoomControl:false
         }),
         
         pendingRequest = false,
         
+        /*
         updateHeatmap = function(points) {
           var maxWeight = 0;
                     
@@ -60,20 +89,30 @@ require([], function() {
               updateHeatmap(response.heatmap);              
             });            
         };
+        */
         
-        updateFacets = function(facets) {
-          var listItems = jQuery.map(facets, function(facet) {
-            return '<li class="dimension">' +
-                   '  <h3>' + facet.dimension + '</h3>' +
-                   '  <ul>' +
-                      jQuery.map(facet.top_children, function(val) {
-                        return '<li class="classification">' + val.label + ' - ' + val.count + '</li>';
-                      }).join('') +
-                   '  </ul>' +
-                   '</li>';
-          });
+        updateFacets = function(facets) {         
+          var typeDim = jQuery.grep(facets, function(facet) {
+                return facet.dimension === 'type';
+              }),
+              
+              updatedTypeData = (typeDim.length > 0) ? jQuery.map(typeDim[0].top_children, function(val) {
+                return { value: val.count, label: val.label, highlight: "#FF5A5E", label: "Red" };  
+              }) : false,
+              
+              sourceDim = jQuery.grep(facets, function(facet) {
+                return facet.dimension === 'dataset';
+              }),
+              
+              updatedSourceData = (typeDim.length > 0) ? jQuery.map(typeDim[0].top_children, function(val) {
+                return { value: val.count, label: val.label, highlight: "#FF5A5E", label: "Red" };  
+              }) : false;
 
-          jQuery('#facet-charts').html(listItems.join(''));
+          jQuery.each(updatedTypeData, function(idx, val) {
+            typeChart.segments[idx].value = val.value;
+          });
+          
+          typeChart.update();
         },
         
         updateCount = function(e) {
@@ -91,11 +130,10 @@ require([], function() {
             });
           }
         };
-    
-    /** Listen to all map changes **/    
+
+        
     map.on('move', updateCount);
     updateCount();
-    // map.on('moveend', updateHM);
         
   });
   

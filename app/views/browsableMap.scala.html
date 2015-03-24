@@ -8,6 +8,7 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/typeahead/typeahead.jquery.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/chart/chart.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/leaflet/leaflet.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/heatmap/heatmap.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/heatmap/leaflet-heatmap.js")"></script>
@@ -30,7 +31,10 @@
       
       <div id="result-stats"></div>
       
-      <ul id="facet-charts"></ul>
+      <div id="facet-charts">
+        <canvas class="piechart" id="type-chart" width="100" height="100"></canvas>
+        <canvas class="piechart" id="source-chart" width="100" height="100"></canvas>
+      </div>
       
     </div> <!-- #controls -->
   </body>
