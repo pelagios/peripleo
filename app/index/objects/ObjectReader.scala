@@ -208,7 +208,7 @@ trait ObjectReader extends AnnotationReader {
     var level = Index.maxLevels
     while (heatmap == null) {
       try {
-        heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 100000)
+        heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 20000)
       } catch {
         case t: Throwable => {
           level -= 1
