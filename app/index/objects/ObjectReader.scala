@@ -235,10 +235,10 @@ trait ObjectReader extends AnnotationReader {
         tempFacets.topLeaves +
         Option(fpv.childCounts).getOrElse(Array.empty[Int]).sum +
         Option(fpv.parentLeaves).getOrElse(0)
-      (year, count)
+      (year, count)/** TODO add option to resample the histogram to a max number of buckets **/
     }
     
-    new TimeHistogram(values.toSeq)
+    TimeHistogram.create(values.toSeq, 50)
   }
   
   private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {

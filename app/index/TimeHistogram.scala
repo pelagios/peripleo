@@ -1,12 +1,31 @@
 package index
 
-/** TODO add option to resample the histogram to a max number of buckets **/
-class TimeHistogram(vals: Seq[(Int, Int)]) {
+class TimeHistogram private (val values: Seq[(Int, Int)]) {
   
-  val values = vals.sortBy(_._1)
+  val startYear = values.headOption.map(_._1).getOrElse(0)
   
-  val startYear = values.head._1
+  val endYear = values.lastOption.map(_._1).getOrElse(0)
   
-  val endYear = values.last._1
+  lazy val maxCount = values.map(_._2).max
 
+}
+
+object TimeHistogram {
+  
+  def create(vals: Seq[(Int, Int)], maxBuckets: Int = -1): TimeHistogram = {
+    if (vals.size > 0) {
+      val values = 
+        if (maxBuckets < 0) {
+          vals.sortBy(_._1)
+        } else {
+          val stepSize = Math.ceil(vals.size.toDouble / maxBuckets).toInt
+          vals.sortBy(_._1).grouped(stepSize).map(values => (values.head._1, values.map(_._2).sum)).toSeq
+        }
+        
+      new TimeHistogram(values)
+    } else {
+      new TimeHistogram(Seq.empty[(Int, Int)])
+    }
+  }
+  
 }
