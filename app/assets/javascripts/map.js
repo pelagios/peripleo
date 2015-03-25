@@ -5,7 +5,11 @@ require([], function() {
     
         awmcLayer = L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
           attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
-          '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'}),    
+          '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'}),  
+          
+        BAR_COLOR = '#99ccff',
+          
+        timeHistogramCtx = jQuery('#time-histogram canvas')[0].getContext('2d'),
           
         facetValueTemplate = 
           '<tr>' +
@@ -79,7 +83,21 @@ require([], function() {
         },
         
         updateTimeHistogram = function(values) {
-          
+          var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
+              width = timeHistogramCtx.canvas.width,
+              height = timeHistogramCtx.canvas.height;
+              
+          console.log(timeHistogramCtx.width);
+          timeHistogramCtx.clearRect (0, 0, width, height);
+          jQuery.each(values, function(idx, value) {
+            // TODO hack to see what's going on
+            var barHeight = value.val / maxValue * 110;
+             
+            timeHistogramCtx.fillStyle = '#fff';
+            timeHistogramCtx.beginPath();
+            timeHistogramCtx.rect(idx, height - barHeight - 10, 1, barHeight);
+            timeHistogramCtx.fill();
+          });
         },
         
         updateCount = function(e) {
