@@ -1,0 +1,37 @@
+@import "../globals.less";
+
+#facet-charts {
+  padding:6px;
+  background-color:#929292; 
+  border-top:1px solid #3e4550;
+  color:#fff;
+  text-align:center;
+      
+  table { 
+    border-collapse:collapse; 
+  }
+      
+  td {
+    padding:2px;
+  }
+      
+  .label {
+    text-align:right;
+  }
+  
+  .meter {
+    width:120px;
+    background:none;
+        
+    .bar {
+      .rounded-corners(3px);
+      .gradient(#ff9c00, #c67900);
+      .box-shadow(2px, 2px, 4px, 0, rgba(0, 0, 0, 0.3));
+      display:inline-block;
+      height:10px;
+      background-color:#2a4c77;
+    }
+        
+  } /* .meter */
+        
+} /* #facet-charts */
