@@ -7,6 +7,12 @@ require([], function() {
           attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
           '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'}),  
           
+        dareLayer = L.tileLayer('http://pelagios.org/tilesets/imperium//{z}/{x}/{y}.png', {
+          attribution: 'Tiles: <a href="http://imperium.ahlfeldt.se/">DARE 2014</a>',
+          minZoom:3,
+          maxZoom:11
+        }), 
+          
         BAR_STROKE = '#3182bd',
         
         BAR_FILL = '#6baed6',
@@ -44,7 +50,7 @@ require([], function() {
         map = new L.Map('map', {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
-          layers: [ awmcLayer],
+          layers: [ awmcLayer, dareLayer ],
           zoomControl:false
         }),
         
