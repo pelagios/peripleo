@@ -29,6 +29,14 @@ import play.api.Logger
 import org.apache.lucene.search.highlight.SimpleFragmenter
 import org.apache.lucene.search.highlight.SimpleSpanFragmenter
 import org.apache.lucene.search.highlight.TokenSources
+import org.apache.lucene.spatial.prefix.PrefixTreeFacetCounter
+import org.apache.lucene.spatial.prefix.tree.NumberRangePrefixTree.UnitNRShape
+import java.util.Calendar
+import com.spatial4j.core.shape.Shape
+import org.apache.lucene.index.IndexReaderContext
+import org.apache.lucene.facet.Facets
+import scala.collection.JavaConverters._
+import java.util.GregorianCalendar
 
 trait ObjectReader extends AnnotationReader {
 
@@ -80,7 +88,7 @@ trait ObjectReader extends AnnotationReader {
     }
     
     val heatmapFilter = {
-      if (query.isDefined) {
+      if (query.isDefined) { 
         // We don't search the fulltext field for the heatmap - text-based heatmaps are handled by the annotation index
         val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
         baseQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
@@ -94,6 +102,9 @@ trait ObjectReader extends AnnotationReader {
     
     try {   
       val (results, facets) = executeSearch(searchQuery, limit, offset, query, searcher, objectSearcher.taxonomyReader)
+      
+      val temporalProfile = calculateTemporalProfile(new QueryWrapperFilter(searchQuery), searcher)
+      
       val heatmap = 
         calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
         calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, bbox, coord, radius)
@@ -152,7 +163,7 @@ trait ObjectReader extends AnnotationReader {
         timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, toYear.get, true, true), BooleanClause.Occur.MUST)
         
       q.add(timeIntervalQuery, BooleanClause.Occur.MUST)
-    }
+    } 
     
     // Places filter
     places.foreach(uri =>
@@ -200,12 +211,42 @@ trait ObjectReader extends AnnotationReader {
     (Page(results.toSeq, offset, limit, total, queryString), facetTree)
   }
   
+  private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher) = {
+    val startCal = Index.dateRangeTree.newCal()
+    startCal.set(-10000, Calendar.JANUARY, 1)
+    val start = Index.dateRangeTree.toShape(startCal)
+    
+    val endCal = Index.dateRangeTree.newCal()
+    endCal.set(3000, Calendar.DECEMBER, 31)
+    val end = Index.dateRangeTree.toShape(endCal)
+    
+    val detailLevel = Math.max(start.getLevel(), end.getLevel()) + 1
+    val facetRange = Index.dateRangeTree.toRangeShape(start, end);    
+    val tempFacets = Index.temporalStrategy.calcFacets(searcher.getTopReaderContext, filter, facetRange, 4)
+    
+    val parents = tempFacets.parents.asScala.map { case (shape, fpv) => 
+      val calendar = Index.dateRangeTree.toObject(shape).asInstanceOf[Calendar]
+      val year = calendar.get(Calendar.ERA) match {
+        case GregorianCalendar.BC => - calendar.get(Calendar.YEAR)
+        case _ => calendar.get(Calendar.YEAR)
+      }
+        
+      val count =
+        tempFacets.topLeaves +
+        Option(fpv.childCounts).getOrElse(Array.empty[Int]).sum +
+        Option(fpv.parentLeaves).getOrElse(0)
+        
+      Logger.info(year + " - " + count)
+      (year, count)
+    }
+  }
+  
   private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {
     val rect = bbox.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
     
     // Horrible hack!
     var heatmap: HeatmapFacetCounter.Heatmap = null; // Semicolon just to honour the old Java tradition
-    var level = Index.maxLevels
+    var level = Index.maxSpatialTreeLevels
     while (heatmap == null) {
       try {
         heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 20000)
@@ -216,8 +257,7 @@ trait ObjectReader extends AnnotationReader {
         }
       }
     }
-    // Logger.info("Heatmap at level " + level)
-      
+          
     // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
     val nonEmptyCells = 
       Seq.range(0, heatmap.rows).flatMap(row => {

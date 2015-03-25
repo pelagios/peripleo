@@ -21,6 +21,8 @@ object IndexFields {
   val DATE_FROM = "date_from"
     
   val DATE_TO = "date_to"
+  
+  val DATE_POINT = "date_xy"
     
   val CONVEX_HULL = "convex_hull"
 

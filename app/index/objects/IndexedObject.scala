@@ -57,11 +57,20 @@ object IndexedObject {
     doc.add(new FacetField(IndexFields.ITEM_DATASET, datasetHierarchy.map(d => d.title + "#" + d.id).reverse:_*))
     
     // Temporal bounds
-    thing.temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.YES)))
-    thing.temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.YES)))
+    thing.temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))
+    thing.temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
+    thing.temporalBoundsStart.map(start => {
+      val end = thing.temporalBoundsEnd.getOrElse(start)
+      val dateRange =
+        if (start > end) // Minimal safety precaution... 
+          Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")
+        else
+          Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
+          
+      Index.temporalStrategy.createIndexableFields(dateRange).foreach(doc.add(_))
+    })
     
     // Fulltext
-    // fulltext.map(text => doc.add(new Field(IndexFields.ITEM_FULLTEXT_OFFSETS, text, IndexFields.Types.HIGHLIGHTED_FIELD)))
     fulltext.map(text => doc.add(new TextField(IndexFields.ITEM_FULLTEXT, text, Field.Store.YES)))
     
     // Convex hull

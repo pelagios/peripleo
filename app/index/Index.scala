@@ -1,5 +1,6 @@
 package index
 
+import com.spatial4j.core.context.SpatialContext
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import index.annotations._
 import index.objects._
@@ -17,6 +18,7 @@ import org.apache.lucene.search.spell.{ SpellChecker, LuceneDictionary }
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.Logger
+import org.apache.lucene.spatial.prefix.tree.DateRangePrefixTree
 
 private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, annotationDir: Path, spellcheckDir: Path) {  
     
@@ -128,11 +130,16 @@ object Index {
   /** Spatial indexing settings **/
   private[index] val spatialCtx = JtsSpatialContext.GEO
   
-  private[index] val maxLevels = 11 
+  private[index] val maxSpatialTreeLevels = 11 
   
   private[index] val spatialStrategy =
-    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxLevels), IndexFields.GEOMETRY)
+    new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxSpatialTreeLevels), IndexFields.GEOMETRY)
   
+  /** Time segment indexing settings **/
+  private[index] val dateRangeTree = DateRangePrefixTree.INSTANCE
+  
+  private[index] val temporalStrategy = 
+    new NumberRangePrefixTreeStrategy(dateRangeTree, IndexFields.DATE_POINT);
   
   /** Object index facets **/
   private[index] val facetsConfig = new FacetsConfig()
