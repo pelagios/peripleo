@@ -7,7 +7,9 @@ require([], function() {
           attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
           '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC</a>'}),  
           
-        BAR_COLOR = '#99ccff',
+        BAR_STROKE = '#3182bd',
+        
+        BAR_FILL = '#6baed6',
           
         timeHistogramCtx = jQuery('#time-histogram canvas')[0].getContext('2d'),
         timeFrom = jQuery('#label-from'),
@@ -16,8 +18,9 @@ require([], function() {
         facetValueTemplate = 
           '<tr>' +
           '  <td class="label"></td>' +
-          '  <td class="count-bar"><div class="meter"><div class="bar"></div></div></td>' +
-          '  <td class="count-number"></td>' +
+          '  <td class="count-bar">' +
+          '    <div class="meter"><div class="bar"></div><span class="count-number"></span></div>' +
+          '  </td>' +
           '</tr>',
 
         typeChartTable = jQuery('#type-chart'),
@@ -86,6 +89,11 @@ require([], function() {
         },
         
         updateTimeHistogram = function(values) {
+          timeHistogramCtx.clearRect (0, 0, timeHistogramCtx.canvas.width, timeHistogramCtx.canvas.height);
+          
+          if (values.length === 0)
+            return;
+            
           var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
               from = values[0].year,
               to = values[values.length - 1].year,
@@ -93,15 +101,17 @@ require([], function() {
               height = timeHistogramCtx.canvas.height,
               xOffset = 0;
               
-          timeHistogramCtx.clearRect (0, 0, width, height);
+          
           
           jQuery.each(values, function(idx, value) {
-            var barHeight = value.val / maxValue * 110;             
-            timeHistogramCtx.fillStyle = BAR_COLOR;
+            var barHeight = Math.round(value.val / maxValue * 100);             
+            timeHistogramCtx.strokeStyle = BAR_STROKE;
+            timeHistogramCtx.fillStyle = BAR_FILL;
             timeHistogramCtx.beginPath();
-            timeHistogramCtx.rect(xOffset, height - barHeight - 10, 3, barHeight);
+            timeHistogramCtx.rect(xOffset + 0.5, height - barHeight - 9.5, 4, barHeight);
             timeHistogramCtx.fill();
-            xOffset += 5;
+            timeHistogramCtx.stroke();
+            xOffset += 7;
           });
           
           timeFrom.html(formatYear(from));

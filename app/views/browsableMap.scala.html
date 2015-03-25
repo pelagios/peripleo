@@ -33,16 +33,24 @@
       
       <div id="time-histogram">
         <span class="label" id="label-from"></span>
-        <canvas width="260" height="120"></canvas>
+        <canvas width="180" height="120"></canvas>
         <span class="label" id="label-to"></span>
       </div>
       
       <div id="facet-charts">
-        <h3 class="facet-dimension">Object Types</h3>
-        <table id="type-chart"></table>
+        <table>
+          <tbody class="thead">
+            <tr><td colspan="2"><h3 class="facet-dimension">Object Types</h3></td></tr>
+          </tbody>
         
-        <h3 class="facet-dimension">Source Datasets</h3>        
-        <table id="source-chart" ></table>
+          <tbody class="chart" id="type-chart"></tbody>
+        
+          <tbody>
+            <tr><td colspan="2"><h3 class="facet-dimension">Source Datasets</h3></td></tr>     
+          </tbody>
+        
+          <tbody class="chart" id="source-chart" ></tbody>
+        </table>
       </div>
       
     </div> <!-- #controls -->

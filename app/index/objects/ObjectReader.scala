@@ -238,7 +238,7 @@ trait ObjectReader extends AnnotationReader {
       (year, count)/** TODO add option to resample the histogram to a max number of buckets **/
     }
     
-    TimeHistogram.create(values.toSeq, 50)
+    TimeHistogram.create(values.toSeq, 26)
   }
   
   private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {

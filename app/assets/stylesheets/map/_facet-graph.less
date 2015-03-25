@@ -13,25 +13,55 @@
       
   td {
     padding:2px;
+    color:#323232;
+    font-size:12px;
   }
-      
-  .label {
+  
+  h3 {
+    font-weight:normal;
+    color:#dfdfdf;
+    font-weight:normal;
+    text-shadow:0 1px 0 rgba(255,255,255,0.5), 0 -1px 1px rgba(0,0,0,0.4);
+    font-size:13px;  
+    padding:0;
+    margin:0 0 5px 0;
+  }
+  
+  td.label {
+    min-width:80px;
+    max-width:120px;
+    overflow:hidden;
+    white-space:nowrap;
     text-align:right;
+    text-overflow: ellipsis;
+    padding:0 5px 0 10px;
   }
   
   .meter {
-    width:120px;
+    width:80px;
     background:none;
-        
+    white-space:nowrap;
+    
+    .count-number {
+      padding-left:5px;
+      font-size:12px;
+    }
+    
     .bar {
-      .rounded-corners(3px);
-      .gradient(#ff9c00, #c67900);
-      .box-shadow(2px, 2px, 4px, 0, rgba(0, 0, 0, 0.3));
       display:inline-block;
-      height:10px;
-      background-color:#2a4c77;
+      height:6px;
     }
         
   } /* .meter */
+  
+  #type-chart .bar {
+    border:1px solid #756bb1;
+    background-color:#9e9ac8;
+  }
+  
+  #source-chart .bar {
+    border:1px solid #31a354;
+    background-color:#74c476;
+  }
         
 } /* #facet-charts */
