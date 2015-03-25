@@ -10,6 +10,8 @@ require([], function() {
         BAR_COLOR = '#99ccff',
           
         timeHistogramCtx = jQuery('#time-histogram canvas')[0].getContext('2d'),
+        timeFrom = jQuery('#label-from'),
+        timeTo = jQuery('#label-to'),
           
         facetValueTemplate = 
           '<tr>' +
@@ -24,6 +26,7 @@ require([], function() {
         
         /** Shorthands **/
         formatNumber = function(number) { return numeral(number).format('0,0'); },
+        formatYear = function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; },
         sortFacetValues = function(a,b) { return b.count - a.count },
         
         /** Helper to parse the source facet label **/
@@ -84,20 +87,25 @@ require([], function() {
         
         updateTimeHistogram = function(values) {
           var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
+              from = values[0].year,
+              to = values[values.length - 1].year,
               width = timeHistogramCtx.canvas.width,
-              height = timeHistogramCtx.canvas.height;
+              height = timeHistogramCtx.canvas.height,
+              xOffset = 0;
               
-          console.log(timeHistogramCtx.width);
           timeHistogramCtx.clearRect (0, 0, width, height);
+          
           jQuery.each(values, function(idx, value) {
-            // TODO hack to see what's going on
-            var barHeight = value.val / maxValue * 110;
-             
-            timeHistogramCtx.fillStyle = '#fff';
+            var barHeight = value.val / maxValue * 110;             
+            timeHistogramCtx.fillStyle = BAR_COLOR;
             timeHistogramCtx.beginPath();
-            timeHistogramCtx.rect(idx, height - barHeight - 10, 1, barHeight);
+            timeHistogramCtx.rect(xOffset, height - barHeight - 10, 3, barHeight);
             timeHistogramCtx.fill();
+            xOffset += 5;
           });
+          
+          timeFrom.html(formatYear(from));
+          timeTo.html(formatYear(to));
         },
         
         updateCount = function(e) {
