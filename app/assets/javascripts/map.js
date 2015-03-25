@@ -78,15 +78,20 @@ require([], function() {
           }
         },
         
+        updateTimeHistogram = function(values) {
+          
+        },
+        
         updateCount = function(e) {
           var b = map.getBounds(),
               bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth();
           
           if (!pendingRequest) {    
             pendingRequest = true;
-            jQuery.getJSON('/api-v3/search?facets=true&bbox=' + bboxParam, function(response) {
+            jQuery.getJSON('/api-v3/search?facets=true&timehistogram=true&bbox=' + bboxParam, function(response) {
               resultStats.html(formatNumber(response.total) + ' Results');   
               updateFacets(response.facets);      
+              updateTimeHistogram(response.time_histogram);
             })
             .always(function() {
               pendingRequest = false;

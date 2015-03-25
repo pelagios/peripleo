@@ -71,7 +71,7 @@ trait ObjectReader extends AnnotationReader {
       coord:      Option[Coordinate], 
       radius:     Option[Double],
       limit:      Int = 20, 
-      offset:     Int = 0)(implicit s: Session): (Page[(IndexedObject, Option[String])], FacetTree, Heatmap) = {
+      offset:     Int = 0)(implicit s: Session): (Page[(IndexedObject, Option[String])], FacetTree, TimeHistogram, Heatmap) = {
      
     // The part of the query that is common for search and heatmap calculation
     val rectangle = bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
@@ -109,7 +109,7 @@ trait ObjectReader extends AnnotationReader {
         calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
         calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, bbox, coord, radius)
         
-      (results, facets, heatmap)
+      (results, facets, temporalProfile, heatmap)
     } finally {
       placeSearcherManager.release(placeSearcher)
       objectSearcherManager.release(objectSearcher)
@@ -211,7 +211,7 @@ trait ObjectReader extends AnnotationReader {
     (Page(results.toSeq, offset, limit, total, queryString), facetTree)
   }
   
-  private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher) = {
+  private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher): TimeHistogram = {
     val startCal = Index.dateRangeTree.newCal()
     startCal.set(-10000, Calendar.JANUARY, 1)
     val start = Index.dateRangeTree.toShape(startCal)
@@ -224,7 +224,7 @@ trait ObjectReader extends AnnotationReader {
     val facetRange = Index.dateRangeTree.toRangeShape(start, end);    
     val tempFacets = Index.temporalStrategy.calcFacets(searcher.getTopReaderContext, filter, facetRange, 4)
     
-    val parents = tempFacets.parents.asScala.map { case (shape, fpv) => 
+    val values = tempFacets.parents.asScala.map { case (shape, fpv) => 
       val calendar = Index.dateRangeTree.toObject(shape).asInstanceOf[Calendar]
       val year = calendar.get(Calendar.ERA) match {
         case GregorianCalendar.BC => - calendar.get(Calendar.YEAR)
@@ -235,10 +235,10 @@ trait ObjectReader extends AnnotationReader {
         tempFacets.topLeaves +
         Option(fpv.childCounts).getOrElse(Array.empty[Int]).sum +
         Option(fpv.parentLeaves).getOrElse(0)
-        
-      Logger.info(year + " - " + count)
       (year, count)
     }
+    
+    new TimeHistogram(values.toSeq)
   }
   
   private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {

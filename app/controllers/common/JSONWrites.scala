@@ -1,7 +1,7 @@
 package controllers.common
 
 import global.Global
-import index.Heatmap
+import index.{ Heatmap, TimeHistogram }
 import index.places._
 import index.objects.{ IndexedObject, IndexedObjectTypes }
 import models._
@@ -181,24 +181,27 @@ object JSONWrites {
     (JsPath \ "lon").write[Double] ~
     (JsPath \ "weight").write[Int]
   )(pt => (pt.uri, pt.lat, pt.lon, pt.weight))
-  
-  /** TODO just a hack **/
-  
-  implicit def placeAdjacencyWrites(implicit verbose: Boolean = false): Writes[PlaceAdjacencyGraph] = (
-    (JsPath \ "nodes").write[Seq[GazetteerReference]] ~
-    (JsPath \ "links").write[Seq[JsValue]]
-  )(graph =>
-    (graph.nodes, graph.edges.map(e => Json.obj("source" -> e.from, "target" -> e.to, "weight" -> e.weight))))
-    
-  implicit val heatmapWrites: Writes [Heatmap] = 
-    (JsPath \ "heatmap").write[Seq[JsValue]].contramap(_.cells.map { case (x, y, weight) => 
-      Json.obj("x" -> x, "y" -> y, "weight" -> weight) })
       
   implicit val facetTreeWrites: Writes[FacetTree] =
     (JsPath \ "facets").write[Seq[JsValue]].contramap(tree => tree.dimensions().map(dimension => {
       val topChildren = tree.getTopChildren(dimension)
         .map { case (label, count) => Json.obj("label" -> label, "count" -> count) }
-      Json.obj("dimension" -> dimension, "top_children" -> Json.toJson(topChildren)) }))      
+      Json.obj("dimension" -> dimension, "top_children" -> Json.toJson(topChildren)) }))   
+      
+  implicit val timeHistogramWrites: Writes[TimeHistogram] =
+    (JsPath \ "time_histogram").write[Seq[JsValue]].contramap(_.values.map { case (year, value) => 
+      Json.obj("year" -> year, "val" -> value) })
+      
+  implicit val heatmapWrites: Writes [Heatmap] = 
+    (JsPath \ "heatmap").write[Seq[JsValue]].contramap(_.cells.map { case (x, y, weight) => 
+      Json.obj("x" -> x, "y" -> y, "weight" -> weight) })
+ 
+  implicit def placeAdjacencyWrites(implicit verbose: Boolean = false): Writes[PlaceAdjacencyGraph] = (
+    (JsPath \ "nodes").write[Seq[GazetteerReference]] ~
+    (JsPath \ "links").write[Seq[JsValue]]
+  )(graph =>
+    (graph.nodes, graph.edges.map(e => Json.obj("source" -> e.from, "target" -> e.to, "weight" -> e.weight))))
+      
   /**                             **/
   /** Index entity serializations **/
   /**                             **/
