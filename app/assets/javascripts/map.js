@@ -1,4 +1,4 @@
-require([], function() {
+require(['common/autocomplete'], function(AutoComplete) {
   
   jQuery(document).ready(function() {
     var searchForm = jQuery('#text-query form'),
@@ -40,6 +40,8 @@ require([], function() {
           
           return url + '&bbox='
         }
+        
+        autoComplete = new AutoComplete(searchForm, searchInput);
     
         awmcLayer = L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
           attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
