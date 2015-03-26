@@ -1,7 +1,45 @@
 require([], function() {
   
   jQuery(document).ready(function() {
-    var resultStats = jQuery('#result-stats'), 
+    var searchForm = jQuery('#text-query form'),
+        searchInput = jQuery('#query'),
+        
+        resultStats = jQuery('#result-stats'), 
+
+        typeChartTable = jQuery('#type-chart'),
+        
+        sourceChartTable = jQuery('#source-chart'),
+    
+        queryFilters = {
+          
+          query: false,
+          
+          objectType: false,
+          
+          dataset: false,
+          
+          timespan: false
+          
+        },
+        
+        // TODO no need to rebuild for every request - cache
+        buildQueryURL = function() {
+          var url = '/api-v3/search?facets=true&timehistogram=true';
+          
+          if (queryFilters.query)
+            url += '&query=' + queryFilters.query;
+            
+          if (queryFilters.objectType)
+            url += '&type=' + queryFilters.objectType;
+            
+          if (queryFilters.dataset)
+            url += '&dataset=' + queryFilters.dataset;
+            
+          if (queryFilters.timespan)
+            url += '&from' + queryFilters.timespan.from + '&to=' + queryFilters.timespan.to;
+          
+          return url + '&bbox='
+        }
     
         awmcLayer = L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
           attribution: 'Data &copy; <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
@@ -29,9 +67,6 @@ require([], function() {
           '  </td>' +
           '</tr>',
 
-        typeChartTable = jQuery('#type-chart'),
-        
-        sourceChartTable = jQuery('#source-chart'),
         
         /** Shorthands **/
         formatNumber = function(number) { return numeral(number).format('0,0'); },
@@ -50,11 +85,17 @@ require([], function() {
         map = new L.Map('map', {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
-          layers: [ awmcLayer, dareLayer ],
+          layers: [ awmcLayer ],
           zoomControl:false
         }),
         
         pendingRequest = false,
+        
+        search = function() {
+          queryFilters.query = searchInput.val();
+          update();
+          return false; // preventDefault + stopPropagation
+        },
 
         updateFacets = function(facets) {
           // UI currently hard-wired to show 'type' and 'source dataset' facets only
@@ -124,13 +165,13 @@ require([], function() {
           timeTo.html(formatYear(to));
         },
         
-        updateCount = function(e) {
+        update = function(e) {
           var b = map.getBounds(),
               bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth();
           
           if (!pendingRequest) {    
             pendingRequest = true;
-            jQuery.getJSON('/api-v3/search?facets=true&timehistogram=true&bbox=' + bboxParam, function(response) {
+            jQuery.getJSON(buildQueryURL() + bboxParam, function(response) {
               resultStats.html(formatNumber(response.total) + ' Results');   
               updateFacets(response.facets);      
               updateTimeHistogram(response.time_histogram);
@@ -142,9 +183,10 @@ require([], function() {
         };
 
         
-    map.on('move', updateCount);
-    updateCount();
+    map.on('move', update);
+    update();
         
+    searchForm.submit(search);
   });
   
 });

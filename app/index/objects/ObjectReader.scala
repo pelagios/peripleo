@@ -171,7 +171,7 @@ trait ObjectReader extends AnnotationReader {
     
     // Spatial filter
     if (bbox.isDefined) {
-      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, bbox.get)), BooleanClause.Occur.MUST)
+      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.Intersects, bbox.get)), BooleanClause.Occur.MUST)
     } else if (coord.isDefined) {
       // Warning - there appears to be a bug in Lucene spatial that flips coordinates!
       val circle = Index.spatialCtx.makeCircle(coord.get.y, coord.get.x, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
