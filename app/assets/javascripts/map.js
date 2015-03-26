@@ -190,6 +190,10 @@ require(['common/autocomplete'], function(AutoComplete) {
     update();
         
     searchForm.submit(search);
+    searchForm.keypress(function (e) {
+      if (e.which == 13)
+        searchForm.submit();
+    });
   });
   
 });
