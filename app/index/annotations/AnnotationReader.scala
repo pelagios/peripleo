@@ -12,6 +12,8 @@ import org.apache.lucene.search.{ BooleanClause, BooleanQuery, NumericRangeQuery
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import play.api.db.slick._
+import com.spatial4j.core.shape.Rectangle
+import play.api.Logger
 
 trait AnnotationReader extends IndexBase {
   
@@ -21,7 +23,7 @@ trait AnnotationReader extends IndexBase {
       fromYear: Option[Int] = None,
       toYear: Option[Int] = None,      
       places: Seq[String] = Seq.empty[String], 
-      bbox: Option[BoundingBox] = None,
+      bbox: Option[Rectangle] = None,
       coord: Option[Coordinate] = None, 
       radius: Option[Double] = None
     )(implicit s: Session): Heatmap = {
@@ -31,7 +33,7 @@ trait AnnotationReader extends IndexBase {
     // Keyword query
     if (query.isDefined) {
       val fields = Seq(IndexFields.ANNOTATION_QUOTE, IndexFields.ANNOTATION_FULLTEXT_PREFIX, IndexFields.ANNOTATION_FULLTEXT_SUFFIX).toArray       
-      q.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
+      q.add(new MultiFieldQueryParser(fields, analyzer).parse("crocodile"), BooleanClause.Occur.MUST)  
     }     
     
     // Dataset filter
@@ -67,23 +69,23 @@ trait AnnotationReader extends IndexBase {
     
     // Spatial filter
     if (bbox.isDefined) {
-      val rectangle = Index.spatialCtx.makeRectangle(bbox.get.minLon, bbox.get.maxLon, bbox.get.minLat, bbox.get.maxLat)
-      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, rectangle)), BooleanClause.Occur.MUST)
+      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, bbox.get)), BooleanClause.Occur.MUST)
     } else if (coord.isDefined) {
       // Warning - there appears to be a bug in Lucene spatial that flips coordinates!
       val circle = Index.spatialCtx.makeCircle(coord.get.y, coord.get.x, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
       q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
     }
       
-    execute(q)    
+    execute(q, bbox)    
   }
   
-  private def execute(query: Query): Heatmap = {
+  private def execute(query: Query, bbox: Option[Rectangle]): Heatmap = {
     val searcher = annotationSearcherManager.acquire()
+    val rect = bbox.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
     
     try {            
       val filter = new QueryWrapperFilter(query)
-      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, new RectangleImpl(-90, 90, -90, 90, null), 3, 18000)
+      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, 3, 18000)
       
       // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
       val nonEmptyCells = 

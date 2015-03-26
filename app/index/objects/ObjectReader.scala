@@ -106,8 +106,8 @@ trait ObjectReader extends AnnotationReader {
       val temporalProfile = calculateTemporalProfile(new QueryWrapperFilter(searchQuery), searcher)
       
       val heatmap = 
-        calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
-        calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, bbox, coord, radius)
+        // calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
+        calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, rectangle, coord, radius)
         
       (results, facets, temporalProfile, heatmap)
     } finally {
@@ -244,19 +244,8 @@ trait ObjectReader extends AnnotationReader {
   private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {
     val rect = bbox.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
     
-    // Horrible hack!
-    var heatmap: HeatmapFacetCounter.Heatmap = null; // Semicolon just to honour the old Java tradition
-    var level = Index.maxSpatialTreeLevels
-    while (heatmap == null) {
-      try {
-        heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 20000)
-      } catch {
-        case t: Throwable => {
-          level -= 1
-          heatmap = null
-        }
-      }
-    }
+    val level = 3 // TODO figure out a good way to adapt levels to bbox
+    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 10000)
           
     // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
     val nonEmptyCells = 

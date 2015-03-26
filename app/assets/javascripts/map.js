@@ -1,4 +1,4 @@
-require(['common/autocomplete'], function(AutoComplete) {
+require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, DensityGrid) {
   
   jQuery(document).ready(function() {
     var searchForm = jQuery('#text-query form'),
@@ -24,7 +24,7 @@ require(['common/autocomplete'], function(AutoComplete) {
         
         // TODO no need to rebuild for every request - cache
         buildQueryURL = function() {
-          var url = '/api-v3/search?facets=true&timehistogram=true';
+          var url = '/api-v3/search?facets=true&timehistogram=true&heatmap=true';
           
           if (queryFilters.query)
             url += '&query=' + queryFilters.query;
@@ -90,6 +90,8 @@ require(['common/autocomplete'], function(AutoComplete) {
           layers: [ awmcLayer ],
           zoomControl:false
         }),
+        
+        densityGrid = new DensityGrid().addTo(map);
         
         pendingRequest = false,
         
@@ -183,10 +185,20 @@ require(['common/autocomplete'], function(AutoComplete) {
               pendingRequest = false;
             });
           }
+        },
+        
+        refreshHeatmap = function(e) {
+          var b = map.getBounds(),
+              bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth();
+ 
+          jQuery.getJSON(buildQueryURL() + bboxParam, function(response) {
+            densityGrid.update(response.heatmap); 
+          });
         };
 
         
     map.on('move', update);
+    map.on('moveend zoomend', refreshHeatmap);
     update();
         
     searchForm.submit(search);
