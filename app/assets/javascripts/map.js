@@ -95,6 +95,7 @@ require(['common/autocomplete'], function(AutoComplete) {
         
         search = function() {
           queryFilters.query = searchInput.val();
+          searchInput.blur();
           update();
           return false; // preventDefault + stopPropagation
         },
