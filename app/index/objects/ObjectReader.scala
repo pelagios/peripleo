@@ -106,7 +106,7 @@ trait ObjectReader extends AnnotationReader {
       val temporalProfile = calculateTemporalProfile(new QueryWrapperFilter(searchQuery), searcher)
       
       val heatmap = 
-        // calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
+        calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
         calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, rectangle, coord, radius)
         
       (results, facets, temporalProfile, heatmap)
