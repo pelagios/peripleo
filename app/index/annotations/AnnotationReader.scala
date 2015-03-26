@@ -33,7 +33,7 @@ trait AnnotationReader extends IndexBase {
     // Keyword query
     if (query.isDefined) {
       val fields = Seq(IndexFields.ANNOTATION_QUOTE, IndexFields.ANNOTATION_FULLTEXT_PREFIX, IndexFields.ANNOTATION_FULLTEXT_SUFFIX).toArray       
-      q.add(new MultiFieldQueryParser(fields, analyzer).parse("crocodile"), BooleanClause.Occur.MUST)  
+      q.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
     }     
     
     // Dataset filter
