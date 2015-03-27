@@ -25,7 +25,8 @@ trait AnnotationReader extends IndexBase {
       places: Seq[String] = Seq.empty[String], 
       bbox: Option[Rectangle] = None,
       coord: Option[Coordinate] = None, 
-      radius: Option[Double] = None
+      radius: Option[Double] = None, 
+      level: Int
     )(implicit s: Session): Heatmap = {
     
     val q = new BooleanQuery()
@@ -76,16 +77,16 @@ trait AnnotationReader extends IndexBase {
       q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
     }
       
-    execute(q, bbox)    
+    execute(q, bbox, level)    
   }
   
-  private def execute(query: Query, bbox: Option[Rectangle]): Heatmap = {
+  private def execute(query: Query, bbox: Option[Rectangle], level: Int): Heatmap = {
     val searcher = annotationSearcherManager.acquire()
     val rect = bbox.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
     
     try {            
       val filter = new QueryWrapperFilter(query)
-      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, 3, 18000)
+      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 30000)
       
       // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
       val nonEmptyCells = 

@@ -105,9 +105,18 @@ trait ObjectReader extends AnnotationReader {
       
       val temporalProfile = calculateTemporalProfile(new QueryWrapperFilter(searchQuery), searcher)
       
+      val rect = rectangle.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
+      val avgDimensionDeg = rect.getWidth + rect.getHeight
+      val level = avgDimensionDeg match {
+        case dim if dim < 5 => 5
+        case dim if dim < 70 => 4
+        case dim if dim < 470 => 3
+        case _ => 2
+      }
+      
       val heatmap = 
-        calculateItemHeatmap(heatmapFilter, rectangle, searcher) // +
-        // calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, rectangle, coord, radius)
+        calculateItemHeatmap(heatmapFilter, rect, level, searcher) +
+        calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, rectangle, coord, radius, level)
         
       (results, facets, temporalProfile, heatmap)
     } finally {
@@ -241,18 +250,8 @@ trait ObjectReader extends AnnotationReader {
     TimeHistogram.create(values.toSeq, 26)
   }
   
-  private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {
-    val rect = bbox.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
-    
-    val avgDimensionDeg = rect.getWidth + rect.getHeight
-    val level = avgDimensionDeg match {
-      case dim if dim < 5 => 5
-      case dim if dim < 70 => 4
-      case dim if dim < 470 => 3
-      case _ => 2
-    }
-
-    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 30000)
+  private def calculateItemHeatmap(filter: Filter, bbox: Rectangle, level: Int, searcher: IndexSearcher): Heatmap = {
+    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, bbox, level, 30000)
           
     // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
     val nonEmptyCells = 

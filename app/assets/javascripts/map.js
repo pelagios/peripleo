@@ -108,6 +108,7 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
           queryFilters.query = searchInput.val();
           searchInput.blur();
           update();
+          refreshHeatmap();
           return false; // preventDefault + stopPropagation
         },
 
