@@ -106,8 +106,8 @@ trait ObjectReader extends AnnotationReader {
       val temporalProfile = calculateTemporalProfile(new QueryWrapperFilter(searchQuery), searcher)
       
       val heatmap = 
-        calculateItemHeatmap(heatmapFilter, rectangle, searcher) +
-        calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, rectangle, coord, radius)
+        calculateItemHeatmap(heatmapFilter, rectangle, searcher) // +
+        // calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, rectangle, coord, radius)
         
       (results, facets, temporalProfile, heatmap)
     } finally {
@@ -244,8 +244,15 @@ trait ObjectReader extends AnnotationReader {
   private def calculateItemHeatmap(filter: Filter, bbox: Option[Rectangle], searcher: IndexSearcher): Heatmap = {
     val rect = bbox.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
     
-    val level = 3 // TODO figure out a good way to adapt levels to bbox
-    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 10000)
+    val avgDimensionDeg = rect.getWidth + rect.getHeight
+    val level = avgDimensionDeg match {
+      case dim if dim < 5 => 5
+      case dim if dim < 70 => 4
+      case dim if dim < 470 => 3
+      case _ => 2
+    }
+
+    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 30000)
           
     // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
     val nonEmptyCells = 
@@ -263,7 +270,7 @@ trait ObjectReader extends AnnotationReader {
       val lon = DistanceUtils.normLonDEG(minX + x * cellWidth + cellWidth / 2)
       val lat = DistanceUtils.normLatDEG(minY + y * cellHeight + cellHeight / 2)
       (lon, lat, count)
-    })
+    }, cellWidth, cellHeight)
   }
 
 }

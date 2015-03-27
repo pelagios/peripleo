@@ -192,9 +192,20 @@ object JSONWrites {
     (JsPath \ "time_histogram").write[Seq[JsValue]].contramap(_.values.map { case (year, value) => 
       Json.obj("year" -> year, "val" -> value) })
       
-  implicit val heatmapWrites: Writes [Heatmap] = 
-    (JsPath \ "heatmap").write[Seq[JsValue]].contramap(_.cells.map { case (x, y, weight) => 
-      Json.obj("x" -> x, "y" -> y, "weight" -> weight) })
+  implicit val heatmapWrites: Writes[Heatmap] = (
+    (JsPath \ "cell_width").write[Double] ~
+    (JsPath \ "cell_height").write[Double] ~
+    (JsPath \ "max_value").write[Int] ~
+    (JsPath \ "cells").write[Seq[JsValue]]
+  )(heatmap => (
+      heatmap.cellWidth,
+      heatmap.cellHeight,
+      heatmap.maxValue,
+      heatmap.cells.map { case (x, y, weight) => Json.obj("x" -> x, "y" -> y, "weight" -> weight) }))
+      
+//   implicit val heatmapWrites: Writes [Heatmap] = 
+//    (JsPath \ "heatmap").write[Seq[JsValue]].contramap(_.cells.map { case (x, y, weight) => 
+//      Json.obj("cell_width" -> x" -> x, "y" -> y, "weight" -> weight) })
  
   implicit def placeAdjacencyWrites(implicit verbose: Boolean = false): Writes[PlaceAdjacencyGraph] = (
     (JsPath \ "nodes").write[Seq[GazetteerReference]] ~

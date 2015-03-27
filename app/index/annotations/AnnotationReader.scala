@@ -103,7 +103,7 @@ trait AnnotationReader extends IndexBase {
         val lon = DistanceUtils.normLonDEG(minX + x * cellWidth + cellWidth / 2)
         val lat = DistanceUtils.normLatDEG(minY + y * cellHeight + cellHeight / 2)
         (lon, lat, count)
-      })
+      }, cellWidth, cellHeight)
     } finally {
       annotationSearcherManager.release(searcher)
     }     

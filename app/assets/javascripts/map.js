@@ -22,6 +22,15 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
           
         },
         
+        normalizeBounds = function(b) {
+          var w = (b.getWest() < -179) ? -180 : b.getWest() - 1,
+              e = (b.getEast() > 179) ? 180 : b.getEast() + 1,
+              s = (b.getSouth() < -89) ? -90 : b.getSouth() - 1,
+              n = (b.getNorth() > 89) ? 90 : b.getNorth() + 1;
+              
+          return { north: n, east: e, south: s, west: w };
+        },
+        
         // TODO no need to rebuild for every request - cache
         buildQueryURL = function() {
           var url = '/api-v3/search?facets=true&timehistogram=true&heatmap=true';
@@ -83,7 +92,7 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
               
           return { label: label, id: id };
         },
-        
+
         map = new L.Map('map', {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
@@ -188,8 +197,8 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
         },
         
         refreshHeatmap = function(e) {
-          var b = map.getBounds(),
-              bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth();
+          var b = normalizeBounds(map.getBounds()),
+              bboxParam = b.west + ',' + b.east + ',' + b.south + ',' + b.north;
  
           jQuery.getJSON(buildQueryURL() + bboxParam, function(response) {
             densityGrid.update(response.heatmap); 
@@ -198,8 +207,9 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
 
         
     map.on('move', update);
-    map.on('moveend zoomend', refreshHeatmap);
+    map.on('moveend', refreshHeatmap);
     update();
+    refreshHeatmap();
         
     searchForm.submit(search);
     searchForm.keypress(function (e) {

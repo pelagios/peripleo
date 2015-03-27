@@ -1,6 +1,8 @@
 package index
 
-class Heatmap(val cells: Seq[(Double, Double, Int)]) {
+class Heatmap(val cells: Seq[(Double, Double, Int)], val cellWidth: Double, val cellHeight: Double) {
+  
+  lazy val maxValue = cells.map(_._3).max
   
   def +(other: Heatmap): Heatmap = {
     val combined = 
@@ -9,7 +11,7 @@ class Heatmap(val cells: Seq[(Double, Double, Int)]) {
         .map { case (lonLat, tuple) => (lonLat._1, lonLat._2, tuple.map(_._3).sum) } // sum per cell
         .toSeq
    
-    Heatmap(combined)
+    Heatmap(combined, cellWidth, cellHeight) // TODO throw exception if cell dimensions differ!
   }
   
   def isEmpty = cells.isEmpty
@@ -18,8 +20,8 @@ class Heatmap(val cells: Seq[(Double, Double, Int)]) {
 
 object Heatmap {
 
-  def apply(cells: Seq[(Double, Double, Int)]) = new Heatmap(cells)
+  def apply(cells: Seq[(Double, Double, Int)], cellWidth: Double, cellHeight: Double) = new Heatmap(cells, cellWidth, cellHeight)
   
-  def empty = new Heatmap(Seq.empty[(Double, Double, Int)])
+  def empty = new Heatmap(Seq.empty[(Double, Double, Int)], 0, 0)
   
 }

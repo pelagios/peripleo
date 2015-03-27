@@ -2,31 +2,39 @@ define(function() {
   
   var densityGridLayer = function() {
     var render = function(canvasOverlay, params) {          
-          if (!params.options.cells)
+          if (!params.options.heatmap)
             return;
             
           var ctx = params.canvas.getContext('2d');
           ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
-          ctx.fillStyle = '#d62728';
+          ctx.fillStyle = '#5254a3';
+          ctx.strokeStyle = '#5254a3';
           
           // Hack!
-          var weights = jQuery.map(params.options.cells, function(tuple) { return tuple.weight; }),
-              maxWeight = Math.max.apply(Math, weights),
-              minWeight = Math.min.apply(Math, weights);
-          
-          
-          jQuery.each(params.options.cells, function(idx, tuple) {
+          var heatmap = params.options.heatmap,
+              maxWeight = heatmap.max_value,
+              xyOrigin = canvasOverlay._map.latLngToContainerPoint([0, 0]),
+              xyOneCell = canvasOverlay._map.latLngToContainerPoint([1.40625, 1.40625]), // TODO grab info from heatmap JSON
+              cellHalfDimensions = { x: (xyOneCell.x - xyOrigin.x) / 2, y: (xyOrigin.y - xyOneCell.y) / 2 };
+              
+    
+              
+          jQuery.each(heatmap.cells, function(idx, tuple) {
             var x = tuple.x, y = tuple.y,
-                delta = Math.sqrt((tuple.weight - minWeight) / (maxWeight - minWeight));
-                
-            if (params.bounds.contains([y, x])) {
+                delta = Math.sqrt(tuple.weight / maxWeight);
+
               dot = canvasOverlay._map.latLngToContainerPoint([y, x]);
-              ctx.globalAlpha = 0.3 + delta * 0.7;
-              ctx.beginPath();
-              ctx.arc(dot.x, dot.y, 5, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.closePath();              
-            }
+              offsetOne = canvasOverlay._map.latLngToContainerPoint([y + heatmap.cell_height, x + heatmap.cell_width]),
+              width = Math.ceil(offsetOne.x - dot.x),
+              height = Math.ceil(dot.y - offsetOne.y);
+              
+              var x = Math.round(dot.x - width / 2),
+                  y = Math.round(dot.y - height / 2);
+              
+              ctx.globalAlpha = 0.3 + delta * 0.7;    
+              ctx.fillRect(x, y, width, height);
+              ctx.globalAlpha = 0.7;
+              ctx.strokeRect(x, y, width, height);          
           });
         },
         
@@ -39,7 +47,7 @@ define(function() {
     };
     
     this.update = function(heatmap) {
-      canvasOverlay.params({ cells: heatmap });
+      canvasOverlay.params({ heatmap: heatmap });
       canvasOverlay.redraw();
     };
   };

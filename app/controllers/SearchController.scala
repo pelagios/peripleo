@@ -38,7 +38,7 @@ object SearchController extends AbstractController {
         val extraPayload = Seq(
               { if (includeFacets) Some(Json.toJson(results._2).as[JsObject]) else None },
               { if (includeTimeHistogram) Some(Json.toJson(results._3).as[JsObject]) else None },
-              { if (includeHeatmap) Some(Json.toJson(results._4).as[JsObject]) else None }).flatten
+              { if (includeHeatmap) Some(Json.obj("heatmap" -> Json.toJson(results._4)).as[JsObject]) else None }).flatten
             
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)          
         val response =
