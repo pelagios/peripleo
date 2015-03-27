@@ -106,11 +106,11 @@ trait ObjectReader extends AnnotationReader {
       val temporalProfile = calculateTemporalProfile(new QueryWrapperFilter(searchQuery), searcher)
       
       val rect = rectangle.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
-      val avgDimensionDeg = rect.getWidth + rect.getHeight
+      val avgDimensionDeg = Math.min(rect.getWidth, rect.getHeight)
       val level = avgDimensionDeg match {
         case dim if dim < 5 => 5
-        case dim if dim < 70 => 4
-        case dim if dim < 470 => 3
+        case dim if dim < 20 => 4
+        case dim if dim < 300 => 3
         case _ => 2
       }
       
