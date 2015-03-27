@@ -86,7 +86,7 @@ trait AnnotationReader extends IndexBase {
     
     try {            
       val filter = new QueryWrapperFilter(query)
-      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 30000)
+      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 100000)
       
       // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
       val nonEmptyCells = 

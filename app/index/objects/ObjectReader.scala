@@ -107,9 +107,10 @@ trait ObjectReader extends AnnotationReader {
       
       val rect = rectangle.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
       val avgDimensionDeg = Math.min(rect.getWidth, rect.getHeight)
+      // Logger.info(avgDimensionDeg.toString)
       val level = avgDimensionDeg match {
         case dim if dim < 5 => 5
-        case dim if dim < 20 => 4
+        case dim if dim < 30 => 4
         case dim if dim < 300 => 3
         case _ => 2
       }
@@ -251,7 +252,7 @@ trait ObjectReader extends AnnotationReader {
   }
   
   private def calculateItemHeatmap(filter: Filter, bbox: Rectangle, level: Int, searcher: IndexSearcher): Heatmap = {
-    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, bbox, level, 30000)
+    val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, bbox, level, 100000)
           
     // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
     val nonEmptyCells = 

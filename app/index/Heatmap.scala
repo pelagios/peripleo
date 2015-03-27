@@ -2,7 +2,11 @@ package index
 
 class Heatmap(val cells: Seq[(Double, Double, Int)], val cellWidth: Double, val cellHeight: Double) {
   
-  lazy val maxValue = cells.map(_._3).max
+  private lazy val values = cells.map(_._3)
+  
+  lazy val maxValue = values.max
+  
+  lazy val minValue = values.min
   
   def +(other: Heatmap): Heatmap = {
     val combined = 
