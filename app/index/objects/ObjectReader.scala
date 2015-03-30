@@ -39,86 +39,130 @@ import scala.collection.JavaConverters._
 import java.util.GregorianCalendar
 
 trait ObjectReader extends AnnotationReader {
+  
+  private val PREVIEW_SNIPPET_SIZE = 200
+  
+  private val PREVIEW_MAX_NUM_SNIPPETS = 4
+  
+  private val PREVIEW_SNIPPET_SEPARATOR = " ... "
+  
+  /** Helper function that adds time query condition if defined **/
+  private def addTimeFilter(query: BooleanQuery, from: Option[Int], to: Option[Int]) = {
+    if (from.isDefined || to.isDefined) {
+      val timeIntervalQuery = new BooleanQuery()
+      
+      if (from.isDefined)
+        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_TO, from.get, null, true, true), BooleanClause.Occur.MUST)
+        
+      if (to.isDefined)
+        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, to.get, true, true), BooleanClause.Occur.MUST)
+       
+      query.add(timeIntervalQuery, BooleanClause.Occur.MUST)
+    }    
+  }
+  
+  /** TODO make this more sophisticated **/
+  private def getHeatmapLevelForRect(rect: Rectangle): Int = {
+    Math.min(rect.getWidth, rect.getHeight) match {
+      case dim if dim < 5 => 5
+      case dim if dim < 30 => 4
+      case dim if dim < 300 => 3
+      case _ => 2
+    } 
+  }
 
-  /** Search the index.
-    *  
-    * In principle, every parameter is optional. Recommended use of the constructor 
-    * is via named arguments. Some combinations obviously don't make sense (e.g. a
-    * bounding box restriction combined with a filter for places outside the bounding
-    * box), so a minimum of common sense will be required when choosing your arguments.
+  /** Execute a search across places and annotated things. 
     * 
-    * @param query a query according to Lucene syntax
-    * @param objectType restriction to specific object types (place, item, or dataset)
-    * @param dataset restriction to a specific dataset
-    * @param fromYear temporal restriction: start date
-    * @param toYear temporal restriction: end date
-    * @param places restriction to specific places (gazetteer URIs)
-    * @param bbox restriction to a geographic bounding box
-    * @param coord search around a specific center coordinate (requires 'radius' argument)
-    * @param radius search radius around a 'coord' center
-    * @param limit number of maximum hits to return
-    * @param offset offset in the search result list 
-    */ 
-  def search(
-      query:      Option[String],
-      objectType: Option[IndexedObjectTypes.Value],
-      dataset:    Option[String],
-      gazetteer:  Option[String],
-      fromYear:   Option[Int],
-      toYear:     Option[Int],      
-      places:     Seq[String], 
-      bbox:       Option[BoundingBox],
-      coord:      Option[Coordinate], 
-      radius:     Option[Double],
-      limit:      Int = 20, 
-      offset:     Int = 0)(implicit s: Session): (Page[(IndexedObject, Option[String])], FacetTree, TimeHistogram, Heatmap) = {
+    * @param params the search and filter parameters
+    * @param includeFacets set to true to include facet counts in the results
+    * @param includeSnippets set to true to include fulltext preview snippets in the results
+    * @param includeTimeHistogram set to true to include the time histogram (temporal facets) in the results
+    * @param includeHeatmap set to true to include result heatmap (2d spatial facets) in the results
+    */
+  def search(params: SearchParameters, includeFacets: Boolean, includeSnippets: Boolean,
+      includeTimeHistogram: Boolean, includeHeatmap: Boolean)(implicit s: Session): 
+      (Page[(IndexedObject, Option[String])], Option[FacetTree], Option[TimeHistogram], Option[Heatmap]) = {
      
-    // The part of the query that is common for search and heatmap calculation
-    val rectangle = bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
-    val baseQuery = prepareBaseQuery(objectType, dataset, gazetteer, fromYear, toYear, places, rectangle, coord, radius)
+    val rectangle = params.bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
     
-    // Finalize search query and build heatmap filter
-    val searchQuery = {
-      val search = baseQuery.clone()
-      if (query.isDefined) {
+    // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
+    val baseQuery = prepareBaseQuery(params.objectType, params.dataset, 
+      params.gazetteer, params.places, rectangle, params.coord, params.radius)
+      
+    // Finalize search query and time histogram filter
+    val (searchQuery, timeHistogramFilter) = {
+      
+      // In both cases, we want to include fulltext search...
+      val searchQuery = baseQuery.clone()
+      if (params.query.isDefined) {
         val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME, IndexFields.ITEM_FULLTEXT).toArray       
-        search.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
+        searchQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(params.query.get), BooleanClause.Occur.MUST)  
       }
-      search
+      
+      // ...but we only want to restrict the SEARCH by time interval - the histogram should count all the facets
+      val timeHistogramFilter = 
+        if (includeTimeHistogram)
+          Some(new QueryWrapperFilter(searchQuery.clone()))
+        else
+          None
+      
+      addTimeFilter(searchQuery, params.from, params.to)
+     
+      (searchQuery, timeHistogramFilter)
     }
     
+    // Finalize the heatmap filter (we don't search item fulltext, but want the time filter)
     val heatmapFilter = {
-      if (query.isDefined) { 
-        // We don't search the fulltext field for the heatmap - text-based heatmaps are handled by the annotation index
-        val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
-        baseQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
+      if (includeHeatmap) {
+        val h = baseQuery.clone()
+      
+        addTimeFilter(h, params.from, params.to)
+      
+        if (params.query.isDefined) { 
+          val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
+          h.add(new MultiFieldQueryParser(fields, analyzer).parse(params.query.get), BooleanClause.Occur.MUST)  
+        }
+      
+        Some(new QueryWrapperFilter(h))
+      } else {
+        None
       }
-      new QueryWrapperFilter(baseQuery)
     }
+
     
     val placeSearcher = placeSearcherManager.acquire()
     val objectSearcher = objectSearcherManager.acquire()
-    val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
+    val searcher = params.objectType match { // Just a bit of optimization
+      case Some(typ) if typ == IndexedObjectTypes.PLACE => // Search place index only
+        placeSearcher.searcher
+        
+      case Some(typ) => // Items or Datasets - search object index only
+        objectSearcher.searcher
+        
+      case None => // Search both indices  
+        new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
+    } 
     
     try {   
-      val (results, facets) = executeSearch(searchQuery, limit, offset, query, searcher, objectSearcher.taxonomyReader)
+      // Search & facet counts
+      val (results, facets) = 
+        executeSearch(searchQuery, params.limit, params.offset, searcher, objectSearcher.taxonomyReader,
+          includeFacets, includeSnippets)
       
-      val temporalProfile = calculateTemporalProfile(new QueryWrapperFilter(searchQuery), searcher)
+      // Time histogram computation
+      val temporalProfile = timeHistogramFilter.map(filter => calculateTemporalProfile(filter, searcher))
       
-      val rect = rectangle.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
-      val avgDimensionDeg = Math.min(rect.getWidth, rect.getHeight)
-      // Logger.info(avgDimensionDeg.toString)
-      val level = avgDimensionDeg match {
-        case dim if dim < 5 => 5
-        case dim if dim < 30 => 4
-        case dim if dim < 300 => 3
-        case _ => 2
-      }
-      
-      val heatmap = 
-        calculateItemHeatmap(heatmapFilter, rect, level, searcher) +
-        calculateAnnotationHeatmap(query, dataset, fromYear, toYear, places, rectangle, coord, radius, level)
+      // Heatmap computation
+      val heatmap = heatmapFilter.map(filter => {
+        val rect = rectangle.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
+        val level = getHeatmapLevelForRect(rect)
         
+        // TODO this could be optimized slightly by adding the cells BEFORE turning them into a heatmap object
+        calculateItemHeatmap(filter, rect, level, searcher) +
+        calculateAnnotationHeatmap(params.query, params.dataset, params.from, params.to, params.places, rectangle,
+          params.coord, params.radius, level)
+      })
+      
       (results, facets, temporalProfile, heatmap)
     } finally {
       placeSearcherManager.release(placeSearcher)
@@ -130,9 +174,7 @@ trait ObjectReader extends AnnotationReader {
   private def prepareBaseQuery(
       objectType: Option[IndexedObjectTypes.Value],
       dataset:    Option[String],
-      gazetteer:  Option[String],
-      fromYear:   Option[Int],
-      toYear:     Option[Int],      
+      gazetteer:  Option[String],    
       places:     Seq[String], 
       bbox:       Option[Rectangle],
       coord:      Option[Coordinate], 
@@ -161,19 +203,6 @@ trait ObjectReader extends AnnotationReader {
     // Gazetteer filter
     if (gazetteer.isDefined)
       q.add(new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
-      
-    // Timespan filter
-    if (fromYear.isDefined || toYear.isDefined) {
-      val timeIntervalQuery = new BooleanQuery()
-      
-      if (fromYear.isDefined)
-        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_TO, fromYear.get, null, true, true), BooleanClause.Occur.MUST)
-        
-      if (toYear.isDefined)
-        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, toYear.get, true, true), BooleanClause.Occur.MUST)
-        
-      q.add(timeIntervalQuery, BooleanClause.Occur.MUST)
-    } 
     
     // Places filter
     places.foreach(uri =>
@@ -191,34 +220,55 @@ trait ObjectReader extends AnnotationReader {
     q
   }
   
-  private def executeSearch(query: Query, limit: Int, offset: Int, queryString: Option[String], 
-      searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader): (Page[(IndexedObject, Option[String])], FacetTree) = {
+  private def executeSearch(query: Query, limit: Int, offset: Int, searcher: IndexSearcher,
+      taxonomyReader: DirectoryTaxonomyReader, includeFacets: Boolean, includeSnippets: Boolean): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
     
-    val facetsCollector = new FacetsCollector() 
     val topDocsCollector = TopScoreDocCollector.create(offset + limit)
-    searcher.search(query, MultiCollector.wrap(topDocsCollector, facetsCollector))
+    val (collector, facetsCollector) = // Small optimization - don't bother searching the taxo index if it's not requested
+      if (includeFacets) {
+        val facetsCollector = new FacetsCollector()
+        val collector = MultiCollector.wrap(topDocsCollector, facetsCollector)
+        (collector, Some(facetsCollector))
+      } else {
+        (topDocsCollector, None)
+      }
       
-    val facetTree = new FacetTree(new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, facetsCollector))      
+    // Run the search
+    searcher.search(query, collector)
     val total = topDocsCollector.getTotalHits
+
+    // Compute facets, optionally
+    val facetTree = facetsCollector.map(fc => new FacetTree(new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, fc)))      
     
-    val previewFormatter = new SimpleHTMLFormatter("<strong>", "</strong>")
-    val scorer = new QueryScorer(query)
-    val highlighter = new Highlighter(previewFormatter, scorer)
-    highlighter.setTextFragmenter(new SimpleFragmenter(200))
-    highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE)  
-        
+    // Prepare snippet highlighter, optionally
+    val highlighter =
+      if (includeSnippets) {
+        val previewFormatter = new SimpleHTMLFormatter("<strong>", "</strong>")
+        val scorer = new QueryScorer(query)
+        val highlighter = new Highlighter(previewFormatter, scorer)
+        highlighter.setTextFragmenter(new SimpleFragmenter(PREVIEW_SNIPPET_SIZE))
+        highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE)  
+        Some(highlighter)
+      } else {
+        None
+      }
+       
+    // Fetch result documents
     val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => {      
       val document = searcher.doc(scoreDoc.doc)
-      
-      val previewSnippet = Option(document.get(IndexFields.ITEM_FULLTEXT)).map(fulltext => {  
-        val stream = TokenSources.getAnyTokenStream(searcher.getIndexReader, scoreDoc.doc, IndexFields.ITEM_FULLTEXT, analyzer)
-        highlighter.getBestFragments(stream, fulltext, 4, " ... ")
+ 
+      // Fetch snippets, optionally
+      val previewSnippet = highlighter.flatMap(h => {
+        Option(document.get(IndexFields.ITEM_FULLTEXT)).map(fulltext => {  
+          val stream = TokenSources.getAnyTokenStream(searcher.getIndexReader, scoreDoc.doc, IndexFields.ITEM_FULLTEXT, analyzer)
+          h.getBestFragments(stream, fulltext, PREVIEW_MAX_NUM_SNIPPETS, PREVIEW_SNIPPET_SEPARATOR)        
+        })
       })
       
       (new IndexedObject(document), previewSnippet) 
     })
     
-    (Page(results.toSeq, offset, limit, total, queryString), facetTree)
+    (Page(results.toSeq, offset, limit, total), facetTree)
   }
   
   private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher): TimeHistogram = {
@@ -245,7 +295,7 @@ trait ObjectReader extends AnnotationReader {
         tempFacets.topLeaves +
         Option(fpv.childCounts).getOrElse(Array.empty[Int]).sum +
         Option(fpv.parentLeaves).getOrElse(0)
-      (year, count)/** TODO add option to resample the histogram to a max number of buckets **/
+      (year, count)
     }
     
     TimeHistogram.create(values.toSeq, 26)

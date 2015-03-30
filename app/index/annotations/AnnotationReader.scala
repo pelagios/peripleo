@@ -14,6 +14,7 @@ import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import play.api.db.slick._
 import com.spatial4j.core.shape.Rectangle
 import play.api.Logger
+import index.SearchParameters
 
 trait AnnotationReader extends IndexBase {
   

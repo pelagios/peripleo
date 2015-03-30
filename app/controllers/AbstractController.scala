@@ -1,7 +1,7 @@
 package controllers
 
 import com.vividsolutions.jts.geom.Coordinate
-import index.Index
+import index.{ Index, SearchParameters }
 import index.objects.IndexedObjectTypes
 import java.util.UUID
 import java.sql.Timestamp
@@ -18,30 +18,7 @@ import scala.util.{ Try, Success, Failure }
   *
   * @author Rainer Simon <rainer.simon@ait.ac.at> 
   */
-abstract class AbstractController extends Controller {
-  
-  /** Convenience wrapper around a full complement of search parameters **/
-  case class SearchParams(   
-    query:      Option[String],
-    objectType: Option[IndexedObjectTypes.Value],
-    dataset:    Option[String],
-    gazetteer:  Option[String],
-    from:       Option[Int],
-    to:         Option[Int],
-    places:     Seq[String],
-    bbox:       Option[BoundingBox],
-    coord:      Option[Coordinate],
-    radius:     Option[Double],
-    limit:       Int,
-    offset:      Int) {
-    
-    /** Query is valid if at least one param is set **/
-    def isValid: Boolean =
-      Seq(query, objectType, dataset, gazetteer, from, to, bbox, coord, radius).filter(_.isDefined).size > 0 ||
-      places.size > 0
-    
-  }
-    
+abstract class AbstractController extends Controller {   
     
   /** Protected constants **/
   
@@ -85,7 +62,7 @@ abstract class AbstractController extends Controller {
       
       
   /** Helper methods that parses all search paramters from the query string **/
-  protected def parseSearchParams(request: RequestHeader): Try[SearchParams] = {
+  protected def parseSearchParams(request: RequestHeader): Try[SearchParameters] = {
     try {
       val query = 
         getQueryParam(KEY_QUERY, request)
@@ -136,7 +113,7 @@ abstract class AbstractController extends Controller {
       val offset =
         getQueryParam(KEY_OFFSET, request).map(_.toInt).getOrElse(0)
     
-      val params = SearchParams(query, objectType, dataset, gazetteer, fromYear, toYear, places, bbox, coord, radius, limit, offset)
+      val params = SearchParameters(query, objectType, dataset, gazetteer, fromYear, toYear, places, bbox, coord, radius, limit, offset)
       if (params.isValid)
         Success(params)
       else 

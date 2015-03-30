@@ -25,11 +25,11 @@ object SearchController extends AbstractController {
         ).flatten.toMap
 
         // Search
-        val results = 
-          Global.index.search(params.query, params.objectType, params.dataset, params.gazetteer, params.from, params.to,
-            params.places, params.bbox, params.coord, params.radius, params.limit, params.offset)
+        // val results = 
+        //  Global.index.search(params)
             
-        Ok(views.html.newSearch(results._1, Some(results._2), filters, results._4, System.currentTimeMillis - startTime))
+        // Ok(views.html.newSearch(results._1, Some(results._2), filters, results._4, System.currentTimeMillis - startTime))
+        Ok("Not implemented")
       }
             
       case Failure(exception) => // TODO error page

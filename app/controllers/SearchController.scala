@@ -26,23 +26,27 @@ object SearchController extends AbstractController {
     */
   def search() = loggingAction { implicit session =>      
     parseSearchParams(session.request) match {
-      case Success(params) => {
-        val results = 
-          Global.index.search(params.query, params.objectType, params.dataset, params.gazetteer, params.from, params.to,
-            params.places, params.bbox, params.coord, params.radius, params.limit, params.offset)
-            
-        // Factes and heatmaps are optional in JSON response
+      case Success(params) => {    
+        // Facets, time histogram and heatmaps are optional
         val includeFacets = getQueryParam(KEY_FACETS, session.request).map(_.toBoolean).getOrElse(false)
         val includeTimeHistogram = getQueryParam(KEY_TIME_HISTOGRAM, session.request).map(_.toBoolean).getOrElse(false)
         val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false)
-        val extraPayload = Seq(
-              { if (includeFacets) Some(Json.toJson(results._2).as[JsObject]) else None },
-              { if (includeTimeHistogram) Some(Json.toJson(results._3).as[JsObject]) else None },
-              { if (includeHeatmap) Some(Json.obj("heatmap" -> Json.toJson(results._4)).as[JsObject]) else None }).flatten
-            
+        
+        val (results, facetTree, timeHistogram, heatmap) = 
+          Global.index.search(params,
+            includeFacets, 
+            true, // We always want preview snippets
+            includeTimeHistogram,
+            includeHeatmap)
+        
+        val jsonComponents = Seq(
+              { facetTree.map(Json.toJson(_).as[JsObject]) },
+              { timeHistogram.map(Json.toJson(_).as[JsObject]) },
+              { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten
+         
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)          
         val response =
-          extraPayload.foldLeft(Json.toJson(results._1.map(_._1)).as[JsObject])((response, payload) => response ++ payload)
+          jsonComponents.foldLeft(Json.toJson(results.map(_._1)).as[JsObject])((response, payload) => response ++ payload)
         
         jsonOk(response, session.request)
       }
