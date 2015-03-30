@@ -186,10 +186,12 @@ public class NumberRangePrefixTreeStrategy extends RecursivePrefixTreeStrategy {
       buf.append("Facets: level=" + detailLevel + " topLeaves=" + topLeaves + " parentCount=" + parents.size());
       for (Map.Entry<UnitNRShape, FacetParentVal> entry : parents.entrySet()) {
         buf.append('\n');
+        /*
         if (buf.length() > 1000) {
           buf.append("...");
           break;
         }
+        */
         final FacetParentVal pVal = entry.getValue();
         buf.append(' ').append(entry.getKey()+" leafCount=" + pVal.parentLeaves);
         if (pVal.childCounts != null) {

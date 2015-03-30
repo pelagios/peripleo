@@ -1,7 +1,5 @@
 package index
 
-import play.api.Logger
-
 class TimeHistogram private (val values: Seq[(Int, Int)]) {
   
   val startYear = values.headOption.map(_._1).getOrElse(0)
@@ -34,8 +32,8 @@ object TimeHistogram {
         if (maxBuckets < 0) {
           paddedValues
         } else {
-          val stepSize = Math.ceil(vals.size.toDouble / maxBuckets).toInt
-          paddedValues.grouped(stepSize).map(values => (Math.round(values.map(_._1).sum / values.size), values.map(_._2).sum)).toSeq
+          val stepSize = Math.ceil(paddedValues.size.toDouble / maxBuckets).toInt
+          paddedValues.grouped(stepSize).map(values => (values.last._1, values.map(_._2).sum / values.size)).toSeq
         }
         
       new TimeHistogram(resampledValues)

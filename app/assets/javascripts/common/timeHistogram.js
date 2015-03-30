@@ -109,12 +109,11 @@ define(function() {
             width = ctx.canvas.width,
             height = ctx.canvas.height,
             xOffset = 0;
-                          
+        
         ctx.clearRect (0, 0, canvas[0].width, canvas[0].height);
         
         jQuery.each(values, function(idx, value) {
           var barHeight = Math.round(value.val / maxValue * 100);             
-          
           ctx.strokeStyle = BAR_STROKE;
           ctx.fillStyle = BAR_FILL;
           ctx.beginPath();

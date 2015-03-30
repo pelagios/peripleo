@@ -25,7 +25,6 @@ import play.api.db.slick._
 import org.apache.lucene.search.highlight.SimpleHTMLFormatter
 import org.apache.lucene.search.highlight.Highlighter
 import org.apache.lucene.search.highlight.QueryScorer
-import play.api.Logger
 import org.apache.lucene.search.highlight.SimpleFragmenter
 import org.apache.lucene.search.highlight.SimpleSpanFragmenter
 import org.apache.lucene.search.highlight.TokenSources
@@ -283,21 +282,18 @@ trait ObjectReader extends AnnotationReader {
     val facetRange = Index.dateRangeTree.toRangeShape(start, end);    
     val tempFacets = Index.temporalStrategy.calcFacets(searcher.getTopReaderContext, filter, facetRange, 4)
     
-    val values = tempFacets.parents.asScala.map { case (shape, fpv) => 
+    val values = tempFacets.parents.asScala.toSeq.map { case (shape, fpv) => {
       val calendar = Index.dateRangeTree.toObject(shape).asInstanceOf[Calendar]
       val year = calendar.get(Calendar.ERA) match {
         case GregorianCalendar.BC => - calendar.get(Calendar.YEAR)
         case _ => calendar.get(Calendar.YEAR)
       }
-        
-      val count =
-        tempFacets.topLeaves +
-        Option(fpv.childCounts).getOrElse(Array.empty[Int]).sum +
-        Option(fpv.parentLeaves).getOrElse(0)
+      
+      val count = fpv.parentLeaves
       (year, count)
-    }
-    
-    TimeHistogram.create(values.toSeq, 26)
+    }}
+
+    TimeHistogram.create(values, 26)
   }
   
   private def calculateItemHeatmap(filter: Filter, bbox: Rectangle, level: Int, searcher: IndexSearcher): Heatmap = {
