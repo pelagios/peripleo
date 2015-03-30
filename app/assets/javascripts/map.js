@@ -39,7 +39,7 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
         
         // TODO no need to rebuild for every request - cache
         buildQueryURL = function() {
-          var url = '/api-v3/search?facets=true&timehistogram=true&heatmap=true';
+          var url = '/api-v3/search?facets=true&heatmap=true';
           
           if (queryFilters.query)
             url += '&query=' + queryFilters.query;
@@ -155,7 +155,7 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
           
           if (!pendingRequest) {    
             pendingRequest = true;
-            jQuery.getJSON(buildQueryURL() + bboxParam, function(response) {
+            jQuery.getJSON(buildQueryURL() + bboxParam + '&timehistogram=true', function(response) {
               resultStats.html(formatNumber(response.total) + ' Results');   
               updateFacets(response.facets);     
               timeHistogram.update(response.time_histogram, from, to);

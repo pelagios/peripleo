@@ -277,10 +277,9 @@ trait ObjectReader extends AnnotationReader {
     val start = Index.dateRangeTree.toShape(startCal)
     
     val endCal = Index.dateRangeTree.newCal()
-    endCal.set(3000, Calendar.DECEMBER, 31)
+    endCal.set(10000, Calendar.DECEMBER, 31)
     val end = Index.dateRangeTree.toShape(endCal)
     
-    val detailLevel = Math.max(start.getLevel(), end.getLevel()) + 1
     val facetRange = Index.dateRangeTree.toRangeShape(start, end);    
     val tempFacets = Index.temporalStrategy.calcFacets(searcher.getTopReaderContext, filter, facetRange, 4)
     
