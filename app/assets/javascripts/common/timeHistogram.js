@@ -19,7 +19,10 @@ define(function() {
         
         /** Interval handle elements **/
         fromHandle = container.find('.handle.from'),
+        fromHandleLabel = fromHandle.find('.label'),
+        
         toHandle = container.find('.handle.to'),
+        toHandleLabel = toHandle.find('.label'),
         
         /** Handle width / 2 - it's safe to assume that both handles are identical **/
         handleOffset = fromHandle.outerWidth() / 2,
@@ -69,11 +72,16 @@ define(function() {
           return { from: yearFrom, to: yearTo };
         },
         
-        onDrag = function() {
-          // TODO visual feedback
+        onDrag = function(e) {
+          if (e.target === fromHandle[0])
+            fromHandleLabel.html(formatYear(getSelectedRange().from));
+          else
+            toHandleLabel.html(formatYear(getSelectedRange().to));
         },
         
         onDragStop = function() {
+          fromHandleLabel.empty();
+          toHandleLabel.empty();
           if (onIntervalChanged)
             onIntervalChanged(getSelectedRange());
         };
