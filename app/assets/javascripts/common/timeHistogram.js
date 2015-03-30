@@ -21,12 +21,45 @@ define(function() {
         fromHandle = container.find('.handle.from'),
         toHandle = container.find('.handle.to'),
         
+        /** Handle width / 2 - it's safe to assume that both handles are identical **/
+        handleOffset = fromHandle.outerWidth() / 2,
+        
         /** Interval label elements **/
         fromLabel = container.find('.label.from'),
         toLabel = container.find('.label.to'),
         
+        /** Buffers the current time  **/
+        timeRange = { from: 0, to: 0 },
+        
+        /** Helper function to make a DOM element draggable along X-axis, within offset limits **/
+        makeXDraggable = function(element, dragCallback) {
+          element.draggable({ 
+            axis: 'x', 
+            containment: 'parent', // TODO proper containment?
+            drag: dragCallback,
+            start: dragCallback,
+            stop: dragCallback
+          });
+        },
+        
         /** Formats an integer year for screen display **/
-        formatYear = function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; };
+        formatYear = function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; },
+        
+        /** Converts an X offset on the scale to a year **/
+        xToYear = function(x) {
+          var duration = timeRange.to - timeRange.from,
+              yearsPerPixel = duration / canvas[0].width;
+          
+          return timeRange.from + Math.round(x * yearsPerPixel);
+        },
+        
+        onDrag = function(e) {
+          var x = e.target.offsetLeft - handleOffset;
+              year = xToYear(x);
+              
+          fromLabel.html(formatYear(year));
+          // if (e.target === fromHandle[0]) { }
+        };
         
     /** Privileged methods **/
     
@@ -53,10 +86,17 @@ define(function() {
           xOffset += 7;
         });
           
+        timeRange.from = fromYear;
+        timeRange.to = toYear;
+        
         fromLabel.html(formatYear(fromYear));
         toLabel.html(formatYear(toYear));
       };
     };
+    
+    // Initialize interval drag handles
+    makeXDraggable(fromHandle, onDrag);
+    makeXDraggable(toHandle, onDrag);
   };
   
   return TimeHistogram;

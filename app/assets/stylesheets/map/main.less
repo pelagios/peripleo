@@ -48,6 +48,7 @@ form {
 #time-histogram {
   padding:6px;
   color:#fff;
+  position:relative;
   
   canvas { width:180px; }
   
@@ -56,6 +57,18 @@ form {
     top:-10px;
     font-size:11px;
   }
+  
+  div.handle {
+    position:absolute;
+    width:20px;
+    height:20px;
+    background-color:#fff;
+    bottom:40px;
+    cursor:pointer;
+  }
+  
+  div.handle.from { left:5px; }
+  div.handle.to { right:5px; }
   
 }
 
