@@ -9,8 +9,6 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
         typeChartTable = jQuery('#type-chart'),
         
         sourceChartTable = jQuery('#source-chart'),
-    
-        timeHistogram = new TimeHistogram('time-histogram'),
             
         queryFilters = {
           
@@ -23,6 +21,13 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
           timespan: false
           
         },
+        
+        timeHistogram = new TimeHistogram('time-histogram', function(interval) {
+          queryFilters.timespan = interval;
+          console.log(queryFilters);
+          update();
+          refreshHeatmap();
+        }),
         
         normalizeBounds = function(b) {
           var w = (b.getWest() < -179) ? -180 : b.getWest() - 1,

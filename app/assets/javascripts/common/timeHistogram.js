@@ -6,7 +6,7 @@ define(function() {
        BAR_FILL = '#6baed6';
        
 
-  var TimeHistogram = function(divId) {
+  var TimeHistogram = function(divId, onIntervalChanged) {
     
         /** Container DIV **/
     var container = jQuery('#' + divId),
@@ -32,14 +32,19 @@ define(function() {
         timeRange = { from: 0, to: 0 },
         
         /** Helper function to make a DOM element draggable along X-axis, within offset limits **/
-        makeXDraggable = function(element, dragCallback) {
+        makeXDraggable = function(element, dragCallback, stopCallback) {
           element.draggable({ 
             axis: 'x', 
             containment: 'parent', // TODO proper containment?
             drag: dragCallback,
-            start: dragCallback,
-            stop: dragCallback
+            stop: stopCallback
           });
+        },
+        
+        resetHandles = function() {
+          var canvasOffset = canvas.position().left;
+          fromHandle.css('left', canvasOffset - handleOffset);
+          toHandle.css('left', canvas[0].width + canvasOffset - handleOffset);
         },
         
         /** Formats an integer year for screen display **/
@@ -49,16 +54,28 @@ define(function() {
         xToYear = function(x) {
           var duration = timeRange.to - timeRange.from,
               yearsPerPixel = duration / canvas[0].width;
-          
-          return timeRange.from + Math.round(x * yearsPerPixel);
+              
+          return Math.round(timeRange.from + x * yearsPerPixel);          
         },
         
-        onDrag = function(e) {
-          var x = e.target.offsetLeft - handleOffset;
-              year = xToYear(x);
+        getSelectedRange = function() {
+          var updatedRange,
+              xFrom = fromHandle.position().left + handleOffset - canvas.position().left,
+              yearFrom = xToYear(xFrom),
               
-          fromLabel.html(formatYear(year));
-          // if (e.target === fromHandle[0]) { }
+              xTo = toHandle.position().left + handleOffset - canvas.position().left,
+              yearTo = xToYear(xTo);
+              
+          return { from: yearFrom, to: yearTo };
+        },
+        
+        onDrag = function() {
+          // TODO visual feedback
+        },
+        
+        onDragStop = function() {
+          if (onIntervalChanged)
+            onIntervalChanged(getSelectedRange());
         };
         
     /** Privileged methods **/
@@ -72,8 +89,9 @@ define(function() {
             height = ctx.canvas.height,
             xOffset = 0;
               
-        ctx.clearRect (0, 0, canvas.width, canvas.height);
-          
+        ctx.clearRect (0, 0, canvas[0].width, canvas[0].height);
+        resetHandles();
+        
         jQuery.each(values, function(idx, value) {
           var barHeight = Math.round(value.val / maxValue * 100);             
           
@@ -95,8 +113,8 @@ define(function() {
     };
     
     // Initialize interval drag handles
-    makeXDraggable(fromHandle, onDrag);
-    makeXDraggable(toHandle, onDrag);
+    makeXDraggable(fromHandle, onDrag, onDragStop);
+    makeXDraggable(toHandle, onDrag, onDragStop);
   };
   
   return TimeHistogram;
