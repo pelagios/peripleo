@@ -1,54 +1,63 @@
 define(function() {
+  
+  /** Constants **/
+  var  BAR_STROKE = '#3182bd',
+        
+       BAR_FILL = '#6baed6';
+       
 
-  var TimeHistogram = function(divId, data) {
-    var div = $('#' + divId),
-      
-        /** Drawing canvas **/
-        width = div.width(),
-        height = div.height(),
-        canvas = $('<canvas width="' + width + '" height="' + height + '">'),
+  var TimeHistogram = function(divId) {
+    
+        /** Container DIV **/
+    var container = jQuery('#' + divId),
+    
+        /** Canvas element **/
+        canvas = container.find('canvas'),
+        
+        /** Drawing context **/
         ctx = canvas[0].getContext('2d'),
         
-        /** Time profile properties **/
-        intervalStart = data.bounds_start,
-        intervalEnd = data.bounds_end,
-        intervalSize = intervalEnd - intervalStart,
-        bucketSize = Math.ceil(intervalSize / width),
-
-        buckets = [],
-        maxValue = 0,
+        /** Interval handle elements **/
+        fromHandle = container.find('.handle.from'),
+        toHandle = container.find('.handle.to'),
         
-        /** Running variables **/
-        currentYear = data.bounds_start,
-        bucketValue, currentValue;
-      
-    // Compute bucket sizes
-    while (currentYear <= intervalEnd) {
-      // Aggregate multiple years into buckets, according to histogram screensize
-      bucketValue = 0;
+        /** Interval label elements **/
+        fromLabel = container.find('.label.from'),
+        toLabel = container.find('.label.to'),
+        
+        /** Formats an integer year for screen display **/
+        formatYear = function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; };
+        
+    /** Privileged methods **/
     
-      for (var i = 0;  i < bucketSize; i++) {
-        currentValue = data.histogram[currentYear];
-        if (currentValue)
-          bucketValue += currentValue;
-      
-        currentYear++;
-      }     
-    
-      if (bucketValue > maxValue)
-        maxValue = bucketValue;
-      buckets.push(bucketValue);    
-    }
-  
-    // Render graphic
-    div.append(canvas);
-    ctx.fillStyle = '#5483bd';
-    
-    $.each(buckets, function(offset, value) {
-      var h = value * height * 0.9 / maxValue;
-      ctx.fillRect(offset, height - h, 1, h);
-    });
-  }
+    this.update = function(values) {
+      if (values.length > 0) {                      
+        var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
+            fromYear = values[0].year,
+            toYear = values[values.length - 1].year,
+            width = ctx.canvas.width,
+            height = ctx.canvas.height,
+            xOffset = 0;
+              
+        ctx.clearRect (0, 0, canvas.width, canvas.height);
+          
+        jQuery.each(values, function(idx, value) {
+          var barHeight = Math.round(value.val / maxValue * 100);             
+          
+          ctx.strokeStyle = BAR_STROKE;
+          ctx.fillStyle = BAR_FILL;
+          ctx.beginPath();
+          ctx.rect(xOffset + 0.5, height - barHeight - 9.5, 4, barHeight);
+          ctx.fill();
+          ctx.stroke();
+          xOffset += 7;
+        });
+          
+        fromLabel.html(formatYear(fromYear));
+        toLabel.html(formatYear(toYear));
+      };
+    };
+  };
   
   return TimeHistogram;
 

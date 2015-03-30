@@ -1,4 +1,4 @@
-require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, DensityGrid) {
+require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], function(AutoComplete, DensityGrid, TimeHistogram) {
   
   jQuery(document).ready(function() {
     var searchForm = jQuery('#text-query form'),
@@ -10,6 +10,8 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
         
         sourceChartTable = jQuery('#source-chart'),
     
+        timeHistogram = new TimeHistogram('time-histogram'),
+            
         queryFilters = {
           
           query: false,
@@ -62,14 +64,6 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
           maxZoom:11
         }), 
           
-        BAR_STROKE = '#3182bd',
-        
-        BAR_FILL = '#6baed6',
-          
-        timeHistogramCtx = jQuery('#time-histogram canvas')[0].getContext('2d'),
-        timeFrom = jQuery('#label-from'),
-        timeTo = jQuery('#label-to'),
-          
         facetValueTemplate = 
           '<tr>' +
           '  <td class="label"></td>' +
@@ -81,7 +75,6 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
         
         /** Shorthands **/
         formatNumber = function(number) { return numeral(number).format('0,0'); },
-        formatYear = function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; },
         sortFacetValues = function(a,b) { return b.count - a.count },
         
         /** Helper to parse the source facet label **/
@@ -150,36 +143,6 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
           }
         },
         
-        updateTimeHistogram = function(values) {
-          timeHistogramCtx.clearRect (0, 0, timeHistogramCtx.canvas.width, timeHistogramCtx.canvas.height);
-          
-          if (values.length === 0)
-            return;
-            
-          var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
-              from = values[0].year,
-              to = values[values.length - 1].year,
-              width = timeHistogramCtx.canvas.width,
-              height = timeHistogramCtx.canvas.height,
-              xOffset = 0;
-              
-          
-          
-          jQuery.each(values, function(idx, value) {
-            var barHeight = Math.round(value.val / maxValue * 100);             
-            timeHistogramCtx.strokeStyle = BAR_STROKE;
-            timeHistogramCtx.fillStyle = BAR_FILL;
-            timeHistogramCtx.beginPath();
-            timeHistogramCtx.rect(xOffset + 0.5, height - barHeight - 9.5, 4, barHeight);
-            timeHistogramCtx.fill();
-            timeHistogramCtx.stroke();
-            xOffset += 7;
-          });
-          
-          timeFrom.html(formatYear(from));
-          timeTo.html(formatYear(to));
-        },
-        
         update = function(e) {
           var b = map.getBounds(),
               bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth();
@@ -189,7 +152,7 @@ require(['common/autocomplete', 'common/densityGrid'], function(AutoComplete, De
             jQuery.getJSON(buildQueryURL() + bboxParam, function(response) {
               resultStats.html(formatNumber(response.total) + ' Results');   
               updateFacets(response.facets);      
-              updateTimeHistogram(response.time_histogram);
+              timeHistogram.update(response.time_histogram);
             })
             .always(function() {
               pendingRequest = false;
