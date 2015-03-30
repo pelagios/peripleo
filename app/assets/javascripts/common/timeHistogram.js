@@ -44,10 +44,16 @@ define(function() {
           });
         },
         
-        resetHandles = function() {
-          var canvasOffset = canvas.position().left;
-          fromHandle.css('left', canvasOffset - handleOffset);
-          toHandle.css('left', canvas[0].width + canvasOffset - handleOffset);
+        resetHandles = function(opt_from, opt_to) {                    
+          var canvasOffset = canvas.position().left,
+              fromOffset = (opt_from) ? yearToX(opt_from) : 0,
+              toOffset = (opt_to) ? yearToX(opt_to) : canvas.outerWidth();
+          
+          fromOffset += canvasOffset - handleOffset;
+          toOffset += canvasOffset - handleOffset;
+          
+          fromHandle.css('left', fromOffset);
+          toHandle.css('left', toOffset);          
         },
         
         /** Formats an integer year for screen display **/
@@ -56,9 +62,16 @@ define(function() {
         /** Converts an X offset on the scale to a year **/
         xToYear = function(x) {
           var duration = timeRange.to - timeRange.from,
-              yearsPerPixel = duration / canvas[0].width;
+              yearsPerPixel = duration / canvas.outerWidth();
               
           return Math.round(timeRange.from + x * yearsPerPixel);          
+        },
+        
+        yearToX = function(year) {
+          var duration = timeRange.to - timeRange.from,
+              pixelsPerYear = canvas.outerWidth() / duration;
+              
+          return Math.round((year - timeRange.from) * pixelsPerYear);
         },
         
         getSelectedRange = function() {
@@ -88,17 +101,16 @@ define(function() {
         
     /** Privileged methods **/
     
-    this.update = function(values) {
+    this.update = function(values, opt_from, opt_to) {
       if (values.length > 0) {                      
         var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
-            fromYear = values[0].year,
-            toYear = values[values.length - 1].year,
+            minYear = values[0].year,
+            maxYear = values[values.length - 1].year,
             width = ctx.canvas.width,
             height = ctx.canvas.height,
             xOffset = 0;
-              
+                          
         ctx.clearRect (0, 0, canvas[0].width, canvas[0].height);
-        resetHandles();
         
         jQuery.each(values, function(idx, value) {
           var barHeight = Math.round(value.val / maxValue * 100);             
@@ -112,11 +124,13 @@ define(function() {
           xOffset += 7;
         });
           
-        timeRange.from = fromYear;
-        timeRange.to = toYear;
+        timeRange.from = minYear;
+        timeRange.to = maxYear;
+                
+        fromLabel.html(formatYear(minYear));
+        toLabel.html(formatYear(maxYear));
         
-        fromLabel.html(formatYear(fromYear));
-        toLabel.html(formatYear(toYear));
+        resetHandles(opt_from, opt_to);
       };
     };
     

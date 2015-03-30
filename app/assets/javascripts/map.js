@@ -24,7 +24,6 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
         
         timeHistogram = new TimeHistogram('time-histogram', function(interval) {
           queryFilters.timespan = interval;
-          console.log(queryFilters);
           update();
           refreshHeatmap();
         }),
@@ -150,14 +149,16 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
         
         update = function(e) {
           var b = map.getBounds(),
-              bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth();
+              bboxParam = b.getWest() + ',' + b.getEast() + ',' + b.getSouth() + ',' + b.getNorth(),
+              from = (queryFilters.timespan) ? queryFilters.timespan.from : false,
+              to = (queryFilters.timespan) ? queryFilters.timespan.to : false;
           
           if (!pendingRequest) {    
             pendingRequest = true;
             jQuery.getJSON(buildQueryURL() + bboxParam, function(response) {
               resultStats.html(formatNumber(response.total) + ' Results');   
-              updateFacets(response.facets);      
-              timeHistogram.update(response.time_histogram);
+              updateFacets(response.facets);     
+              timeHistogram.update(response.time_histogram, from, to);
             })
             .always(function() {
               pendingRequest = false;
