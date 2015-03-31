@@ -84,13 +84,42 @@ define(function() {
               
           return { from: yearFrom, to: yearTo };
         },
-        
+
+        /** The drag handler keeps track of x-offset constraints & updates the handle label **/
         onDrag = function(e) {
-          var posX = jQuery(e.target).position().left + handleOffset;
+          var maxX, minX, 
+              posX = jQuery(e.target).position().left + handleOffset;
+
           
           if (e.target === fromHandle[0]) {
+            // Left handle constraint check
+            minX = canvas.position().left;
+            maxX = toHandle.position().left;
+            
+            if (posX < minX) {
+              fromHandle.css('left', minX - handleOffset);
+              return false;
+            } else if (posX > maxX) {
+              fromHandle.css('left', maxX - handleOffset);
+              return false;
+            }
+              
+            // Update handle label
             fromHandleLabel.html(formatYear(getSelectedRange().from));
           } else {
+            // Right handle constraint check
+            minX = fromHandle.position().left + 2 * handleOffset;
+            maxX = canvas.position().left + canvas.outerWidth();
+            
+            if (posX < minX) {
+              toHandle.css('left', minX - handleOffset);
+              return false;
+            } else if (posX > maxX) {
+              toHandle.css('left', maxX - handleOffset);
+              return false;
+            }
+
+             // Update handle label
             toHandleLabel.html(formatYear(getSelectedRange().to));
           }
         },

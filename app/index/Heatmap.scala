@@ -4,9 +4,9 @@ class Heatmap(val cells: Seq[(Double, Double, Int)], val cellWidth: Double, val 
   
   private lazy val values = cells.map(_._3)
   
-  lazy val maxValue = values.max
+  lazy val maxValue = if (values.size > 0) values.max else 0
   
-  lazy val minValue = values.min
+  lazy val minValue = if (values.size > 0) values.min else 0
   
   def +(other: Heatmap): Heatmap = {
     val combined = 

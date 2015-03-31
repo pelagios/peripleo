@@ -51,7 +51,7 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
             url += '&dataset=' + queryFilters.dataset;
             
           if (queryFilters.timespan)
-            url += '&from' + queryFilters.timespan.from + '&to=' + queryFilters.timespan.to;
+            url += '&from=' + queryFilters.timespan.from + '&to=' + queryFilters.timespan.to;
           
           return url + '&bbox='
         }
