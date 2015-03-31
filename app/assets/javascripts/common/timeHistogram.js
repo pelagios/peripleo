@@ -125,10 +125,19 @@ define(function() {
         },
         
         onDragStop = function() {
+          var selectedRange;
+          
           fromHandleLabel.empty();
           toHandleLabel.empty();
-          if (onIntervalChanged)
-            onIntervalChanged(getSelectedRange());
+          
+          if (onIntervalChanged) {
+            selection = getSelectedRange();
+            
+            if (selection.from == timeRange.from && selection.to == timeRange.to)
+              onIntervalChanged(); // Remove time filter altogether
+            else
+              onIntervalChanged(selection);
+          }
         };
         
     /** Privileged methods **/
