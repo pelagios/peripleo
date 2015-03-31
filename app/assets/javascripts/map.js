@@ -5,6 +5,8 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
         searchInput = jQuery('#query'),
         
         resultStats = jQuery('#result-stats'), 
+        
+        resultList = jQuery('#result-list'),
 
         typeChartTable = jQuery('#type-chart'),
         
@@ -155,10 +157,17 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
           
           if (!pendingRequest) {    
             pendingRequest = true;
+            resultList.empty();
+
             jQuery.getJSON(buildQueryURL() + bboxParam + '&timehistogram=true', function(response) {
               resultStats.html(formatNumber(response.total) + ' Results');   
               updateFacets(response.facets);     
               timeHistogram.update(response.time_histogram, from, to);
+              
+              console.log(response.items);
+              jQuery.each(response.items, function(idx, item) {
+                resultList.append('<li><a href="' + item.homepage + '" target="_blank">' + item.title + '</a></li>');
+              });
             })
             .always(function() {
               pendingRequest = false;
