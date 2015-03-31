@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   "org.slf4j" % "slf4j-simple" % "1.7.7"
 )  
 
-requireJs ++= Seq("search.js", "map.js", "placeAdjacencyNetwork.js")
+requireJs ++= Seq("search.js", "map-search.js", "placeAdjacencyNetwork.js")
 
 requireJsShim += "build.js" 
 

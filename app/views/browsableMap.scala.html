@@ -14,12 +14,14 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-ui.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery.ui.touch-punch.min.js")"></script>
 
-    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/map").url)
+    @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/map-search").url)
   </head>
   <body>
     <div id="map"></div>
     
-    <div id="controls">
+    <div id="controls"></div>
+    
+    <!-- div id="controls">
       
       <div id="text-query">
         <form>
@@ -28,7 +30,7 @@
             <input type="text" id="query" name="query" placeholder="Search..." autocomplete="off">
           </div>
         </form>
-      </div> <!-- #text-query -->
+      </div> 
       
       <div id="result-stats"></div>
       
@@ -66,6 +68,6 @@
       
       <ul id="result-list"></ul>
       
-    </div> <!-- #controls -->
+    </div -->
   </body>
 </html>
