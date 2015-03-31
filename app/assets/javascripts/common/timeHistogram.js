@@ -5,7 +5,6 @@ define(function() {
         
        BAR_FILL = '#6baed6';
        
-
   var TimeHistogram = function(divId, onIntervalChanged) {
     
         /** Container DIV **/
@@ -16,6 +15,9 @@ define(function() {
         
         /** Drawing context **/
         ctx = canvas[0].getContext('2d'),
+        
+        /** Interval bounds indicator **/s
+        intervalBounds = container.find('.intervalbounds');
         
         /** Interval handle elements **/
         fromHandle = container.find('.handle.from'),
@@ -38,22 +40,34 @@ define(function() {
         makeXDraggable = function(element, dragCallback, stopCallback) {
           element.draggable({ 
             axis: 'x', 
-            containment: 'parent', // TODO proper containment?
+            containment: 'parent',
             drag: dragCallback,
             stop: stopCallback
           });
         },
         
-        resetHandles = function(opt_from, opt_to) {                    
+        setFromHandle = function(x) {
+          fromHandle.css('left', x - handleOffset);
+          intervalBounds.css('left', x);
+        },
+        
+        setToHandle = function(x) {
+          toHandle.css('left', x - handleOffset);
+          intervalBounds.css('width', x - fromHandle.position().left - handleOffset);
+        },
+        
+        /** Make sure the handles are inside the canvas area **/
+        resetHandles = function() {                 
           var canvasOffset = canvas.position().left,
-              fromOffset = (opt_from) ? yearToX(opt_from) : 0,
-              toOffset = (opt_to) ? yearToX(opt_to) : canvas.outerWidth();
-          
-          fromOffset += canvasOffset - handleOffset;
-          toOffset += canvasOffset - handleOffset;
-          
-          fromHandle.css('left', fromOffset);
-          toHandle.css('left', toOffset);          
+              canvasWidth = canvas.outerWidth(),
+              fromOffset = fromHandle.position().left,
+              toOffset = toHandle.position().left;
+              
+          if (fromOffset < canvasOffset - handleOffset)
+            setFromHandle(canvasOffset);
+                    
+          if (toOffset > canvasOffset + canvasWidth - handleOffset)
+            setToHandle(canvasOffset + canvasWidth)
         },
         
         /** Formats an integer year for screen display **/
@@ -85,9 +99,8 @@ define(function() {
           return { from: yearFrom, to: yearTo };
         },
 
-        /** The drag handler keeps track of x-offset constraints & updates the handle label **/
-        onDrag = function(e) {
-          var maxX, minX, 
+        onDragHandle = function(e) {
+          var maxX, minX, oppositeX,
               posX = jQuery(e.target).position().left + handleOffset;
 
           
@@ -97,13 +110,17 @@ define(function() {
             maxX = toHandle.position().left;
             
             if (posX < minX) {
-              fromHandle.css('left', minX - handleOffset);
+              setFromHandle(minX);
               return false;
             } else if (posX > maxX) {
-              fromHandle.css('left', maxX - handleOffset);
+              setToHandle(maxX);
               return false;
             }
               
+            // Update interval bounds indicator
+            intervalBounds.css('left', posX);
+            intervalBounds.css('width', maxX - posX + handleOffset);
+            
             // Update handle label
             fromHandleLabel.html(formatYear(getSelectedRange().from));
           } else {
@@ -112,15 +129,34 @@ define(function() {
             maxX = canvas.position().left + canvas.outerWidth();
             
             if (posX < minX) {
-              toHandle.css('left', minX - handleOffset);
+              setFromHandle(minX);
               return false;
             } else if (posX > maxX) {
-              toHandle.css('left', maxX - handleOffset);
+              setToHandle(maxX);
               return false;
             }
 
-             // Update handle label
+            // Update interval bounds indicator
+            intervalBounds.css('width', posX - minX + handleOffset);           
+                        
+            // Update handle label
             toHandleLabel.html(formatYear(getSelectedRange().to));
+          }
+        },
+        
+        onDragBounds = function(e) {
+          var canvasOffset = canvas.position().left,
+              fromX = intervalBounds.position().left - canvasOffset,
+              fromYear = xToYear(fromX),
+              toX = fromX + intervalBounds.outerWidth(),
+              toYear = xToYear(toX);
+              
+          // Drag handles
+          fromHandle.css('left', intervalBounds.position().left - handleOffset);
+          toHandle.css('left', intervalBounds.position().left + intervalBounds.outerWidth() - handleOffset);
+          
+          if (onIntervalChanged) {
+            onIntervalChanged({ from: fromYear, to: toYear });
           }
         },
         
@@ -170,13 +206,16 @@ define(function() {
         fromLabel.html(formatYear(minYear));
         toLabel.html(formatYear(maxYear));
         
-        resetHandles(opt_from, opt_to);
+        resetHandles();
       };
     };
     
     // Initialize interval drag handles
-    makeXDraggable(fromHandle, onDrag, onDragStop);
-    makeXDraggable(toHandle, onDrag, onDragStop);
+    makeXDraggable(fromHandle, onDragHandle, onDragStop);
+    makeXDraggable(toHandle, onDragHandle, onDragStop);
+    
+    // Initialize interval bounds indicator
+    makeXDraggable(intervalBounds, onDragBounds);
   };
   
   return TimeHistogram;
