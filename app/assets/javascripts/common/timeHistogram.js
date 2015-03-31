@@ -86,10 +86,13 @@ define(function() {
         },
         
         onDrag = function(e) {
-          if (e.target === fromHandle[0])
+          var posX = jQuery(e.target).position().left + handleOffset;
+          
+          if (e.target === fromHandle[0]) {
             fromHandleLabel.html(formatYear(getSelectedRange().from));
-          else
+          } else {
             toHandleLabel.html(formatYear(getSelectedRange().to));
+          }
         },
         
         onDragStop = function() {

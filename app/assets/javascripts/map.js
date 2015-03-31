@@ -23,7 +23,6 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
         },
         
         timeHistogram = new TimeHistogram('time-histogram', function(interval) {
-          console.log(interval);
           queryFilters.timespan = interval;
           update();
           refreshHeatmap();
@@ -157,8 +156,6 @@ require(['common/autocomplete', 'common/densityGrid', 'common/timeHistogram'], f
           if (!pendingRequest) {    
             pendingRequest = true;
             jQuery.getJSON(buildQueryURL() + bboxParam + '&timehistogram=true', function(response) {
-              console.log('foo');
-              console.log(response.total);
               resultStats.html(formatNumber(response.total) + ' Results');   
               updateFacets(response.facets);     
               timeHistogram.update(response.time_histogram, from, to);
