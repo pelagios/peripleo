@@ -28,7 +28,7 @@ define(['search/events'], function(Events) {
         ctx, 
         
         /** Selected interval bounds indicator **/
-        selectionBounds = container.find('.intervalbounds');
+        selectionBounds = container.find('.intervalbounds'),
         
         /** Interval handle elements **/
         fromHandle = container.find('.handle.from'),
@@ -38,7 +38,7 @@ define(['search/events'], function(Events) {
         toHandleLabel = toHandle.find('.label'),
         
         /** It's safe to assume that both handles are identical **/
-        handleWidth = fromHandle.outerWidth,
+        handleWidth,
         
         /** Labels for earliest/latest year of histogram **/
         histogramFromLabel = container.find('.label.from'),
@@ -77,14 +77,28 @@ define(['search/events'], function(Events) {
         
         /** Shorthand to set the left (from) handle + selection interval **/
         setFromHandle = function(x) {
-          fromHandle.css('left', x - handleWidth);
-          intervalBounds.css('left', x);
+          fromHandle.css('left', x);
+          selectionBounds.css('left', x + handleWidth);
         },
         
         /** Shorthand to set the right (to) handle + selection interval **/
         setToHandle = function(x) {
           toHandle.css('left', x);
-          intervalBounds.css('width', x - fromHandle.position().left);
+          selectionBounds.css('width', x - fromHandle.position().left);
+        },
+        
+        /** Make sure the handles are with the restricted area **/
+        constrainHandles = function() {                 
+          var canvasOffset = canvas.position().left,
+              canvasWidth = canvas.outerWidth(),
+              fromHandleMin = canvasOffset - handleWidth,
+              toHandleMax = canvasOffset + canvasWidth;
+              
+          if (fromHandle.position().left < fromHandleMin)
+            setFromHandle(fromHandleMin);
+                    
+          if (toHandle.position().left > toHandleMax)
+            setToHandle(toHandleMax)
         },
       
         /** Returns the currently selected time range **/
@@ -97,69 +111,62 @@ define(['search/events'], function(Events) {
               
           return { from: yearFrom, to: yearTo };
         },
-        
-        /** Make sure the handles are inside the canvas area
-        resetHandles = function() {                 
-          var canvasOffset = canvas.position().left,
-              canvasWidth = canvas.outerWidth(),
-              fromOffset = fromHandle.position().left,
-              toOffset = toHandle.position().left;
-              
-          if (fromOffset < canvasOffset - handleOffset)
-            setFromHandle(canvasOffset);
-                    
-          if (toOffset > canvasOffset + canvasWidth - handleOffset)
-            setToHandle(canvasOffset + canvasWidth)
-        },
-        */
-        
-
-        
-
 
         onDragHandle = function(e) {
-          var maxX, minX, oppositeX,
-              posX = jQuery(e.target).position().left + handleOffset;
-
-          
+          var maxX, minX,
+              posX = jQuery(e.target).position().left;
+              
           if (e.target === fromHandle[0]) {
-            // Left handle constraint check
-            minX = canvas.position().left;
-            maxX = toHandle.position().left;
+            // Left handle
+            minX = canvas.position().left - handleWidth;
+            maxX = toHandle.position().left - handleWidth;
             
             if (posX < minX) {
               setFromHandle(minX);
               return false;
             } else if (posX > maxX) {
-              setToHandle(maxX);
+              setFromHandle(maxX);
               return false;
             }
-              
-            // Update interval bounds indicator
-            intervalBounds.css('left', posX);
-            intervalBounds.css('width', maxX - posX + handleOffset);
             
             // Update handle label
             fromHandleLabel.html(formatYear(getSelectedRange().from));
+              
+            // Update interval bounds indicator
+            // intervalBounds.css('left', posX);
+            // intervalBounds.css('width', maxX - posX + handleOffset);
           } else {
             // Right handle constraint check
-            minX = fromHandle.position().left + 2 * handleOffset;
+            minX = fromHandle.position().left + handleWidth;
             maxX = canvas.position().left + canvas.outerWidth();
             
             if (posX < minX) {
-              setFromHandle(minX);
+              setToHandle(minX);
               return false;
             } else if (posX > maxX) {
               setToHandle(maxX);
               return false;
             }
-
-            // Update interval bounds indicator
-            intervalBounds.css('width', posX - minX + handleOffset);           
-                        
+            
             // Update handle label
             toHandleLabel.html(formatYear(getSelectedRange().to));
+            
+            // Update interval bounds indicator
+            // intervalBounds.css('width', posX - minX + handleOffset);           
           }
+        },
+        
+        onStopHandle = function() {
+          var selection = getSelectedRange();
+          
+          fromHandleLabel.empty();
+          toHandleLabel.empty();
+            
+          if (selection.from == histogramRange.from && selection.to == histogramRange.to)
+            // Remove time filter altogether
+            eventBroker.fireEvent(Events.SET_TIME_FILTER); 
+          else
+            eventBroker.fireEvent(Events.SET_TIME_FILTER, selection);
         },
         
         onDragBounds = function(e) {
@@ -175,22 +182,6 @@ define(['search/events'], function(Events) {
           
           if (onIntervalChanged) {
             onIntervalChanged({ from: fromYear, to: toYear });
-          }
-        },
-        
-        onDragStop = function() {
-          var selectedRange;
-          
-          fromHandleLabel.empty();
-          toHandleLabel.empty();
-          
-          if (onIntervalChanged) {
-            selection = getSelectedRange();
-            
-            if (selection.from == timeRange.from && selection.to == timeRange.to)
-              onIntervalChanged(); // Remove time filter altogether
-            else
-              onIntervalChanged(selection);
           }
         },
         
@@ -221,21 +212,22 @@ define(['search/events'], function(Events) {
             histogramRange.to = maxYear;
                 
             histogramFromLabel.html(formatYear(minYear));
-            histogramToLabel.html(formatYear(maxYear));        
+            histogramToLabel.html(formatYear(maxYear));    
+            
+            constrainHandles();    
           };
         };
     
     parent.prepend(container);
     ctx = canvas[0].getContext('2d');
+    handleWidth = fromHandle.outerWidth();
     
     /** We listen for new histograms **/
     eventBroker.addHandler(Events.UPDATED_TIME_HISTOGRAM, update);
     
-    // makeXDraggable(fromHandle, onDragHandle, onDragStop);
-    // makeXDraggable(toHandle, onDragHandle, onDragStop);
+    makeXDraggable(fromHandle, onDragHandle, onStopHandle);
+    makeXDraggable(toHandle, onDragHandle, onStopHandle);
     // makeXDraggable(intervalBounds, onDragBounds);
-    
-    // Events
 
     this.update = update;
     

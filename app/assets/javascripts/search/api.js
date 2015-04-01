@@ -48,9 +48,9 @@ define(['search/events'], function(Events) {
         makeRequest = function() {
           // Do we have a heatmap request anywhere in the queue?
           var heatmapRequests = jQuery.grep(requestQueue, function(req) { return req.heatmap; }),
-              latestRequest = requestQueue.pop(),
-              bounds = latestRequest.bounds,
-              includeTimeHistogram = latestRequest.timeHistogram,
+              timeHistogramRequests = jQuery.grep(requestQueue, function(req) { return req.timeHistogram; });
+              bounds = requestQueue.pop().bounds,
+              includeTimeHistogram = timeHistogramRequests.length > 0,
               includeHeatmap = heatmapRequests.length > 0;
                 
           // Clear the request queue
@@ -97,6 +97,13 @@ define(['search/events'], function(Events) {
     /** Fetch counts **/
     eventBroker.addHandler(Events.REQUEST_UPDATED_COUNTS, function(bounds) {
       requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
+      scheduleSearch();
+    });
+    
+    /** User reset the time filter - queue new search request **/
+    eventBroker.addHandler(Events.SET_TIME_FILTER, function(timespan) {
+      filters.timespan = timespan;
+      requestQueue.push({ bounds: bounds, timeHistogram: false, heatmap: true });
       scheduleSearch();
     });
     

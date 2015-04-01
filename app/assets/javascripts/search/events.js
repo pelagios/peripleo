@@ -21,7 +21,10 @@ define(function() {
     UPATED_COUNTS: 'updatedCounts',
         
     /** fn(query) - fires when the user issues a text search query **/
-    QUERY : 'query'
+    QUERY : 'query',
+    
+    /** fn(range) - fires when the user sets a time filter **/
+    SET_TIME_FILTER : 'setTimeFilter'
     
   };
     
