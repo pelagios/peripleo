@@ -1,7 +1,9 @@
 define(function() {
 
   var PlaceLayer = function(map) {
-    var layerGroup = L.layerGroup().addTo(map),
+    var isHidden = false,
+    
+        layerGroup = L.layerGroup().addTo(map),
     
         markers = {},
     
@@ -34,11 +36,23 @@ define(function() {
           });
         },
         
-        clear = function() {
-          // layerGroup.clearLayers();
+        hide = function() {
+          if (!isHidden) {
+            map.removeLayer(layerGroup);
+            isHidden = true;
+          }
+        },
+        
+        show = function() {
+          if (isHidden) {
+            map.addLayer(layerGroup);
+            isHidden = false;
+          }
         };
 
     this.setPlaces = setPlaces;
+    this.show = show;
+    this.hide = hide;
         
   };
   

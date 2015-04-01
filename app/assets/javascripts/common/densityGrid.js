@@ -2,7 +2,9 @@ define(function() {
   
   var densityGridLayer = function() {
 
-    var render = function(canvasOverlay, params) {          
+    var isHidden = false,
+    
+        render = function(canvasOverlay, params) {          
           if (!params.options.heatmap)
             return;
 
@@ -45,16 +47,31 @@ define(function() {
         
         canvasOverlay = L.canvasOverlay().drawing(render);
 
-    /** Privileged methods **/        
-    this.addTo = function(map) {
-      canvasOverlay.addTo(map);
-      return this; // Just to mimick with Leaflet's API
-    };
-    
+    /** Privileged methods **/            
     this.update = function(heatmap) {
       canvasOverlay.params({ heatmap: heatmap });
       canvasOverlay.redraw();
     };
+    
+    this.hideasdf = function() {
+      if (!isHidden) {
+        map.removeLayer(canvasOverlay);
+        isHidden = true;
+      }
+    };
+    
+    this.showasdf = function() {
+      if (isHidden) {
+        map.addLayer(canvasOverlay);
+        isHidden = false;
+      }
+    };
+    
+    this.adsaddTo = function(map) {
+      canvasOverlay.addTo(map);
+      return this; // Just to mimick with Leaflet's API
+    };
+    
   };
   
   return densityGridLayer;

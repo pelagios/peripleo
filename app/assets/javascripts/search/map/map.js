@@ -30,7 +30,7 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
         /** Map **/    
         map = new L.Map(div, {
           center: new L.LatLng(41.893588, 12.488022),
-          zoom: 4,
+          zoom: 3,
           zoomControl: false,
           layers: [ Layers.AWMC ]
         }),
@@ -49,6 +49,9 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
           return { north: n, east: e, south: s, west: w };
         };
        
+      
+    placeLayer.hide();
+    
     /** Obviously, we listen for new heatmaps **/
     eventBroker.addHandler(Events.UPDATED_HEATMAP, function(heatmap) {
       densityGrid.update(heatmap);
@@ -65,6 +68,20 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
       eventBroker.fireEvent(Events.REQUEST_UPDATED_COUNTS, getBounds());
+    });
+    
+    map.on('zoomend', function(e) {
+      var level = map.getZoom();
+      
+      if (level > 5)
+        placeLayer.show();
+      else
+        placeLayer.hide();
+      
+      if (level > 6)
+        densityGrid.hide();
+      else
+        densityGrid.show();
     });
     
     this.getBounds = getBounds;
