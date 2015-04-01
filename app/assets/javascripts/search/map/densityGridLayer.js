@@ -8,7 +8,9 @@ define(function() {
         _map,
     
         // TODO optimize!
-        render = function(canvasOverlay, params) {          
+        render = function(canvasOverlay, params) { 
+          console.log('redraw');         
+          
           if (!params.options.heatmap)
             return;
             
@@ -37,15 +39,17 @@ define(function() {
           jQuery.each(classified, function(idx, tuple) {
             var x = tuple.c.x, y = tuple.c.y,
                 delta = Math.sqrt(tuple.c.weight / (5 * mean), 2),
-                bottomLeft = canvasOverlay._map.latLngToContainerPoint([y + heatmap.cell_height / 2, x - heatmap.cell_width / 2]);
-                topRight = canvasOverlay._map.latLngToContainerPoint([y - heatmap.cell_height / 2, x + heatmap.cell_width / 2]);
+                bottomLeft = canvasOverlay._map.latLngToContainerPoint([y + heatmap.cell_height / 2, x - heatmap.cell_width / 2]),
+                topRight = canvasOverlay._map.latLngToContainerPoint([y - heatmap.cell_height / 2, x + heatmap.cell_width / 2]),
                 width = topRight.x - bottomLeft.x,
                 height = topRight.y - bottomLeft.y;
               
-              if (tuple.is_outlier)
-                ctx.globalAlpha = 0.9;    
-              else
-                ctx.globalAlpha = 0.1 + delta * 0.7;  
+              if (tuple.is_outlier) {
+                ctx.globalAlpha = 1;    
+              } else {
+                ctx.globalAlpha = 0.3 + delta * 0.5;  
+              }
+              
               ctx.fillRect(bottomLeft.x, bottomLeft.y, width, height);
               ctx.globalAlpha = 0.2;
               ctx.strokeRect(bottomLeft.x, bottomLeft.y, width, height);          
@@ -63,7 +67,9 @@ define(function() {
     
     this.update = function(heatmap) {
       canvasOverlay.params({ heatmap: heatmap });
-      canvasOverlay.redraw();
+      window.setTimeout(function() {
+        canvasOverlay.redraw();
+      }, 250);
     };
     
     this.hide = function() {
