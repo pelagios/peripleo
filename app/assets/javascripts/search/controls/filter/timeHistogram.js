@@ -12,6 +12,8 @@ define(['search/events'], function(Events) {
           '  <canvas width="180" height="120"></canvas>' +
           '  <span class="label to"></span>' +
           
+          '  <div class="selection"></div>' +
+          
           '  <div class="handle from">' +
           '    <div class="label"></div>' +
           '  </div>' +
@@ -28,7 +30,7 @@ define(['search/events'], function(Events) {
         ctx, 
         
         /** Selected interval bounds indicator **/
-        selectionBounds = container.find('.intervalbounds'),
+        selectionBounds = container.find('.selection'),
         
         /** Interval handle elements **/
         fromHandle = container.find('.handle.from'),
@@ -67,9 +69,10 @@ define(['search/events'], function(Events) {
         },
         
         /** Shorthand for making DOM element draggable along X-axis **/
-        makeXDraggable = function(element, onDrag, onStop) {
+        makeXDraggable = function(element, onDrag, onStop, opt_containment) {
           element.draggable({ 
             axis: 'x', 
+            containment: opt_containment,
             drag: onDrag,
             stop: onStop
           });
@@ -78,13 +81,13 @@ define(['search/events'], function(Events) {
         /** Shorthand to set the left (from) handle + selection interval **/
         setFromHandle = function(x) {
           fromHandle.css('left', x);
-          selectionBounds.css('left', x + handleWidth);
+          selectionBounds.css('left', x + handleWidth - 1);
         },
         
         /** Shorthand to set the right (to) handle + selection interval **/
         setToHandle = function(x) {
           toHandle.css('left', x);
-          selectionBounds.css('width', x - fromHandle.position().left);
+          selectionBounds.css('width', x - fromHandle.position().left - handleWidth);
         },
         
         /** Make sure the handles are with the restricted area **/
@@ -132,9 +135,9 @@ define(['search/events'], function(Events) {
             // Update handle label
             fromHandleLabel.html(formatYear(getSelectedRange().from));
               
-            // Update interval bounds indicator
-            // intervalBounds.css('left', posX);
-            // intervalBounds.css('width', maxX - posX + handleOffset);
+            // Update selection bounds
+            selectionBounds.css('left', posX + handleWidth - 1);
+            selectionBounds.css('width', maxX - posX);
           } else {
             // Right handle constraint check
             minX = fromHandle.position().left + handleWidth;
@@ -151,14 +154,15 @@ define(['search/events'], function(Events) {
             // Update handle label
             toHandleLabel.html(formatYear(getSelectedRange().to));
             
-            // Update interval bounds indicator
-            // intervalBounds.css('width', posX - minX + handleOffset);           
+            // Update selection bounds
+            selectionBounds.css('width', posX - minX);           
           }
         },
         
-        onStopHandle = function() {
-          var selection = getSelectedRange();
+        onStopHandle = function(e) {
+          onDragHandle(e);
           
+          var selection = getSelectedRange();
           fromHandleLabel.empty();
           toHandleLabel.empty();
             
@@ -170,19 +174,19 @@ define(['search/events'], function(Events) {
         },
         
         onDragBounds = function(e) {
-          var canvasOffset = canvas.position().left,
-              fromX = intervalBounds.position().left - canvasOffset,
+          var offsetX = selectionBounds.position().left,
+              width = selectionBounds.outerWidth(),
+              
+              fromX = offsetX - canvas.position().left,
               fromYear = xToYear(fromX),
-              toX = fromX + intervalBounds.outerWidth(),
+              toX = fromX + width,
               toYear = xToYear(toX);
               
           // Drag handles
-          fromHandle.css('left', intervalBounds.position().left - handleOffset);
-          toHandle.css('left', intervalBounds.position().left + intervalBounds.outerWidth() - handleOffset);
+          fromHandle.css('left', offsetX - handleWidth + 1);
+          toHandle.css('left', offsetX + width - 1);
           
-          if (onIntervalChanged) {
-            onIntervalChanged({ from: fromYear, to: toYear });
-          }
+          eventBroker.fireEvent(Events.SET_TIME_FILTER, getSelectedRange());
         },
         
         update = function(values) {
@@ -227,7 +231,7 @@ define(['search/events'], function(Events) {
     
     makeXDraggable(fromHandle, onDragHandle, onStopHandle);
     makeXDraggable(toHandle, onDragHandle, onStopHandle);
-    // makeXDraggable(intervalBounds, onDragBounds);
+    makeXDraggable(selectionBounds, onDragBounds, onDragBounds, canvas);
 
     this.update = update;
     

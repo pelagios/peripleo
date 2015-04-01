@@ -1,7 +1,8 @@
 /** A wrapper around the API functions required by the map search UI **/
 define(['search/events'], function(Events) {
   
-  var QUERY_DELAY_MS = 100;
+  var QUERY_DELAY_MS = 100,
+      NUM_TOP_PLACES = 40;
   
   var API = function(eventBroker) {
     var filters = {
@@ -27,7 +28,7 @@ define(['search/events'], function(Events) {
             url += '&timehistogram=true';
           
           if (includeHeatmap)
-            url += '&heatmap=true&top_places=10';
+            url += '&heatmap=true&top_places=' + NUM_TOP_PLACES;
           
           if (filters.query)
             url += '&query=' + filters.query;
