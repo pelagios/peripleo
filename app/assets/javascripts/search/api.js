@@ -1,7 +1,7 @@
 /** A wrapper around the API functions required by the map search UI **/
 define(['search/events'], function(Events) {
   
-  var QUERY_DELAY_MS = 100,
+  var QUERY_DELAY_MS = 500,
       NUM_TOP_PLACES = 35;
   
   var API = function(eventBroker) {

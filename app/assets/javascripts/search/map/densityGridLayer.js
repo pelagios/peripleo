@@ -11,6 +11,9 @@ define(function() {
         render = function(canvasOverlay, params) {          
           if (!params.options.heatmap)
             return;
+            
+          if (isHidden)
+            return;
 
           var ctx = params.canvas.getContext('2d');
           ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
