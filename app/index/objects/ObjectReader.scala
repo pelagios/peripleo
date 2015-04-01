@@ -156,10 +156,15 @@ trait ObjectReader extends AnnotationReader {
         val rect = rectangle.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
         val level = getHeatmapLevelForRect(rect)
         
-        // TODO this could be optimized slightly by adding the cells BEFORE turning them into a heatmap object
-        calculateItemHeatmap(filter, rect, level, searcher) +
-        calculateAnnotationHeatmap(params.query, params.dataset, params.from, params.to, params.places, rectangle,
-          params.coord, params.radius, level)
+        if (params.query.isDefined) {
+          // If there is a query phrase, we include the annotation heatmap 
+          calculateItemHeatmap(filter, rect, level, searcher) +
+          calculateAnnotationHeatmap(params.query, params.dataset, params.from, params.to, params.places, rectangle,
+            params.coord, params.radius, level)
+        } else {
+          // Otherwise, we only need the item-based heatmap
+          calculateItemHeatmap(filter, rect, level, searcher)
+        }
       })
       
       (results, facets, temporalProfile, heatmap)

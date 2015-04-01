@@ -145,6 +145,7 @@ object Index {
   private[index] val facetsConfig = new FacetsConfig()
   facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
   facetsConfig.setHierarchical(IndexFields.ITEM_DATASET, true) 
+  facetsConfig.setMultiValued(IndexFields.ITEM_PLACES, true)
   
   
   def open(indexDir: String): Index = {

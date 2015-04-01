@@ -1,5 +1,5 @@
 /** The base map **/
-define(['search/map/densityGridLayer', 'search/events'], function(DensityGrid, Events) {
+define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events'], function(DensityGrid, PlaceLayer, Events) {
   
   var Map = function(div, eventBroker) {  
     var Layers = {
@@ -35,7 +35,9 @@ define(['search/map/densityGridLayer', 'search/events'], function(DensityGrid, E
           layers: [ Layers.AWMC ]
         }),
                 
-        densityGrid = new DensityGrid().addTo(map);
+        densityGrid = new DensityGrid().addTo(map),
+        
+        placeLayer = new PlaceLayer(map),
         
         getBounds = function() {
           var b = map.getBounds(),
@@ -50,6 +52,12 @@ define(['search/map/densityGridLayer', 'search/events'], function(DensityGrid, E
     /** Obviously, we listen for new heatmaps **/
     eventBroker.addHandler(Events.UPDATED_HEATMAP, function(heatmap) {
       densityGrid.update(heatmap);
+      if (heatmap.top_places) {
+        placeLayer.clear();
+        jQuery.each(heatmap.top_places, function(idx, place) {
+          placeLayer.addPlace(place);
+        });
+      }
     });
     
     /** Request an updated heatmap on every moveend **/

@@ -77,7 +77,8 @@ object IndexedObject {
     thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
 
     // Place URIs
-    places.foreach(place => doc.add(new StringField(IndexFields.ITEM_PLACES, place.uri, Field.Store.NO))) 
+    places.foreach(place => doc.add(new StringField(IndexFields.ITEM_PLACES, place.uri, Field.Store.NO)))
+    places.foreach(place => doc.add(new FacetField(IndexFields.ITEM_PLACES, place.uri)))
     
     // Detailed geometry as spatially indexed features
     val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)

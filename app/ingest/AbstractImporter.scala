@@ -101,7 +101,10 @@ abstract class AbstractImporter {
     Logger.info("Updating Index") 
     val topLevelThings = ingestBatch.filter(_.thing.isPartOf.isEmpty).map(r => {
       val collapsedFulltext = {
-        val childTexts = buildFullText(r, ingestBatch)
+        // val childTexts = buildFullText(r, ingestBatch)
+        
+        // Note: this should slightly speed up ingest of datasets with large no. of items & no text
+        val childTexts = buildFullText(r, ingestBatch.filter(_.fulltext.isDefined))
         if (childTexts.isEmpty)
           None
         else
@@ -111,7 +114,7 @@ abstract class AbstractImporter {
       (r.thing, r.places.map(_._1), collapsedFulltext)
     })
     val datasetHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
-    Logger.info("Indexing the item")
+    Logger.info("Indexing items")
     Global.index.addAnnotatedThings(topLevelThings, datasetHierarchy)
     Global.index.updateDatasets(affectedDatasets)
     

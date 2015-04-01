@@ -204,7 +204,7 @@ object JSONWrites {
       heatmap.maxValue,
       heatmap.minValue,
       heatmap.cells.map { case (x, y, weight) => Json.obj("x" -> x, "y" -> y, "weight" -> weight) }))
- 
+      
   implicit def placeAdjacencyWrites(implicit verbose: Boolean = false): Writes[PlaceAdjacencyGraph] = (
     (JsPath \ "nodes").write[Seq[GazetteerReference]] ~
     (JsPath \ "links").write[Seq[JsValue]]
@@ -243,8 +243,7 @@ object JSONWrites {
         None
       }
     ))
-      
-        
+          
   implicit val placeWrites: Writes[IndexedPlace] = (
     (JsPath \ "gazetteer_uri").write[String] ~
     (JsPath \ "label").write[String] ~
@@ -264,7 +263,6 @@ object JSONWrites {
        place.centroid.map(_.y),
        place.centroid.map(_.x)) })  
   
-
   implicit def placeOccurencesWrites(implicit s: Session): Writes[(IndexedPlace, Seq[(Dataset, Int)])] = (
     (JsPath \ "to_place").write[IndexedPlace] ~
     (JsPath \ "occurrences").write[Seq[(Dataset, Int)]]

@@ -6,9 +6,12 @@ import play.api.db.slick._
 import play.api.libs.json.Json
 import scala.util.{ Success, Failure }
 import play.api.libs.json.JsObject
+import index.IndexFields
+import play.api.Logger
 
 object SearchController extends AbstractController {
 
+  private val KEY_TOP_PLACES = "top_places"
   private val KEY_FACETS = "facets"
   private val KEY_TIME_HISTOGRAM = "timehistogram"
   private val KEY_HEATMAP = "heatmap"
@@ -27,8 +30,15 @@ object SearchController extends AbstractController {
   def search() = loggingAction { implicit session =>      
     parseSearchParams(session.request) match {
       case Success(params) => {    
-        // Facets, time histogram and heatmaps are optional
-        val includeFacets = getQueryParam(KEY_FACETS, session.request).map(_.toBoolean).getOrElse(false)
+
+        // Number of top places to include, if any
+        val includeTopPlaces = getQueryParam(KEY_TOP_PLACES, session.request).map(_.toInt)
+        
+        // Include facets? Note: to include top places, we need facets
+        val includeFacets = getQueryParam(KEY_FACETS, session.request).map(_.toBoolean)
+          .getOrElse(includeTopPlaces.getOrElse(0) > 0)
+        
+        // Time histogram and heatmaps        
         val includeTimeHistogram = getQueryParam(KEY_TIME_HISTOGRAM, session.request).map(_.toBoolean).getOrElse(false)
         val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false)
         
@@ -39,10 +49,23 @@ object SearchController extends AbstractController {
             includeTimeHistogram,
             includeHeatmap)
         
+        // Facets automatically include include top
+        val topPlaces = includeTopPlaces.map(number => {
+          val urisAndCounts = facetTree.get.getTopChildren(IndexFields.ITEM_PLACES, number)
+          urisAndCounts.flatMap(t => Global.index.findPlaceByURI(t._1))
+        })
+
         val jsonComponents = Seq(
               { facetTree.map(Json.toJson(_).as[JsObject]) },
               { timeHistogram.map(Json.toJson(_).as[JsObject]) },
-              { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten
+              { heatmap.map(h => Json.obj("heatmap" -> {
+                  if (topPlaces.isDefined) {
+                    Json.toJson(h).as[JsObject] ++
+                    Json.obj("top_places" -> Json.toJson(topPlaces.get))
+                  } else {
+                    Json.toJson(h).as[JsObject]            
+                  }})) 
+              }).flatten
          
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)          
         val response =

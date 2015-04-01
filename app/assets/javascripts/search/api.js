@@ -14,7 +14,9 @@ define(['search/events'], function(Events) {
           
         },
         
-        pendingRequest = false,
+        requestQueue = [],
+        
+        requestPending = false,
 
         buildQueryURL = function(bounds, includeTimeHistogram, includeHeatmap) {
           var url = '/api-v3/search?facets=true';
@@ -23,7 +25,7 @@ define(['search/events'], function(Events) {
             url += '&timehistogram=true';
           
           if (includeHeatmap)
-            url += '&heatmap=true';
+            url += '&heatmap=true&top_places=10';
           
           if (filters.query)
             url += '&query=' + filters.query;
@@ -43,39 +45,61 @@ define(['search/events'], function(Events) {
           return url;
         },
         
-        doSearch = function(bounds, includeTimeHistogram, includeHeatmap) {
-          if (!pendingRequest) {    
-            pendingRequest = true;
+        makeRequest = function() {
+          // Do we have a heatmap request anywhere in the queue?
+          var heatmapRequests = jQuery.grep(requestQueue, function(req) { return req.heatmap; }),
+              latestRequest = requestQueue.pop(),
+              bounds = latestRequest.bounds,
+              includeTimeHistogram = latestRequest.timeHistogram,
+              includeHeatmap = heatmapRequests.length > 0;
+                
+          // Clear the request queue
+          requestQueue = [];
             
-            jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram, includeHeatmap), function(response) {
-              eventBroker.fireEvent(Events.UPATED_COUNTS, response);
+          // Make the request
+          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram, includeHeatmap), function(response) {
+            eventBroker.fireEvent(Events.UPATED_COUNTS, response);
               
-              if (includeTimeHistogram)
-                eventBroker.fireEvent(Events.UPDATED_TIME_HISTOGRAM, response.time_histogram);
+            if (includeTimeHistogram)
+              eventBroker.fireEvent(Events.UPDATED_TIME_HISTOGRAM, response.time_histogram);
               
-              if (includeHeatmap)
-                eventBroker.fireEvent(Events.UPDATED_HEATMAP, response.heatmap);
-            })
-            .always(function() {
-              pendingRequest = false;
-            });
+            if (includeHeatmap)
+              eventBroker.fireEvent(Events.UPDATED_HEATMAP, response.heatmap);
+          })
+          .always(function() {
+            requestPending = false;
+            
+            if (requestQueue.length > 0) // New requests arrived in the meantime
+              scheduleSearch()
+          });
+        },
+        
+        scheduleSearch = function() { 
+          // To prevent excessive requests, we always introduce a 250ms wait
+          if (!requestPending) {
+            requestPending = true;
+            window.setTimeout(makeRequest, 250);
           }
         };
     
     /** Run a full search (plus time histogram and heatmap) on initial load **/
     eventBroker.addHandler(Events.LOAD, function(bounds) {
-      doSearch(bounds, true, true);
+      requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
+      makeRequest();
     });
     
     /** Heatmaps are expensive anyway - so we'll just fetch everything **/
     eventBroker.addHandler(Events.REQUEST_UPDATED_HEATMAP, function(bounds) {
-      doSearch(bounds, true, true);
+      requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
+      scheduleSearch();
     });
     
     /** Fetch counts **/
     eventBroker.addHandler(Events.REQUEST_UPDATED_COUNTS, function(bounds) {
-      doSearch(bounds, true, false);
+      requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
+      scheduleSearch();
     });
+    
   };
   
   return API;
