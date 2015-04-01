@@ -53,10 +53,7 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
     eventBroker.addHandler(Events.UPDATED_HEATMAP, function(heatmap) {
       densityGrid.update(heatmap);
       if (heatmap.top_places) {
-        placeLayer.clear();
-        jQuery.each(heatmap.top_places, function(idx, place) {
-          placeLayer.addPlace(place);
-        });
+        placeLayer.setPlaces(heatmap.top_places);
       }
     });
     

@@ -2,7 +2,7 @@
 define(['search/events'], function(Events) {
   
   var QUERY_DELAY_MS = 100,
-      NUM_TOP_PLACES = 40;
+      NUM_TOP_PLACES = 35;
   
   var API = function(eventBroker) {
     var filters = {
