@@ -45,58 +45,125 @@ form {
   
 }
 
-#result-stats {
-  padding:6px;
-  background-color:#929292; 
-  border-top:1px solid #3e4550;
-  color:#fff;
-  text-align:right;
-}
+#filter-panel {
 
-#time-histogram {
-  padding:6px;
-  color:#fff;
-  position:relative;
+  .header {
+    padding:6px;
+    font-weight:bold;
+    font-size:14px;
+    color:#fff;
+  }
   
-  canvas { width:180px; }
-  
-  span.label { 
+  .section.histogram {
+    padding:6px;
+    color:#fff;
     position:relative;
-    top:-10px;
-    font-size:11px;
-  }
   
-  div.intervalbounds {
-    position:absolute;
-    top:0;
-    bottom:0;
-    border:1px solid #fff;
-  }
+    canvas { width:180px; }
   
-  div.handle {
-    position:absolute;
-    width:20px;
-    height:20px;
-    bottom:40px;
-    cursor:pointer;
-    
-    .label {
+    span.label { 
+      position:relative;
+      top:-10px;
+      font-size:11px;
+    } 
+  
+    div.intervalbounds {
       position:absolute;
-      top:-20px;
-      width:50px;
+      top:0;
+      bottom:0;
+      border:1px solid #fff;
     }
-  }
   
-  div.handle.from {
-    background-color:#ff0000;
-    left:5px; 
-  }
+    div.handle {
+      position:absolute;
+      width:20px;
+      height:20px;
+      bottom:40px;
+      cursor:pointer;
+    
+      .label {
+        position:absolute;
+        top:-20px;
+        width:50px;
+      }
+    }
   
-  div.handle.to {
-    background-color:#00ffff;
-    right:5px; 
-  }
+    div.handle.from {
+      background-color:#ff0000;
+      left:5px; 
+    }
   
+    div.handle.to {
+      background-color:#00ffff;
+      right:5px; 
+    }
+  
+  } /* .section.histogram */
+  
+ .section.facets {
+    padding:6px;
+    background-color:#929292; 
+    border-top:1px solid #3e4550;
+    color:#fff;
+    text-align:center;
+      
+    table { border-collapse:collapse; }
+      
+    td {
+      padding:2px;
+      color:#323232;
+      font-size:12px;
+    }
+  
+    h3 {
+      font-weight:normal;
+      color:#dfdfdf;
+      font-weight:normal;
+      text-shadow:0 1px 0 rgba(255,255,255,0.5), 0 -1px 1px rgba(0,0,0,0.4);
+      font-size:13px;  
+      padding:0;
+      margin:0 0 5px 0;
+    }
+  
+    td.label {
+      min-width:60px;
+      max-width:100px;
+      overflow:hidden;
+      white-space:nowrap;
+      text-align:right;
+      text-overflow: ellipsis;
+      padding:0 5px 0 10px;
+    }
+  
+    .meter {
+      width:80px;
+      background:none;
+      white-space:nowrap;
+    
+      .count-number {
+        padding-left:5px;
+        font-size:12px;
+      }
+    
+      .bar {
+        display:inline-block;
+        height:6px;
+      }
+        
+    } /* .meter */
+  
+    .chart.type .bar {
+      border:1px solid #756bb1;
+      background-color:#9e9ac8;
+    }
+  
+    .chart.source .bar {
+      border:1px solid #31a354;
+      background-color:#74c476;
+    }
+        
+  } /* .section.facets */
+
 }
 
 #result-list {

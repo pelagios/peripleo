@@ -1,6 +1,8 @@
 /** A wrapper around the API functions required by the map search UI **/
 define(['search/events'], function(Events) {
   
+  var QUERY_DELAY_MS = 100;
+  
   var API = function(eventBroker) {
     var filters = {
           
@@ -78,7 +80,7 @@ define(['search/events'], function(Events) {
           // To prevent excessive requests, we always introduce a 250ms wait
           if (!requestPending) {
             requestPending = true;
-            window.setTimeout(makeRequest, 250);
+            window.setTimeout(makeRequest, QUERY_DELAY_MS);
           }
         };
     

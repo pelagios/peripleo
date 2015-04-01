@@ -1,14 +1,14 @@
 /** One 'facet dimension chart' block **/
 define(function() {
   
-  var FacetChart = function(parent, title) {
+  var FacetChart = function(parent, title, cssClass) {
     var header = jQuery(
           '<tbody class="thead">' +
           '  <tr><td colspan="2"><h3 class="facet-dimension">' + title + '</h3></td></tr>' +
           '</tbody>'),
           
         body = jQuery(
-          '<tbody class="chart" id="type-chart"></tbody>'),
+          '<tbody class="chart ' + cssClass + '"></tbody>'),
           
         facetValTemplate = 
           '<tr>' +

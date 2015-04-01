@@ -6,21 +6,25 @@ define(['search/events',
   var FilterPanel = function(container, eventBroker) {
     var element = jQuery(
           '<div id="filter-panel">' +
-          '  <div id="facet-charts">' +
-          '    <table></table>' +
-          '  </div>' +
+          '  <div class="header"></div>' +
+          '  <div class="section histogram"></div>' +
+          '  <div class="section facets"><table></table></div>' +
           '</div>'),
         
-        facets = element.find('table'),
+        header = element.find('.header'),
+        
+        histogramSection = element.find('.section.histogram'),
+        
+        facetSection = element.find('.section.facets table'),
         
         timeHistogram, typeFacetChart, datasourceFacetChart; 
 
     /** Instantiate child controls **/
     container.append(element);
-    timeHistogram = new TimeHistogram(element, eventBroker);
+    timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     
-    typeFacetChart = new FacetChart(facets, 'Object Types');
-    datasourceFacetChart = new FacetChart(facets, 'Source Datasets');
+    typeFacetChart = new FacetChart(facetSection, 'Object Types', 'type');
+    datasourceFacetChart = new FacetChart(facetSection, 'Source Datasets', 'source');
     
     /** Forward updates to the facet charts **/
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
@@ -31,10 +35,10 @@ define(['search/events',
           sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'dataset'; });
           sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
           
+      header.html(numeral(response.total).format('0,0') + ' Results');    
+      
       typeFacetChart.update(typeFacets);
       datasourceFacetChart.update(sourceFacets);
-      
-      // TODO update total count
     });
   };
   
