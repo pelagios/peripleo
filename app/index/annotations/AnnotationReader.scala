@@ -71,11 +71,11 @@ trait AnnotationReader extends IndexBase {
     
     // Spatial filter
     if (bbox.isDefined) {
-      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, bbox.get)), BooleanClause.Occur.MUST)
+      q.add(Index.rptStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, bbox.get)), BooleanClause.Occur.MUST)
     } else if (coord.isDefined) {
       // Warning - there appears to be a bug in Lucene spatial that flips coordinates!
       val circle = Index.spatialCtx.makeCircle(coord.get.y, coord.get.x, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
-      q.add(Index.spatialStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
+      q.add(Index.rptStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
     }
       
     execute(q, bbox, level)    
@@ -87,7 +87,7 @@ trait AnnotationReader extends IndexBase {
     
     try {            
       val filter = new QueryWrapperFilter(query)
-      val heatmap = HeatmapFacetCounter.calcFacets(Index.spatialStrategy, searcher.getTopReaderContext, filter, rect, level, 100000)
+      val heatmap = HeatmapFacetCounter.calcFacets(Index.rptStrategy, searcher.getTopReaderContext, filter, rect, level, 100000)
       
       // Heatmap grid cells with non-zero count, in the form of a tuple (x, y, count)
       val nonEmptyCells = 

@@ -11,6 +11,7 @@ import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.db.slick._
+import models.geo.BoundingBox
 
 case class IndexedObject(private val doc: Document) {
 
@@ -73,16 +74,22 @@ object IndexedObject {
     // Fulltext
     fulltext.map(text => doc.add(new TextField(IndexFields.ITEM_FULLTEXT, text, Field.Store.YES)))
     
-    // Convex hull
-    thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
-
     // Place URIs
     places.foreach(place => doc.add(new StringField(IndexFields.ITEM_PLACES, place.uri, Field.Store.NO)))
     places.foreach(place => doc.add(new FacetField(IndexFields.ITEM_PLACES, place.uri)))
     
     // Detailed geometry as spatially indexed features
     val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
-    geometries.foreach(geom => Index.spatialStrategy.createIndexableFields(Index.spatialCtx.makeShape(geom)).foreach(doc.add(_)))
+    geometries.foreach(geom => Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geom)).foreach(doc.add(_)))
+    
+    // Bounding box to enable efficient best-fit queries
+    val bbox = BoundingBox.fromPlaces(places)
+    bbox.map(b => 
+      Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
+        .foreach(doc.add(_)))
+    
+    // Convex hull
+    thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
     
     doc   
   }

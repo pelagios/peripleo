@@ -24,9 +24,11 @@ object IndexFields {
   
   val DATE_POINT = "date_xy"
     
-  val CONVEX_HULL = "convex_hull"
-
   val GEOMETRY = "geometry"
+  
+  val CONVEX_HULL = "convex_hull"
+  
+  val BOUNDING_BOX = "bbox"
     
     
   /** Item-specific fields **/

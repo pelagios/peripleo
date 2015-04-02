@@ -19,6 +19,7 @@ import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.Logger
 import org.apache.lucene.spatial.prefix.tree.DateRangePrefixTree
+import org.apache.lucene.spatial.bbox.BBoxStrategy
 
 private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, annotationDir: Path, spellcheckDir: Path) {  
     
@@ -132,8 +133,11 @@ object Index {
   
   private[index] val maxSpatialTreeLevels = 11 
   
-  private[index] val spatialStrategy =
+  private[index] val rptStrategy =
     new RecursivePrefixTreeStrategy(new GeohashPrefixTree(spatialCtx, maxSpatialTreeLevels), IndexFields.GEOMETRY)
+  
+  private[index] val bboxStrategy = 
+    new BBoxStrategy(spatialCtx, IndexFields.BOUNDING_BOX)
   
   /** Time segment indexing settings **/
   private[index] val dateRangeTree = DateRangePrefixTree.INSTANCE

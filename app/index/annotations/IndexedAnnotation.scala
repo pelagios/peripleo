@@ -39,7 +39,7 @@ object IndexedAnnotation {
     
     // Place & geometry
     doc.add(new StringField(IndexFields.ANNOTATION_PLACE, annotation.gazetteerURI, Field.Store.NO)) 
-    Index.spatialStrategy.createIndexableFields(Index.spatialCtx.makeShape(geometry)).foreach(doc.add(_))
+    Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geometry)).foreach(doc.add(_))
         
     doc
   }

@@ -1,8 +1,9 @@
 package models.geo
 
-import play.api.db.slick.Config.driver.simple._
-import com.vividsolutions.jts.geom.{ Envelope, Geometry }
 import index.places.IndexedPlace
+import com.vividsolutions.jts.geom.{ Envelope, Geometry }
+import play.api.db.slick.Config.driver.simple._
+
 
 case class BoundingBox(minLon: Double, maxLon: Double, minLat: Double, maxLat: Double) {
   

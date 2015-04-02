@@ -18,7 +18,6 @@ trait PlaceReader extends IndexBase {
   def listAllPlaceNetworks(offset: Int = 0, limit: Int = 20): Seq[IndexedPlaceNetwork] = {
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     val searcher = searcherAndTaxonomy.searcher
-    // val collector = TopScoreDocCollector.create(offset + limit, true)
     
     try {
       val topDocs = searcher.search(new MatchAllDocsQuery(), offset + limit)
@@ -41,7 +40,7 @@ trait PlaceReader extends IndexBase {
     
     val bboxFilter = bbox.map(bounds => {
       val shape = Index.spatialCtx.makeRectangle(bounds._1, bounds._2, bounds._3, bounds._4)
-      Index.spatialStrategy.makeFilter(new SpatialArgs(SpatialOperation.Intersects, shape))
+      Index.rptStrategy.makeFilter(new SpatialArgs(SpatialOperation.Intersects, shape))
     })
  
     val searcherAndTaxonomy = placeSearcherManager.acquire()

@@ -12,6 +12,7 @@ import play.api.Logger
 import com.vividsolutions.jts.geom.Envelope
 import models.geo.ConvexHull
 import index.objects.IndexedObjectTypes
+import models.geo.BoundingBox
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
@@ -109,6 +110,12 @@ object IndexedPlaceNetwork {
     val allPlaces = networks.flatMap(_.places) :+ place
     allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
     
+    // Bounding box across all place geometries to enable efficient best-fit queries
+    val bbox = BoundingBox.fromPlaces(allPlaces)
+    bbox.map(b => 
+      Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
+        .foreach(joinedDoc.add(_)))
+    
     // Convex hull accross all place geometries
     val convexHull = ConvexHull.compute(allPlaces.flatMap(_.geometry))
     convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
@@ -155,7 +162,7 @@ object IndexedPlaceNetwork {
     // Index shape geometry
     if (place.geometry.isDefined)
       try {
-        Index.spatialStrategy.createIndexableFields(Index.spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
+        Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(place.geometry.get)).foreach(doc.add(_))
       } catch {
         case _: Throwable => Logger.info("Cannot index geometry: " + place.geometry.get)
       }
