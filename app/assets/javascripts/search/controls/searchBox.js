@@ -1,12 +1,12 @@
 /** The search input form **/
 define(['search/events'], function(Events) {
   
-  var SearchForm = function(container, eventBroker) {
+  var SearchBox = function(container, eventBroker) {
     var element = jQuery(
-          '<div id="query-container">' +
+          '<div id="searchbox">' +
           '  <form>' +
+          '    <input autofocus="autofocus" type="text" id="query" name="query" autocomplete="off">' +
           '    <span class="icon">&#xf002;</span>' +
-          '    <input type="text" id="query" name="query" placeholder="Search..." autocomplete="off">' +
           '  </form>' +
           '</div>'),
           
@@ -30,6 +30,6 @@ define(['search/events'], function(Events) {
     container.append(element);
   };
   
-  return SearchForm;
+  return SearchBox;
   
 });

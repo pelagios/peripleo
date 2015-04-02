@@ -305,7 +305,7 @@ trait ObjectReader extends AnnotationReader {
       (year, count)
     }}
 
-    TimeHistogram.create(values, 26)
+    TimeHistogram.create(values, 25)
   }
   
   private def calculateItemHeatmap(filter: Filter, bbox: Rectangle, level: Int, searcher: IndexSearcher): Heatmap = {

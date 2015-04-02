@@ -5,7 +5,7 @@ define(['search/events',
   
   var FilterPanel = function(container, eventBroker) {
     var element = jQuery(
-          '<div id="filter-panel">' +
+          '<div id="filterpanel">' +
           '  <div class="header"></div>' +
           '  <div class="section histogram"></div>' +
           '  <div class="section facets"><table></table></div>' +

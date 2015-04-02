@@ -1,9 +1,9 @@
 require(['search/map/map', 
-         'search/controls/searchForm', 
+         'search/controls/searchBox', 
          'search/controls/filter/filterPanel',
          'search/api',
          'search/eventBroker',
-         'search/events'], function(Map, SearchForm, FilterPanel, API, EventBroker, Events) {
+         'search/events'], function(Map, SearchBox, FilterPanel, API, EventBroker, Events) {
   
   jQuery(document).ready(function() {  
     var container = jQuery('#controls'),
@@ -14,7 +14,7 @@ require(['search/map/map',
         
         map = new Map(document.getElementById('map'), eventBroker),
         
-        searchForm = new SearchForm(container, eventBroker),
+        searchBox = new SearchBox(container, eventBroker),
         
         filterPanel = new FilterPanel(container, eventBroker);
         
