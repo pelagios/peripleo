@@ -3,11 +3,27 @@ package models.geo
 import index.places.IndexedPlace
 import com.vividsolutions.jts.geom.{ Envelope, Geometry }
 import play.api.db.slick.Config.driver.simple._
-
+import play.api.Logger
 
 case class BoundingBox(minLon: Double, maxLon: Double, minLat: Double, maxLat: Double) {
   
+  if (invalidBounds)
+    throw new IllegalArgumentException("Illegal bounds: " + minLon + ", " + maxLon + ", " + minLat + ", " + maxLat)
+  
   override lazy val toString = Seq(minLon, maxLon, minLat, maxLat).mkString(",")
+  
+  private def invalidBounds: Boolean = {
+    if (minLon < -180)
+      true
+    else if (maxLon > 180)
+      true
+    else if (minLat < -90)
+      true
+    else if (maxLat > 90)
+      true
+    else
+      false
+  }
   
 }
 
@@ -21,9 +37,16 @@ object BoundingBox {
   /** Computes a bounding box from a list of geometries **/
   def compute(geometries: Seq[Geometry]): Option[BoundingBox] = {
     if (geometries.size > 0) {
-      val envelope = new Envelope()
-      geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
-      Some(BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY))
+      try {
+        val envelope = new Envelope()
+        geometries.foreach(geom => envelope.expandToInclude(geom.getEnvelopeInternal))
+        Some(BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY))
+      } catch {
+        case e:IllegalArgumentException => {
+          Logger.warn(e.getMessage)
+          None
+        }
+      }
     } else {
       None
     }

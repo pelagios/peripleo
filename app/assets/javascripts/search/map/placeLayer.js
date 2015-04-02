@@ -3,9 +3,25 @@ define(function() {
   var PlaceLayer = function(map) {
     var isHidden = false,
     
-        layerGroup = L.layerGroup().addTo(map),
+        itemLayerGroup = L.layerGroup().addTo(map),
+    
+        placeLayerGroup = L.layerGroup().addTo(map),
     
         markers = {},
+        
+        setItems = function(items) {
+          itemLayerGroup.clearLayers();
+          
+          jQuery.each(items, function(idx, item) {
+            var bounds =
+              [[item.geo_bounds.min_lat, item.geo_bounds.min_lon],
+               [item.geo_bounds.max_lat, item.geo_bounds.max_lon]];
+              
+            L.rectangle(bounds, {color: "#ff7800", weight: 1})
+              .bindPopup(item.title)
+              .addTo(itemLayerGroup);
+          });
+        },
     
         setPlaces = function(places) {
           var uris = jQuery.map(places, function(p) { return p.gazetteer_uri });
@@ -15,7 +31,7 @@ define(function() {
             if (!markers[place.gazetteer_uri]) {
               markers[place.gazetteer_uri] = 
                 L.marker([ place.centroid_lat, place.centroid_lng ])
-                 .addTo(layerGroup)
+                 .addTo(placeLayerGroup)
                  .bindPopup(place.label);
             }
           });
@@ -28,7 +44,7 @@ define(function() {
               
               jQuery(icon).fadeOut(2000);
               jQuery(shadow).fadeOut(2000, function() {
-                layerGroup.removeLayer(marker);
+                placeLayerGroup.removeLayer(marker);
               });
 
               delete markers[uri];
@@ -38,19 +54,20 @@ define(function() {
         
         hide = function() {
           if (!isHidden) {
-            map.removeLayer(layerGroup);
+            map.removeLayer(placeLayerGroup);
             isHidden = true;
           }
         },
         
         show = function() {
           if (isHidden) {
-            map.addLayer(layerGroup);
+            map.addLayer(placeLayerGroup);
             isHidden = false;
           }
         };
 
     this.setPlaces = setPlaces;
+    this.setItems = setItems;
     this.show = show;
     this.hide = hide;
         

@@ -52,6 +52,10 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
       
     placeLayer.hide();
     
+    eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
+      placeLayer.setItems(response.items);
+    });
+    
     /** Obviously, we listen for new heatmaps **/
     eventBroker.addHandler(Events.UPDATED_HEATMAP, function(heatmap) {
       densityGrid.update(heatmap);

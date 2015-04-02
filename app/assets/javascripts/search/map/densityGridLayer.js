@@ -8,9 +8,7 @@ define(function() {
         _map,
     
         // TODO optimize!
-        render = function(canvasOverlay, params) { 
-          console.log('redraw');         
-          
+        render = function(canvasOverlay, params) {    
           if (!params.options.heatmap)
             return;
             
@@ -56,7 +54,7 @@ define(function() {
           });
         },
         
-        canvasOverlay = L.canvasOverlay().drawing(render);
+        canvasOverlay = L.canvasOverlay().drawing(function() {});
 
     /** Privileged methods **/        
     this.addTo = function(map) {

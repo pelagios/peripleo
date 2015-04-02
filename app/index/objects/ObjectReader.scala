@@ -1,11 +1,11 @@
 package index.objects
 
-import com.spatial4j.core.distance.DistanceUtils
 import com.spatial4j.core.shape.Rectangle
-import com.spatial4j.core.shape.impl.RectangleImpl
+import com.spatial4j.core.distance.DistanceUtils
 import com.vividsolutions.jts.geom.Coordinate
 import index._
 import index.annotations.AnnotationReader
+import java.util.{ Calendar, GregorianCalendar }
 import models.Page
 import models.core.Datasets
 import models.geo.BoundingBox
@@ -15,27 +15,15 @@ import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
 import org.apache.lucene.search._
+import org.apache.lucene.search.highlight.{ Highlighter, SimpleHTMLFormatter, SimpleFragmenter, TokenSources, QueryScorer }
+import org.apache.lucene.queries.function.ValueSource
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
-import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
-import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester
-import org.apache.lucene.analysis.standard.StandardAnalyzer
-import org.apache.lucene.search.spell.LuceneDictionary
-import play.api.db.slick._
-import org.apache.lucene.search.highlight.SimpleHTMLFormatter
-import org.apache.lucene.search.highlight.Highlighter
-import org.apache.lucene.search.highlight.QueryScorer
-import org.apache.lucene.search.highlight.SimpleFragmenter
-import org.apache.lucene.search.highlight.SimpleSpanFragmenter
-import org.apache.lucene.search.highlight.TokenSources
-import org.apache.lucene.spatial.prefix.PrefixTreeFacetCounter
 import org.apache.lucene.spatial.prefix.tree.NumberRangePrefixTree.UnitNRShape
-import java.util.Calendar
-import com.spatial4j.core.shape.Shape
-import org.apache.lucene.index.IndexReaderContext
-import org.apache.lucene.facet.Facets
+import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
+import play.api.db.slick._
 import scala.collection.JavaConverters._
-import java.util.GregorianCalendar
+import play.api.Logger
 
 trait ObjectReader extends AnnotationReader {
   
@@ -85,7 +73,7 @@ trait ObjectReader extends AnnotationReader {
     val rectangle = params.bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
     
     // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
-    val baseQuery = prepareBaseQuery(params.objectType, params.dataset, 
+    val (baseQuery, valueSource) = prepareBaseQuery(params.objectType, params.dataset, 
       params.gazetteer, params.places, rectangle, params.coord, params.radius)
       
     // Finalize search query and time histogram filter
@@ -146,14 +134,14 @@ trait ObjectReader extends AnnotationReader {
       // Search & facet counts
       val (results, facets) = 
         executeSearch(searchQuery, params.limit, params.offset, searcher, objectSearcher.taxonomyReader,
-          includeFacets, includeSnippets)
+          valueSource, includeFacets, includeSnippets)
       
       // Time histogram computation
       val temporalProfile = timeHistogramFilter.map(filter => calculateTemporalProfile(filter, searcher))
       
       // Heatmap computation
       val heatmap = heatmapFilter.map(filter => {
-        val rect = rectangle.getOrElse(new RectangleImpl(-90, 90, -90, 90, null))
+        val rect = rectangle.getOrElse(Index.spatialCtx.makeRectangle(-90, 90, -90, 90))
         val level = getHeatmapLevelForRect(rect)
         
         if (params.query.isDefined) {
@@ -182,7 +170,7 @@ trait ObjectReader extends AnnotationReader {
       places:     Seq[String], 
       bbox:       Option[Rectangle],
       coord:      Option[Coordinate], 
-      radius:     Option[Double])(implicit s: Session): BooleanQuery = {
+      radius:     Option[Double])(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
     
     val q = new BooleanQuery()
       
@@ -213,32 +201,52 @@ trait ObjectReader extends AnnotationReader {
       q.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
     
     // Spatial filter
-    if (bbox.isDefined) {
-      q.add(Index.rptStrategy.makeQuery(new SpatialArgs(SpatialOperation.Intersects, bbox.get)), BooleanClause.Occur.MUST)
-    } else if (coord.isDefined) {
-      val circle = Index.spatialCtx.makeCircle(coord.get.x, coord.get.y, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
-      q.add(Index.rptStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)        
-    }
+    val valuesource = {
+      if (bbox.isDefined) {
+        q.add(Index.bboxStrategy.makeQuery(new SpatialArgs(SpatialOperation.BBoxIntersects, bbox.get)), BooleanClause.Occur.MUST)
+        Some(Index.bboxStrategy.makeOverlapRatioValueSource(bbox.get, 0.5))
+      } else if (coord.isDefined) {
+        val circle = Index.spatialCtx.makeCircle(coord.get.x, coord.get.y, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))
+        q.add(Index.rptStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, circle)), BooleanClause.Occur.MUST)
+        
+        // TODO create & return distance value source
+        None
+      } else {
+        None       
+      }
+    } 
     
-    q
+    (q, valuesource)
   }
   
-  private def executeSearch(query: Query, limit: Int, offset: Int, searcher: IndexSearcher,
-      taxonomyReader: DirectoryTaxonomyReader, includeFacets: Boolean, includeSnippets: Boolean): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
+  private def executeSearch(query: Query, limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
+      valueSource: Option[ValueSource], includeFacets: Boolean, includeSnippets: Boolean): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
     
-    val topDocsCollector = TopScoreDocCollector.create(offset + limit)
-    val (collector, facetsCollector) = // Small optimization - don't bother searching the taxo index if it's not requested
-      if (includeFacets) {
-        val facetsCollector = new FacetsCollector()
-        val collector = MultiCollector.wrap(topDocsCollector, facetsCollector)
-        (collector, Some(facetsCollector))
-      } else {
-        (topDocsCollector, None)
-      }
+    val (docCollector, facetsCollector) = { 
+      val dc =
+        if (valueSource.isDefined) {
+          // We're using sorting as defined in the value source
+          val sort = new Sort(valueSource.get.getSortField(true)).rewrite(searcher)
+          TopFieldCollector.create(sort, offset + limit, true, false, false)  
+        } else {
+          TopScoreDocCollector.create(offset + limit)
+        }
       
+      // Don't bother searching the taxo index if it's not requested
+      if (includeFacets)
+        (dc, Some(new FacetsCollector()))
+      else
+        (dc, None)
+    }
+    
     // Run the search
-    searcher.search(query, collector)
-    val total = topDocsCollector.getTotalHits
+    if (facetsCollector.isDefined) {
+      searcher.search(query, MultiCollector.wrap(docCollector, facetsCollector.get))
+    } else {
+      searcher.search(query, docCollector)
+    }
+    
+    val total = docCollector.getTotalHits
 
     // Compute facets, optionally
     val facetTree = facetsCollector.map(fc => new FacetTree(new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, fc)))      
@@ -257,7 +265,7 @@ trait ObjectReader extends AnnotationReader {
       }
        
     // Fetch result documents
-    val results = topDocsCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => {      
+    val results = docCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => {      
       val document = searcher.doc(scoreDoc.doc)
  
       // Fetch snippets, optionally
