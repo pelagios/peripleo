@@ -6,14 +6,18 @@ define(['search/events',
   var FilterPanel = function(container, eventBroker) {
     var element = jQuery(
           '<div id="filterpanel">' +
-          '  <div class="section histogram"></div>' +
-          '  <div class="section facet type"></div>' +
-          '  <div class="section facet source"></div>' +
+          '  <div class="body">' +
+          '    <div class="section histogram"></div>' +
+          '    <div class="section facet type"></div>' +
+          '    <div class="section facet source"></div>' +
+          '  </div>' + 
           '  <div class="footer">' +
           '    <span class="total">&nbsp;</span>' +
           '    <span class="icon close">&#xf077;</span>' +
           '  </div>' +
           '</div>'),
+        
+        body = element.find('.body'),
         
         histogramSection = element.find('.section.histogram'),
         
@@ -23,7 +27,19 @@ define(['search/events',
         
         footerTotals = element.find('.footer .total'),
         
-        timeHistogram, typeFacetChart, sourceFacetChart; 
+        buttonToggle = element.find('.icon.close'),
+        
+        timeHistogram, typeFacetChart, sourceFacetChart,
+        
+        toggle = function() {
+          var visible = jQuery(body).is(':visible');
+          body.slideToggle(200, function() {
+            if (visible)
+              buttonToggle.html('&#xf078;');
+            else
+              buttonToggle.html('&#xf077;');
+          });
+        };
         
     /** Instantiate child controls **/
     container.append(element);
@@ -31,6 +47,8 @@ define(['search/events',
     
     typeFacetChart = new FacetChart(typeFacetSection, 'Object Types', 'type');
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source Datasets', 'dataset');
+    
+    buttonToggle.click(toggle);
     
     /** Forward updates to the facet charts **/
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
