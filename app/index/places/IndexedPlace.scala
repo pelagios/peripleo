@@ -34,6 +34,10 @@ class IndexedPlace(json: String) {
       val lang = (literal \ "lang").asOpt[String]
       PlainLiteral(chars, lang)
     })
+    
+  lazy val temporalBoundsStart: Option[Int] = (asJson \ "temporal" \ "from").asOpt[Int]
+  
+  lazy val temporalBoundsEnd: Option[Int] = (asJson \ "temporal" \ "to").asOpt[Int]
   
   lazy val geometryJson: Option[JsValue] = (asJson \ "geometry").asOpt[JsValue]
   
@@ -67,6 +71,7 @@ object IndexedPlace {
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "category").writeNullable[String] ~
     (JsPath \ "names").write[Seq[PlainLiteral]] ~
+    (JsPath \ "temporal").writeNullable[JsValue] ~
     (JsPath \ "geometry").writeNullable[JsValue] ~
     (JsPath \ "close_matches").write[Seq[String]] ~
     (JsPath \ "exact_matches").write[Seq[String]]
@@ -76,6 +81,7 @@ object IndexedPlace {
       p.descriptions.headOption.map(_.chars),
       p.category.map(_.toString),
       p.names,
+      p.temporal.map(t => Json.obj("from" -> t.start, "to" -> t.end.getOrElse(t.start).toInt)),
       p.locations.headOption.map(location => Json.parse(location.geoJSON)),
       p.closeMatches.map(Index.normalizeURI(_)),
       p.exactMatches.map(Index.normalizeURI(_))))
@@ -85,7 +91,7 @@ object IndexedPlace {
     (JsPath \ "source_gazetteer").write[String]
   )(t => (t._1, t._2.toLowerCase))
   
-  def toIndexedPlace(place: Place, sourceGazetteer: String): IndexedPlace = {
+  def toIndexedPlace(place: Place, sourceGazetteer: String): IndexedPlace = {    
     val json = Json.toJson((place, sourceGazetteer))
     new IndexedPlace(Json.stringify(json))
   }

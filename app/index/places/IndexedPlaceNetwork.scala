@@ -158,7 +158,19 @@ object IndexedPlaceNetwork {
     val knownMatches = doc.getValues(IndexFields.PLACE_MATCH).toSeq // These are distinct by definition
     newMatches.diff(knownMatches).foreach(anyMatch =>
       doc.add(new StringField(IndexFields.PLACE_MATCH, anyMatch, Field.Store.YES)))
+      
+    // Temporal bounds
+    place.temporalBoundsStart.map(start => {
+      val end = place.temporalBoundsEnd.getOrElse(start)
+      val dateRange =
+        if (start > end) // Minimal safety precaution... 
+          Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")
+        else
+          Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
           
+      Index.temporalStrategy.createIndexableFields(dateRange).foreach(doc.add(_))
+    })
+      
     // Index shape geometry
     if (place.geometry.isDefined)
       try {
