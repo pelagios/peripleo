@@ -5,7 +5,7 @@ define(['search/events'], function(Events) {
     var element = jQuery(
           '<div id="searchbox">' +
           '  <form>' +
-          '    <input autofocus="autofocus" type="text" id="query" name="query" autocomplete="off">' +
+          '    <input type="text" id="query" name="query" autocomplete="off">' +
           '    <span class="icon">&#xf002;</span>' +
           '  </form>' +
           '</div>'),
