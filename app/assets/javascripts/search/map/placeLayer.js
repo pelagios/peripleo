@@ -11,7 +11,7 @@ define(function() {
         
         setItems = function(items) {
           itemLayerGroup.clearLayers();
-          
+          /*
           jQuery.each(items, function(idx, item) {
             var bounds =
               [[item.geo_bounds.min_lat, item.geo_bounds.min_lon],
@@ -21,6 +21,7 @@ define(function() {
               .bindPopup(item.title)
               .addTo(itemLayerGroup);
           });
+          */
         },
     
         setPlaces = function(places) {

@@ -6,25 +6,31 @@ define(['search/events',
   var FilterPanel = function(container, eventBroker) {
     var element = jQuery(
           '<div id="filterpanel">' +
-          '  <div class="header"></div>' +
           '  <div class="section histogram"></div>' +
-          '  <div class="section facets"><table></table></div>' +
+          '  <div class="section facet type"></div>' +
+          '  <div class="section facet source"></div>' +
+          '  <div class="footer">' +
+          '    <span class="total">&nbsp;</span>' +
+          '    <span class="icon close">&#xf077;</span>' +
+          '  </div>' +
           '</div>'),
-        
-        header = element.find('.header'),
         
         histogramSection = element.find('.section.histogram'),
         
-        facetSection = element.find('.section.facets table'),
+        typeFacetSection = element.find('.section.facet.type'),
         
-        timeHistogram, typeFacetChart, datasourceFacetChart; 
-
+        sourceFacetSection = element.find('.section.facet.source'),
+        
+        footerTotals = element.find('.footer .total'),
+        
+        timeHistogram, typeFacetChart, sourceFacetChart; 
+        
     /** Instantiate child controls **/
     container.append(element);
     timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     
-    typeFacetChart = new FacetChart(facetSection, 'Object Types', 'type');
-    datasourceFacetChart = new FacetChart(facetSection, 'Source Datasets', 'source');
+    typeFacetChart = new FacetChart(typeFacetSection, 'Object Types', 'type');
+    sourceFacetChart = new FacetChart(sourceFacetSection, 'Source Datasets', 'dataset');
     
     /** Forward updates to the facet charts **/
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
@@ -35,10 +41,10 @@ define(['search/events',
           sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'dataset'; });
           sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
           
-      header.html(numeral(response.total).format('0,0') + ' Results');    
+      footerTotals.html(numeral(response.total).format('0,0') + ' Results');    
       
       typeFacetChart.update(typeFacets);
-      datasourceFacetChart.update(sourceFacets);
+      sourceFacetChart.update(sourceFacets);
     });
   };
   

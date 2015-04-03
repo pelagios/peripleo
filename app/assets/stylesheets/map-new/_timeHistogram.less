@@ -5,8 +5,8 @@
   
   canvas {
     width:280px;
-    height:50px;
-    margin:0 34px 20px 34px;
+    height:40px;
+    margin:0 34px 24px 34px;
   }
     
   .handle, .axislabel, .selection {
@@ -18,6 +18,7 @@
     display:block;
     width:70px; 
     text-align:center;
+    font-size:11px;
   }
   
   .axislabel.from {
@@ -29,11 +30,11 @@
   }
   
   .handle {
-    top:14px;
+    top:10px;
     cursor:pointer;
     padding:10px 3px 10px 4px;
     font-family:Fontello;
-    font-size:12px;
+    font-size:11px;
     color:rgba(0,0,0,0.4);
     background-color:rgba(0,0,0,0.25);
     border-color:rgba(0,0,0,0.2);
@@ -41,9 +42,28 @@
     .box-shadow(0, 0, 2px, 0, rgba(0,0,0,0.3));
     
     .label {
+      color:#efefef;
+      width:54px;
+      white-space:nowrap;
       position:absolute;
-      top:-20px;
-      width:50px;
+      top:-36px;
+      padding:4px 2px;
+      background-color:#323232;
+      .rounded-corners(4px);
+      text-align:center;
+    }
+    
+    .label:after {
+      position:absolute;
+      top:98.1%;
+      left:70%;
+      margin-left:-25%;
+      content: '';
+      width:0;
+      height:0;
+      border-top:solid 5px #323232;
+      border-left:solid 5px transparent;
+      border-right:solid 5px transparent;
     }
     
   }
@@ -52,17 +72,23 @@
     left:17px;
     border-width:1px 0 1px 1px;
     .rounded-corners-left(5px);
+    
+    .label { left:-16px; }
+    
   }
   
   .handle.to {
     left:315px;
     border-width:1px 1px 1px 0;
     .rounded-corners-right(5px);
+    
+    .label { left:-32px; }
+    
   }
   
   .selection {
     top:3px;
-    bottom:15px;
+    bottom:19px;
     left:33px;
     right:33px;
     .box-shadow-inset(0, 0, 2px, 0, rgba(0,0,0,0.3));

@@ -8,7 +8,7 @@ define(['search/events'], function(Events) {
     
     var container = jQuery(
           '<div id="time-histogram">' +
-          '  <canvas width="280" height="50"></canvas>' +
+          '  <canvas width="280" height="40"></canvas>' +
           '  <span class="axislabel from"></span>' +
           '  <span class="axislabel to"></span>' +
           
@@ -135,6 +135,7 @@ define(['search/events'], function(Events) {
             }
             
             // Update handle label
+            fromHandleLabel.show();
             fromHandleLabel.html(formatYear(getSelectedRange().from));
               
             // Update selection bounds
@@ -154,6 +155,7 @@ define(['search/events'], function(Events) {
             }
             
             // Update handle label
+            toHandleLabel.show();
             toHandleLabel.html(formatYear(getSelectedRange().to));
             
             // Update selection bounds
@@ -166,7 +168,9 @@ define(['search/events'], function(Events) {
           
           var selection = getSelectedRange();
           fromHandleLabel.empty();
+          fromHandleLabel.hide();
           toHandleLabel.empty();
+          toHandleLabel.hide();
             
           if (selection.from == histogramRange.from && selection.to == histogramRange.to)
             // Remove time filter altogether
@@ -197,19 +201,19 @@ define(['search/events'], function(Events) {
                 minYear = values[0].year,
                 maxYear = values[values.length - 1].year,
                 height = ctx.canvas.height - 1,
-                xOffset = 3;
+                xOffset = 5;
         
             ctx.clearRect (0, 0, canvasWidth, ctx.canvas.height);
         
             jQuery.each(values, function(idx, value) {
-              var barHeight = Math.sqrt(value.val / maxValue) * height;   
+              var barHeight = Math.round(Math.sqrt(value.val / maxValue) * height);   
               ctx.strokeStyle = BAR_STROKE;
               ctx.fillStyle = BAR_FILL;
               ctx.beginPath();
-              ctx.rect(xOffset + 0.5, height - barHeight + 0.5, 7, barHeight);
+              ctx.rect(xOffset + 0.5, height - barHeight + 0.5, 5, barHeight);
               ctx.fill();
               ctx.stroke();
-              xOffset += 11;
+              xOffset += 9;
             });
           
             histogramRange.from = minYear;
@@ -222,7 +226,10 @@ define(['search/events'], function(Events) {
           };
         };
     
-    parent.prepend(container);
+    fromHandleLabel.hide();
+    toHandleLabel.hide();
+    
+    parent.append(container);
     ctx = canvas[0].getContext('2d');
     
     canvasWidth = canvas.outerWidth(false);

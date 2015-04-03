@@ -3,20 +3,18 @@ define(function() {
   
   var FacetChart = function(parent, title, cssClass) {
     var header = jQuery(
-          '<tbody class="thead">' +
-          '  <tr><td colspan="2"><h3 class="facet-dimension">' + title + '</h3></td></tr>' +
-          '</tbody>'),
+          '<div class="facet-header">' +
+          '  <h3>' + title + '</h3>' +
+          '  <a class="filter" href="#"><span class="icon">&#xf0b0;</span><span class="label">Set Filter</span></a>' +
+          '</div>'),
           
-        body = jQuery(
-          '<tbody class="chart ' + cssClass + '"></tbody>'),
+        list = jQuery(
+          '<ul class="chart ' + cssClass + '"></ul>'),
           
         facetValTemplate = 
-          '<tr>' +
-          '  <td class="label"></td>' +
-          '  <td class="count-bar">' +
-          '    <div class="meter"><div class="bar"></div><span class="count-number"></span></div>' +
-          '  </td>' +
-          '</tr>',
+          '<li>' +
+          '  <div class="meter"><div class="bar"></div><div class="label"></div></div>' +
+          '</li>',
           
         /** Shorthand function for sorting facet values by count **/
         sortFacetValues = function(a,b) { return b.count - a.count },
@@ -25,22 +23,25 @@ define(function() {
         formatNumber = function(number) { return numeral(number).format('0,0'); },
           
         update = function(facets) {
-          var maxCount = (facets.length > 0) ? facets.sort(sortFacetValues)[0].count : 0;
+          var maxCount = (facets.length > 0) ? facets.slice().sort(sortFacetValues)[0].count : 0;
               
-          body.empty();
+          list.empty();
           jQuery.each(facets, function(idx, val) {
             var row = jQuery(facetValTemplate),
-                percentage = (100 * val.count / maxCount) + '%';
+                bar = row.find('.bar'),
+                percentage = (100 * val.count / maxCount) + '%',
+                label = (val.label.indexOf('#') < 0) ? val.label : val.label.substring(0, val.label.indexOf('#')) ;
               
-            row.find('.label').html(val.label);
-            row.find('.bar').css('width', percentage);
-            row.find('.count-number').html(formatNumber(val.count));
-            body.append(row);
+            
+            bar.css('width', percentage);
+            bar.attr('title', formatNumber(val.count) + ' Results');
+            row.find('.label').html(label);
+            list.append(row);
           });
         };
     
     parent.append(header);
-    parent.append(body);
+    parent.append(list);
     
     this.update = update;
   };

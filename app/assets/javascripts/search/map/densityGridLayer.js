@@ -54,7 +54,7 @@ define(function() {
           });
         },
         
-        canvasOverlay = L.canvasOverlay().drawing(function() {});
+        canvasOverlay = L.canvasOverlay().drawing(render);
 
     /** Privileged methods **/        
     this.addTo = function(map) {

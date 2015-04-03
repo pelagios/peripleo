@@ -1,21 +1,39 @@
 @import "_timeHistogram.less";
+@import "_facetChart.less";
 
 #filterpanel {
   margin-top:-2px;
   color:#333;
-  background-color:#fafafa;
+  background-color:#fff;
   .box-shadow(0, 0, 6px, 0, rgba(0,0,0,0.3));
   .rounded-corners-bottom(2px);
   
   .section {
     padding:6px;
+    background-color:#fafafa;
     border-bottom:1px solid #e6e6e6;
   }
   
   .section.histogram { padding-top:9px; }
   
-  .header { 
-    display:none;
+  .footer { 
+    padding:6px 12px 6px 8px;
+    color:#686868;
+    
+    .icon {
+      color:#b3b3b3;
+      float:right;
+    }
+    
+    .icon:hover {
+      cursor:pointer;
+      color:#686868;
+    }
+    
+  }
+  
+  button {
+  
   }
   
 }
