@@ -58,10 +58,10 @@ define(['search/events'], function(Events) {
           names.html(place.names.join(', '));
           description.html(place.description);
           
-          uriLIs.push(jQuery('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>'));
+          uriLIs.push(jQuery('<li>' + place.gazetteer_uri + '</li>'));
           jQuery.each(place.matches, function(idx, uri) {
             alert(uri);
-            uriLIs.push(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
+            uriLIs.push(jQuery('<li>' + uri + '</li>'));
           });
           
           alert(uriLIs);
