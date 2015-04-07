@@ -48,22 +48,18 @@ define(['search/events'], function(Events) {
             gazId = uri.substr(5);
           }
 
-          return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + id + '</a>'; 
+          return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + gazId + '</a>'; 
         },
         
-        fillTemplate = function(place) {
-          var uriLIs = [];
-          
+        fillTemplate = function(place) {          
           label.html(place.label);
           names.html(place.names.join(', '));
           description.html(place.description);
           
-          uriLIs.push(jQuery('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>'));
+          uris.append(jQuery('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>'));
           jQuery.each(place.matches, function(idx, uri) {
-            uriLIs.push(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
+            uris.append(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
           });
-          
-          uris.append(uriLIs);
         },
         
         clearTemplate = function() {
