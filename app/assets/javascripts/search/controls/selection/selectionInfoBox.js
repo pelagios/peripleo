@@ -48,7 +48,8 @@ define(['search/events'], function(Events) {
             id = uri.substring(5);
           }
           
-          return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + id + '</a>'; 
+          return prefix + ':' + id;
+          // return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + id + '</a>'; 
         },
         
         fillTemplate = function(place) {
@@ -58,10 +59,9 @@ define(['search/events'], function(Events) {
           names.html(place.names.join(', '));
           description.html(place.description);
           
-          uriLIs.push(jQuery('<li>' + place.gazetteer_uri + '</li>'));
+          uriLIs.push(jQuery('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>'));
           jQuery.each(place.matches, function(idx, uri) {
-            alert(uri);
-            uriLIs.push(jQuery('<li>' + uri + '</li>'));
+            uriLIs.push(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
           });
           
           alert(uriLIs);
