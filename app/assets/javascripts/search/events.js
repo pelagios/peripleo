@@ -19,12 +19,21 @@ define(function() {
     
     /** fn(counts) - updated total & facet counts arrived from the API **/
     UPATED_COUNTS: 'updatedCounts',
+    
+    /** fn(results) - new search results arrived from the API **/
+    UPDATED_SEARCH_RESULTS: 'updatedResults',
         
     /** fn(query) - fires when the user issues a text search query **/
     QUERY : 'query',
     
     /** fn(range) - fires when the user sets a time filter **/
-    SET_TIME_FILTER : 'setTimeFilter'
+    SET_TIME_FILTER : 'setTimeFilter',
+    
+    /** fn(place) - fires when the user selects a place on the map **/
+    SELECT_PLACE: 'selectPlace',
+    
+    /** fn(result) - fires when the user hovers over a search result in the list **/    
+    HOVER_RESULT: 'hoverResult'
     
   };
     

@@ -13,7 +13,9 @@ define(['search/events'], function(Events) {
           
           dataset: false,
           
-          timespan: false
+          timespan: false,
+          
+          place: false
           
         },
         
@@ -41,6 +43,9 @@ define(['search/events'], function(Events) {
             
           if (filters.timespan)
             url += '&from=' + filters.timespan.from + '&to=' + filters.timespan.to;
+            
+          if (filters.place)
+            url += '&places=' + encodeURIComponent(filters.place);
           
           url += '&bbox=' +
             bounds.west + ',' + bounds.east + ',' + bounds.south + ',' + bounds.north;
@@ -62,6 +67,7 @@ define(['search/events'], function(Events) {
           // Make the request
           jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram, includeHeatmap), function(response) {            
             eventBroker.fireEvent(Events.UPATED_COUNTS, response);
+            eventBroker.fireEvent(Events.UPDATED_SEARCH_RESULTS, response.items);
               
             if (includeTimeHistogram)
               eventBroker.fireEvent(Events.UPDATED_TIME_HISTOGRAM, response.time_histogram);
@@ -107,6 +113,15 @@ define(['search/events'], function(Events) {
     eventBroker.addHandler(Events.SET_TIME_FILTER, function(timespan) {
       filters.timespan = timespan;
       requestQueue.push({ bounds: bounds, timeHistogram: false, heatmap: true });
+      scheduleSearch();
+    }),
+    
+    eventBroker.addHandler(Events.SELECT_PLACE, function(place) {
+      if (place)
+        filters.place = place.gazetteer_uri;
+      else 
+        filter.place = false;
+      requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: false });
       scheduleSearch();
     });
     

@@ -1,6 +1,6 @@
-define(function() {
+define(['search/events'], function(Events) {
 
-  var PlaceLayer = function(map) {
+  var PlaceLayer = function(map, eventBroker) {
     var isHidden = false,
     
         itemLayerGroup = L.layerGroup().addTo(map),
@@ -9,19 +9,49 @@ define(function() {
     
         markers = {},
         
+        showItem = function(item) {
+          console.log(item);
+          itemLayerGroup.clearLayers();
+            var bounds =
+                  [[item.geo_bounds.min_lat, item.geo_bounds.min_lon],
+                   [item.geo_bounds.max_lat, item.geo_bounds.max_lon]],
+                   
+                centroidLat = (bounds[0][0] + bounds[1][0]) / 2,
+                centroidLon = (bounds[0][1] + bounds[1][1]) / 2,
+                
+                isPoint = (bounds[0][0] === bounds[1][0] && bounds[0][1] === bounds[1][1]);
+
+            if (isPoint) {
+              L.circleMarker([ centroidLat, centroidLon ]).addTo(itemLayerGroup);
+            } else {
+              L.rectangle(bounds, {color: "#ff7800", weight: 1})
+                .addTo(itemLayerGroup);
+            }          
+        },
+        
         setItems = function(items) {
           itemLayerGroup.clearLayers();
-          /*
+          
           jQuery.each(items, function(idx, item) {
+            /*
             var bounds =
-              [[item.geo_bounds.min_lat, item.geo_bounds.min_lon],
-               [item.geo_bounds.max_lat, item.geo_bounds.max_lon]];
-              
-            L.rectangle(bounds, {color: "#ff7800", weight: 1})
-              .bindPopup(item.title)
-              .addTo(itemLayerGroup);
+                  [[item.geo_bounds.min_lat, item.geo_bounds.min_lon],
+                   [item.geo_bounds.max_lat, item.geo_bounds.max_lon]],
+                   
+                centroidLat = (bounds[0][0] + bounds[1][0]) / 2,
+                centroidLon = (bounds[0][1] + bounds[1][1]) / 2,
+                
+                isPoint = (bounds[0][0] === bounds[1][0] && bounds[0][1] === bounds[1][1]);
+
+            if (isPoint) {
+              L.circleMarker([ centroidLat, centroidLon ]).addTo(itemLayerGroup);
+            } else {
+              L.rectangle(bounds, {color: "#ff7800", weight: 1})
+                .addTo(itemLayerGroup);
+            }
+            */
           });
-          */
+          
         },
     
         setPlaces = function(places) {
@@ -33,7 +63,9 @@ define(function() {
               markers[place.gazetteer_uri] = 
                 L.marker([ place.centroid_lat, place.centroid_lng ])
                  .addTo(placeLayerGroup)
-                 .bindPopup(place.label);
+                 .on('click', function() {
+                   eventBroker.fireEvent(Events.SELECT_PLACE, place);
+                 });
             }
           });
           
@@ -69,6 +101,7 @@ define(function() {
 
     this.setPlaces = setPlaces;
     this.setItems = setItems;
+    this.showItem = showItem;
     this.show = show;
     this.hide = hide;
         

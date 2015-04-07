@@ -52,7 +52,10 @@ object SearchController extends AbstractController {
         // Facets automatically include include top
         val topPlaces = includeTopPlaces.map(number => {
           val urisAndCounts = facetTree.get.getTopChildren(IndexFields.ITEM_PLACES, number)
-          urisAndCounts.flatMap(t => Global.index.findPlaceByURI(t._1))
+          urisAndCounts.flatMap(t => { 
+            val network = Global.index.findNetworkByPlaceURI(t._1)
+            network.map(n => (n.getPlace(n.seedURI).get, n.alternativeURIs))
+          })
         })
 
         val jsonComponents = Seq(

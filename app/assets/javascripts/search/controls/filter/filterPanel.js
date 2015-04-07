@@ -17,6 +17,8 @@ define(['search/events',
           '  </div>' +
           '</div>'),
         
+        placeInfoBox = element.find('.place-info'),
+        
         body = element.find('.body'),
         
         histogramSection = element.find('.section.histogram'),

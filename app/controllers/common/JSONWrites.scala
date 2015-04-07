@@ -262,6 +262,11 @@ object JSONWrites {
        place.geometryJson,
        place.centroid.map(_.y),
        place.centroid.map(_.x)) })  
+       
+  implicit val placeWithAlternativesWrites: Writes[(IndexedPlace, Seq[String])] = (
+    (JsPath).write[IndexedPlace] ~
+    (JsPath \ "matches").write[Seq[String]]
+  )(t => (t._1, t._2))
   
   implicit def placeOccurencesWrites(implicit s: Session): Writes[(IndexedPlace, Seq[(Dataset, Int)])] = (
     (JsPath \ "to_place").write[IndexedPlace] ~

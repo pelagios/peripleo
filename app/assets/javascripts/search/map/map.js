@@ -35,9 +35,9 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
           layers: [ Layers.AWMC ]
         }),
                 
-        densityGrid = new DensityGrid().addTo(map),
+        // densityGrid = new DensityGrid().addTo(map),
         
-        placeLayer = new PlaceLayer(map),
+        placeLayer = new PlaceLayer(map, eventBroker),
         
         getBounds = function() {
           var b = map.getBounds(),
@@ -58,10 +58,14 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
     
     /** Obviously, we listen for new heatmaps **/
     eventBroker.addHandler(Events.UPDATED_HEATMAP, function(heatmap) {
-      densityGrid.update(heatmap);
+      // densityGrid.update(heatmap);
       if (heatmap.top_places) {
         placeLayer.setPlaces(heatmap.top_places);
       }
+    });
+    
+    eventBroker.addHandler(Events.HOVER_RESULT, function(result) {
+      placeLayer.showItem(result);
     });
     
     /** Request an updated heatmap on every moveend **/
@@ -82,10 +86,12 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
       else
         placeLayer.hide();
       
+      /*
       if (level > 6)
         densityGrid.hide();
       else
         densityGrid.show();
+      */
     });
     
     this.getBounds = getBounds;
