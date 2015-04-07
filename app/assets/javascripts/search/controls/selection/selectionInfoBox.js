@@ -32,8 +32,10 @@ define(['search/events'], function(Events) {
           if (uri.startsWith('http://pleiades.stoa.org/places/')) {
             alert('pleiades');
             prefix = 'pleiades';
+            alert(prefix);
+            alert(uri.substr);
             gazId = uri.substr(32);
-            alert('id');
+            alert(gazId);
           } else if (uri.startsWith('http://dare.ht.lu.se/places/')) {
             prefix = 'dare';
             gazId = uri.substr(28);
