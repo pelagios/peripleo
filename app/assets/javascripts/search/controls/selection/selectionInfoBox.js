@@ -83,8 +83,8 @@ define(['search/events'], function(Events) {
                 // New place - re-open
                 element.slideToggle(100, function() {
                   currentPlace = place;
-                  fillTemplate(place);
                   element.slideToggle(100);
+                  fillTemplate(place);
                 });
               }
             }
@@ -92,8 +92,8 @@ define(['search/events'], function(Events) {
             // Currently closed
             if (place) {
               currentPlace = place;
-              fillTemplate(place);
               element.slideToggle(100);
+              fillTemplate(place);
             }
           }  
         };
