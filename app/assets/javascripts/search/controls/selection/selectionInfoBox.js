@@ -31,24 +31,24 @@ define(['search/events'], function(Events) {
           if (uri.startsWith('http://pleiades.stoa.org/places/')) {
             alert('pleiades');
             prefix = 'pleiades';
-            id = uri.substring(32);
+            id = uri.substr(32);
             alert('id');
           } else if (uri.startsWith('http://dare.ht.lu.se/places/')) {
             prefix = 'dare';
-            id = uri.substring(28);
+            id = uri.substr(28);
           } else if (uri.startsWith('http://gazetteer.dainst.org/place/')) {
             prefix = 'idai';
-            id = uri.substring(34);
+            id = uri.substr(34);
           } else if (uri.startsWith('http://vici.org/vici/')) {
             prefix = 'vici';
-            id = uri.substring(21);
+            id = uri.substr(21);
           } else if (uri.startsWith('http://chgis.hmdc.harvard.edu/placename/')) {
             prefix = 'chgis';
-            id = uri.substring(44);
+            id = uri.substr(44);
           } else {
             // Bit of a hack...
             prefix = 'http';
-            id = uri.substring(5);
+            id = uri.substr(5);
           }
           
           return prefix + ':' + id;
