@@ -26,10 +26,13 @@ define(['search/events'], function(Events) {
         
         formatGazetteerURI = function(uri) {
           var prefix, id;
+          alert(uri);
           
           if (uri.startsWith('http://pleiades.stoa.org/places/')) {
+            alert('pleiades');
             prefix = 'pleiades';
             id = uri.substring(32);
+            alert('id');
           } else if (uri.startsWith('http://dare.ht.lu.se/places/')) {
             prefix = 'dare';
             id = uri.substring(28);
