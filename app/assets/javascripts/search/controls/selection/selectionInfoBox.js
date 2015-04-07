@@ -29,23 +29,23 @@ define(['search/events'], function(Events) {
           
           alert(uri);
           
-          if (uri.startsWith('http://pleiades.stoa.org/places/')) {
+          if (uri.indexOf('http://pleiades.stoa.org/places/') === 0) {
             alert('pleiades');
             prefix = 'pleiades';
             alert(prefix);
             alert(uri.substr);
             gazId = uri.substr(32);
             alert(gazId);
-          } else if (uri.startsWith('http://dare.ht.lu.se/places/')) {
+          } else if (uri.indexOf('http://dare.ht.lu.se/places/') === 0) {
             prefix = 'dare';
             gazId = uri.substr(28);
-          } else if (uri.startsWith('http://gazetteer.dainst.org/place/')) {
+          } else if (uri.indexOf('http://gazetteer.dainst.org/place/') === 0) {
             prefix = 'idai';
             gazId = uri.substr(34);
-          } else if (uri.startsWith('http://vici.org/vici/')) {
+          } else if (uri.indexOf('http://vici.org/vici/') === 0) {
             prefix = 'vici';
             gazId = uri.substr(21);
-          } else if (uri.startsWith('http://chgis.hmdc.harvard.edu/placename/')) {
+          } else if (uri.indexOf('http://chgis.hmdc.harvard.edu/placename/') === 0) {
             prefix = 'chgis';
             gazId = uri.substr(44);
           } else {
