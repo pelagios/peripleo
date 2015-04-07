@@ -63,7 +63,7 @@ define(['search/events'], function(Events) {
             uriLIs.push(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
           });
           
-          uris.html(uriLIs);
+          uris.append(uriLIs);
         },
         
         clearTemplate = function() {
