@@ -27,15 +27,9 @@ define(['search/events'], function(Events) {
         formatGazetteerURI = function(uri) {
           var prefix, gazId;
           
-          alert(uri);
-          
           if (uri.indexOf('http://pleiades.stoa.org/places/') === 0) {
-            alert('pleiades');
             prefix = 'pleiades';
-            alert(prefix);
-            alert(uri.substr);
             gazId = uri.substr(32);
-            alert(gazId);
           } else if (uri.indexOf('http://dare.ht.lu.se/places/') === 0) {
             prefix = 'dare';
             gazId = uri.substr(28);
@@ -53,11 +47,8 @@ define(['search/events'], function(Events) {
             prefix = 'http';
             gazId = uri.substr(5);
           }
-          
-          alert('dbg');
-          
-          return prefix + ':' + gazId;
-          // return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + id + '</a>'; 
+
+          return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + id + '</a>'; 
         },
         
         fillTemplate = function(place) {
@@ -72,10 +63,7 @@ define(['search/events'], function(Events) {
             uriLIs.push(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
           });
           
-          alert(uriLIs);
-          alert(uris);
           uris.html(uriLIs);
-          alert(uris);
         },
         
         clearTemplate = function() {
