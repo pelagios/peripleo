@@ -70,6 +70,7 @@ define(['search/events'], function(Events) {
         },
         
         showPlace = function(place) {
+          alert('test');
           if (currentPlace) {
             // Currently open
             if (!place) {

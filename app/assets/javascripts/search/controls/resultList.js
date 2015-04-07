@@ -45,6 +45,7 @@ define(['search/events'], function(Events) {
           constrainHeight();
         };
           
+    element.hide();
     container.append(element);
     eventBroker.addHandler(Events.UPDATED_SEARCH_RESULTS, showResults);    
   };
