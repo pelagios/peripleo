@@ -25,33 +25,36 @@ define(['search/events'], function(Events) {
         uris = element.find('.uris'),
         
         formatGazetteerURI = function(uri) {
-          var prefix, id;
+          var prefix, gazId;
+          
           alert(uri);
           
           if (uri.startsWith('http://pleiades.stoa.org/places/')) {
             alert('pleiades');
             prefix = 'pleiades';
-            id = uri.substr(32);
+            gazId = uri.substr(32);
             alert('id');
           } else if (uri.startsWith('http://dare.ht.lu.se/places/')) {
             prefix = 'dare';
-            id = uri.substr(28);
+            gazId = uri.substr(28);
           } else if (uri.startsWith('http://gazetteer.dainst.org/place/')) {
             prefix = 'idai';
-            id = uri.substr(34);
+            gazId = uri.substr(34);
           } else if (uri.startsWith('http://vici.org/vici/')) {
             prefix = 'vici';
-            id = uri.substr(21);
+            gazId = uri.substr(21);
           } else if (uri.startsWith('http://chgis.hmdc.harvard.edu/placename/')) {
             prefix = 'chgis';
-            id = uri.substr(44);
+            gazId = uri.substr(44);
           } else {
             // Bit of a hack...
             prefix = 'http';
-            id = uri.substr(5);
+            gazId = uri.substr(5);
           }
           
-          return prefix + ':' + id;
+          alert('dbg');
+          
+          return prefix + ':' + gazId;
           // return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + id + '</a>'; 
         },
         
