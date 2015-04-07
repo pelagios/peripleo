@@ -52,21 +52,25 @@ define(['search/events'], function(Events) {
         },
         
         fillTemplate = function(place) {
-          label.html(place.label);
+          var uriLIs = [];
           
+          label.html(place.label);
           names.html(place.names.join(', '));
           description.html(place.description);
           
-          uris.html('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>');
+          uriLIs.push(jQuery('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>'));
           jQuery.each(place.matches, function(idx, uri) {
-            uris.append('<li>' + formatGazetteerURI(uri) + '</li>');
+            uriLIs.push(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
           });
+          
+          uris.append(uriLIs);
         },
         
         clearTemplate = function() {
           label.empty();
           names.empty();
           description.empty();
+          uris.empty();
         },
         
         showPlace = function(place) {
@@ -80,16 +84,14 @@ define(['search/events'], function(Events) {
               });
             } else {
               if (currentPlace.gazetteer_uri !== place.gazetteer_uri) {
-                // New place - re-open
-                element.slideToggle(100, function() {
-                  currentPlace = place;
-                  element.slideToggle(100);
-                  fillTemplate(place);
-                });
+                // New place - reset
+                currentPlace = place;
+                clearTemplate();
+                fillTemplate(place);
               }
             }
           } else {
-            // Currently closed
+            // Currently closed - open
             if (place) {
               currentPlace = place;
               element.slideToggle(100);
