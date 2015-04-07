@@ -70,22 +70,21 @@ define(['search/events'], function(Events) {
         },
         
         showPlace = function(place) {
-          alert('test');
           if (currentPlace) {
             // Currently open
             if (!place) {
               // Close
-              element.slideUp(100, function() {
+              element.slideToggle(100, function() {
                 currentPlace = false;
                 clearTemplate();
               });
             } else {
               if (currentPlace.gazetteer_uri !== place.gazetteer_uri) {
                 // New place - re-open
-                element.slideUp(100, function() {
+                element.slideToggle(100, function() {
                   currentPlace = place;
                   fillTemplate(place);
-                  element.slideDown(100);
+                  element.slideToggle(100);
                 });
               }
             }
@@ -94,7 +93,7 @@ define(['search/events'], function(Events) {
             if (place) {
               currentPlace = place;
               fillTemplate(place);
-              element.slideDown(100);
+              element.slideToggle(100);
             }
           }  
         };
