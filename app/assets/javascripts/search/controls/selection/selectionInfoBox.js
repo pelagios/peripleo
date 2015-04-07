@@ -60,10 +60,11 @@ define(['search/events'], function(Events) {
           
           uriLIs.push(jQuery('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>'));
           jQuery.each(place.matches, function(idx, uri) {
+            alert(uri);
             uriLIs.push(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
           });
           
-          uris.append(uriLIs);
+          uris.html(uriLIs);
         },
         
         clearTemplate = function() {
