@@ -17,17 +17,27 @@
   .section.histogram { padding-top:9px; }
   
   .footer { 
-    padding:7px 12px 6px 8px;
+    padding:8px 12px 6px 8px;
     color:#686868;
-    
-    .icon {
-      color:#b3b3b3;
+
+    .advanced {
       float:right;
+      color:#b3b3b3;
+      cursor:pointer;
+    }
+
+    .advanced:hover {
+      color:#686868;
     }
     
-    .icon:hover {
-      cursor:pointer;
-      color:#686868;
+    .advanced:after {
+      font-family:"Font Awesome";
+      content:'\f078';
+      padding-left:3px;
+    }
+    
+    .advanced.open:after {
+      content:'\f077';
     }
     
   }

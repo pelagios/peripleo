@@ -13,7 +13,7 @@ define(['search/events',
           '  </div>' + 
           '  <div class="footer">' +
           '    <span class="total">&nbsp;</span>' +
-          '    <span class="icon close">&#xf077;</span>' +
+          '    <span class="advanced">Filters</span>' +
           '  </div>' +
           '</div>'),
         
@@ -29,7 +29,7 @@ define(['search/events',
         
         footerTotals = element.find('.footer .total'),
         
-        buttonToggle = element.find('.icon.close'),
+        buttonToggle = element.find('.advanced'),
         
         timeHistogram, typeFacetChart, sourceFacetChart,
         
@@ -37,13 +37,14 @@ define(['search/events',
           var visible = jQuery(body).is(':visible');
           body.slideToggle(200, function() {
             if (visible)
-              buttonToggle.html('&#xf078;');
+              buttonToggle.removeClass('open');
             else
-              buttonToggle.html('&#xf077;');
+              buttonToggle.addClass('open');
           });
         };
         
     /** Instantiate child controls **/
+    body.hide();
     container.append(element);
     timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     

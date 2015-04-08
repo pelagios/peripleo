@@ -1,11 +1,12 @@
 package index
 
 import models.core.Dataset
+import org.apache.lucene.facet.Facets
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import scala.collection.JavaConverters._
 
 /** A helper datastructure for easier access to search result facets **/
-class FacetTree(facetCounts: FastTaxonomyFacetCounts) {
+class FacetTree(facetCounts: Facets) {
 
   def dimensions(limit: Int = 10): Seq[String] =
     facetCounts.getAllDims(limit).asScala.map(_.dim).toSeq

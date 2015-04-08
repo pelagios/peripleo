@@ -65,7 +65,7 @@ define(['search/events'], function(Events) {
           requestQueue = [];
             
           // Make the request
-          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram, includeHeatmap), function(response) {            
+          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram, includeHeatmap), function(response) {                        
             eventBroker.fireEvent(Events.UPATED_COUNTS, response);
             eventBroker.fireEvent(Events.UPDATED_SEARCH_RESULTS, response.items);
               

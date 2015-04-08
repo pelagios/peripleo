@@ -11,7 +11,7 @@ import models.core.Datasets
 import models.geo.BoundingBox
 import org.apache.lucene.util.Version
 import org.apache.lucene.index.{ Term, MultiReader }
-import org.apache.lucene.facet.FacetsCollector
+import org.apache.lucene.facet.{ DrillDownQuery, DrillSideways, Facets, FacetsCollector }
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
 import org.apache.lucene.search._
@@ -80,22 +80,22 @@ trait ObjectReader extends AnnotationReader {
     val (searchQuery, timeHistogramFilter) = {
       
       // In both cases, we want to include fulltext search...
-      val searchQuery = baseQuery.clone()
+      val baseSearchQuery = baseQuery.clone()
       if (params.query.isDefined) {
         val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME, IndexFields.ITEM_FULLTEXT).toArray       
-        searchQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(params.query.get), BooleanClause.Occur.MUST)  
+        baseSearchQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(params.query.get), BooleanClause.Occur.MUST)  
       }
       
       // ...but we only want to restrict the SEARCH by time interval - the histogram should count all the facets
       val timeHistogramFilter = 
         if (includeTimeHistogram)
-          Some(new QueryWrapperFilter(searchQuery.clone()))
+          Some(new QueryWrapperFilter(baseSearchQuery.clone()))
         else
           None
-      
-      addTimeFilter(searchQuery, params.from, params.to)
-     
-      (searchQuery, timeHistogramFilter)
+          
+      addTimeFilter(baseSearchQuery, params.from, params.to)
+
+      (baseSearchQuery, timeHistogramFilter)
     }
     
     // Finalize the heatmap filter (we don't search item fulltext, but want the time filter)
@@ -133,7 +133,7 @@ trait ObjectReader extends AnnotationReader {
     try {   
       // Search & facet counts
       val (results, facets) = 
-        executeSearch(searchQuery, params.limit, params.offset, searcher, objectSearcher.taxonomyReader,
+        executeSearch(searchQuery, params.places, params.limit, params.offset, searcher, objectSearcher.taxonomyReader,
           valueSource, includeFacets, includeSnippets)
       
       // Time histogram computation
@@ -197,9 +197,10 @@ trait ObjectReader extends AnnotationReader {
       q.add(new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
     
     // Places filter
-    places.foreach(uri =>
-      q.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
-    
+    if (places.size  > 0) {
+      // For places we always want to use drill sideways 
+    }
+      
     // Spatial filter
     val valuesource = {
       if (bbox.isDefined) {
@@ -215,12 +216,28 @@ trait ObjectReader extends AnnotationReader {
         None       
       }
     } 
-    
+
     (q, valuesource)
   }
   
-  private def executeSearch(query: Query, limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
-      valueSource: Option[ValueSource], includeFacets: Boolean, includeSnippets: Boolean): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
+  private def executeDrillSideways(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher,
+    taxonomyReader: DirectoryTaxonomyReader): (TopDocs, Option[Facets]) = {
+    
+    val drilldownQuery = new DrillDownQuery(Index.facetsConfig, query)
+    places.foreach(p => drilldownQuery.add(IndexFields.ITEM_PLACES, p))
+          
+    val ds = new DrillSideways(searcher, Index.facetsConfig, taxonomyReader)
+    val dsResult = ds.search(drilldownQuery, offset + limit)
+      
+    (dsResult.hits, Some(dsResult.facets))
+  }
+  
+  private def executeStandardQuery(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, 
+      taxonomyReader: DirectoryTaxonomyReader, valueSource: Option[ValueSource], includeFacets: Boolean): (TopDocs, Option[Facets]) = {
+    
+    // Places filter
+    places.foreach(uri =>
+      query.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
     
     val (docCollector, facetsCollector) = { 
       val dc =
@@ -246,10 +263,28 @@ trait ObjectReader extends AnnotationReader {
       searcher.search(query, docCollector)
     }
     
-    val total = docCollector.getTotalHits
+    val topDocs = docCollector.topDocs()
+    val facets = facetsCollector.map(fc => new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, fc))
+    
+    (topDocs, facets)
+  }
+
+  private def executeSearch(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
+      valueSource: Option[ValueSource], includeFacets: Boolean, includeSnippets: Boolean): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
+    
+    
+    val (topDocs, facets) = 
+      if (places.size > 0 && includeFacets) {
+        // If there is a place filter, we need to drill sideways, rather than execute a standard search
+        executeDrillSideways(query, places, limit, offset, searcher, taxonomyReader)
+      } else {
+        executeStandardQuery(query, places, limit, offset, searcher, taxonomyReader, valueSource, includeFacets)
+      }
+    
+    val total = topDocs.totalHits
 
     // Compute facets, optionally
-    val facetTree = facetsCollector.map(fc => new FacetTree(new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, fc)))      
+    val facetTree = facets.map(new FacetTree(_))      
     
     // Prepare snippet highlighter, optionally
     val highlighter =
@@ -265,7 +300,7 @@ trait ObjectReader extends AnnotationReader {
       }
        
     // Fetch result documents
-    val results = docCollector.topDocs(offset, limit).scoreDocs.map(scoreDoc => {      
+    val results = topDocs.scoreDocs.drop(offset).map(scoreDoc => {      
       val document = searcher.doc(scoreDoc.doc)
  
       // Fetch snippets, optionally
