@@ -1,5 +1,21 @@
 define(['search/events'], function(Events) {
 
+  var MARKER_STYLE_SMALL = {
+        color: '#a64a40',
+        opacity: 1,
+        fillColor: '#e75444',
+        fillOpacity: 1,
+        weight:1.5,
+        radius:5,
+        dropShadow:true
+      },
+      
+      MARKER_STYLE_LARGE = (function(){
+        var style = jQuery.extend({}, MARKER_STYLE_SMALL);
+        style.radius = 9;
+        return style;
+      })();
+
   var PlaceLayer = function(map, eventBroker) {
     var isHidden = false,
     
@@ -61,7 +77,7 @@ define(['search/events'], function(Events) {
           jQuery.each(places, function(idx, place) {
             if (!markers[place.gazetteer_uri]) {
               markers[place.gazetteer_uri] = 
-                L.marker([ place.centroid_lat, place.centroid_lng ])
+                L.circleMarker([ place.centroid_lat, place.centroid_lng ], MARKER_STYLE_SMALL)
                  .addTo(placeLayerGroup)
                  .on('click', function() {
                    eventBroker.fireEvent(Events.SELECT_PLACE, place);

@@ -49,9 +49,6 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
           return { north: n, east: e, south: s, west: w };
         };
        
-      
-    placeLayer.hide();
-    
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
       placeLayer.setItems(response.items);
     });
@@ -76,22 +73,6 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
       eventBroker.fireEvent(Events.REQUEST_UPDATED_COUNTS, getBounds());
-    });
-    
-    map.on('zoomend', function(e) {
-      var level = map.getZoom();
-      
-      if (level > 5)
-        placeLayer.show();
-      else
-        placeLayer.hide();
-      
-      /*
-      if (level > 6)
-        densityGrid.hide();
-      else
-        densityGrid.show();
-      */
     });
     
     this.getBounds = getBounds;
