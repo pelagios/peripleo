@@ -1,6 +1,6 @@
 define(['search/events'], function(Events) {
   
-  var TOUCH_DISTANCE_THRESHOLD = 10,
+  var TOUCH_DISTANCE_THRESHOLD = 18,
   
       Styles = {
     
@@ -27,6 +27,8 @@ define(['search/events'], function(Events) {
     
     var layerGroup = L.layerGroup().addTo(map),
     
+        selectionPin = false,
+    
         /** (idOrURI -> { obj, marker }) map of places and items **/
         objects = {},
         
@@ -37,7 +39,13 @@ define(['search/events'], function(Events) {
         
         /** Selects the object with the specified URI or identifier **/
         select = function(objOrPlace) {
-          eventBroker.fireEvent(Events.SELECT_PLACE, objOrPlace);
+          if (selectionPin)
+            map.removeLayer(selectionPin);
+          
+          if (objOrPlace) {
+            selectionPin = L.marker([objOrPlace.centroid_lat, objOrPlace.centroid_lng ]).addTo(map);
+            eventBroker.fireEvent(Events.SELECT_PLACE, objOrPlace);
+          }
         };
                 
         /** Adds places delivered in JSON place format **/
@@ -87,6 +95,8 @@ define(['search/events'], function(Events) {
           
             if (distPx < TOUCH_DISTANCE_THRESHOLD)
               select(nearest.obj);
+            else
+              select();
           }
         };
     
