@@ -9,7 +9,7 @@ free to give it a spin.__
 
 ## The Basics
 
-Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large numismatic database](http://pelagios.org/api-v3/pages/datasets/167d94d26e683d01a9fb3d7450b387ed908f9c70e7b17cf62aae27079184b092) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/b05e18236ee96084897c9dfe6c78891c9e71fef527b9c9b2d1b3c45a926bb5ea), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
+Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://pelagios.org/api-v3/pages/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/b05e18236ee96084897c9dfe6c78891c9e71fef527b9c9b2d1b3c45a926bb5ea), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
 
 The __Pelagios API__ makes our network __browse-__ and __searchable__. The 'mental model' behind
 our API is simple! It consists of only three types of entities:
