@@ -75,6 +75,10 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
       eventBroker.fireEvent(Events.REQUEST_UPDATED_COUNTS, getBounds());
     });
     
+    map.on('click', function(e) {
+      placeLayer.clickNearest(e.latlng);
+    });
+    
     this.getBounds = getBounds;
     
   };

@@ -14,7 +14,18 @@ define(['search/events'], function(Events) {
         var style = jQuery.extend({}, MARKER_STYLE_SMALL);
         style.radius = 9;
         return style;
-      })();
+      })(),
+      
+      RED_PIN = L.icon({
+        iconUrl: 'leaf-green.png',
+        shadowUrl: 'leaf-shadow.png',
+
+        iconSize:     [38, 95], // size of the icon
+        shadowSize:   [50, 64], // size of the shadow
+        iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+        shadowAnchor: [4, 62],  // the same for the shadow
+        popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+      });
 
   var PlaceLayer = function(map, eventBroker) {
     var isHidden = false,
@@ -79,7 +90,8 @@ define(['search/events'], function(Events) {
               markers[place.gazetteer_uri] = 
                 L.circleMarker([ place.centroid_lat, place.centroid_lng ], MARKER_STYLE_SMALL)
                  .addTo(placeLayerGroup)
-                 .on('click', function() {
+                 .on('click', function(e) {
+                   L.marker([ place.centroid_lat, place.centroid_lng ]).addTo(map);
                    eventBroker.fireEvent(Events.SELECT_PLACE, place);
                  });
             }
@@ -113,6 +125,10 @@ define(['search/events'], function(Events) {
             map.addLayer(placeLayerGroup);
             isHidden = false;
           }
+        },
+        
+        clickNearest = function(latlng) {
+          console.log(latlng);
         };
 
     this.setPlaces = setPlaces;
@@ -120,6 +136,7 @@ define(['search/events'], function(Events) {
     this.showItem = showItem;
     this.show = show;
     this.hide = hide;
+    this.clickNearest = clickNearest;
         
   };
   

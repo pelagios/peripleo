@@ -12,6 +12,7 @@ define(['search/events',
           '    <div class="section facet source"></div>' +
           '  </div>' + 
           '  <div class="footer">' +
+          '    <span class="list-all"><span class="icon">&#xf03a;</span> <span class="label">List all results</span></span>' +
           '    <span class="total">&nbsp;</span>' +
           '    <span class="advanced">Filters</span>' +
           '  </div>' +
@@ -48,8 +49,8 @@ define(['search/events',
     container.append(element);
     timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     
-    typeFacetChart = new FacetChart(typeFacetSection, 'Object Types', 'type');
-    sourceFacetChart = new FacetChart(sourceFacetSection, 'Source Datasets', 'dataset');
+    typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type');
+    sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'dataset');
     
     buttonToggle.click(toggle);
     
@@ -62,7 +63,7 @@ define(['search/events',
           sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'dataset'; });
           sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
           
-      footerTotals.html(numeral(response.total).format('0,0') + ' Results');    
+      footerTotals.html('(' + numeral(response.total).format('0,0') + ')');    
       
       typeFacetChart.update(typeFacets);
       sourceFacetChart.update(sourceFacets);
