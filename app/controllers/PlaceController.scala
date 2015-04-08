@@ -26,7 +26,7 @@ object PlaceController extends AbstractController {
     
     val gazetteer = Gazetteers.findByName(gazetteerName) 
     if (gazetteer.isDefined) {
-      val allPlaces = Global.index.listAllPlaces(gazetteer.get.name, bboxTupled, offset.getOrElse(0), limit.getOrElse(20))
+      val allPlaces = Global.index.listAllPlaces(gazetteer.get.name.toLowerCase, bboxTupled, offset.getOrElse(0), limit.getOrElse(20))
       jsonOk(Json.toJson(allPlaces), session.request)
     } else {
       NotFound(Json.parse("{ \"message\": \"Place not found.\" }"))
