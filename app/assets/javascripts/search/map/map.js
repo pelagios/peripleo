@@ -1,5 +1,5 @@
 /** The base map **/
-define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events'], function(DensityGrid, PlaceLayer, Events) {
+define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], function(ObjectLayer, PlaceLayer, Events) {
   
   var Map = function(div, eventBroker) {  
     var Layers = {
@@ -35,7 +35,7 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
           layers: [ Layers.AWMC ]
         }),
                 
-        // densityGrid = new DensityGrid().addTo(map),
+        objectLayer = new ObjectLayer(map, eventBroker),
         
         placeLayer = new PlaceLayer(map, eventBroker),
         
@@ -50,14 +50,13 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
         };
        
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
-      placeLayer.setItems(response.items);
+      objectLayer.addObjects(response.items);
     });
     
     /** Obviously, we listen for new heatmaps **/
     eventBroker.addHandler(Events.UPDATED_HEATMAP, function(heatmap) {
-      // densityGrid.update(heatmap);
       if (heatmap.top_places) {
-        placeLayer.setPlaces(heatmap.top_places);
+        objectLayer.addPlaces(heatmap.top_places);
       }
     });
     
@@ -76,7 +75,7 @@ define(['search/map/densityGridLayer', 'search/map/placeLayer', 'search/events']
     });
     
     map.on('click', function(e) {
-      placeLayer.clickNearest(e.latlng);
+      objectLayer.selectNearest(e.latlng);
     });
     
     this.getBounds = getBounds;

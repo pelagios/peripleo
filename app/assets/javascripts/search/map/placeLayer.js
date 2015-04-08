@@ -14,18 +14,7 @@ define(['search/events'], function(Events) {
         var style = jQuery.extend({}, MARKER_STYLE_SMALL);
         style.radius = 9;
         return style;
-      })(),
-      
-      RED_PIN = L.icon({
-        iconUrl: 'leaf-green.png',
-        shadowUrl: 'leaf-shadow.png',
-
-        iconSize:     [38, 95], // size of the icon
-        shadowSize:   [50, 64], // size of the shadow
-        iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
-        shadowAnchor: [4, 62],  // the same for the shadow
-        popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
-      });
+      })();
 
   var PlaceLayer = function(map, eventBroker) {
     var isHidden = false,
@@ -128,7 +117,20 @@ define(['search/events'], function(Events) {
         },
         
         clickNearest = function(latlng) {
-          console.log(latlng);
+          var nearestNeighbour = { distSq: 9007199254740992 };
+          jQuery.each(markers, function(uri, marker) {
+            var markerLatLng = marker.getLatLng()
+            var distSq = 
+              Math.pow(latlng.lat - markerLatLng.lat, 2) + 
+              Math.pow(latlng.lng - markerLatLng.lng, 2);
+              
+            if (distSq < nearestNeighbour.distSq)
+              nearestNeighbour = { marker: marker, distSq: distSq };
+              
+          });
+          
+          // TODO check for pixel distance threshold
+          console.log(nearestNeighbour.marker._container);
         };
 
     this.setPlaces = setPlaces;

@@ -3,6 +3,8 @@
 @import "_filterPanel.less";
 @import "_searchResults.less";
 
+@marker-fade-duration: 1s;
+
 html, body, #map {
   padding:0;
   margin:0;
@@ -19,12 +21,44 @@ html, body, #map {
   width:360px;
 }
 
+/** Drop shadow for SVG circle markers **/
 .leaflet-clickable {
-filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=12, OffY=12, Color='#444')";
-filter: url(#drop-shadow);
--webkit-filter: drop-shadow(12px 12px 7px rgba(0,0,0,0.5));
-filter: drop-shadow(12px 12px 7px rgba(0,0,0,0.5));
+  filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=12, OffY=12, Color='#444')";
+  filter: url(#drop-shadow);
+  -webkit-filter: drop-shadow(12px 12px 7px rgba(0,0,0,0.5));
+  filter: drop-shadow(12px 12px 7px rgba(0,0,0,0.5));
 }
 
+/** Fade-in animation for SVG circle markers **/
+.leaflet-clickable {
+  -webkit-animation:fadein @marker-fade-duration;
+  -moz-animation:fadein @marker-fade-duration;
+  -ms-animation:fadein @marker-fade-duration;
+  -o-animation:fadein @marker-fade-duration;
+  animation:fadein @marker-fade-duration;
+}
 
+@keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
+@-moz-keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@-webkit-keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@-ms-keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@-o-keyframes fadein {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
