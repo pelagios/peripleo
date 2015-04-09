@@ -26,9 +26,9 @@ import scala.collection.JavaConverters._
 
 trait ObjectReader extends AnnotationReader {
   
-  private val PREVIEW_SNIPPET_SIZE = 200
+  private val PREVIEW_SNIPPET_SIZE = 120
   
-  private val PREVIEW_MAX_NUM_SNIPPETS = 4
+  private val PREVIEW_MAX_NUM_SNIPPETS = 3
   
   private val PREVIEW_SNIPPET_SEPARATOR = " ... "
   

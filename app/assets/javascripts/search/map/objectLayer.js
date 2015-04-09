@@ -10,16 +10,17 @@ define(['search/events'], function(Events) {
           fillColor: '#e75444',
           fillOpacity: 1,
           weight:1.5,
-          radius:5,
-          dropShadow:true
+          radius:5
         },
       
-        LARGE: (function(){
-          // Just clone small style and change radius
-          var style = jQuery.extend({}, this.SMALL);
-          style.radius = 9;
-          return style;
-        })()
+        LARGE: {
+          color: '#a64a40',
+          opacity: 1,
+          fillColor: '#e75444',
+          fillOpacity: 1,
+          weight:1.5,
+          radius:9
+        }
         
       };
       
@@ -38,15 +39,26 @@ define(['search/events'], function(Events) {
         },
         
         /** Selects the object with the specified URI or identifier **/
-        select = function(objOrPlace) {
+        select = function(id) {
+          var tuple, latlon;
+          
           if (selectionPin)
             map.removeLayer(selectionPin);
           
-          if (objOrPlace) {
-            selectionPin = L.marker([objOrPlace.centroid_lat, objOrPlace.centroid_lng ]).addTo(map);
-            eventBroker.fireEvent(Events.SELECT_PLACE, objOrPlace);
+          if (id) {
+            tuple = objects[id];
+            latlon = tuple.marker.getLatLng();
+                
+            selectionPin = L.marker(latlon).addTo(map);
+            eventBroker.fireEvent(Events.SELECT_PLACE, tuple.obj);
           }
-        };
+        },
+        
+        clear = function() {
+          layerGroup.clearLayers();          
+          objects = {};
+          selectionPin = false;
+        },
                 
         /** Adds places delivered in JSON place format **/
         addPlaces = function(places) {
@@ -55,10 +67,8 @@ define(['search/events'], function(Events) {
             
             if (!exists(uri)) {
               marker = L.circleMarker([p.centroid_lat, p.centroid_lng], Styles.SMALL);
-              marker.on('click', function(e) {                
-                select(p);
-              });
-              
+              marker.on('click', function(e) { select(p); });
+
               objects[uri] = { obj: p, marker: marker };
               marker.addTo(layerGroup);
             }
@@ -67,7 +77,20 @@ define(['search/events'], function(Events) {
             
         /** Adds objects (items or places) delivered in standard search result object JSON format **/
         addObjects = function(items) {
+          jQuery.each(items, function(idx, item) {
+            var lat = (item.geo_bounds) ? (item.geo_bounds.min_lat + item.geo_bounds.max_lat) / 2: false,
+                lon = (item.geo_bounds) ? (item.geo_bounds.min_lon + item.geo_bounds.max_lon) / 2: false,
+                marker;
+                
+            // TODO show full polygon?
+            if (lat) {
+              marker = L.circleMarker([lat, lon], Styles.LARGE);
+              marker.on('click', function(e) { select(item.identifier); });
 
+              objects[item.identifier] = { obj: item, marker: marker };
+              marker.addTo(layerGroup);
+            }
+          });
         },
       
         /** Selects the object or place closest to the given latlng **/
@@ -99,6 +122,9 @@ define(['search/events'], function(Events) {
               select();
           }
         };
+        
+    // When the user issues a new query, we flush all objects
+    eventBroker.addHandler(Events.QUERY, clear);
     
     this.addPlaces = addPlaces;
     this.addObjects = addObjects;

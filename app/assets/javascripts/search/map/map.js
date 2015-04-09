@@ -53,6 +53,8 @@ define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], fun
       objectLayer.addObjects(response.items);
       if (response.top_places)
         objectLayer.addPlaces(response.top_places);
+        
+      objectLayer.addObjects(response.items);
     });
     
     eventBroker.addHandler(Events.HOVER_RESULT, function(result) {

@@ -28,6 +28,9 @@ define(['search/events'], function(Events) {
 
             if (result.description) 
               html += '<p class="description">' + result.description + '</p>';
+            
+            if (result.snippet)
+              html += '<p class="snippet">' + result.snippet + '</p>';
               
             html += '</li>';
               
@@ -43,11 +46,12 @@ define(['search/events'], function(Events) {
           list.append(rows);
           
           constrainHeight();
-        };
+        };        
           
     element.hide();
     container.append(element);
-    eventBroker.addHandler(Events.UPDATED_SEARCH_RESULTS, showResults);    
+    eventBroker.addHandler(Events.UPDATED_SEARCH_RESULTS, showResults);   
+    eventBroker.addHandler(Events.LIST_ALL_RESULTS, function() { element.show() }); 
   };
   
   return ResultList;

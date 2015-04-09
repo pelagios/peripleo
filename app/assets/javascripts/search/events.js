@@ -33,7 +33,10 @@ define(function() {
     SELECT_PLACE: 'selectPlace',
     
     /** fn(result) - fires when the user hovers over a search result in the list **/    
-    HOVER_RESULT: 'hoverResult'
+    HOVER_RESULT: 'hoverResult',
+    
+    /** fn() - fires when the user clicks 'list all results' **/
+    LIST_ALL_RESULTS: 'listAll'
     
   };
     

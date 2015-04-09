@@ -243,6 +243,11 @@ object JSONWrites {
         None
       }
     ))
+    
+  implicit val indexObjectWithSnippetWrites: Writes[(IndexedObject, Option[String])] = (
+    (JsPath).write[IndexedObject] ~
+    (JsPath \ "snippet").writeNullable[String]
+  )(t => (t._1, t._2))  
           
   implicit val placeWrites: Writes[IndexedPlace] = (
     (JsPath \ "gazetteer_uri").write[String] ~

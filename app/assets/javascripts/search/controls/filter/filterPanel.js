@@ -32,6 +32,8 @@ define(['search/events',
         
         buttonToggle = element.find('.advanced'),
         
+        buttonListAll = element.find('.list-all'),
+        
         timeHistogram, typeFacetChart, sourceFacetChart,
         
         toggle = function() {
@@ -53,6 +55,7 @@ define(['search/events',
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'dataset');
     
     buttonToggle.click(toggle);
+    buttonListAll.click(function() { eventBroker.fireEvent(Events.LIST_ALL_RESULTS); });
     
     /** Forward updates to the facet charts **/
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {

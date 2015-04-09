@@ -70,7 +70,7 @@ object SearchController extends AbstractController {
               { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten
                
         val response = 
-          optionalComponents.foldLeft(Json.toJson(results.map(_._1)).as[JsObject])((response, payload) => response ++ payload) ++
+          optionalComponents.foldLeft(Json.toJson(results).as[JsObject])((response, payload) => response ++ payload) ++
           Json.obj("took_ms" -> (System.currentTimeMillis - startTime))
         
         jsonOk(response, session.request)

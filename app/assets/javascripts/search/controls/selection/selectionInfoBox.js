@@ -70,6 +70,9 @@ define(['search/events'], function(Events) {
         },
         
         showPlace = function(place) {
+          if (!place.gazetteer_uri)
+            return; 
+            
           if (currentPlace) {
             // Currently open
             if (!place) {
