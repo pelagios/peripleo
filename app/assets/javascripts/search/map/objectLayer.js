@@ -67,7 +67,7 @@ define(['search/events'], function(Events) {
             
             if (!exists(uri)) {
               marker = L.circleMarker([p.centroid_lat, p.centroid_lng], Styles.SMALL);
-              marker.on('click', function(e) { select(p); });
+              marker.on('click', function(e) { select(uri); });
 
               objects[uri] = { obj: p, marker: marker };
               marker.addTo(layerGroup);
@@ -77,6 +77,7 @@ define(['search/events'], function(Events) {
             
         /** Adds objects (items or places) delivered in standard search result object JSON format **/
         addObjects = function(items) {
+          /*
           jQuery.each(items, function(idx, item) {
             var lat = (item.geo_bounds) ? (item.geo_bounds.min_lat + item.geo_bounds.max_lat) / 2: false,
                 lon = (item.geo_bounds) ? (item.geo_bounds.min_lon + item.geo_bounds.max_lon) / 2: false,
@@ -91,6 +92,7 @@ define(['search/events'], function(Events) {
               marker.addTo(layerGroup);
             }
           });
+          */
         },
       
         /** Selects the object or place closest to the given latlng **/

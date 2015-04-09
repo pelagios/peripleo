@@ -34,39 +34,34 @@ object SearchController extends AbstractController {
       case Success(params) => {    
 
         // Number of top places to include in JSON response, if any
-        val includeTopPlaces = getQueryParam(KEY_TOP_PLACES, session.request).map(_.toInt)
+        val includeTopPlaces = getQueryParam(KEY_TOP_PLACES, session.request).map(_.toInt).getOrElse(0)
         
         // Include facets in JSON response? 
-        val includeFacets = getQueryParam(KEY_FACETS, session.request).map(_.toBoolean)
-          .getOrElse(includeTopPlaces.getOrElse(0) > 0) // Note: top places are computed based on facets, so one implies the other!
+        val includeFacets = getQueryParam(KEY_FACETS, session.request).map(_.toBoolean).getOrElse(false)
         
         // Include time histogram or heatmap?        
         val includeTimeHistogram = getQueryParam(KEY_TIME_HISTOGRAM, session.request).map(_.toBoolean).getOrElse(false)
         val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false)
         
-        val (results, facetTree, timeHistogram, heatmap) = 
+        val (results, facetTree, timeHistogram, topPlaces, heatmap) = 
           Global.index.search(params,
             includeFacets, 
             true, // We always want preview snippets
             includeTimeHistogram,
+            includeTopPlaces,
             includeHeatmap)
         
-        // Resolve top places from facets
-        val topPlaces = includeTopPlaces.map(number => {
-          val urisAndCounts = facetTree.get.getTopChildren(IndexFields.ITEM_PLACES, number)
-          urisAndCounts.flatMap(t => { 
-            val network = Global.index.findNetworkByPlaceURI(t._1)
-            network.map(n => (n.getPlace(n.seedURI).get, n.alternativeURIs))
-          })
-        })
-
+        // TODO implement a better JSON serialization without this intermediate step
+        val placesWithAlternativeURIS = topPlaces.map(_.map { case (network, count) => {
+          (network.getPlace(network.seedURI).get, network.alternativeURIs) }})
+       
         // Compile the JSON response from the various optional components
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)   
         
         val optionalComponents = Seq(
               { facetTree.map(Json.toJson(_).as[JsObject]) },
               { timeHistogram.map(Json.toJson(_).as[JsObject]) },
-              { topPlaces.map(t => Json.obj("top_places" -> Json.toJson(t)).as[JsObject]) },
+              { placesWithAlternativeURIS.map(t => Json.obj("top_places" -> Json.toJson(t)).as[JsObject]) },
               { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten
                
         val response = 

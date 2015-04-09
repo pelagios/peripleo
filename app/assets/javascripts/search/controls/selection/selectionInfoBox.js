@@ -69,10 +69,7 @@ define(['search/events'], function(Events) {
           uris.empty();
         },
         
-        showPlace = function(place) {
-          if (!place.gazetteer_uri)
-            return; 
-            
+        showPlace = function(place) {            
           if (currentPlace) {
             // Currently open
             if (!place) {

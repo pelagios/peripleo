@@ -76,7 +76,7 @@ object IndexedObject {
     
     // Place URIs
     places.foreach(place => doc.add(new StringField(IndexFields.ITEM_PLACES, place.uri, Field.Store.NO)))
-    places.foreach(place => doc.add(new FacetField(IndexFields.ITEM_PLACES, place.uri)))
+    // places.foreach(place => doc.add(new FacetField(IndexFields.ITEM_PLACES, place.uri)))
     
     // Detailed geometry as spatially indexed features
     val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
