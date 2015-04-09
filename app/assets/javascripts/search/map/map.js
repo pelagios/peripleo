@@ -51,13 +51,8 @@ define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], fun
        
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
       objectLayer.addObjects(response.items);
-    });
-    
-    /** Obviously, we listen for new heatmaps **/
-    eventBroker.addHandler(Events.UPDATED_HEATMAP, function(heatmap) {
-      if (heatmap.top_places) {
-        objectLayer.addPlaces(heatmap.top_places);
-      }
+      if (response.top_places)
+        objectLayer.addPlaces(response.top_places);
     });
     
     eventBroker.addHandler(Events.HOVER_RESULT, function(result) {

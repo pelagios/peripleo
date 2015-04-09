@@ -23,14 +23,11 @@ define(['search/events'], function(Events) {
         
         requestPending = false,
 
-        buildQueryURL = function(bounds, includeTimeHistogram, includeHeatmap) {
-          var url = '/api-v3/search?facets=true';
+        buildQueryURL = function(bounds, includeTimeHistogram) {
+          var url = '/api-v3/search?facets=true&top_places=' + NUM_TOP_PLACES;
 
           if (includeTimeHistogram)
-            url += '&timehistogram=true';
-          
-          if (includeHeatmap)
-            url += '&heatmap=true&top_places=' + NUM_TOP_PLACES;
+            url += '&time_histogram=true';
           
           if (filters.query)
             url += '&query=' + filters.query;
@@ -65,15 +62,12 @@ define(['search/events'], function(Events) {
           requestQueue = [];
             
           // Make the request
-          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram, includeHeatmap), function(response) {                        
+          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram), function(response) {                    
             eventBroker.fireEvent(Events.UPATED_COUNTS, response);
             eventBroker.fireEvent(Events.UPDATED_SEARCH_RESULTS, response.items);
               
             if (includeTimeHistogram)
               eventBroker.fireEvent(Events.UPDATED_TIME_HISTOGRAM, response.time_histogram);
-              
-            if (includeHeatmap)
-              eventBroker.fireEvent(Events.UPDATED_HEATMAP, response.heatmap);
           })
           .always(function() {
             requestPending = false;

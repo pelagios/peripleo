@@ -23,7 +23,6 @@ import org.apache.lucene.spatial.prefix.tree.NumberRangePrefixTree.UnitNRShape
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import play.api.db.slick._
 import scala.collection.JavaConverters._
-import play.api.Logger
 
 trait ObjectReader extends AnnotationReader {
   
@@ -317,7 +316,7 @@ trait ObjectReader extends AnnotationReader {
     (Page(results.toSeq, offset, limit, total), facetTree)
   }
   
-  private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher): TimeHistogram = {
+  private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher): TimeHistogram = {    
     val startCal = Index.dateRangeTree.newCal()
     startCal.set(-10000, Calendar.JANUARY, 1)
     val start = Index.dateRangeTree.toShape(startCal)

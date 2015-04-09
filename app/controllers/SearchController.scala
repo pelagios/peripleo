@@ -13,7 +13,7 @@ object SearchController extends AbstractController {
 
   private val KEY_TOP_PLACES = "top_places"
   private val KEY_FACETS = "facets"
-  private val KEY_TIME_HISTOGRAM = "timehistogram"
+  private val KEY_TIME_HISTOGRAM = "time_histogram"
   private val KEY_HEATMAP = "heatmap"
     
   /** API search method controller.
@@ -27,18 +27,20 @@ object SearchController extends AbstractController {
     * @param yearFrom start year for temporal constraint
     * @param yearTo end year for temporal constraint
     */
-  def search() = loggingAction { implicit session =>      
+  def search() = loggingAction { implicit session =>     
+    val startTime = System.currentTimeMillis
+    
     parseSearchParams(session.request) match {
       case Success(params) => {    
 
-        // Number of top places to include, if any
+        // Number of top places to include in JSON response, if any
         val includeTopPlaces = getQueryParam(KEY_TOP_PLACES, session.request).map(_.toInt)
         
-        // Include facets? Note: to include top places, we need facets
+        // Include facets in JSON response? 
         val includeFacets = getQueryParam(KEY_FACETS, session.request).map(_.toBoolean)
-          .getOrElse(includeTopPlaces.getOrElse(0) > 0)
+          .getOrElse(includeTopPlaces.getOrElse(0) > 0) // Note: top places are computed based on facets, so one implies the other!
         
-        // Time histogram and heatmaps        
+        // Include time histogram or heatmap?        
         val includeTimeHistogram = getQueryParam(KEY_TIME_HISTOGRAM, session.request).map(_.toBoolean).getOrElse(false)
         val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false)
         
@@ -49,7 +51,7 @@ object SearchController extends AbstractController {
             includeTimeHistogram,
             includeHeatmap)
         
-        // Facets automatically include include top
+        // Resolve top places from facets
         val topPlaces = includeTopPlaces.map(number => {
           val urisAndCounts = facetTree.get.getTopChildren(IndexFields.ITEM_PLACES, number)
           urisAndCounts.flatMap(t => { 
@@ -58,21 +60,18 @@ object SearchController extends AbstractController {
           })
         })
 
-        val jsonComponents = Seq(
+        // Compile the JSON response from the various optional components
+        implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)   
+        
+        val optionalComponents = Seq(
               { facetTree.map(Json.toJson(_).as[JsObject]) },
               { timeHistogram.map(Json.toJson(_).as[JsObject]) },
-              { heatmap.map(h => Json.obj("heatmap" -> {
-                  if (topPlaces.isDefined) {
-                    Json.toJson(h).as[JsObject] ++
-                    Json.obj("top_places" -> Json.toJson(topPlaces.get))
-                  } else {
-                    Json.toJson(h).as[JsObject]            
-                  }})) 
-              }).flatten
-         
-        implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)          
-        val response =
-          jsonComponents.foldLeft(Json.toJson(results.map(_._1)).as[JsObject])((response, payload) => response ++ payload)
+              { topPlaces.map(t => Json.obj("top_places" -> Json.toJson(t)).as[JsObject]) },
+              { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten
+               
+        val response = 
+          optionalComponents.foldLeft(Json.toJson(results.map(_._1)).as[JsObject])((response, payload) => response ++ payload) ++
+          Json.obj("took_ms" -> (System.currentTimeMillis - startTime))
         
         jsonOk(response, session.request)
       }

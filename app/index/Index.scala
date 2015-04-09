@@ -140,7 +140,8 @@ object Index {
     new BBoxStrategy(spatialCtx, IndexFields.BOUNDING_BOX)
   
   /** Time segment indexing settings **/
-  private[index] val dateRangeTree = DateRangePrefixTree.INSTANCE
+  private[index] val dateRangeTree = 
+    DateRangePrefixTree.INSTANCE
   
   private[index] val temporalStrategy = 
     new NumberRangePrefixTreeStrategy(dateRangeTree, IndexFields.DATE_POINT);
