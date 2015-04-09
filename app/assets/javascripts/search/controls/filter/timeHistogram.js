@@ -196,7 +196,7 @@ define(['search/events'], function(Events) {
         },
         
         update = function(values) {
-          if (values.length > 0) {                      
+          if (values && values.length > 0) {                      
             var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
                 minYear = values[0].year,
                 maxYear = values[values.length - 1].year,
