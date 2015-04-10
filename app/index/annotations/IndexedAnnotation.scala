@@ -15,6 +15,11 @@ class IndexedAnnotation(private val doc: Document) {
   val dataset: String = doc.get(IndexFields.ANNOTATION_DATASET)
     
   val annotatedThing: String = doc.get(IndexFields.ANNOTATION_THING)
+  
+  val text: String = Seq(
+      Option(doc.get(IndexFields.ANNOTATION_FULLTEXT_PREFIX)),
+      Option(doc.get(IndexFields.ANNOTATION_QUOTE)),
+      Option(doc.get(IndexFields.ANNOTATION_FULLTEXT_SUFFIX))).flatten.mkString(" ")
 
 }
 
@@ -35,12 +40,12 @@ object IndexedAnnotation {
     temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.NO)))
     
     // Text
-    annotation.quote.map(quote => doc.add(new TextField(IndexFields.ANNOTATION_QUOTE, quote, Field.Store.NO)))
-    fulltextPrefix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_PREFIX, text, Field.Store.NO)))
-    fulltextSuffix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_SUFFIX, text, Field.Store.NO)))
+    annotation.quote.map(quote => doc.add(new TextField(IndexFields.ANNOTATION_QUOTE, quote, Field.Store.YES)))
+    fulltextPrefix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_PREFIX, text, Field.Store.YES)))
+    fulltextSuffix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_SUFFIX, text, Field.Store.YES)))
     
     // Place & geometry
-    doc.add(new StringField(IndexFields.ANNOTATION_PLACE, annotation.gazetteerURI, Field.Store.NO)) 
+    doc.add(new StringField(IndexFields.ITEM_PLACES, annotation.gazetteerURI, Field.Store.NO)) 
     doc.add(new FacetField(IndexFields.ITEM_PLACES, annotation.gazetteerURI))
     
     // Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geometry)).foreach(doc.add(_))

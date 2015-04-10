@@ -6,6 +6,7 @@ import index.IndexFields
 import org.geotools.geojson.geom.GeometryJSON
 import org.pelagios.api.PlainLiteral
 import org.pelagios.api.gazetteer.PlaceCategory
+import org.pelagios.api.gazetteer.patch.{ PlacePatch, PatchConfig, PatchStrategy }
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
@@ -16,7 +17,7 @@ class IndexedPlace(json: String) {
   
   override val toString = json
   
-  lazy val asJson = Json.parse(json)
+  lazy val asJson = Json.parse(json).as[JsObject]
     
   lazy val uri: String = (asJson \ "uri").as[String] 
   
@@ -53,6 +54,45 @@ class IndexedPlace(json: String) {
   lazy val exactMatches: List[String] = (asJson \ "exact_matches").as[List[String]]
   
   lazy val matches: List[String] = closeMatches ++ exactMatches
+  
+  def patch(patch: PlacePatch, config: PatchConfig): IndexedPlace = 
+    patchGeometry(patch, config.geometryStrategy).patchNames(patch, config.namesStrategy)
+    
+  private def patchGeometry(patch: PlacePatch, strategy: PatchStrategy.Value): IndexedPlace = {
+    val geometry = patch.locations.headOption.map(location => Json.parse(location.geoJSON))
+    if (geometry.isDefined)
+      strategy match {
+        case PatchStrategy.REPLACE => {
+          val updatedJson = (asJson - "geometry") + ("geometry" -> geometry.get) 
+          new IndexedPlace(Json.stringify(updatedJson))
+        }
+        case PatchStrategy.APPEND => throw new UnsupportedOperationException // We don't support append at this time
+      }
+    else
+      this
+  }
+  
+  private def patchNames(patch: PlacePatch, strategy: PatchStrategy.Value): IndexedPlace = {    
+    if (patch.names.size > 0) {
+      import IndexedPlace.plainLiteralWrites
+      val names = Json.toJson(patch.names).as[JsArray] 
+      
+      strategy match {
+        case PatchStrategy.REPLACE => {
+          val updatedJson = (asJson - "names") + ("names" -> names)
+          new IndexedPlace(Json.stringify(updatedJson))  
+        }
+        
+        case PatchStrategy.APPEND => {
+          val updatedNames = (asJson \ "names").as[JsArray] ++ names
+          val updatedJson = (asJson - "names") + ("names" -> updatedNames)
+          new IndexedPlace(Json.stringify(updatedJson))            
+        }
+      }
+    } else {
+      this
+    }
+  }
   
 }
 

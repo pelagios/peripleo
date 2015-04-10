@@ -10,6 +10,7 @@ import models.adjacency._
 import models.core._
 import models.geo._
 import org.pelagios.api.gazetteer.Place
+import org.pelagios.api.gazetteer.patch.{ PatchConfig, PatchStrategy }
 import play.api.Play
 import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
@@ -67,6 +68,23 @@ object Global extends GlobalSettings {
           // Insert gazetteer meta in to DB
           Gazetteers.insert(Gazetteer(name, totalPlaces), uriPrefixes)
         }}
+       
+        // Apply gazetteer patches
+        val patches = Play.current.configuration.getString("recogito.gazetteer.patches")
+          .map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
+       
+        // Patching strategy is to REPLACE geometries, but APPEND names
+        val patchConfig = PatchConfig()
+          .geometry(PatchStrategy.REPLACE)
+          .names(PatchStrategy.APPEND)
+          .propagate(true) // Patches should propagate to linke places, too
+      
+        patches.foreach(patch => {
+          Logger.info("Applying gazetteer patch file " + patch)
+          idx.applyPatch(new File(GAZETTER_DATA_DIR, patch), patchConfig)
+          idx.refresh()
+          Logger.info("Done.")
+        })
       }
       
       // Rebuild the suggestion index

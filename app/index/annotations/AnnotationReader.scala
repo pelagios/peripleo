@@ -12,7 +12,7 @@ import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxonomy
 import org.apache.lucene.index.Term
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
-import org.apache.lucene.search.{ BooleanClause, BooleanQuery, NumericRangeQuery, Query, QueryWrapperFilter, TermQuery }
+import org.apache.lucene.search.{ BooleanClause, BooleanQuery, IndexSearcher, NumericRangeQuery, Query, QueryWrapperFilter, TermQuery }
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import play.api.db.slick._
@@ -20,6 +20,14 @@ import com.spatial4j.core.shape.Rectangle
 import play.api.Logger
 import global.Global
 import index.places.IndexedPlaceNetwork
+
+import org.apache.lucene.search.PrefixQuery
+import org.apache.lucene.search.MatchAllDocsQuery
+import models.core.AnnotatedThings
+
+import play.api.Play
+import play.api.Play.current
+import play.api.db.slick._
 
 trait AnnotationReader extends IndexBase {
   
@@ -36,6 +44,50 @@ trait AnnotationReader extends IndexBase {
     
     topURIs.map { case (uri, count) => 
       Global.index.findNetworkByPlaceURI(uri).map((_, count)) }.flatten
+  }
+  
+  def getSnippets(thingId: String, phrase: String, place: Option[String], limit: Int, searcher: IndexSearcher): Seq[String] = {
+    DB.withSession { implicit session: Session =>
+      val rootId = AnnotatedThings.getParentHierarchy(thingId).lastOption.getOrElse(thingId)
+      val allIds = rootId +: AnnotatedThings.listChildrenRecursive(rootId)
+      
+      val idQuery = 
+        if (allIds.size > 1) {
+          val q = new BooleanQuery()
+          allIds.foreach(id => q.add(new TermQuery(new Term(IndexFields.ANNOTATION_THING, id)), BooleanClause.Occur.SHOULD))
+          q
+        } else {
+          new TermQuery(new Term(IndexFields.ANNOTATION_THING, allIds.head))
+        }
+     
+      val query = new BooleanQuery()
+      query.add(idQuery, BooleanClause.Occur.MUST)
+      
+      val fields = Seq(
+        IndexFields.ANNOTATION_QUOTE,
+        IndexFields.ANNOTATION_FULLTEXT_PREFIX,
+        IndexFields.ANNOTATION_FULLTEXT_SUFFIX).toArray
+            
+      query.add(new MultiFieldQueryParser(fields, analyzer).parse(phrase), BooleanClause.Occur.MUST)  
+      
+      if (place.isDefined)
+        query.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, place.get)), BooleanClause.Occur.MUST)
+      
+      val topDocs = searcher.search(query, 3)
+    
+      topDocs.scoreDocs.map(scoreDoc => { 
+        val annotation = new IndexedAnnotation(searcher.doc(scoreDoc.doc))
+        val text = annotation.text 
+        
+        // Trim around the search term
+        val idx = text.indexOf(phrase)
+        val start = Math.max(0, idx - 200)
+        val end = Math.min(text.size, idx + 200)
+        
+        text.substring(start, end).replace(phrase, "<strong>" + phrase + "</strong>")
+      })
+      
+    }
   }
   
   def calculateAnnotationHeatmap(

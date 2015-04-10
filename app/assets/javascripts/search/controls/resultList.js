@@ -30,7 +30,7 @@ define(['search/events'], function(Events) {
               html += '<p class="description">' + result.description + '</p>';
             
             if (result.snippet)
-              html += '<p class="snippet">' + result.snippet + '</p>';
+              html += result.snippet;
               
             html += '</li>';
               

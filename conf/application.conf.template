@@ -72,6 +72,9 @@ api.enable.cors=false
 api.gazetteer.names="Pleiades, DARE"
 api.gazetteer.files="pleiades-20120826-migrated.ttl.gz, dare.ttl.gz"
 
+# A comma-separated list of gazetteer patch files
+# recogito.gazetteer.patches="pelagios_geojson.ttl"
+
 # Date (day of month) and time for conducting monthly access log archivals
 api.log.archival.day=1
 api.log.archival.time="13:23"

@@ -90,6 +90,12 @@ object IndexedPlaceNetwork {
     
     places.foreach(addPlaceToDoc(_, joinedDoc))
     
+    // Bounding box across all place geometries to enable efficient best-fit queries
+    val bbox = BoundingBox.fromPlaces(places)
+    bbox.map(b => 
+      Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
+        .foreach(joinedDoc.add(_)))
+    
     // Convex hull accross all place geometries
     val convexHull = ConvexHull.compute(places.flatMap(_.geometry))
     convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
