@@ -10,6 +10,7 @@ define(['search/events'], function(Events) {
         list = element.find('ul'),
         
         constrainHeight = function() {
+          /*
           var windowHeight = jQuery(window).outerHeight(),
               elTop = element.position().top,
               elHeight = element.outerHeight(),
@@ -18,6 +19,7 @@ define(['search/events'], function(Events) {
               
           if (elHeight > maxHeight) 
             element.css({ height: maxHeight, maxHeight: maxHeight });
+          */
         },
           
         showResults = function(results) {

@@ -20,6 +20,14 @@ define(['search/events'], function(Events) {
           fillOpacity: 1,
           weight:1.5,
           radius:9
+        },
+        
+        POLYGON: {
+          color: '#a64a40',
+          opacity: 1,
+          fillColor: '#e75444',
+          fillOpacity: 0.65,
+          weight:1.5
         }
         
       };
@@ -47,7 +55,7 @@ define(['search/events'], function(Events) {
           
           if (id) {
             tuple = objects[id];
-            latlon = tuple.marker.getLatLng();
+            latlon = tuple.marker.getBounds().getCenter();
                 
             selectionPin = L.marker(latlon).addTo(map);
             eventBroker.fireEvent(Events.SELECT_PLACE, tuple.obj);
@@ -63,14 +71,27 @@ define(['search/events'], function(Events) {
         /** Adds places delivered in JSON place format **/
         addPlaces = function(places) {
           jQuery.each(places, function(idx, p) {
-            var marker, uri = p.gazetteer_uri;
+            var marker,
+                uri = p.gazetteer_uri;
             
             if (!exists(uri)) {
-              marker = L.circleMarker([p.centroid_lat, p.centroid_lng], Styles.SMALL);
+              if (p.location.type === 'Polygon') {
+                if (p.location.coordinates[0].length === 5) {
+                  // Hard-wired rule: we'll collapse Pleiades grid squares to centroids
+                  marker = L.circleMarker([p.centroid_lat, p.centroid_lng], Styles.SMALL);
+                  marker.addTo(layerGroup);
+                } else {
+                  marker = L.geoJson(p.location, Styles.POLYGON);
+                  marker.addTo(layerGroup);
+                  marker.bringToBack();
+                }
+              } else {
+                marker = L.circleMarker([p.centroid_lat, p.centroid_lng], Styles.SMALL);
+                marker.addTo(layerGroup);
+              }
+              
               marker.on('click', function(e) { select(uri); });
-
               objects[uri] = { obj: p, marker: marker };
-              marker.addTo(layerGroup);
             }
           });          
         },

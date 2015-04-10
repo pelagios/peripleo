@@ -52,8 +52,6 @@ define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], fun
     eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
       objectLayer.addObjects(response.items);
       
-      console.log(response.top_places);
-      
       if (response.top_places)
         objectLayer.addPlaces(response.top_places);
         
