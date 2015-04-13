@@ -1,18 +1,18 @@
-# Pelagios API 2.0
+# Periopleo
 
-This is the latest incarnation of the Pelagios API, developed as part of the 
-[Pelagios 3 Project](http://pelagios-project.blogspot.co.uk). The new Pelagios API
-is work in progress (which translates as "not everything works just yet").
+Periopleo (Greek for "to sail", "to swim around") is a search & browsing engine for data in the [Pelagios network](http://pelagios-project.blogspot.co.uk). Peripleo is work in progress.
 
-__Our development instance is online at [http://pelagios.org/api-v3](http://pelagios.org/api-v3) - feel
-free to give it a spin.__
-
-## The Basics
+## Background - the Pelagios Initiative
 
 Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://pelagios.org/api-v3/pages/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/b05e18236ee96084897c9dfe6c78891c9e71fef527b9c9b2d1b3c45a926bb5ea), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
 
-The __Pelagios API__ makes our network __browse-__ and __searchable__. The 'mental model' behind
-our API is simple! It consists of only three types of entities:
+## Peripleo
+
+... coming soon ...
+
+## Peripleo API
+
+The __Peripleo API__ provides machine access to our data. The 'mental model' behind Peripleo is simple! It consists of only three types of entities:
 
 * __Items__ such as archaeological artefacts, literary texts, photographs, etc.
 * __Places__ to which these items are related, e.g. places mentioned in a text or the findspot of an artefact
