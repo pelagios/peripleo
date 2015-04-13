@@ -166,4 +166,4 @@ dataset, and a 'histogram' that plots the number of items over the start-to-end 
 
 ## License
 
-The code for the Pelagios API is licensed under the [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl.html).
+The code for the Peripleo is licensed under the [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl.html).
