@@ -126,6 +126,11 @@ define(['search/events'], function(Events) {
     // When the user issues a new query, we flush all objects
     eventBroker.addHandler(Events.QUERY, clear);
     
+    eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
+      if (response.top_places)
+        addPlaces(response.top_places);
+    });
+    
     this.addPlaces = addPlaces;
     this.addObjects = addObjects;
     this.selectNearest = selectNearest;

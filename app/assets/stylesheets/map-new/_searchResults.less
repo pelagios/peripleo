@@ -15,22 +15,40 @@
   }
   
   li {
-    padding:6px;
+    padding:2px 6px 6px 6px;
     border-bottom:1px solid #e6e6e6;
     
     h3 {
-      color:#323232;
+      color:#4f4f4f;
       font-size:13px;
       font-weight:normal;
       margin:0;
       padding:3px 0 3px ;
     }
     
-    .description, .snippet {
+    p {
+     margin:0;
+     padding:0 1px;
+     color:#999;
+     line-height:17px;
+    }
+    
+    .description { font-style:italic; }
+    
+    ul.uris {
+      list-style-type:none;
+      padding:4px 1px 2px 1px;
       margin:0;
-      padding:0 1px;
-      color:#999;
-      line-height:17px;
+      line-height: 26px;
+    
+      li {
+        display:inline-block;
+      }
+      
+      .gazetteer-uri {
+        font-size:11px;
+      }
+    
     }
     
     .snippet {

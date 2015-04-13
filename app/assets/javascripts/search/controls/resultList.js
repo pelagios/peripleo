@@ -1,5 +1,5 @@
 /** The result list **/
-define(['search/events'], function(Events) {
+define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
   var ResultList = function(container, eventBroker) {
     var element = jQuery(
@@ -22,12 +22,37 @@ define(['search/events'], function(Events) {
           
         showResults = function(results) {
           var rows = jQuery.map(results, function(result) {
-            var li, html = 
+            var li, icon, html;
+                          
+            switch (result.object_type.toLowerCase()) {
+              case 'place': 
+                icon = '<span class="icon" title="Place">&#xf041;</span>';
+                break;
+              default:
+                icon = '';
+            }
+            
+            html = 
               '<li>' +
-              '  <h3>' + result.title + '</h3>';
+              '  <h3>' + icon + ' ' + result.title + '</h3>';
+              
+            if (result.names)
+              html += '<p class="names"><span class="icon">' + 
+              result.names.splice(0,8).join(', ') + '</p>';
 
             if (result.description) 
               html += '<p class="description">' + result.description + '</p>';
+              
+            if (result.matches) {
+              html += '<ul class="uris">';
+              
+              // It has matches - it's a place, so we know the id is a gazetteer URI
+              html += Formatting.formatGazetteerURI(result.identifier);
+              jQuery.each(result.matches, function(idx, uri) {
+                html += Formatting.formatGazetteerURI(uri);
+              });
+              html += '</ul>';
+            }
             
             if (result.snippet)
               html += '<p class="snippet">' + result.snippet + '</p>';

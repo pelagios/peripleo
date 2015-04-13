@@ -31,6 +31,8 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   /** The first place URI added to the network **/
   val seedURI: String = doc.get(IndexFields.PLACE_URI)
   
+  lazy val names: Seq[String] = doc.getValues(IndexFields.PLACE_NAME).toSeq.distinct 
+  
   /** The other place URIs in the network **/ 
   lazy val alternativeURIs: Seq[String] = doc.getValues(IndexFields.PLACE_URI).toSeq.diff(Seq(seedURI))
 
@@ -145,8 +147,8 @@ object IndexedPlaceNetwork {
         doc.add(new TextField(IndexFields.DESCRIPTION, place.description.get, Field.Store.NO)) 
     }
     
-    // Index (but don't store) all names
-    place.names.foreach(literal => doc.add(new TextField(IndexFields.PLACE_NAME, literal.chars, Field.Store.NO)))
+    // Index all names
+    place.names.foreach(literal => doc.add(new TextField(IndexFields.PLACE_NAME, literal.chars, Field.Store.YES)))
     
     // Update list of source gazetteers, if necessary
     val sourceGazetteers = doc.getValues(IndexFields.PLACE_SOURCE_GAZETTEER).toSet

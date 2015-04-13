@@ -26,7 +26,7 @@ define(['search/events'], function(Events) {
         requestPending = false,
 
         buildQueryURL = function(bounds, includeTimeHistogram) {
-          var url = '/api-v3/search?facets=true&top_places=' + NUM_TOP_PLACES;
+          var url = '/api-v3/search?verbose=true&facets=true&top_places=' + NUM_TOP_PLACES;
 
           // if (includeTimeHistogram)
           //  url += '&time_histogram=true';

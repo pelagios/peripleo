@@ -48,14 +48,6 @@ define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], fun
               
           return { north: n, east: e, south: s, west: w };
         };
-       
-    eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
-      objectLayer.addObjects(response.items);
-      if (response.top_places)
-        objectLayer.addPlaces(response.top_places);
-        
-      objectLayer.addObjects(response.items);
-    });
     
     eventBroker.addHandler(Events.HOVER_RESULT, function(result) {
       placeLayer.showItem(result);

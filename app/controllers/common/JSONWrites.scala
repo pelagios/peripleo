@@ -224,25 +224,27 @@ object JSONWrites {
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
     (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
     (JsPath \ "convex_hull").writeNullable[JsValue] ~
+    (JsPath \ "names").writeNullable[Seq[String]] ~
     (JsPath \ "matches").writeNullable[Seq[String]]
-  )(obj => (
-      obj.identifier,
-      obj.title,
-      obj.description,
-      obj.homepage,
-      obj.objectType.toString,
-      obj.temporalBoundsStart.map(start => Json.obj( 
-        "start" -> start,
-        "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
-      obj.convexHull.map(_.bounds),
-      { if (verbose) obj.convexHull.map(_.asGeoJSON) else None },
-      if (obj.objectType == IndexedObjectTypes.PLACE) {
-        val alternatives = obj.toPlaceNetwork.alternativeURIs
-        if (alternatives.isEmpty) None else Some(alternatives)
-      } else {
-        None
+  )(obj => {
+      val placeNetwork = obj.objectType match {
+        case IndexedObjectTypes.PLACE => Some(obj.toPlaceNetwork)
+        case _ => None
       }
-    ))
+    
+      (obj.identifier,
+       obj.title,
+       obj.description,
+       obj.homepage,
+       obj.objectType.toString,
+       obj.temporalBoundsStart.map(start => Json.obj( 
+         "start" -> start,
+         "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
+       obj.convexHull.map(_.bounds),
+       { if (verbose) obj.convexHull.map(_.asGeoJSON) else None },
+       placeNetwork.map(_.names),
+       placeNetwork.map(_.alternativeURIs)
+  )})
     
   implicit val indexObjectWithSnippetWrites: Writes[(IndexedObject, Option[String])] = (
     (JsPath).write[IndexedObject] ~
