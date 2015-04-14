@@ -20,6 +20,14 @@ define(['search/events'], function(Events) {
           fillOpacity: 1,
           weight:1.5,
           radius:9
+        },
+        
+        POLYGON: {
+          color: '#a64a40',
+          opacity: 1,
+          fillColor: '#e75444',
+          fillOpacity: 0.65,
+          weight:1.5
         }
         
       };
@@ -34,8 +42,30 @@ define(['search/events'], function(Events) {
         objects = {},
         
         /** Returns true if a marker for the specified URI exists on the map **/
-        exists = function(idOrURI) {
-          return objects.hasOwnProperty(idOrURI);
+        exists = function(identifier) {
+          return objects.hasOwnProperty(identifier);
+        },
+        
+        /** 
+         * Hack: 'normalizes' a GeoJSON geometry in place, by collapsing
+         * rectangular polygons to centroid points. This is because rectangles
+         * are usually from Barrington grid squares, and we don't want those in 
+         * the UI.
+         */
+        collapseRectangles = function(place) {          
+          if (place.convex_hull.type == 'Polygon' && 
+              place.convex_hull.coordinates[0].length === 5) {
+              
+            place.convex_hull.type = 'Point';
+            place.convex_hull.coordinates = [
+              (place.geo_bounds.max_lon + place.geo_bounds.min_lon) / 2,
+              (place.geo_bounds.max_lat + place.geo_bounds.min_lat) / 2 ];
+          }
+        },
+        
+        /** Computes a 'location hash code' - objects with the same location/geometry share the same hash **/
+        locationHashCode = function(object) {
+
         },
         
         /** Selects the object with the specified URI or identifier **/
@@ -59,36 +89,52 @@ define(['search/events'], function(Events) {
           objects = {};
           selectionPin = false;
         },
-                
-        /** Adds places delivered in JSON place format **/
-        addPlaces = function(places) {
-          jQuery.each(places, function(idx, p) {
-            var marker, uri = p.gazetteer_uri;
+        
+        addPlace = function(p) {          
+          var marker, uri = p.identifier,
+              cLon = (p.geo_bounds) ? (p.geo_bounds.max_lon + p.geo_bounds.min_lon) / 2 : false,
+              cLat = (p.geo_bounds) ? (p.geo_bounds.max_lat + p.geo_bounds.min_lat) / 2 : false;
+          
+          // Get rid of Barrington grid squares    
+          collapseRectangles(p);
+          
+          if (!exists(uri)) {
+            if (p.convex_hull.type === 'Point') {
+              marker = L.circleMarker([cLat, cLon], Styles.SMALL);
+            } else if (p.convex_hull.type === 'Polygon' || p.convex_hull.type === 'LineString') {
+              marker = L.geoJson(p.convex_hull, Styles.POLYGON);
+            } else {
+              console.log('Unsupported convex hull type: ' + p.convex_hull.type , p);
+            }
             
-            if (!exists(uri)) {
-              marker = L.circleMarker([p.centroid_lat, p.centroid_lng], Styles.SMALL);
-              marker.on('click', function(e) { select(p); });
-
+            if (marker) {
+              marker.on('click', function(e) { select(uri); });
               objects[uri] = { obj: p, marker: marker };
               marker.addTo(layerGroup);
             }
-          });          
+          }           
         },
+        
+        addItem = function(item) {
+          console.log('addItem not implemented yet');
+        },
+        
+        addDataset = function(dataset) {
+          console.log('addDataset not implemented yet');          
+        },
+        
+        addObjects = function(response) {
+          jQuery.each(response.items, function(idx, obj) {
+            var t = obj.object_type;
             
-        /** Adds objects (items or places) delivered in standard search result object JSON format **/
-        addObjects = function(items) {
-          jQuery.each(items, function(idx, item) {
-            var lat = (item.geo_bounds) ? (item.geo_bounds.min_lat + item.geo_bounds.max_lat) / 2: false,
-                lon = (item.geo_bounds) ? (item.geo_bounds.min_lon + item.geo_bounds.max_lon) / 2: false,
-                marker;
-                
-            // TODO show full polygon?
-            if (lat) {
-              marker = L.circleMarker([lat, lon], Styles.LARGE);
-              marker.on('click', function(e) { select(item.identifier); });
-
-              objects[item.identifier] = { obj: item, marker: marker };
-              marker.addTo(layerGroup);
+            if (t === 'Place') {
+              addPlace(obj);
+            } else if (t === 'Item') {
+              addItem(obj);
+            } else if (t === 'Dataset') {
+              addDataset(obj);
+            } else {
+              console.log('Invalid search result!', obj);
             }
           });
         },
@@ -123,17 +169,10 @@ define(['search/events'], function(Events) {
           }
         };
         
-    // When the user issues a new query, we flush all objects
-    eventBroker.addHandler(Events.QUERY, clear);
+    eventBroker.addHandler(Events.UI_SEARCH, clear);
+    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, addObjects);
     
-    eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
-      if (response.top_places)
-        addPlaces(response.top_places);
-    });
-    
-    this.addPlaces = addPlaces;
-    this.addObjects = addObjects;
-    this.selectNearest = selectNearest;
+    map.on('click', function(e) { selectNearest(e.latlng); });
   };
   
   return ObjectLayer;

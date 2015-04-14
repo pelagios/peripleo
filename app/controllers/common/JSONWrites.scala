@@ -246,7 +246,7 @@ object JSONWrites {
        placeNetwork.map(_.alternativeURIs)
   )})
     
-  implicit val indexObjectWithSnippetWrites: Writes[(IndexedObject, Option[String])] = (
+  implicit def indexObjectWithSnippetWrites(implicit verbose: Boolean = false): Writes[(IndexedObject, Option[String])] = (
     (JsPath).write[IndexedObject] ~
     (JsPath \ "snippet").writeNullable[String]
   )(t => (t._1, t._2))  

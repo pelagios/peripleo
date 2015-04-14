@@ -30,14 +30,14 @@ define(['search/events',
         
         footerTotals = element.find('.footer .total'),
         
-        buttonToggle = element.find('.advanced'),
+        buttonToggleFilters = element.find('.advanced'),
         
         buttonListAll = element.find('.list-all'),
         
         timeHistogram, typeFacetChart, sourceFacetChart,
         
-        toggle = function() {
-          var visible = jQuery(body).is(':visible');
+        toggleFilters = function() {
+          var visible = body.is(':visible');
           body.slideToggle(200, function() {
             if (visible)
               buttonToggle.removeClass('open');
@@ -54,11 +54,14 @@ define(['search/events',
     typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type');
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'dataset');
     
-    buttonToggle.click(toggle);
-    buttonListAll.click(function() { eventBroker.fireEvent(Events.LIST_ALL_RESULTS); });
+    buttonToggleFilters.click(toggleFilters);
+    buttonListAll.click(function() { eventBroker.fireEvent(Events.UI_TOGGLE_ALL_RESULTS); });
     
     /** Forward updates to the facet charts **/
-    eventBroker.addHandler(Events.UPATED_COUNTS, function(response) {
+    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(response) {
+      footerTotals.html('(' + numeral(response.total).format('0,0') + ')'); 
+      
+      /*
       var facets = response.facets, 
           typeDimension = jQuery.grep(facets, function(facet) { return facet.dimension === 'type'; }),
           typeFacets = (typeDimension.length > 0) ? typeDimension[0].top_children : [],
@@ -66,11 +69,11 @@ define(['search/events',
           sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'dataset'; });
           sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
           
-      footerTotals.html('(' + numeral(response.total).format('0,0') + ')');    
-      
       typeFacetChart.update(typeFacets);
       sourceFacetChart.update(sourceFacets);
+      */
     });
+
   };
   
   return FilterPanel;

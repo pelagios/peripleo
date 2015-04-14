@@ -1,5 +1,5 @@
 /** The base map **/
-define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], function(ObjectLayer, PlaceLayer, Events) {
+define(['search/map/objectLayer', 'search/events'], function(ObjectLayer, Events) {
   
   var Map = function(div, eventBroker) {  
     var Layers = {
@@ -37,8 +37,6 @@ define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], fun
                 
         objectLayer = new ObjectLayer(map, eventBroker),
         
-        placeLayer = new PlaceLayer(map, eventBroker),
-        
         getBounds = function() {
           var b = map.getBounds(),
               w = (b.getWest() < -180) ? -180 : b.getWest(),
@@ -49,22 +47,14 @@ define(['search/map/objectLayer', 'search/map/placeLayer', 'search/events'], fun
           return { north: n, east: e, south: s, west: w };
         };
     
-    eventBroker.addHandler(Events.HOVER_RESULT, function(result) {
-      placeLayer.showItem(result);
-    });
-    
     /** Request an updated heatmap on every moveend **/
     map.on('moveend', function() {
-      eventBroker.fireEvent(Events.REQUEST_UPDATED_HEATMAP, getBounds());
+      eventBroker.fireEvent(Events.UI_MAP_CHANGED, getBounds());
     });
     
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
-      eventBroker.fireEvent(Events.REQUEST_UPDATED_COUNTS, getBounds());
-    });
-    
-    map.on('click', function(e) {
-      objectLayer.selectNearest(e.latlng);
+      eventBroker.fireEvent(Events.UI_MAP_CHANGED, getBounds());
     });
     
     this.getBounds = getBounds;

@@ -6,24 +6,49 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '<div id="search-results">' +
           '  <ul></ul>' +
           '</div>'),
-          
+
         list = element.find('ul'),
-        
-        constrainHeight = function() {
-          var windowHeight = jQuery(window).outerHeight(),
-              elTop = element.position().top,
-              elHeight = element.outerHeight(),
-              marginAndPadding = element.outerHeight(true) - element.height(),
-              maxHeight = windowHeight - elTop - marginAndPadding;
-              
-          if (elHeight > maxHeight) 
-            element.css({ height: maxHeight, maxHeight: maxHeight });
-        },
           
-        showResults = function(results) {
-          var rows = jQuery.map(results, function(result) {
+        currentResults = [],
+        
+        /**
+         * Updates the results. If the UI element is closed,
+         * the function just buffers the results for later.
+         * If the UI element is open, the function rebuilds the
+         * list.
+         */
+        update = function(results) {
+          currentResults = results.items;
+          
+          if (element.is(':visible')) {
+            list.empty();
+            rebuildList();
+          }
+        },
+        
+        toggle = function() {
+          if (element.is(':visible'))
+            hide();
+          else
+            show();
+        },
+        
+        show = function() {
+          rebuildList();
+          element.show();
+        },
+        
+        hide = function() {
+          element.hide();
+        },
+        
+        /**
+         * Rebuilds the list element from the current results.
+         */
+        rebuildList = function() {          
+          var rows = jQuery.map(currentResults, function(result) {
             var li, icon, html;
-                          
+            console.log(result);
             switch (result.object_type.toLowerCase()) {
               case 'place': 
                 icon = '<span class="icon" title="Place">&#xf041;</span>';
@@ -61,22 +86,23 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               
             li = jQuery(html);
             li.on('mouseenter', function() {
-              eventBroker.fireEvent(Events.HOVER_RESULT, result);
+              eventBroker.fireEvent(Events.UI_MOUSE_OVER_RESULT, result);
             });
                           
             return li;
           });
-
+          
           list.empty();
           list.append(rows);
-          
-          constrainHeight();
-        };        
-          
+        };      
+      
     element.hide();
     container.append(element);
-    eventBroker.addHandler(Events.UPDATED_SEARCH_RESULTS, showResults);   
-    eventBroker.addHandler(Events.LIST_ALL_RESULTS, function() { element.show() }); 
+    
+    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, update);   
+    eventBroker.addHandler(Events.UI_TOGGLE_ALL_RESULTS, toggle); 
+    eventBroker.addHandler(Events.UI_SHOW_ALL_RESULTS, show); 
+    eventBroker.addHandler(Events.UI_HIDE_ALL_RESULTS, hide); 
   };
   
   return ResultList;

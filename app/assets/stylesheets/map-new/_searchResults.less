@@ -1,11 +1,11 @@
 #search-results {
-  margin:6px 0 15px 0;
+  margin:6px 0;
   background-color:#fff;
   box-sizing:border-box;
   position:relative;
   .box-shadow(0, 2px, 6px, 0, rgba(0,0,0,0.3));
   .rounded-corners(2px);
-  padding:8px 10px;
+  padding:10px 10px 0 10px;
   overflow-y:auto;
   
   ul {
@@ -15,8 +15,9 @@
   }
   
   li {
-    padding:2px 6px 6px 6px;
+    padding:4px 6px 6px 6px;
     border-bottom:1px solid #e6e6e6;
+    margin-bottom:6px;
     
     h3 {
       color:#4f4f4f;
@@ -24,6 +25,9 @@
       font-weight:normal;
       margin:0;
       padding:3px 0 3px ;
+      
+      .icon { color:#999; }
+      
     }
     
     p {
@@ -37,7 +41,7 @@
     
     ul.uris {
       list-style-type:none;
-      padding:4px 1px 2px 1px;
+      padding:4px 1px 0 1px;
       margin:0;
       line-height: 26px;
     

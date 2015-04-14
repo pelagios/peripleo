@@ -65,11 +65,10 @@ define(['search/events'], function(Events) {
             
           // Make the request
           jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram), function(response) {                                
-            eventBroker.fireEvent(Events.UPATED_COUNTS, response);
-            eventBroker.fireEvent(Events.UPDATED_SEARCH_RESULTS, response.items);
+            eventBroker.fireEvent(Events.API_SEARCH_SUCCESS, response);
               
-            if (includeTimeHistogram)
-              eventBroker.fireEvent(Events.UPDATED_TIME_HISTOGRAM, response.time_histogram);
+            // if (includeTimeHistogram)
+            //  eventBroker.fireEvent(Events.UPDATED_TIME_HISTOGRAM, response.time_histogram);
           })
           .always(function() {
             requestPending = false;
@@ -87,34 +86,26 @@ define(['search/events'], function(Events) {
           }
         };
     
-    /** Run a full search (plus time histogram and heatmap) on initial load **/
+    /** Run a full search on initial load **/
     eventBroker.addHandler(Events.LOAD, function(bounds) {
       lastBounds = bounds;
       requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
       makeRequest();
     });
     
-    /** Heatmaps are expensive anyway - so we'll just fetch everything **/
-    eventBroker.addHandler(Events.REQUEST_UPDATED_HEATMAP, function(bounds) {
+    eventBroker.addHandler(Events.UI_MAP_CHANGED, function(bounds) {
       lastBounds = bounds;
       requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
+      makeRequest();
+    });
+    
+    eventBroker.addHandler(Events.UI_SEARCH, function(query) {
+      filters.query = query;
+      requestQueue.push({ bounds: lastBounds, timeHistogram: true, heatmap: false });
       scheduleSearch();
     });
     
-    /** Fetch counts **/
-    eventBroker.addHandler(Events.REQUEST_UPDATED_COUNTS, function(bounds) {
-      lastBounds = bounds;
-      requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
-      scheduleSearch();
-    });
-    
-    /** User reset the time filter - queue new search request **/
-    eventBroker.addHandler(Events.SET_TIME_FILTER, function(timespan) {
-      filters.timespan = timespan;
-      requestQueue.push({ bounds: lastBounds, timeHistogram: false, heatmap: true });
-      scheduleSearch();
-    });
-    
+    /*
     eventBroker.addHandler(Events.SELECT_PLACE, function(place) {
       if (place)
         filters.place = place.gazetteer_uri;
@@ -123,12 +114,7 @@ define(['search/events'], function(Events) {
       requestQueue.push({ bounds: lastBounds, timeHistogram: true, heatmap: false });
       scheduleSearch();
     });
-    
-    eventBroker.addHandler(Events.QUERY, function(query) {
-      filters.query = query;
-      requestQueue.push({ bounds: lastBounds, timeHistogram: true, heatmap: false });
-      scheduleSearch();
-    });
+    */
     
   };
   

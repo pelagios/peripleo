@@ -75,7 +75,7 @@ define(['search/events'], function(Events) {
     element.hide();
     container.append(element);
     
-    eventBroker.addHandler(Events.SELECT_PLACE, showPlace);
+    eventBroker.addHandler(Events.UI_SELECT_PLACE, showPlace);
   };
   
   return SelectionInfoBox;
