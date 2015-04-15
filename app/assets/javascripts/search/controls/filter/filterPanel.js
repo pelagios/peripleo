@@ -42,9 +42,9 @@ define(['search/events',
           var visible = body.is(':visible');
           body.slideToggle(200, function() {
             if (visible)
-              buttonToggle.removeClass('open');
+              buttonToggleFilters.removeClass('open');
             else
-              buttonToggle.addClass('open');
+              buttonToggleFilters.addClass('open');
           });
         };
         
