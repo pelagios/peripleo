@@ -231,6 +231,16 @@ object JSONWrites {
         case IndexedObjectTypes.PLACE => Some(obj.toPlaceNetwork)
         case _ => None
       }
+      
+      val names = placeNetwork.flatMap(network => {
+        val names = network.names
+        if (names.length > 0) Some(names) else None 
+      })
+      
+      val matches = placeNetwork.flatMap(network => {
+        val matches = network.alternativeURIs
+        if (matches.length > 0) Some(matches) else None 
+      })
     
       (obj.identifier,
        obj.title,
@@ -242,8 +252,8 @@ object JSONWrites {
          "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
        obj.convexHull.map(_.bounds),
        { if (verbose) obj.convexHull.map(_.asGeoJSON) else None },
-       placeNetwork.map(_.names),
-       placeNetwork.map(_.alternativeURIs)
+       names,
+       matches
   )})
     
   implicit def indexObjectWithSnippetWrites(implicit verbose: Boolean = false): Writes[(IndexedObject, Option[String])] = (

@@ -34,9 +34,13 @@ define(['search/events'], function(Events) {
       
   var ObjectLayer = function(map, eventBroker) {
     
-    var layerGroup = L.layerGroup().addTo(map),
+    var featureGroup = L.featureGroup().addTo(map),
     
         selectionPin = false,
+        
+        pendingQuery = false,
+        
+        allowMouseOverHighlights = true,
     
         /** (idOrURI -> { obj, marker }) map of places and items **/
         objects = {},
@@ -52,7 +56,7 @@ define(['search/events'], function(Events) {
          * are usually from Barrington grid squares, and we don't want those in 
          * the UI.
          */
-        collapseRectangles = function(place) {          
+        collapseRectangles = function(place) {  
           if (place.convex_hull.type == 'Polygon' && 
               place.convex_hull.coordinates[0].length === 5) {
               
@@ -68,51 +72,70 @@ define(['search/events'], function(Events) {
 
         },
         
-        /** Selects the object with the specified URI or identifier **/
-        select = function(id) {
+        /** Shorthand: resets location and zoom of the map to fit all current objects **/
+        fitToObjects = function() {
+          map.fitBounds(featureGroup.getBounds(), { animate: true });
+        },
+        
+        /** Highlights (and returns) the object with the specified id **/
+        highlight = function(id) {
           var tuple, latlon;
           
           if (selectionPin)
             map.removeLayer(selectionPin);
           
           if (id) {
-            tuple = objects[id];
-            latlon = tuple.marker.getLatLng();
-                
-            selectionPin = L.marker(latlon).addTo(map);
-            eventBroker.fireEvent(Events.SELECT_PLACE, tuple.obj);
-          }
+            tuple = objects[id];    
+            
+            if (tuple) {
+              latlon = tuple.marker.getBounds().getCenter();
+              selectionPin = L.marker(latlon).addTo(map);
+              return tuple.obj;
+            }
+          }          
         },
         
+        /** Shorthand: highlights the object and triggers the select event **/
+        select = function(id) {
+          var obj = highlight(id);
+
+          if (obj)
+            eventBroker.fireEvent(Events.UI_SELECT_PLACE, obj);
+        },
+        
+        /** Clears all ojbects from the map **/
         clear = function() {
-          layerGroup.clearLayers();          
+          featureGroup.clearLayers();          
           objects = {};
           selectionPin = false;
         },
         
-        addPlace = function(p) {          
+        addPlace = function(p) {                    
           var marker, uri = p.identifier,
               cLon = (p.geo_bounds) ? (p.geo_bounds.max_lon + p.geo_bounds.min_lon) / 2 : false,
               cLat = (p.geo_bounds) ? (p.geo_bounds.max_lat + p.geo_bounds.min_lat) / 2 : false;
           
-          // Get rid of Barrington grid squares    
-          collapseRectangles(p);
+          if (p.geo_bounds) { // Ignore places without geometry
           
-          if (!exists(uri)) {
-            if (p.convex_hull.type === 'Point') {
-              marker = L.circleMarker([cLat, cLon], Styles.SMALL);
-            } else if (p.convex_hull.type === 'Polygon' || p.convex_hull.type === 'LineString') {
-              marker = L.geoJson(p.convex_hull, Styles.POLYGON);
-            } else {
-              console.log('Unsupported convex hull type: ' + p.convex_hull.type , p);
-            }
+            // Get rid of Barrington grid squares    
+            collapseRectangles(p);
+          
+            if (!exists(uri)) {
+              if (p.convex_hull.type === 'Point') {
+                marker = L.circleMarker([cLat, cLon], Styles.SMALL);
+              } else if (p.convex_hull.type === 'Polygon' || p.convex_hull.type === 'LineString') {
+                marker = L.geoJson(p.convex_hull, Styles.POLYGON);
+              } else {
+                console.log('Unsupported convex hull type: ' + p.convex_hull.type , p);
+              }
             
-            if (marker) {
-              marker.on('click', function(e) { select(uri); });
-              objects[uri] = { obj: p, marker: marker };
-              marker.addTo(layerGroup);
-            }
-          }           
+              if (marker) {
+                marker.on('click', function(e) { select(uri); return false; });
+                objects[uri] = { obj: p, marker: marker };
+                marker.addTo(featureGroup);
+              }
+            } 
+          }          
         },
         
         addItem = function(item) {
@@ -137,19 +160,26 @@ define(['search/events'], function(Events) {
               console.log('Invalid search result!', obj);
             }
           });
+          
+          fitToObjects();
         },
       
-        /** Selects the object or place closest to the given latlng **/
+        /**
+         * Selects the object or place closest to the given latlng.
+         * 
+         * This is primarily a means to support touch devices. Markers are
+         * otherwise too small that you could properly tap them.
+         */
         selectNearest = function(latlng) {
           var xy = map.latLngToContainerPoint(latlng),
               nearest = { distSq: 9007199254740992 },
               nearestXY, distPx;
               
           jQuery.each(objects, function(id, t) {
-            var markerLatLng = t.marker.getLatLng()
-            var distSq = 
-              Math.pow(latlng.lat - markerLatLng.lat, 2) + 
-              Math.pow(latlng.lng - markerLatLng.lng, 2);  
+            var markerLatLng = t.marker.getBounds().getCenter(),
+                distSq = 
+                  Math.pow(latlng.lat - markerLatLng.lat, 2) + 
+                  Math.pow(latlng.lng - markerLatLng.lng, 2);  
                    
             if (distSq < nearest.distSq)
               nearest = { obj: t.obj, latlng: markerLatLng, distSq: distSq };
@@ -163,14 +193,45 @@ define(['search/events'], function(Events) {
                 Math.pow((xy.y - nearestXY.y), 2));
           
             if (distPx < TOUCH_DISTANCE_THRESHOLD)
-              select(nearest.obj);
+              select(nearest.obj.identifier);
             else
               select();
           }
         };
         
-    eventBroker.addHandler(Events.UI_SEARCH, clear);
-    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, addObjects);
+    // We want to know about user-issued queries, because as long
+    // as a user query is 'active', we don't want to add/remove
+    // stuff from the map
+    eventBroker.addHandler(Events.UI_SEARCH, function(query) {
+      if (pendingQuery !== query) // New query - clear the map
+        clear();
+        
+      pendingQuery = query;
+    });
+        
+    // See above - we only update the map if there was a new search
+    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(results) {
+      if (pendingQuery)
+        addObjects(results);
+      pendingQuery = false;
+    });
+    
+    eventBroker.addHandler(Events.UI_MOUSE_OVER_RESULT, function(result) {
+      if (allowMouseOverHighlights) // See below!
+        highlight(result.identifier);
+    });
+    
+    // This event can be triggered from the objectLayer or the resultList
+    // Highlight the marker when the trigger comes from the result list
+    eventBroker.addHandler(Events.UI_SELECT_PLACE, function(result) {
+      highlight(result.identifier);
+      
+      // Note: there can be accidential mouseovers as the result list closes
+      // Make sure we have a 'grace period' for that, in which mouseovers
+      // are ignored
+      allowMouseOverHighlights = false;
+      setTimeout(function() { allowMouseOverHighlights = true; }, 500);
+    });
     
     map.on('click', function(e) { selectNearest(e.latlng); });
   };

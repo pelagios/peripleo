@@ -16,7 +16,7 @@ define(function() {
     
     formatGazetteerURI: function(uri) {
       var prefix, gazId;
-          
+
       if (uri.indexOf('http://pleiades.stoa.org/places/') === 0) {
         prefix = 'pleiades';
         gazId = uri.substr(32);

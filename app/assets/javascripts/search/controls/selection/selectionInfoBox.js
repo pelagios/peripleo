@@ -1,11 +1,9 @@
-define(['search/events'], function(Events) {
-  
-  var infoBoxTemplate =
-    '<div>' +
-    
-    '</div>';
+define(['search/events', 'common/formatting'], function(Events, Formatting) {
   
   var SelectionInfoBox = function(container, eventBroker) {
+    
+    var SLIDE_DURATION = 200;
+    
     var element = jQuery(
           '<div id="selection-info">' +
           '  <h3></h3>' +
@@ -14,9 +12,9 @@ define(['search/events'], function(Events) {
           '  <ul class="uris"></ul>' +
           '</div>'),
           
-        currentPlace = false,
+        currentObject = false,
         
-        label = element.find('h3'),
+        title = element.find('h3'),
         
         names = element.find('.names'),
         
@@ -24,50 +22,51 @@ define(['search/events'], function(Events) {
         
         uris = element.find('.uris'),
         
-        fillTemplate = function(place) {          
-          label.html(place.label);
-          names.html(place.names.join(', '));
-          description.html(place.description);
+        fillTemplate = function(obj) {          
+          title.html(obj.title);
           
-          uris.append(jQuery('<li>' + formatGazetteerURI(place.gazetteer_uri) + '</li>'));
-          jQuery.each(place.matches, function(idx, uri) {
-            uris.append(jQuery('<li>' + formatGazetteerURI(uri) + '</li>'));
-          });
+          if (obj.names)
+            names.html(obj.names.slice(0, 8).join(', '));
+          
+          if (obj.description)
+            description.html(obj.description);
+          
+          if (obj.object_type === 'Place') {
+            uris.append(jQuery('<li>' + Formatting.formatGazetteerURI(obj.identifier) + '</li>'));
+            if (obj.matches) {
+              jQuery.each(obj.matches, function(idx, uri) {
+                uris.append(jQuery('<li>' + Formatting.formatGazetteerURI(uri) + '</li>'));
+              });
+            }
+          }
         },
         
         clearTemplate = function() {
-          label.empty();
+          title.empty();
           names.empty();
           description.empty();
           uris.empty();
         },
         
-        showPlace = function(place) {
-          if (!place.gazetteer_uri)
-            return; 
-            
-          if (currentPlace) {
-            // Currently open
-            if (!place) {
-              // Close
-              element.slideToggle(100, function() {
-                currentPlace = false;
+        showObject = function(obj) {            
+          if (currentObject) { // Box is currently open    
+            if (!obj) { // Close it
+              element.slideToggle(SLIDE_DURATION, function() {
+                currentObject = false;
                 clearTemplate();
               });
             } else {
-              if (currentPlace.gazetteer_uri !== place.gazetteer_uri) {
-                // New place - reset
-                currentPlace = place;
+              if (currentObject.identifier !== obj.identifier) { // New object - reset
+                currentObject = obj;
                 clearTemplate();
-                fillTemplate(place);
+                fillTemplate(obj);
               }
             }
-          } else {
-            // Currently closed - open
-            if (place) {
-              currentPlace = place;
-              element.slideToggle(100);
-              fillTemplate(place);
+          } else { // Currently closed 
+            if (obj) { // Open
+              currentObject = obj;
+              element.slideToggle(SLIDE_DURATION);
+              fillTemplate(obj);
             }
           }  
         };
@@ -75,7 +74,7 @@ define(['search/events'], function(Events) {
     element.hide();
     container.append(element);
     
-    eventBroker.addHandler(Events.UI_SELECT_PLACE, showPlace);
+    eventBroker.addHandler(Events.UI_SELECT_PLACE, showObject);
   };
   
   return SelectionInfoBox;

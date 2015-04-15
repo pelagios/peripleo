@@ -46,8 +46,10 @@ define(['search/events'], function(Events) {
           if (filters.place)
             url += '&places=' + encodeURIComponent(filters.place);
           
-          url += '&bbox=' +
-            bounds.west + ',' + bounds.east + ',' + bounds.south + ',' + bounds.north;
+          // Note: if there's a user queries, we don't want the bounding box limit
+          if (!filters.query)
+            url += '&bbox=' +
+              bounds.west + ',' + bounds.east + ',' + bounds.south + ',' + bounds.north;
           
           return url;
         },
@@ -64,7 +66,7 @@ define(['search/events'], function(Events) {
           requestQueue = [];
             
           // Make the request
-          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram), function(response) {                                
+          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram), function(response) {                         
             eventBroker.fireEvent(Events.API_SEARCH_SUCCESS, response);
               
             // if (includeTimeHistogram)

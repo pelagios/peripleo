@@ -1,6 +1,8 @@
 /** The result list **/
 define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
+  var SLIDE_DURATION = 200;
+
   var ResultList = function(container, eventBroker) {
     var element = jQuery(
           '<div id="search-results">' +
@@ -8,8 +10,23 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '</div>'),
 
         list = element.find('ul'),
+        
+        pendingQuery = false,
           
         currentResults = [],
+        
+        /** Checks current height and limits to max screen height **/
+        constrainHeight = function() {
+          // TODO revise!
+          var windowHeight = jQuery(window).outerHeight(),
+              elTop = element.position().top,
+              elHeight = element.outerHeight(),
+              marginAndPadding = element.outerHeight(true) - element.height(),
+              maxHeight = windowHeight - elTop - 2 * marginAndPadding;
+          
+          if (elHeight > maxHeight) 
+            element.css({ height: maxHeight, maxHeight: maxHeight });          
+        },
         
         /**
          * Updates the results. If the UI element is closed,
@@ -20,9 +37,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         update = function(results) {
           currentResults = results.items;
           
-          if (element.is(':visible')) {
+          if (pendingQuery || element.is(':visible')) {
             list.empty();
             rebuildList();
+          }
+          
+          if (pendingQuery) {
+            element.slideDown(SLIDE_DURATION, constrainHeight);
+            pendingQuery = false;
           }
         },
         
@@ -35,11 +57,12 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         show = function() {
           rebuildList();
-          element.show();
+          element.slideDown(SLIDE_DURATION, constrainHeight);
         },
         
         hide = function() {
-          element.hide();
+          element.slideUp(SLIDE_DURATION);
+          element.css({ height: 'auto', maxHeight: 'none' });     
         },
         
         /**
@@ -48,7 +71,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         rebuildList = function() {          
           var rows = jQuery.map(currentResults, function(result) {
             var li, icon, html;
-            console.log(result);
+            
             switch (result.object_type.toLowerCase()) {
               case 'place': 
                 icon = '<span class="icon" title="Place">&#xf041;</span>';
@@ -62,20 +85,22 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               '  <h3>' + icon + ' ' + result.title + '</h3>';
               
             if (result.names)
-              html += '<p class="names"><span class="icon">' + 
-              result.names.splice(0,8).join(', ') + '</p>';
+              html += '<p class="names">' +
+                result.names.slice(0, 8).join(', ') + '</p>';
 
             if (result.description) 
               html += '<p class="description">' + result.description + '</p>';
               
-            if (result.matches) {
-              html += '<ul class="uris">';
               
-              // It has matches - it's a place, so we know the id is a gazetteer URI
+            if (result.object_type === 'Place') {
+              html += '<ul class="uris">';
               html += Formatting.formatGazetteerURI(result.identifier);
-              jQuery.each(result.matches, function(idx, uri) {
-                html += Formatting.formatGazetteerURI(uri);
-              });
+
+              if (result.matches)
+                jQuery.each(result.matches, function(idx, uri) {
+                  html += Formatting.formatGazetteerURI(uri);
+                });
+              
               html += '</ul>';
             }
             
@@ -85,8 +110,12 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             html += '</li>';
               
             li = jQuery(html);
-            li.on('mouseenter', function() {
+            li.mouseenter(function() {
               eventBroker.fireEvent(Events.UI_MOUSE_OVER_RESULT, result);
+            });
+            li.click(function() {
+              hide();
+              eventBroker.fireEvent(Events.UI_SELECT_PLACE, result);
             });
                           
             return li;
@@ -98,8 +127,23 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       
     element.hide();
     container.append(element);
-    
+
+    // Listen for search results
     eventBroker.addHandler(Events.API_SEARCH_SUCCESS, update);   
+    
+    // We want to know about user-issued queries, because after
+    // a "user-triggered" (rather than "map-triggered") search
+    // returns, we want the list to open automatically
+    eventBroker.addHandler(Events.UI_SEARCH, function(query) {
+      hide();
+      pendingQuery = query;
+    });
+    
+    // Like Google Maps, we close the result list when the user
+    // resumes map browsing
+    eventBroker.addHandler(Events.UI_MAP_CHANGED, hide);
+
+    // Manual open/close events
     eventBroker.addHandler(Events.UI_TOGGLE_ALL_RESULTS, toggle); 
     eventBroker.addHandler(Events.UI_SHOW_ALL_RESULTS, show); 
     eventBroker.addHandler(Events.UI_HIDE_ALL_RESULTS, hide); 

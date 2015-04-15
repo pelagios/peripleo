@@ -22,9 +22,9 @@ define(['search/controls/autoComplete', 'search/events'], function(AutoComplete,
       
       if (query.length === 0) {
         // Make sure handlers get query === undefined for empty strings
-        eventBroker.fireEvent(Events.SEARCH);
+        eventBroker.fireEvent(Events.UI_SEARCH);
       } else {
-        eventBroker.fireEvent(Events.SEARCH, query);
+        eventBroker.fireEvent(Events.UI_SEARCH, query);
       }
     
       input.blur();
