@@ -69,12 +69,18 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               fillTemplate(obj);
             }
           }  
+        },
+        
+        hide = function() {
+          clearTemplate();
+          element.hide();
         };
        
     element.hide();
     container.append(element);
     
     eventBroker.addHandler(Events.UI_SELECT_PLACE, showObject);
+    eventBroker.addHandler(Events.UI_SEARCH, hide);
   };
   
   return SelectionInfoBox;

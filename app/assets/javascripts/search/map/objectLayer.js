@@ -224,8 +224,11 @@ define(['search/events'], function(Events) {
     // This event can be triggered from the objectLayer or the resultList
     // Highlight the marker when the trigger comes from the result list
     eventBroker.addHandler(Events.UI_SELECT_PLACE, function(result) {
-      var tuple = highlight(result.identifier);
-      map.panTo(tuple.marker.getBounds().getCenter());
+      var tuple = highlight(result.identifier),
+          markerLatLng = tuple.marker.getBounds().getCenter();
+          
+      if (!map.getBounds().contains(markerLatLng))
+        map.panTo(markerLatLng);
       
       // Note: there can be accidential mouseovers as the result list closes
       // Make sure we have a 'grace period' for that, in which mouseovers
