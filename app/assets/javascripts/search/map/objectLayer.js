@@ -74,7 +74,11 @@ define(['search/events'], function(Events) {
         
         /** Shorthand: resets location and zoom of the map to fit all current objects **/
         fitToObjects = function() {
-          map.fitBounds(featureGroup.getBounds(), { animate: true });
+          map.fitBounds(featureGroup.getBounds(), {
+            animate: true,
+            paddingTopLeft: [380, 20],
+            paddingBottomRight: [20, 20]
+          });
         },
         
         /** Highlights (and returns) the object with the specified id **/
@@ -97,10 +101,18 @@ define(['search/events'], function(Events) {
         
         /** Shorthand: highlights the object and triggers the select event **/
         select = function(id) {
-          var tuple = highlight(id);
+          var tuple;
+          
+          if (id) {
+            tuple = highlight(id);
 
-          if (tuple)
-            eventBroker.fireEvent(Events.UI_SELECT_PLACE, tuple.obj);
+            if (tuple)
+              eventBroker.fireEvent(Events.UI_SELECT_PLACE, tuple.obj);
+          } else {
+            if (selectionPin)
+              map.removeLayer(selectionPin);
+            eventBroker.fireEvent(Events.UI_SELECT_PLACE);
+          }
         },
         
         /** Clears all ojbects from the map **/
@@ -196,6 +208,8 @@ define(['search/events'], function(Events) {
               select(nearest.obj.identifier);
             else
               select();
+          } else {
+            select();
           }
         };
         
@@ -224,17 +238,19 @@ define(['search/events'], function(Events) {
     // This event can be triggered from the objectLayer or the resultList
     // Highlight the marker when the trigger comes from the result list
     eventBroker.addHandler(Events.UI_SELECT_PLACE, function(result) {
-      var tuple = highlight(result.identifier),
-          markerLatLng = tuple.marker.getBounds().getCenter();
+      if (result) {
+        var tuple = highlight(result.identifier),
+            markerLatLng = tuple.marker.getBounds().getCenter();
           
-      if (!map.getBounds().contains(markerLatLng))
-        map.panTo(markerLatLng);
+        if (!map.getBounds().contains(markerLatLng))
+          map.panTo(markerLatLng);
       
-      // Note: there can be accidential mouseovers as the result list closes
-      // Make sure we have a 'grace period' for that, in which mouseovers
-      // are ignored
-      allowMouseOverHighlights = false;
-      setTimeout(function() { allowMouseOverHighlights = true; }, 500);
+        // Note: there can be accidential mouseovers as the result list closes
+        // Make sure we have a 'grace period' for that, in which mouseovers
+        // are ignored
+        allowMouseOverHighlights = false;
+        setTimeout(function() { allowMouseOverHighlights = true; }, 500);
+      }
     });
     
     map.on('click', function(e) { selectNearest(e.latlng); });
