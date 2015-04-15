@@ -51,7 +51,7 @@ define(['search/events',
     /** Instantiate child controls **/
     body.hide();
     container.append(element);
-    timeHistogram = new TimeHistogram(histogramSection, eventBroker);
+    // timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     
     typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type');
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'dataset');
@@ -74,17 +74,15 @@ define(['search/events',
     eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(response) {
       footerTotals.html('(' + numeral(response.total).format('0,0') + ')'); 
       
-      /*
       var facets = response.facets, 
           typeDimension = jQuery.grep(facets, function(facet) { return facet.dimension === 'type'; }),
           typeFacets = (typeDimension.length > 0) ? typeDimension[0].top_children : [],
           
-          sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'dataset'; });
+          sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'source_dataset'; });
           sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
           
       typeFacetChart.update(typeFacets);
       sourceFacetChart.update(sourceFacets);
-      */
     });
 
   };
