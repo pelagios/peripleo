@@ -33,9 +33,14 @@ object BoundingBox {
   implicit val statusMapper = MappedColumnType.base[BoundingBox, String](
     { bbox => bbox.toString },
     { bbox => BoundingBox.fromString(bbox).get })
+    
+  def fromGeometry(geometry: Geometry): BoundingBox = {
+    val envelope = geometry.getEnvelopeInternal
+    BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
+  }
         
   /** Computes a bounding box from a list of geometries **/
-  def compute(geometries: Seq[Geometry]): Option[BoundingBox] = {
+  def fromGeometries(geometries: Seq[Geometry]): Option[BoundingBox] = {
     if (geometries.size > 0) {
       try {
         val envelope = new Envelope()
@@ -54,7 +59,7 @@ object BoundingBox {
   
   /** Helper function to get the bounds of a list of places **/
   def fromPlaces(places: Seq[IndexedPlace]): Option[BoundingBox] =
-    compute(places.flatMap(_.geometry))
+    fromGeometries(places.flatMap(_.geometry))
     
   /** Helper function to parse a comma-separated string representation **/
   def fromString(s: String): Option[BoundingBox] = {

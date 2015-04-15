@@ -12,7 +12,7 @@ class IndexedAnnotation(private val doc: Document) {
 
   val uuid: UUID = UUID.fromString(doc.get(IndexFields.ID))   
       
-  val dataset: String = doc.get(IndexFields.ANNOTATION_DATASET)
+  val dataset: String = doc.get(IndexFields.SOURCE_DATASET)
     
   val annotatedThing: String = doc.get(IndexFields.ANNOTATION_THING)
   
@@ -32,7 +32,7 @@ object IndexedAnnotation {
     
     // UUID, containing dataset & annotated thing
     doc.add(new StringField(IndexFields.ID, annotation.uuid.toString, Field.Store.YES))
-    doc.add(new StringField(IndexFields.ANNOTATION_DATASET, annotation.dataset, Field.Store.YES))
+    doc.add(new StringField(IndexFields.SOURCE_DATASET, annotation.dataset, Field.Store.YES))
     doc.add(new StringField(IndexFields.ANNOTATION_THING, annotation.annotatedThing, Field.Store.YES))
     
     // Temporal bounds
@@ -45,8 +45,8 @@ object IndexedAnnotation {
     fulltextSuffix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_SUFFIX, text, Field.Store.YES)))
     
     // Place & geometry
-    doc.add(new StringField(IndexFields.ITEM_PLACES, annotation.gazetteerURI, Field.Store.NO)) 
-    doc.add(new FacetField(IndexFields.ITEM_PLACES, annotation.gazetteerURI))
+    doc.add(new StringField(IndexFields.PLACE_URI, annotation.gazetteerURI, Field.Store.NO)) 
+    doc.add(new FacetField(IndexFields.PLACE_URI, annotation.gazetteerURI))
     
     // Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geometry)).foreach(doc.add(_))
     

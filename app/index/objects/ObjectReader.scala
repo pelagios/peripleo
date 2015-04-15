@@ -202,11 +202,11 @@ trait ObjectReader extends AnnotationReader {
     if (dataset.isDefined) {
       val datasetHierarchy = dataset.get +: Datasets.listSubsetsRecursive(dataset.get)
       if (datasetHierarchy.size == 1) {
-        q.add(new TermQuery(new Term(IndexFields.ITEM_DATASET, dataset.get)), BooleanClause.Occur.MUST)        
+        q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, dataset.get)), BooleanClause.Occur.MUST)        
       } else {
         val datasetQuery = new BooleanQuery()
         datasetHierarchy.foreach(id => {
-          datasetQuery.add(new TermQuery(new Term(IndexFields.ITEM_DATASET, id)), BooleanClause.Occur.SHOULD)       
+          datasetQuery.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.SHOULD)       
         })
         q.add(datasetQuery, BooleanClause.Occur.MUST)
       }
@@ -214,11 +214,11 @@ trait ObjectReader extends AnnotationReader {
     
     // Gazetteer filter
     if (gazetteer.isDefined)
-      q.add(new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
+      q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
       
     // Places filter
     places.foreach(uri =>
-      q.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
+      q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
       
     // Spatial filter
     val valuesource = {

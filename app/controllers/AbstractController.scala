@@ -65,7 +65,7 @@ abstract class AbstractController extends Controller {
   protected def parseSearchParams(request: RequestHeader): Try[SearchParameters] = {
     try {
       val query = 
-        getQueryParam(KEY_QUERY, request).map(_.toLowerCase)
+        getQueryParam(KEY_QUERY, request)
       
       val objectType = 
         getQueryParam(KEY_OBJECT_TYPE, request).flatMap(name => name.toLowerCase match {

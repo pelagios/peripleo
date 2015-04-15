@@ -38,7 +38,7 @@ trait AnnotationReader extends IndexBase {
     val facets = new FastTaxonomyFacetCounts(searcher.taxonomyReader, Index.facetsConfig, fc)
     
     val topURIs = 
-      Option(facets.getTopChildren(limit, IndexFields.ITEM_PLACES)).map(result => {
+      Option(facets.getTopChildren(limit, IndexFields.PLACE_URI)).map(result => {
         result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))
       }).getOrElse(Seq.empty[(String, Int)])
     
@@ -71,7 +71,7 @@ trait AnnotationReader extends IndexBase {
       query.add(new MultiFieldQueryParser(fields, analyzer).parse(phrase), BooleanClause.Occur.MUST)  
       
       if (place.isDefined)
-        query.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, place.get)), BooleanClause.Occur.MUST)
+        query.add(new TermQuery(new Term(IndexFields.PLACE_URI, place.get)), BooleanClause.Occur.MUST)
       
       val topDocs = searcher.search(query, 3)
     
@@ -115,11 +115,11 @@ trait AnnotationReader extends IndexBase {
     if (dataset.isDefined) {
       val datasetHierarchy = dataset.get +: Datasets.listSubsetsRecursive(dataset.get)
       if (datasetHierarchy.size == 1) {
-        q.add(new TermQuery(new Term(IndexFields.ANNOTATION_DATASET, dataset.get)), BooleanClause.Occur.MUST)        
+        q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, dataset.get)), BooleanClause.Occur.MUST)        
       } else {
         val datasetQuery = new BooleanQuery()
         datasetHierarchy.foreach(id => {
-          datasetQuery.add(new TermQuery(new Term(IndexFields.ANNOTATION_DATASET, id)), BooleanClause.Occur.SHOULD)       
+          datasetQuery.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.SHOULD)       
         })
         q.add(datasetQuery, BooleanClause.Occur.MUST)
       }
@@ -140,7 +140,7 @@ trait AnnotationReader extends IndexBase {
       
     // Places filter
     places.foreach(uri =>
-      q.add(new TermQuery(new Term(IndexFields.ANNOTATION_PLACE, uri)), BooleanClause.Occur.MUST))
+      q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
     
     // Spatial filter
     if (bbox.isDefined) {

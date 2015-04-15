@@ -45,7 +45,7 @@ trait ObjectWriter extends IndexBase {
   def dropDatasets(ids: Seq[String]) =
     ids.foreach(id => {
       // Delete annotated things for this dataset
-      objectWriter.deleteDocuments(new Term(IndexFields.ITEM_DATASET, id))
+      objectWriter.deleteDocuments(new Term(IndexFields.SOURCE_DATASET, id))
       
       // Delete the dataset
       val q = new BooleanQuery()

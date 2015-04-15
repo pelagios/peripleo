@@ -57,11 +57,11 @@ define(['search/events'], function(Events) {
          * the UI.
          */
         collapseRectangles = function(place) {  
-          if (place.convex_hull.type == 'Polygon' && 
-              place.convex_hull.coordinates[0].length === 5) {
+          if (place.geometry.type == 'Polygon' && 
+              place.geometry.coordinates[0].length === 5) {
               
-            place.convex_hull.type = 'Point';
-            place.convex_hull.coordinates = [
+            place.geometry.type = 'Point';
+            place.geometry.coordinates = [
               (place.geo_bounds.max_lon + place.geo_bounds.min_lon) / 2,
               (place.geo_bounds.max_lat + place.geo_bounds.min_lat) / 2 ];
           }
@@ -122,13 +122,13 @@ define(['search/events'], function(Events) {
         
         /** Clears all ojbects from the map **/
         clear = function() {
+          highlight();
           featureGroup.clearLayers();          
           objects = {};
-          selectionPin = false;
         },
         
         addPlace = function(p) {                    
-          var marker, uri = p.identifier,
+          var marker, uri = p.identifier, type,
               cLon = (p.geo_bounds) ? (p.geo_bounds.max_lon + p.geo_bounds.min_lon) / 2 : false,
               cLat = (p.geo_bounds) ? (p.geo_bounds.max_lat + p.geo_bounds.min_lat) / 2 : false;
           
@@ -138,12 +138,14 @@ define(['search/events'], function(Events) {
             collapseRectangles(p);
           
             if (!exists(uri)) {
-              if (p.convex_hull.type === 'Point') {
+              type = p.geometry.type;
+              
+              if (type === 'Point') {
                 marker = L.circleMarker([cLat, cLon], Styles.SMALL);
-              } else if (p.convex_hull.type === 'Polygon' || p.convex_hull.type === 'LineString') {
-                marker = L.geoJson(p.convex_hull, Styles.POLYGON);
+              } else if (type === 'Polygon' || type === 'LineString' || type === 'MultiPolygon') {
+                marker = L.geoJson(p.geometry, Styles.POLYGON);
               } else {
-                console.log('Unsupported convex hull type: ' + p.convex_hull.type , p);
+                console.log('Unsupported convex hull type: ' + p.geometry.type , p);
               }
             
               if (marker) {
@@ -257,6 +259,8 @@ define(['search/events'], function(Events) {
         // are ignored
         allowMouseOverHighlights = false;
         setTimeout(function() { allowMouseOverHighlights = true; }, 500);
+      } else {
+        highlight();
       }
     });
     

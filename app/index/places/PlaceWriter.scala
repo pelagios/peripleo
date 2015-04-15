@@ -139,7 +139,7 @@ trait PlaceWriter extends PlaceReader {
   }
     
   private def deleteGazetteerRecordBatch(gazetteer: String, searcher: IndexSearcher, offset: Int = 0, batchSize: Int = 30000): Unit = {    
-    val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
+    val query = new TermQuery(new Term(IndexFields.SOURCE_DATASET, gazetteer))
     val collector = TopScoreDocCollector.create(offset + batchSize) 
     searcher.search(query, collector)
     

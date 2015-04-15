@@ -25,7 +25,7 @@
 
 @dimension match {
   
-  case index.IndexFields.ITEM_DATASET => {
+  case index.IndexFields.SOURCE_DATASET => {
     <a href="@setFilter("dataset", label.substring(label.lastIndexOf('#') + 1))">
       <span class="label">@label.substring(0, label.lastIndexOf('#'))</span>
       <span class="count number">@count</span>

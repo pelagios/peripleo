@@ -1,19 +1,20 @@
 package controllers.common
 
+import com.vividsolutions.jts.geom.Geometry
 import global.Global
-import index.{ Heatmap, TimeHistogram }
+import index.{ FacetTree, Heatmap, TimeHistogram }
 import index.places._
 import index.objects.{ IndexedObject, IndexedObjectTypes }
+import java.io.StringWriter
 import models._
 import models.adjacency._
 import models.core._
 import models.geo._
+import org.geotools.geojson.geom.GeometryJSON
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.libs.json.Reads._
 import play.api.libs.functional.syntax._
-import models.adjacency.PlaceAdjacencyGraph
-import index.FacetTree
 
 /** JSON writers for model and index classes. **/
 object JSONWrites {
@@ -150,8 +151,14 @@ object JSONWrites {
     (JsPath \ "min_lat").write[Double] ~
     (JsPath \ "max_lat").write[Double]
   )(bbox => (bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat))
-
   
+  implicit val geometryWrites: Writes[Geometry] =
+    (JsPath).write[JsValue].contramap(geom => {
+      val geoJson = new StringWriter()
+      new GeometryJSON().write(geom, geoJson)
+      Json.parse(geoJson.toString)
+    })
+    
   implicit def pageWrites[A](implicit fmt: Writes[A]): Writes[Page[A]] = (
     (JsPath \ "total").write[Long] ~
     (JsPath \ "offset").writeNullable[Int] ~
@@ -223,7 +230,7 @@ object JSONWrites {
     (JsPath \ "object_type").write[String] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
     (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
-    (JsPath \ "convex_hull").writeNullable[JsValue] ~
+    (JsPath \ "geometry").writeNullable[Geometry] ~
     (JsPath \ "names").writeNullable[Seq[String]] ~
     (JsPath \ "matches").writeNullable[Seq[String]]
   )(obj => {
@@ -250,8 +257,8 @@ object JSONWrites {
        obj.temporalBoundsStart.map(start => Json.obj( 
          "start" -> start,
          "end" -> { val end = obj.temporalBoundsEnd.getOrElse(start); end })),
-       obj.convexHull.map(_.bounds),
-       { if (verbose) obj.convexHull.map(_.asGeoJSON) else None },
+       obj.geoBounds,
+       { if (verbose) obj.geometry else None },
        names,
        matches
   )})

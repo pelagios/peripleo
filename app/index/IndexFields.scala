@@ -13,6 +13,8 @@ object IndexFields {
   val DESCRIPTION = "description"
   
   val OBJECT_TYPE = "type"
+  
+  val SOURCE_DATASET = "source_dataset"    
 
   val HOMEPAGE = "homepage"
     
@@ -26,27 +28,29 @@ object IndexFields {
     
   val GEOMETRY = "geometry"
   
-  val CONVEX_HULL = "convex_hull"
+  // val CONVEX_HULL = "convex_hull"
   
   val BOUNDING_BOX = "bbox"
+  
+  val PLACE_URI = "place_uri" 
     
     
   /** Item-specific fields **/
     
-  val ITEM_DATASET = "dataset"    
+
     
-  val ITEM_PLACES = "place_uri"
+  // val ITEM_PLACES = "place_uri"
   
   val ITEM_FULLTEXT = "fulltext"
   
-  val ITEM_FULLTEXT_OFFSETS = "fulltext_offsets"
+  // val ITEM_FULLTEXT_OFFSETS = "fulltext_offsets"
   
     
   /** Place-specific fields **/
     
-  val PLACE_URI = "uri"
+  // val PLACE_URI = "uri"
     
-  val PLACE_SOURCE_GAZETTEER = "source_gazetteer"
+  // val PLACE_SOURCE_GAZETTEER = "source_gazetteer"
 
   val PLACE_NAME = "name"
     
@@ -57,11 +61,11 @@ object IndexFields {
   
   /** Annotation-specific fields **/
     
-  val ANNOTATION_DATASET = "dataset"
+  // val ANNOTATION_DATASET = "dataset"
   
   val ANNOTATION_THING = "annotated_thing"
   
-  val ANNOTATION_PLACE = "place_uri"
+  // val ANNOTATION_PLACE = "place_uri"
   
   val ANNOTATION_QUOTE = "quote"
   

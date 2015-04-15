@@ -1,18 +1,18 @@
 package index.places
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
+import com.vividsolutions.jts.geom.Geometry
 import index.{ Index, IndexFields }
+import index.objects.IndexedObjectTypes
+import java.io.StringWriter
+import models.geo.BoundingBox
 import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
-import org.pelagios.api.gazetteer.Place
+import org.geotools.geojson.geom.GeometryJSON
 import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
-import com.vividsolutions.jts.geom.Envelope
-import models.geo.ConvexHull
-import index.objects.IndexedObjectTypes
-import models.geo.BoundingBox
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
@@ -81,6 +81,29 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
 
 object IndexedPlaceNetwork {
   
+  private def getPreferredGeometry(places: Seq[IndexedPlace]): Option[Geometry] = {
+    val priorityList = Seq("DARE", "Pleiades") // TODO needs to be made configurable through application.conf
+    
+    val placesWithGeometry = places.filter(_.geometry.isDefined)
+    
+    val topPriority = priorityList.foldLeft(Seq.empty[IndexedPlace])((result, gazetteer) => {
+      if (result.isEmpty) {
+        val firstPlaceForGazetteer = placesWithGeometry.filter(_.sourceGazetteer.equalsIgnoreCase(gazetteer)).headOption
+        Seq(firstPlaceForGazetteer).flatten
+      } else {
+        // We got a top priority geometry - no more checks needed
+        result 
+      }
+    }).headOption
+    
+    if (topPriority.isDefined)
+      // We got a priority geometry!
+      topPriority.flatMap(_.geometry)
+    else
+      // No priority geom - just use first available
+      placesWithGeometry.headOption.flatMap(_.geometry)
+  }
+  
   /** Creates a new place network with a single place **/
   def createNew(): IndexedPlaceNetwork = 
     new IndexedPlaceNetwork(new Document())
@@ -92,44 +115,31 @@ object IndexedPlaceNetwork {
     
     places.foreach(addPlaceToDoc(_, joinedDoc))
     
-    // Bounding box across all place geometries to enable efficient best-fit queries
-    val bbox = BoundingBox.fromPlaces(places)
-    bbox.map(b => 
-      Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
-        .foreach(joinedDoc.add(_)))
+    getPreferredGeometry(places).map(geometry => {
+      try {
+        // Bounding box to enable efficient best-fit queries
+        val bbox = BoundingBox.fromGeometry(geometry)
+        Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(bbox.minLon, bbox.maxLon, bbox.minLat, bbox.maxLat))
+          .foreach(joinedDoc.add(_))
     
-    // Convex hull accross all place geometries
-    val convexHull = ConvexHull.compute(places.flatMap(_.geometry))
-    convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
+        val geoJson = new StringWriter()
+        new GeometryJSON().write(geometry, geoJson)
+        joinedDoc.add(new StoredField(IndexFields.GEOMETRY, geoJson.toString))
+      } catch {
+        case _: Throwable => Logger.info("Cannot index geometry: " + geometry)
+      }
+    })
 
     new IndexedPlaceNetwork(joinedDoc)
   }
   
   /** Merges the place into the network **/
   def join(place: IndexedPlace, network: IndexedPlaceNetwork): IndexedPlaceNetwork =
-    join(place, Seq(network))
+    join(network.places :+ place)
     
   /** Merges the place and the networks into one network **/
-  def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork = {
-    val joinedDoc = new Document() 
-    joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))
-    joinedDoc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString))
-    
-    val allPlaces = networks.flatMap(_.places) :+ place
-    allPlaces.foreach(addPlaceToDoc(_, joinedDoc))
-    
-    // Bounding box across all place geometries to enable efficient best-fit queries
-    val bbox = BoundingBox.fromPlaces(allPlaces)
-    bbox.map(b => 
-      Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
-        .foreach(joinedDoc.add(_)))
-    
-    // Convex hull accross all place geometries
-    val convexHull = ConvexHull.compute(allPlaces.flatMap(_.geometry))
-    convexHull.map(cv => joinedDoc.add(new StoredField(IndexFields.CONVEX_HULL, cv.toString)))
-
-    new IndexedPlaceNetwork(joinedDoc)   
-  }
+  def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork =
+    join(networks.flatMap(_.places) :+ place)
       
   private[places] def addPlaceToDoc(place: IndexedPlace, doc: Document): Document = {
     // Place URI
@@ -157,9 +167,11 @@ object IndexedPlaceNetwork {
     place.names.foreach(literal => doc.add(new TextField(IndexFields.PLACE_NAME, literal.chars, Field.Store.YES)))
     
     // Update list of source gazetteers, if necessary
-    val sourceGazetteers = doc.getValues(IndexFields.PLACE_SOURCE_GAZETTEER).toSet
-    if (!sourceGazetteers.contains(place.sourceGazetteer))
-      doc.add(new StringField(IndexFields.PLACE_SOURCE_GAZETTEER, place.sourceGazetteer, Field.Store.YES))
+    val sourceGazetteers = doc.getValues(IndexFields.SOURCE_DATASET).toSet
+    if (!sourceGazetteers.contains(place.sourceGazetteer)) {
+      doc.add(new StringField(IndexFields.SOURCE_DATASET, place.sourceGazetteer, Field.Store.YES))
+      doc.add(new FacetField(IndexFields.SOURCE_DATASET, "gazetteer:" + place.sourceGazetteer))
+    }
       
     // Update list of matches
     val newMatches = place.matches.map(Index.normalizeURI(_)).distinct

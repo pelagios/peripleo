@@ -38,7 +38,7 @@ db.default.url="jdbc:sqlite:db/pelagios-api.db"
 
 # Postgres configuration example
 # db.default.driver="org.postgresql.Driver"
-# db.default.url="jdbc:postgresql://localhost/recogito"
+# db.default.url="jdbc:postgresql://localhost/peripleo"
 # db.default.user="postgres"
 # db.default.password="postgres"
 

@@ -36,7 +36,7 @@ trait PlaceReader extends IndexBase {
     * @param limit page size
     */
   def listAllPlaces(gazetteer: String, bbox: Option[(Double, Double, Double, Double)], offset: Int = 0, limit: Int = 20): Page[IndexedPlace] = {    
-    val query = new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer))
+    val query = new TermQuery(new Term(IndexFields.SOURCE_DATASET, gazetteer))
     
     val bboxFilter = bbox.map(bounds => {
       val shape = Index.spatialCtx.makeRectangle(bounds._1, bounds._2, bounds._3, bounds._4)
