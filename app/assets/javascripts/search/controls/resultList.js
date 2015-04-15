@@ -12,6 +12,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         list = element.find('ul'),
         
         pendingQuery = false,
+        
+        keepOpen = false,
           
         currentResults = [],
         
@@ -61,8 +63,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
         
         hide = function() {
-          element.slideUp(SLIDE_DURATION);
-          element.css({ height: 'auto', maxHeight: 'none' });     
+          if (!keepOpen) {
+            element.slideUp(SLIDE_DURATION);
+            element.css({ height: 'auto', maxHeight: 'none' });     
+          }
         },
         
         /**
@@ -129,7 +133,13 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     container.append(element);
 
     // Listen for search results
-    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, update);   
+    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(results) {
+      // The map will change automatically after the search - in this case 
+      // we don't want to close the panel, so allow for a short grace period
+      keepOpen = true; 
+      update(results);
+      setTimeout(function() { keepOpen = false; }, 500);
+    });   
     
     // We want to know about user-issued queries, because after
     // a "user-triggered" (rather than "map-triggered") search

@@ -90,17 +90,17 @@ define(['search/events'], function(Events) {
             if (tuple) {
               latlon = tuple.marker.getBounds().getCenter();
               selectionPin = L.marker(latlon).addTo(map);
-              return tuple.obj;
+              return tuple;
             }
           }          
         },
         
         /** Shorthand: highlights the object and triggers the select event **/
         select = function(id) {
-          var obj = highlight(id);
+          var tuple = highlight(id);
 
-          if (obj)
-            eventBroker.fireEvent(Events.UI_SELECT_PLACE, obj);
+          if (tuple)
+            eventBroker.fireEvent(Events.UI_SELECT_PLACE, tuple.obj);
         },
         
         /** Clears all ojbects from the map **/
@@ -224,7 +224,8 @@ define(['search/events'], function(Events) {
     // This event can be triggered from the objectLayer or the resultList
     // Highlight the marker when the trigger comes from the result list
     eventBroker.addHandler(Events.UI_SELECT_PLACE, function(result) {
-      highlight(result.identifier);
+      var tuple = highlight(result.identifier);
+      map.panTo(tuple.marker.getBounds().getCenter());
       
       // Note: there can be accidential mouseovers as the result list closes
       // Make sure we have a 'grace period' for that, in which mouseovers
