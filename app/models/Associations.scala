@@ -44,7 +44,7 @@ private[models] class PlaceToDatasetAssociations(tag: SlickTag) extends Table[Pl
   
   def title = column[String]("title", O.NotNull)
   
-  def location = column[String]("location", O.Nullable)
+  def location = column[String]("location", O.Nullable, O.DBType("text"))
 
   def count = column[Int]("count", O.NotNull)
   
@@ -115,7 +115,7 @@ private[models] class PlaceToThingAssociations(tag: SlickTag) extends Table[Plac
   
   def title = column[String]("title", O.NotNull)
   
-  def location = column[String]("location", O.Nullable)
+  def location = column[String]("location", O.Nullable, O.DBType("text"))
 
   def count = column[Int]("count", O.NotNull)
   

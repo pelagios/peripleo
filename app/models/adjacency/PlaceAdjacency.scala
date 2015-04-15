@@ -35,13 +35,13 @@ class PlaceAdjacencys(tag: SlickTag) extends Table[PlaceAdjacency](tag, "adjacen
   
   def placeTitle = column[String]("place_title", O.NotNull)
   
-  def placeLocation = column[String]("place_location", O.Nullable) 
+  def placeLocation = column[String]("place_location", O.Nullable, O.DBType("text")) 
   
   def nextPlaceURI = column[String]("next_place_uri", O.NotNull)
   
   def nextPlaceTitle = column[String]("next_place_title", O.NotNull)
   
-  def nextPlaceLocation = column[String]("next_place_location", O.Nullable)
+  def nextPlaceLocation = column[String]("next_place_location", O.Nullable, O.DBType("text"))
   
   def weight = column[Int]("weight", O.NotNull)
   

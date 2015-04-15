@@ -47,7 +47,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           description.empty();
           uris.empty();
         },
-        
+
         showObject = function(obj) {            
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it

@@ -1,12 +1,13 @@
 package index.places
 
 import index.{ Index, IndexFields }
-import java.io.InputStream
+import java.io.{ File, FileInputStream, InputStream }
 import org.apache.lucene.document.{ Field, StringField }
 import org.apache.lucene.index.{ IndexWriter, Term }
 import org.apache.lucene.search.{ BooleanQuery, BooleanClause, TermQuery, TopScoreDocCollector }
 import org.pelagios.Scalagios
 import org.pelagios.api.gazetteer.Place
+import org.pelagios.api.gazetteer.patch.PatchConfig
 import play.api.Logger
 import scala.collection.mutable.Set
 import org.apache.lucene.search.IndexSearcher
@@ -93,6 +94,37 @@ trait PlaceWriter extends PlaceReader {
     val updatedNetwork = IndexedPlaceNetwork.join(place, affectedNetworks)
     
     indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, updatedNetwork.doc))
+  }
+  
+  def applyPatch(file: File, config: PatchConfig) = {
+    val patches = Scalagios.readPlacePatches(new FileInputStream(file), file.getAbsolutePath)
+    Logger.info("Parsed " + patches.size + " patch records")
+    
+    patches.foreach(patch => {
+      val affectedNetwork = findNetworkByPlaceURI(patch.uri)
+      if (affectedNetwork.isEmpty) {
+        Logger.warn("Could not patch place " + patch.uri + " - not in index")
+      } else {
+        Logger.info("Applying patch for " + patch.uri)
+        
+        val patchedNetwork = 
+          if (config.propagatePatch) {
+            // Update all places in network
+            Logger.info("Propagating patch to " + (affectedNetwork.get.places.size - 1) + " network members")
+            val patchedPlaces = affectedNetwork.get.places.map(_.patch(patch, config))
+            IndexedPlaceNetwork.join(patchedPlaces)
+          } else {
+            // Update only the one place in the network with matching URI
+            val unaffectedPlaces = affectedNetwork.get.places.filter(_.uri != patch.uri)
+            val patchedPlace = affectedNetwork.flatMap(_.getPlace(patch.uri)).get
+            IndexedPlaceNetwork.join(unaffectedPlaces :+ patchedPlace)
+          }
+
+        Logger.info("Persisting patched place network")
+        placeWriter.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, affectedNetwork.get.seedURI)))
+        placeWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, patchedNetwork.doc))
+      }
+    })    
   }
   
   def deleteGazetter(name: String) = {

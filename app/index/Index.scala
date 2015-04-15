@@ -38,7 +38,7 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   
   protected val objectSearcherManager = new SearcherTaxonomyManager(objectIndex, taxonomyIndex, new SearcherFactory())
   
-  protected val annotationSearcherManager = new SearcherManager(annotationIndex, new SearcherFactory())
+  protected val annotationSearcherManager = new SearcherTaxonomyManager(annotationIndex, taxonomyIndex, new SearcherFactory())
   
   /** Analyzer **/
   protected val analyzer = new StandardAnalyzer() 
@@ -100,8 +100,8 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
     
     placeWriter.close()
     objectWriter.close()
-    taxonomyWriter.close()
     annotationWriter.close()
+    taxonomyWriter.close()
     
     placeSearcherManager.close()
     objectSearcherManager.close()
@@ -109,8 +109,8 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
     
     placeIndex.close()
     objectIndex.close()
-    taxonomyIndex.close()
     annotationIndex.close()
+    taxonomyIndex.close()
     
     suggester.close()
   }

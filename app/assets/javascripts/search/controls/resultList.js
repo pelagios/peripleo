@@ -113,7 +113,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             }
             
             if (result.snippet)
-              html += '<p class="snippet">' + result.snippet + '</p>';
+              html += result.snippet;
               
             html += '</li>';
               

@@ -23,6 +23,8 @@ import org.apache.lucene.spatial.prefix.tree.NumberRangePrefixTree.UnitNRShape
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import play.api.db.slick._
 import scala.collection.JavaConverters._
+import play.api.Logger
+import index.places.IndexedPlaceNetwork
 
 trait ObjectReader extends AnnotationReader {
   
@@ -66,8 +68,8 @@ trait ObjectReader extends AnnotationReader {
     * @param includeHeatmap set to true to include result heatmap (2d spatial facets) in the results
     */
   def search(params: SearchParameters, includeFacets: Boolean, includeSnippets: Boolean,
-      includeTimeHistogram: Boolean, includeHeatmap: Boolean)(implicit s: Session): 
-      (Page[(IndexedObject, Option[String])], Option[FacetTree], Option[TimeHistogram], Option[Heatmap]) = {
+      includeTimeHistogram: Boolean, includeTopPlaces: Int, includeHeatmap: Boolean)(implicit s: Session): 
+      (Page[(IndexedObject, Option[String])], Option[FacetTree], Option[TimeHistogram], Option[Seq[(IndexedPlaceNetwork, Int)]], Option[Heatmap]) = {
      
     val rectangle = params.bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
     
@@ -78,10 +80,18 @@ trait ObjectReader extends AnnotationReader {
     // Finalize search query and time histogram filter
     val (searchQuery, timeHistogramFilter) = {
       
-      // In both cases, we want to include fulltext search...
+      // In all cases, we want to include fulltext search...
       val baseSearchQuery = baseQuery.clone()
       if (params.query.isDefined) {
-        val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME, IndexFields.ITEM_FULLTEXT).toArray       
+        val fields = Seq(
+            IndexFields.TITLE, 
+            IndexFields.DESCRIPTION,
+            IndexFields.PLACE_NAME,
+            IndexFields.ITEM_FULLTEXT,
+            IndexFields.ANNOTATION_QUOTE,
+            IndexFields.ANNOTATION_FULLTEXT_PREFIX,
+            IndexFields.ANNOTATION_FULLTEXT_SUFFIX).toArray
+            
         baseSearchQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(params.query.get), BooleanClause.Occur.MUST)  
       }
       
@@ -114,10 +124,11 @@ trait ObjectReader extends AnnotationReader {
         None
       }
     }
-
-    
+  
     val placeSearcher = placeSearcherManager.acquire()
     val objectSearcher = objectSearcherManager.acquire()
+    val annotationSearcher = annotationSearcherManager.acquire()
+    
     val searcher = params.objectType match { // Just a bit of optimization
       case Some(typ) if typ == IndexedObjectTypes.PLACE => // Search place index only
         placeSearcher.searcher
@@ -128,13 +139,22 @@ trait ObjectReader extends AnnotationReader {
       case None => // Search both indices  
         new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
     } 
+
     
     try {   
       // Search & facet counts
       val (results, facets) = 
-        executeSearch(searchQuery, params.places, params.limit, params.offset, searcher, objectSearcher.taxonomyReader,
-          valueSource, includeFacets, includeSnippets)
+        executeSearch(searchQuery, params.query, params.places, params.limit, params.offset, searcher, objectSearcher.taxonomyReader,
+          valueSource, includeFacets, includeSnippets, annotationSearcher.searcher)
       
+      // Top places
+      val topPlaces = 
+        if (includeTopPlaces > 0) {
+          Some(calculateTopPlaces(searchQuery, includeTopPlaces, annotationSearcher))
+        } else {
+          None
+        }
+          
       // Time histogram computation
       val temporalProfile = timeHistogramFilter.map(filter => calculateTemporalProfile(filter, searcher))
       
@@ -147,17 +167,18 @@ trait ObjectReader extends AnnotationReader {
           // If there is a query phrase, we include the annotation heatmap 
           calculateItemHeatmap(filter, rect, level, searcher) +
           calculateAnnotationHeatmap(params.query, params.dataset, params.from, params.to, params.places, rectangle,
-            params.coord, params.radius, level)
+            params.coord, params.radius, level, annotationSearcher)
         } else {
           // Otherwise, we only need the item-based heatmap
           calculateItemHeatmap(filter, rect, level, searcher)
         }
       })
       
-      (results, facets, temporalProfile, heatmap)
+      (results, facets, temporalProfile, topPlaces, heatmap)
     } finally {
       placeSearcherManager.release(placeSearcher)
       objectSearcherManager.release(objectSearcher)
+      annotationSearcherManager.release(annotationSearcher)
     }
   }
   
@@ -194,11 +215,10 @@ trait ObjectReader extends AnnotationReader {
     // Gazetteer filter
     if (gazetteer.isDefined)
       q.add(new TermQuery(new Term(IndexFields.PLACE_SOURCE_GAZETTEER, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
-    
+      
     // Places filter
-    if (places.size  > 0) {
-      // For places we always want to use drill sideways 
-    }
+    places.foreach(uri =>
+      q.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
       
     // Spatial filter
     val valuesource = {
@@ -219,6 +239,7 @@ trait ObjectReader extends AnnotationReader {
     (q, valuesource)
   }
   
+  /*
   private def executeDrillSideways(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher,
     taxonomyReader: DirectoryTaxonomyReader): (TopDocs, Option[Facets]) = {
     
@@ -230,13 +251,14 @@ trait ObjectReader extends AnnotationReader {
       
     (dsResult.hits, Some(dsResult.facets))
   }
+  */
   
   private def executeStandardQuery(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, 
       taxonomyReader: DirectoryTaxonomyReader, valueSource: Option[ValueSource], includeFacets: Boolean): (TopDocs, Option[Facets]) = {
     
     // Places filter
-    places.foreach(uri =>
-      query.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
+    // places.foreach(uri =>
+    //   query.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
     
     val (docCollector, facetsCollector) = { 
       val dc =
@@ -268,24 +290,24 @@ trait ObjectReader extends AnnotationReader {
     (topDocs, facets)
   }
 
-  private def executeSearch(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
-      valueSource: Option[ValueSource], includeFacets: Boolean, includeSnippets: Boolean): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
+  private def executeSearch(query: BooleanQuery, phrase: Option[String], places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
+      valueSource: Option[ValueSource], includeFacets: Boolean, includeSnippets: Boolean, snippetSearcher: IndexSearcher): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
     
     
-    val (topDocs, facets) = 
-      if (places.size > 0 && includeFacets) {
+    val (topDocs, facets) =
+      // if (places.size > 0 && includeFacets) {
         // If there is a place filter, we need to drill sideways, rather than execute a standard search
-        executeDrillSideways(query, places, limit, offset, searcher, taxonomyReader)
-      } else {
+        // executeDrillSideways(query, places, limit, offset, searcher, taxonomyReader)
+      // } else {
         executeStandardQuery(query, places, limit, offset, searcher, taxonomyReader, valueSource, includeFacets)
-      }
+      // }
     
     val total = topDocs.totalHits
 
     // Compute facets, optionally
     val facetTree = facets.map(new FacetTree(_))      
     
-    // Prepare snippet highlighter, optionally
+    /* Prepare snippet highlighter, optionally
     val highlighter =
       if (includeSnippets) {
         val previewFormatter = new SimpleHTMLFormatter("<strong>", "</strong>")
@@ -297,18 +319,45 @@ trait ObjectReader extends AnnotationReader {
       } else {
         None
       }
+      */
        
     // Fetch result documents
     val results = topDocs.scoreDocs.drop(offset).map(scoreDoc => {      
       val document = searcher.doc(scoreDoc.doc)
  
       // Fetch snippets, optionally
+      /*
       val previewSnippet = highlighter.flatMap(h => {
         Option(document.get(IndexFields.ITEM_FULLTEXT)).map(fulltext => {  
           val stream = TokenSources.getAnyTokenStream(searcher.getIndexReader, scoreDoc.doc, IndexFields.ITEM_FULLTEXT, analyzer)
           h.getBestFragments(stream, fulltext, PREVIEW_MAX_NUM_SNIPPETS, PREVIEW_SNIPPET_SEPARATOR)        
         })
       })
+      */
+      
+      /** HACK **/
+      
+      val previewSnippet = 
+        if (includeSnippets && phrase.isDefined) {
+          
+          // if document hasFulltext
+          
+          Option(document.get(IndexFields.ID)) match {
+            
+            case Some(id) => {
+              val snippets = getSnippets(id, phrase.get, places.headOption, 3, snippetSearcher)
+              Some(snippets.map("<p class=\"snippet\">..." + _ + "...</p>").mkString(""))
+            }
+            
+            case None => None
+          }
+          
+          
+        } else {
+          None
+        }
+      
+      /** /HACK **/
       
       (new IndexedObject(document), previewSnippet) 
     })
