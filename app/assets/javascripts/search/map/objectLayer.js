@@ -74,19 +74,24 @@ define(['search/events'], function(Events) {
         
         /** Shorthand: resets location and zoom of the map to fit all current objects **/
         fitToObjects = function() {
-          map.fitBounds(featureGroup.getBounds(), {
-            animate: true,
-            paddingTopLeft: [380, 20],
-            paddingBottomRight: [20, 20]
-          });
+          if (!jQuery.isEmptyObject(objects)) {
+            map.fitBounds(featureGroup.getBounds(), {
+              animate: true,
+              paddingTopLeft: [380, 20],
+              paddingBottomRight: [20, 20],
+              maxZoom: 9
+            });
+          }
         },
         
         /** Highlights (and returns) the object with the specified id **/
         highlight = function(id) {
           var tuple, latlon;
           
-          if (selectionPin)
+          if (selectionPin) {
             map.removeLayer(selectionPin);
+            selectionPin = false;
+          }
           
           if (id) {
             tuple = objects[id];    
@@ -231,8 +236,10 @@ define(['search/events'], function(Events) {
     });
     
     eventBroker.addHandler(Events.UI_MOUSE_OVER_RESULT, function(result) {
+      var id = (result) ? result.identifier : false;
+      
       if (allowMouseOverHighlights) // See below!
-        highlight(result.identifier);
+        highlight(id);
     });
     
     // This event can be triggered from the objectLayer or the resultList

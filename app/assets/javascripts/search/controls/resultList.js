@@ -45,7 +45,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           }
           
           if (pendingQuery) {
-            element.slideDown(SLIDE_DURATION, constrainHeight);
+            if (currentResults.length > 0)
+              element.slideDown(SLIDE_DURATION, constrainHeight);
+              
             pendingQuery = false;
           }
         },
@@ -58,8 +60,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
         
         show = function() {
-          rebuildList();
-          element.slideDown(SLIDE_DURATION, constrainHeight);
+          if (currentResults.length > 0) {
+            rebuildList();
+            element.slideDown(SLIDE_DURATION, constrainHeight);
+          }
         },
         
         hide = function() {
@@ -131,6 +135,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       
     element.hide();
     container.append(element);
+    
+    element.mouseleave(function() {
+      eventBroker.fireEvent(Events.UI_MOUSE_OVER_RESULT);
+    });
 
     // Listen for search results
     eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(results) {
