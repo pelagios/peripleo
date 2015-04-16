@@ -129,7 +129,7 @@ object IndexedPlace {
   private implicit val placeFromGazetteerWrites: Writes[(Place, String)] = (
     (JsPath).write[Place] ~
     (JsPath \ "source_gazetteer").write[String]
-  )(t => (t._1, t._2.toLowerCase))
+  )(t => (t._1, t._2))
   
   def toIndexedPlace(place: Place, sourceGazetteer: String): IndexedPlace = {    
     val json = Json.toJson((place, sourceGazetteer))

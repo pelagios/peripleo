@@ -21,6 +21,19 @@ define(function() {
         
         /** Shorthand function for formatting numbers **/
         formatNumber = function(number) { return numeral(number).format('0,0'); },
+        
+        formatFacetLabel = function(label) {
+          // TODO optimize by handing the approprate formatting function on initialization
+          if (label.indexOf('gazetteer:') === 0) {
+            // Gazetteer label
+            return label.substring(10);
+          } else if (label.indexOf('#') > -1) {
+            // Dataset label
+            return label.substring(0, label.indexOf('#'));
+          } else {
+            return label;
+          }
+        },
           
         update = function(facets) {
           var maxCount = (facets.length > 0) ? facets.slice().sort(sortFacetValues)[0].count : 0;
@@ -30,7 +43,7 @@ define(function() {
             var row = jQuery(facetValTemplate),
                 bar = row.find('.bar'),
                 percentage = (100 * val.count / maxCount) + '%',
-                label = (val.label.indexOf('#') < 0) ? val.label : val.label.substring(0, val.label.indexOf('#')) ;
+                label = formatFacetLabel(val.label);
               
             
             bar.css('width', percentage);
