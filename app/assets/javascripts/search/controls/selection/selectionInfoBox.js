@@ -48,7 +48,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           uris.empty();
         },
 
-        showObject = function(obj) {            
+        showObject = function(obj) {      
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it
               element.slideToggle(SLIDE_DURATION, function() {
@@ -72,8 +72,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
         
         hide = function() {
+          currentObject = false;
           clearTemplate();
-          element.hide();
+          element.slideUp(SLIDE_DURATION);
         };
        
     element.hide();

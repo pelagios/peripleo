@@ -158,8 +158,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     });
     
     // Like Google Maps, we close the result list when the user
-    // resumes map browsing
+    // resumes map browsing, or selects a result
     eventBroker.addHandler(Events.UI_MAP_CHANGED, hide);
+    eventBroker.addHandler(Events.UI_SELECT_PLACE, function(place) {
+      if (place)
+        hide();
+      else
+        show();
+    });
 
     // Manual open/close events
     eventBroker.addHandler(Events.UI_TOGGLE_ALL_RESULTS, toggle); 
