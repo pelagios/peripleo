@@ -267,14 +267,15 @@ object JSONWrites {
     (JsPath).write[IndexedObject] ~
     (JsPath \ "snippet").writeNullable[String]
   )(t => (t._1, t._2))  
-          
+    
+  /** @deprecated **/
   implicit val placeWrites: Writes[IndexedPlace] = (
     (JsPath \ "gazetteer_uri").write[String] ~
-    (JsPath \ "label").write[String] ~
+    (JsPath \ "title").write[String] ~
     (JsPath \ "place_category").writeNullable[String] ~
     (JsPath \ "names").write[Seq[String]] ~
     (JsPath \ "description").writeNullable[String] ~
-    (JsPath \ "location").writeNullable[JsValue] ~
+    (JsPath \ "geometry").writeNullable[JsValue] ~
     (JsPath \ "centroid_lat").writeNullable[Double] ~
     (JsPath \ "centroid_lng").writeNullable[Double]
   )(place => {
@@ -286,17 +287,19 @@ object JSONWrites {
        place.geometryJson,
        place.centroid.map(_.y),
        place.centroid.map(_.x)) })  
-       
+    
+  /** @deprecated **/
   implicit val placeWithAlternativesWrites: Writes[(IndexedPlace, Seq[String])] = (
     (JsPath).write[IndexedPlace] ~
     (JsPath \ "matches").write[Seq[String]]
   )(t => (t._1, t._2))
   
+  /** @deprecated **/
   implicit def placeOccurencesWrites(implicit s: Session): Writes[(IndexedPlace, Seq[(Dataset, Int)])] = (
     (JsPath \ "to_place").write[IndexedPlace] ~
     (JsPath \ "occurrences").write[Seq[(Dataset, Int)]]
   )(t => (t._1, t._2))
-       
+  
   
   implicit val networkNodeWrites: Writes[NetworkNode] = (
     (JsPath \ "uri").write[String] ~
@@ -319,12 +322,37 @@ object JSONWrites {
       edge.target,
       edge.isInnerEdge)) 
       
-      
+  /** @deprecated **/
+  implicit val placeNetworkWrites: Writes[IndexedPlaceNetwork] = (
+    (JsPath \ "identifier").write[String] ~
+    (JsPath \ "title").write[String] ~
+    (JsPath \ "object_type").write[String] ~
+    (JsPath \ "description").writeNullable[String] ~
+    (JsPath \ "names").write[Seq[String]] ~
+    (JsPath \ "matches").write[Seq[String]] ~
+    (JsPath \ "place_category").writeNullable[String] ~
+    (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
+    (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
+    (JsPath \ "geometry").writeNullable[Geometry]
+  )(network =>
+      (network.seedURI,
+       network.title,
+       IndexedObjectTypes.PLACE.toString,
+       network.description,
+       network.names,
+       network.alternativeURIs,
+       network.places.flatMap(_.category).headOption.map(_.toString),
+       network.geoBounds,
+       None, // TODO temporal bounds
+       network.geometry))  
+       
+  /**    
   implicit val networkWrites: Writes[IndexedPlaceNetwork] = (
     (JsPath \ "nodes").write[Seq[NetworkNode]] ~
     (JsPath \ "edges").write[Seq[NetworkEdge]]
   )(network => (
       network.nodes,
       network.edges))
+      */
 
 }

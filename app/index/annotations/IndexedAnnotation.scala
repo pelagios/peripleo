@@ -53,7 +53,7 @@ object IndexedAnnotation {
     // Bounding box to enable efficient best-fit queries
     val b = geometry.getEnvelopeInternal()
     Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.getMinX, b.getMaxX, b.getMinY, b.getMaxY)).foreach(doc.add(_))
-        
+    
     doc
   }
   

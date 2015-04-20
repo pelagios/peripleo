@@ -127,7 +127,7 @@ define(['search/events'], function(Events) {
           objects = {};
         },
         
-        addPlace = function(p) {                    
+        addPlace = function(p) {                     
           var marker, uri = p.identifier, type,
               cLon = (p.geo_bounds) ? (p.geo_bounds.max_lon + p.geo_bounds.min_lon) / 2 : false,
               cLat = (p.geo_bounds) ? (p.geo_bounds.max_lat + p.geo_bounds.min_lat) / 2 : false;
@@ -165,7 +165,8 @@ define(['search/events'], function(Events) {
           console.log('addDataset not implemented yet');          
         },
         
-        addObjects = function(response) {
+        addObjects = function(response) {          
+          // Items
           jQuery.each(response.items, function(idx, obj) {
             var t = obj.object_type;
             
@@ -231,7 +232,13 @@ define(['search/events'], function(Events) {
     });
         
     // See above - we only update the map if there was a new search
-    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(results) {
+    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(results) {      
+      // We always show top places...
+      jQuery.each(results.top_places, function(idx, place) {
+        addPlace(place);
+      });
+      
+      // ...but only plot the result items in case there is a user query
       if (pendingQuery)
         addObjects(results);
       pendingQuery = false;

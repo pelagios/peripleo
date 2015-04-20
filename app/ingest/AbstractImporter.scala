@@ -1,19 +1,18 @@
 package ingest
 
 import global.Global
+import index.Index
 import index.places.IndexedPlace
 import java.math.BigInteger
 import java.security.MessageDigest
 import models.{ Associations, MasterHeatmap }
-import models.adjacency.PlaceAdjacency
+import models.adjacency.{ PlaceAdjacency, PlaceAdjacencys }
 import models.core._
 import models.geo.GazetteerReference
 import org.pelagios.Scalagios
 import play.api.db.slick._
 import play.api.libs.json.Json
 import play.api.Logger
-import models.adjacency.PlaceAdjacencys
-
 
 /** One 'ingest record' **/
 case class IngestRecord(
@@ -124,13 +123,13 @@ abstract class AbstractImporter {
       val tempBoundsStart = record.thing.temporalBoundsStart
       val tempBoundsEnd = record.thing.temporalBoundsEnd
       
-      record.annotationsWithText.map { case (annotation, prefix, suffix) => {
+      record.annotationsWithText.map { case (annotation, prefix, suffix) => {        
         // Geometry is that of the gazetteer
-        val geom = placeLookup.get(annotation.gazetteerURI).flatMap(_.geometry)
+        val geom = placeLookup.get(Index.normalizeURI(annotation.gazetteerURI)).flatMap(_.geometry)
         geom.map(g => (annotation, tempBoundsStart, tempBoundsEnd, g, prefix, suffix))
       }}
     }).flatten // The annotation index is to support heatmaps, so we're not interested in annotation without geometry
-    Logger.info("Indexing annotations")
+    Logger.info("Indexing " + annotationsWithContext.size + " annotations")
     Global.index.addAnnotations(annotationsWithContext)
     
     // Update suggestion index

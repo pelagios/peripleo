@@ -50,10 +50,6 @@ object SearchController extends AbstractController {
             includeTimeHistogram,
             includeTopPlaces,
             includeHeatmap)
-        
-        // TODO implement a better JSON serialization without this intermediate step
-        val placesWithAlternativeURIS = topPlaces.map(_.map { case (network, count) => {
-          (network.getPlace(network.seedURI).get, network.alternativeURIs) }})
        
         // Compile the JSON response from the various optional components
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)   
@@ -61,7 +57,7 @@ object SearchController extends AbstractController {
         val optionalComponents = Seq(
               { facetTree.map(Json.toJson(_).as[JsObject]) },
               { timeHistogram.map(Json.toJson(_).as[JsObject]) },
-              { placesWithAlternativeURIS.map(t => Json.obj("top_places" -> Json.toJson(t)).as[JsObject]) },
+              { topPlaces.map(t => Json.obj("top_places" -> Json.toJson(t.map(_._1))).as[JsObject]) },
               { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten
                
         val response = 

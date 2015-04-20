@@ -46,6 +46,11 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   val places: Seq[IndexedPlace] =
     doc.getValues(IndexFields.PLACE_AS_JSON).toSeq
       .map(new IndexedPlace(_))
+      
+  // TODO optimize by storing the bounding box in the index?
+  lazy val geoBounds: Option[BoundingBox] = geometry.map(geom => BoundingBox.fromGeometry(geom))
+  
+  lazy val geometry: Option[Geometry] = Option(doc.get(IndexFields.GEOMETRY)).map(geoJson => new GeometryJSON().read(geoJson.trim))
   
   /** Network nodes and edges **/
   val (nodes, edges) = {
