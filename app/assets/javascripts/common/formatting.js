@@ -14,6 +14,10 @@ define(function() {
       });
     },
     
+    formatNumber: function(n) {
+      return numeral(n).format('0,0');
+    },
+    
     formatGazetteerURI: function(uri) {
       var prefix, gazId;
 

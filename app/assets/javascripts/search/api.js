@@ -107,6 +107,17 @@ define(['search/events'], function(Events) {
       scheduleSearch();
     });
     
+    eventBroker.addHandler(Events.UI_CHANGE_FILTER, function(change) {
+      if (!change)
+        return
+      
+      if (change.place)
+        filters.place = change.place;
+        
+      requestQueue.push({ bounds: lastBounds, timeHistogram: true, heatmap: false });
+      scheduleSearch();
+    });
+    
     /*
     eventBroker.addHandler(Events.SELECT_PLACE, function(place) {
       if (place)

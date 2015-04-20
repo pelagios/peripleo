@@ -24,7 +24,15 @@ define(function() {
      * 
      * @param search result
      */
-    API_SEARCH_SUCCESS : 'searchSuccess',    
+    API_SEARCH_SUCCESS : 'searchSuccess',  
+    
+    
+    /**
+     * The API returned a search result after a filter change
+     * 
+     * @param search result
+     */
+    API_FILTER_SUCCESS : 'filterSuccess',  
     
     
     
@@ -45,6 +53,13 @@ define(function() {
      * @param query phrase
      */
     UI_SEARCH : 'search',
+    
+    /**
+     * The user changed a search filter setting
+     * 
+     * @param changed filter setting
+     */
+    UI_CHANGE_FILTER : 'changeFilter',
     
     /** 
      * Event for showing the result list box. (Can either happen as a

@@ -346,6 +346,11 @@ object JSONWrites {
        None, // TODO temporal bounds
        network.geometry))  
        
+  implicit val topPlaceWrites: Writes[(IndexedPlaceNetwork, Int)] = (
+    (JsPath).write[IndexedPlaceNetwork] ~
+    (JsPath \ "result_count").write[Int]
+  )(t => (t._1, t._2))
+       
   /**    
   implicit val networkWrites: Writes[IndexedPlaceNetwork] = (
     (JsPath \ "nodes").write[Seq[NetworkNode]] ~

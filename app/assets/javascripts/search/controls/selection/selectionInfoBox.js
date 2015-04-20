@@ -10,6 +10,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '  <p class="names"></p>' +
           '  <p class="description"></p>' +
           '  <ul class="uris"></ul>' +
+          '  <p class="related"></p>' +
           '</div>'),
           
         currentObject = false,
@@ -21,6 +22,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         description = element.find('.description'),
         
         uris = element.find('.uris'),
+        
+        related = element.find('.related'),
         
         fillTemplate = function(obj) {          
           title.html(obj.title);
@@ -39,6 +42,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               });
             }
           }
+          
+          if (obj.result_count)
+            related.html(Formatting.formatNumber(obj.result_count) + ' related results');
         },
         
         clearTemplate = function() {
@@ -77,6 +83,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           element.slideUp(SLIDE_DURATION);
         };
        
+       
+    element.on('click', '.related', function() {
+      var type = (currentObject) ? currentObject.object_type : false;
+
+      if (type === 'Place')      
+        eventBroker.fireEvent(Events.UI_CHANGE_FILTER, { place: currentObject.identifier }); 
+    });
+    
     element.hide();
     container.append(element);
     

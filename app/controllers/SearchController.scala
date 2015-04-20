@@ -57,7 +57,7 @@ object SearchController extends AbstractController {
         val optionalComponents = Seq(
               { facetTree.map(Json.toJson(_).as[JsObject]) },
               { timeHistogram.map(Json.toJson(_).as[JsObject]) },
-              { topPlaces.map(t => Json.obj("top_places" -> Json.toJson(t.map(_._1))).as[JsObject]) },
+              { topPlaces.map(t => Json.obj("top_places" -> Json.toJson(t)).as[JsObject]) },
               { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten
                
         val response = 
