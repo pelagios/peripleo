@@ -153,10 +153,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     // a "user-triggered" (rather than "map-triggered") search
     // returns, we want the list to open automatically
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
-      if (change.query) {
-        hide();
-        pendingQuery = query;
-      }
+      hide();
+      pendingQuery = change.query;
     });
     
     // Like Google Maps, we close the result list when the user

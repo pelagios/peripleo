@@ -14,29 +14,49 @@ define(['search/controls/autoComplete', 'search/events'], function(AutoComplete,
         
         input = form.find('input'),
         
-        autoComplete = new AutoComplete(form, input);
+        icon = element.find('.icon'),
         
+        autoComplete = new AutoComplete(form, input);
+       
+    updateIcon = function() {
+      var chars = input.val().trim();
+      
+      if (chars.length === 0) {
+        icon.html('&#xf002;');
+        icon.removeClass('clear');
+      } else {
+        icon.html('&#xf00d;');
+        icon.addClass('clear');
+      }
+    },
+    
+    clearSearch = function() {
+      autoComplete.clear();
+      form.submit();
+    };
+    
     // Set up events
     form.submit(function(e) {
-      var query = input.val().trim();
+      var chars = input.val().trim();
       
-      if (query.length === 0) {
-        // Make sure handlers get query === undefined for empty strings
+      if (chars.length === 0)
         eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : false });
-      } else {
-        eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : query });
-      }
+      else
+        eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : chars });
     
       input.blur();
       return false; // preventDefault + stopPropagation
     });
     
     form.keypress(function (e) {
+      updateIcon();
       if (e.which == 13) {
         form.submit();
         return false; // Otherwise we'll get two submit events
       }
     });
+       
+    form.on('click', '.clear', clearSearch);
         
     // Append to container
     container.append(element);

@@ -17,6 +17,11 @@ define(function() {
     input.on('typeahead:selected', function(e) {
       form.submit();
     });
+    
+
+    this.clear = function() {
+      input.typeahead('val','');
+    };
   };
   
   return AutoComplete;

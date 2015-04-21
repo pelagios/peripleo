@@ -180,8 +180,6 @@ define(['search/events'], function(Events) {
               console.log('Invalid search result!', obj);
             }
           });
-          
-          fitToObjects();
         },
       
         /**
@@ -241,11 +239,15 @@ define(['search/events'], function(Events) {
     });
         
     // We only plot result items if there's an active user search term
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(results) {      
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(results) {     
+      clear();
+       
       if (pendingQuery)
         addObjects(results);
         
       pendingQuery = false;
+      
+      setTimeout(fitToObjects, 1);
     });
     
     eventBroker.addHandler(Events.MOUSE_OVER_RESULT, function(result) {

@@ -82,8 +82,8 @@ define(['search/events'], function(Events) {
           busy = true;
           
           jQuery.getJSON(buildQueryURL(), function(response) {
-            eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
+            eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
         },
         
@@ -101,9 +101,7 @@ define(['search/events'], function(Events) {
       makeSearchRequest();
     });
     
-    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
-      console.log('search', change);
-      
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {      
       jQuery.extend(searchParams, change); // Merge changes
       
       if (busy)
