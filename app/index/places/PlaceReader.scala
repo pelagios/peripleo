@@ -69,7 +69,7 @@ trait PlaceReader extends IndexBase {
     findNetworkByPlaceURI(uri).flatMap(_.getPlace(uri))
     
   def findNetworkByPlaceURI(uri: String): Option[IndexedPlaceNetwork] = {
-    val q = new TermQuery(new Term(IndexFields.PLACE_URI, Index.normalizeURI(uri)))
+    val q = new TermQuery(new Term(IndexFields.ID, Index.normalizeURI(uri)))
     
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     val searcher = searcherAndTaxonomy.searcher

@@ -83,10 +83,10 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   /** Commits all writes and refreshes the readers **/
   def refresh() = {
     Logger.info("Committing index writes and refreshing readers")
-
+    
+    taxonomyWriter.commit()
     placeWriter.commit()
     objectWriter.commit()
-    taxonomyWriter.commit()
     annotationWriter.commit()
     
     placeSearcherManager.maybeRefresh()

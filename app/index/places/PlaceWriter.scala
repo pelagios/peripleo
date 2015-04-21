@@ -88,7 +88,7 @@ trait PlaceWriter extends PlaceReader {
   private def updateIndex(place: IndexedPlace, affectedNetworks: Seq[IndexedPlaceNetwork], indexWriter: IndexWriter, taxonomyWriter: TaxonomyWriter) = {
     // Delete affected networks from index
     affectedNetworks.foreach(network => 
-      indexWriter.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
+      indexWriter.deleteDocuments(new TermQuery(new Term(IndexFields.ID, network.seedURI))))
 
     // Add the place and write updated network to index
     val updatedNetwork = IndexedPlaceNetwork.join(place, affectedNetworks)
@@ -121,7 +121,7 @@ trait PlaceWriter extends PlaceReader {
           }
 
         Logger.info("Persisting patched place network")
-        placeWriter.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, affectedNetwork.get.seedURI)))
+        placeWriter.deleteDocuments(new TermQuery(new Term(IndexFields.ID, affectedNetwork.get.seedURI)))
         placeWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, patchedNetwork.doc))
       }
     })    
@@ -149,7 +149,7 @@ trait PlaceWriter extends PlaceReader {
 
     // First, we delete all place networks from the affected batch      
     affectedNetworks.foreach(network => 
-      placeWriter.deleteDocuments(new TermQuery(new Term(IndexFields.PLACE_URI, network.seedURI))))
+      placeWriter.deleteDocuments(new TermQuery(new Term(IndexFields.ID, network.seedURI))))
     
     // Then we update each place network and re-add to the index
     affectedNetworks.foreach(network => {
