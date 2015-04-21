@@ -29,12 +29,12 @@ case class NetworkEdge(source: Int, target: Int, isInnerEdge: Boolean)
 class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
    
   /** The first place URI added to the network **/
-  val seedURI: String = doc.get(IndexFields.PLACE_URI)
+  val seedURI: String = doc.get(IndexFields.ID)
   
   lazy val names: Seq[String] = doc.getValues(IndexFields.PLACE_NAME).toSeq.distinct 
   
   /** The other place URIs in the network **/ 
-  lazy val alternativeURIs: Seq[String] = doc.getValues(IndexFields.PLACE_URI).toSeq.diff(Seq(seedURI))
+  lazy val alternativeURIs: Seq[String] = doc.getValues(IndexFields.ID).toSeq.diff(Seq(seedURI))
 
   /** The network title - identical to the title of the place that started the network **/
   val title: String = doc.get(IndexFields.TITLE)
@@ -148,7 +148,7 @@ object IndexedPlaceNetwork {
       
   private[places] def addPlaceToDoc(place: IndexedPlace, doc: Document): Document = {
     // Place URI
-    doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(place.uri), Field.Store.YES))
+    doc.add(new StringField(IndexFields.ID, Index.normalizeURI(place.uri), Field.Store.YES))
 
     // Title
     if (doc.get(IndexFields.TITLE) == null)

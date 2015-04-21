@@ -18,11 +18,7 @@ case class IndexedObject(private val doc: Document) {
 
   val objectType: IndexedObjectTypes.Value = IndexedObjectTypes.withName(doc.get(IndexFields.OBJECT_TYPE))
 
-  val identifier: String =
-    if (objectType == IndexedObjectTypes.PLACE) 
-      doc.get(IndexFields.PLACE_URI) // The identifier is the first URI in the list for the place network
-    else
-      doc.get(IndexFields.ID) // or the ID for everything else   
+  val identifier: String = doc.get(IndexFields.ID)   
       
   val title: String = doc.get(IndexFields.TITLE)
     

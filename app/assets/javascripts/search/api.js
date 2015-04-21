@@ -82,6 +82,9 @@ define(['search/events'], function(Events) {
           busy = true;
           
           jQuery.getJSON(buildQueryURL(), function(response) {
+            
+            console.log(response);
+            
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);

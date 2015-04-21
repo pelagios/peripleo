@@ -90,8 +90,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     element.on('click', '.related', function() {
       var type = (currentObject) ? currentObject.object_type : false;
 
-      // if (type === 'Place')      
-      //   eventBroker.fireEvent(Events.UI_CHANGE_FILTER, { place: currentObject.identifier }); 
+      if (type === 'Place')      
+        eventBroker.fireEvent(Events.SEARCH_CHANGED, { place: currentObject.identifier }); 
     });
     
     element.hide();
