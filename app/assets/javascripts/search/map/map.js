@@ -49,12 +49,12 @@ define(['search/map/objectLayer', 'search/events'], function(ObjectLayer, Events
     
     /** Request an updated heatmap on every moveend **/
     map.on('moveend', function() {
-      eventBroker.fireEvent(Events.UI_MAP_CHANGED, getBounds());
+      eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
     });
     
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
-      eventBroker.fireEvent(Events.UI_MAP_CHANGED, getBounds());
+      eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
     });
     
     this.getBounds = getBounds;

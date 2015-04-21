@@ -12,10 +12,14 @@ define(function() {
   
   /** Adds an event handler **/
   EventBroker.prototype.addHandler = function(type, handler) {
-    if (!_handlers[type])
-      _handlers[type] = [];
+    if (type) {
+      if (!_handlers[type])
+        _handlers[type] = [];
       
-    _handlers[type].push(handler);
+      _handlers[type].push(handler);
+    } else {
+      throw('Event type is undefined');
+    }
   };
   
   /** Removes an event handler **/

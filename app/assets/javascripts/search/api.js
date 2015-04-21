@@ -1,11 +1,14 @@
 /** A wrapper around the API functions required by the map search UI **/
 define(['search/events'], function(Events) {
   
-  var QUERY_DELAY_MS = 500,
+  var QUERY_DELAY_MS = 100,
+  
       NUM_TOP_PLACES = 10;
   
   var API = function(eventBroker) {
-    var filters = {
+  
+        /** Current search parameters **/
+    var searchParams = {
           
           query: false,
           
@@ -19,116 +22,105 @@ define(['search/events'], function(Events) {
           
         },
         
-        lastBounds = false,
+        /** The current map bounds **/
+        currentMapBounds = false,
         
-        requestQueue = [],
-        
-        requestPending = false,
+        /** Indicates whether we're currenly waiting for an API response **/
+        busy = false,
 
-        buildQueryURL = function(bounds, includeTimeHistogram) {
+        /** Indicating whether the user has already issued a new search/view update request while busy **/
+        pendingSearch = false,
+        pendingViewUpdate = false,
+
+        /** Builds the URL query string from the current search params **/
+        buildQueryURL = function() {
           var url = '/api-v3/search?verbose=true&facets=true&top_places=' + NUM_TOP_PLACES;
 
           // if (includeTimeHistogram)
           //  url += '&time_histogram=true';
           
-          if (filters.query)
-            url += '&query=' + filters.query;
+          if (searchParams.query)
+            url += '&query=' + searchParams.query;
             
-          if (filters.objectType)
-            url += '&type=' + filters.objectType;
+          if (searchParams.objectType)
+            url += '&type=' + searchParams.objectType;
             
-          if (filters.dataset)
-            url += '&dataset=' + filters.dataset;
+          if (searchParams.dataset)
+            url += '&dataset=' + searchParams.dataset;
             
-          if (filters.timespan)
-            url += '&from=' + filters.timespan.from + '&to=' + filters.timespan.to;
+          if (searchParams.timespan)
+            url += '&from=' + searchParams.timespan.from + '&to=' + searchParams.timespan.to;
             
-          if (filters.place)
-            url += '&places=' + encodeURIComponent(filters.place);
+          if (searchParams.place)
+            url += '&places=' + encodeURIComponent(searchParams.place);
           
           // Note: if there's a user queries, we don't want the bounding box limit
-          if (!filters.query)
+          if (!searchParams.query)
             url += '&bbox=' +
-              bounds.west + ',' + bounds.east + ',' + bounds.south + ',' + bounds.north;
+              currentMapBounds.west + ',' + currentMapBounds.east + ',' + 
+              currentMapBounds.south + ',' + currentMapBounds.north;
           
           return url;
         },
         
-        makeRequest = function() {
-          // Do we have a heatmap request anywhere in the queue?
-          var heatmapRequests = jQuery.grep(requestQueue, function(req) { return req.heatmap; }),
-              timeHistogramRequests = jQuery.grep(requestQueue, function(req) { return req.timeHistogram; });
-              bounds = requestQueue.pop().bounds,
-              includeTimeHistogram = timeHistogramRequests.length > 0,
-              includeHeatmap = heatmapRequests.length > 0;
-                
-          // Clear the request queue
-          requestQueue = [];
+        /** Waits for QUERY_DELAY_MS and handles the pending request, if any **/
+        handlePending = function() {
+          setTimeout(function() {
+            if (pendingSearch)
+              makeSearchRequest();
+            else if (pendingViewUpdate) // Note: search always include view updates, too
+              makeViewUpdateRequest();
+            else
+              busy = false;
             
-          // Make the request
-          jQuery.getJSON(buildQueryURL(bounds, includeTimeHistogram), function(response) {                         
-            eventBroker.fireEvent(Events.API_SEARCH_SUCCESS, response);
-              
-            // if (includeTimeHistogram)
-            //  eventBroker.fireEvent(Events.UPDATED_TIME_HISTOGRAM, response.time_histogram);
-          })
-          .always(function() {
-            requestPending = false;
-            
-            if (requestQueue.length > 0) // New requests arrived in the meantime
-              scheduleSearch()
-          });
+            pendingSearch = false;
+            pendingViewUpdate = false;
+          }, QUERY_DELAY_MS);
         },
         
-        scheduleSearch = function() { 
-          // To prevent excessive requests, we always introduce a 250ms wait
-          if (!requestPending) {
-            requestPending = true;
-            window.setTimeout(makeRequest, QUERY_DELAY_MS);
-          }
-        };
-    
-    /** Run a full search on initial load **/
-    eventBroker.addHandler(Events.LOAD, function(bounds) {
-      lastBounds = bounds;
-      requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
-      makeRequest();
-    });
-    
-    eventBroker.addHandler(Events.UI_MAP_CHANGED, function(bounds) {
-      lastBounds = bounds;
-      requestQueue.push({ bounds: bounds, timeHistogram: true, heatmap: true });
-      makeRequest();
-    });
-    
-    eventBroker.addHandler(Events.UI_SEARCH, function(query) {
-      filters.query = query;
-      requestQueue.push({ bounds: lastBounds, timeHistogram: true, heatmap: false });
-      scheduleSearch();
-    });
-    
-    eventBroker.addHandler(Events.UI_CHANGE_FILTER, function(change) {
-      if (!change)
-        return
-      
-      if (change.place)
-        filters.place = change.place;
+        makeSearchRequest = function() {
+          busy = true;
+          
+          jQuery.getJSON(buildQueryURL(), function(response) {
+            eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
+            eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
+          }).always(handlePending);
+        },
         
-      requestQueue.push({ bounds: lastBounds, timeHistogram: true, heatmap: false });
-      scheduleSearch();
+        makeViewUpdateRequest = function() {          
+          busy = true;
+          
+          jQuery.getJSON(buildQueryURL(), function(response) {
+            eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
+          }).always(handlePending);
+        };
+
+    /** Run an initial search on load **/
+    eventBroker.addHandler(Events.LOAD, function(bounds) {
+      currentMapBounds = bounds;
+      makeSearchRequest();
     });
     
-    /*
-    eventBroker.addHandler(Events.SELECT_PLACE, function(place) {
-      if (place)
-        filters.place = place.gazetteer_uri;
-      else 
-        filter.place = false;
-      requestQueue.push({ bounds: lastBounds, timeHistogram: true, heatmap: false });
-      scheduleSearch();
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
+      console.log('search', change);
+      
+      jQuery.extend(searchParams, change); // Merge changes
+      
+      if (busy)
+        pendingSearch = true;
+      else
+        makeSearchRequest();
     });
-    */
     
+    eventBroker.addHandler(Events.VIEW_CHANGED, function(bounds) {      
+      currentMapBounds = bounds;
+      
+      if (busy)
+        pendingViewUpdate = true; // Record the request for later processing
+      else
+        makeViewUpdateRequest();
+    });
+
   };
   
   return API;

@@ -112,11 +112,11 @@ define(['search/events'], function(Events) {
             tuple = highlight(id);
 
             if (tuple)
-              eventBroker.fireEvent(Events.UI_SELECT_PLACE, tuple.obj);
+              eventBroker.fireEvent(Events.SELECT_MARKER, tuple.obj);
           } else {
             if (selectionPin)
               map.removeLayer(selectionPin);
-            eventBroker.fireEvent(Events.UI_SELECT_PLACE);
+            eventBroker.fireEvent(Events.SELECT_MARKER);
           }
         },
         
@@ -224,27 +224,31 @@ define(['search/events'], function(Events) {
     // We want to know about user-issued queries, because as long
     // as a user query is 'active', we don't want to add/remove
     // stuff from the map
-    eventBroker.addHandler(Events.UI_SEARCH, function(query) {
-      if (pendingQuery !== query) // New query - clear the map
-        clear();
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
+      if (change.query) {
+        if (pendingQuery !== change.query) // New query - clear the map
+          clear();
         
-      pendingQuery = query;
+        pendingQuery = change.query;
+      }
     });
-        
-    // See above - we only update the map if there was a new search
-    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(results) {      
-      // We always show top places...
+    
+    // We update top places if the view changes
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
       jQuery.each(results.top_places, function(idx, place) {
         addPlace(place);
-      });
-      
-      // ...but only plot the result items in case there is a user query
+      });      
+    });
+        
+    // We only plot result items if there's an active user search term
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(results) {      
       if (pendingQuery)
         addObjects(results);
+        
       pendingQuery = false;
     });
     
-    eventBroker.addHandler(Events.UI_MOUSE_OVER_RESULT, function(result) {
+    eventBroker.addHandler(Events.MOUSE_OVER_RESULT, function(result) {
       var id = (result) ? result.identifier : false;
       
       if (allowMouseOverHighlights) // See below!
@@ -253,7 +257,7 @@ define(['search/events'], function(Events) {
     
     // This event can be triggered from the objectLayer or the resultList
     // Highlight the marker when the trigger comes from the result list
-    eventBroker.addHandler(Events.UI_SELECT_PLACE, function(result) {
+    eventBroker.addHandler(Events.SELECT_RESULT, function(result) {
       if (result) {
         var tuple = highlight(result.identifier),
             markerLatLng = tuple.marker.getBounds().getCenter();

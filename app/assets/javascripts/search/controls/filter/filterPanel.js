@@ -57,21 +57,21 @@ define(['search/events',
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'dataset');
     
     buttonToggleFilters.click(toggleFilters);
-    buttonListAll.click(function() { eventBroker.fireEvent(Events.UI_TOGGLE_ALL_RESULTS); });
+    buttonListAll.click(function() { eventBroker.fireEvent(Events.TOGGLE_ALL_RESULTS); });
     buttonListAll.mouseover(function() { 
       if (!currentSelection)
-        eventBroker.fireEvent(Events.UI_SHOW_ALL_RESULTS); 
+        eventBroker.fireEvent(Events.SHOW_ALL_RESULTS); 
     });
     
     // We want to know about user selections, because as long as there is
     // no selection, mouseover should trigger 'the list all' action. Otherwise,
     // the user should have to click.
-    eventBroker.addHandler(Events.UI_SELECT_PLACE, function(selection) {
+    eventBroker.addHandler(Events.SELECTION, function(selection) {
       currentSelection = selection;
     });
     
     /** Forward updates to the facet charts **/
-    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(response) {
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       footerTotals.html('(' + numeral(response.total).format('0,0') + ')'); 
       
       var facets = response.facets, 

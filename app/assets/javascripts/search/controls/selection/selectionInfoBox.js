@@ -60,12 +60,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               element.slideToggle(SLIDE_DURATION, function() {
                 currentObject = false;
                 clearTemplate();
+                eventBroker.fireEvent(Events.SELECTION); // Deselect event
               });
             } else {
               if (currentObject.identifier !== obj.identifier) { // New object - reset
                 currentObject = obj;
                 clearTemplate();
                 fillTemplate(obj);
+                eventBroker.fireEvent(Events.SELECTION, obj); 
               }
             }
           } else { // Currently closed 
@@ -73,6 +75,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               currentObject = obj;
               element.slideToggle(SLIDE_DURATION);
               fillTemplate(obj);
+              eventBroker.fireEvent(Events.SELECTION, obj); 
             }
           }  
         },
@@ -87,15 +90,16 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     element.on('click', '.related', function() {
       var type = (currentObject) ? currentObject.object_type : false;
 
-      if (type === 'Place')      
-        eventBroker.fireEvent(Events.UI_CHANGE_FILTER, { place: currentObject.identifier }); 
+      // if (type === 'Place')      
+      //   eventBroker.fireEvent(Events.UI_CHANGE_FILTER, { place: currentObject.identifier }); 
     });
     
     element.hide();
     container.append(element);
     
-    eventBroker.addHandler(Events.UI_SELECT_PLACE, showObject);
-    eventBroker.addHandler(Events.UI_SEARCH, hide);
+    eventBroker.addHandler(Events.SELECT_MARKER, showObject);
+    eventBroker.addHandler(Events.SELECT_RESULT, showObject);
+    eventBroker.addHandler(Events.SEARCH_CHANGED, hide);
   };
   
   return SelectionInfoBox;

@@ -119,11 +119,11 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               
             li = jQuery(html);
             li.mouseenter(function() {
-              eventBroker.fireEvent(Events.UI_MOUSE_OVER_RESULT, result);
+              eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, result);
             });
             li.click(function() {
               hide();
-              eventBroker.fireEvent(Events.UI_SELECT_PLACE, result);
+              eventBroker.fireEvent(Events.SELECT_RESULT, result);
             });
                           
             return li;
@@ -137,11 +137,11 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     container.append(element);
     
     element.mouseleave(function() {
-      eventBroker.fireEvent(Events.UI_MOUSE_OVER_RESULT);
+      eventBroker.fireEvent(Events.MOUSE_OVER_RESULT);
     });
 
     // Listen for search results
-    eventBroker.addHandler(Events.API_SEARCH_SUCCESS, function(results) {
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(results) {
       // The map will change automatically after the search - in this case 
       // we don't want to close the panel, so allow for a short grace period
       keepOpen = true; 
@@ -152,15 +152,17 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     // We want to know about user-issued queries, because after
     // a "user-triggered" (rather than "map-triggered") search
     // returns, we want the list to open automatically
-    eventBroker.addHandler(Events.UI_SEARCH, function(query) {
-      hide();
-      pendingQuery = query;
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
+      if (change.query) {
+        hide();
+        pendingQuery = query;
+      }
     });
     
     // Like Google Maps, we close the result list when the user
     // resumes map browsing, or selects a result
-    eventBroker.addHandler(Events.UI_MAP_CHANGED, hide);
-    eventBroker.addHandler(Events.UI_SELECT_PLACE, function(place) {
+    eventBroker.addHandler(Events.VIEW_CHANGED, hide);
+    eventBroker.addHandler(Events.SELECTION, function(place) {
       if (place)
         hide();
       else
@@ -168,9 +170,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     });
 
     // Manual open/close events
-    eventBroker.addHandler(Events.UI_TOGGLE_ALL_RESULTS, toggle); 
-    eventBroker.addHandler(Events.UI_SHOW_ALL_RESULTS, show); 
-    eventBroker.addHandler(Events.UI_HIDE_ALL_RESULTS, hide); 
+    eventBroker.addHandler(Events.TOGGLE_ALL_RESULTS, toggle); 
+    eventBroker.addHandler(Events.SHOW_ALL_RESULTS, show); 
+    eventBroker.addHandler(Events.HIDE_ALL_RESULTS, hide); 
   };
   
   return ResultList;
