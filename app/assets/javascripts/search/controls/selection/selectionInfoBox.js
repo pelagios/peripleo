@@ -52,6 +52,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           names.empty();
           description.empty();
           uris.empty();
+          related.empty();
         },
 
         showObject = function(obj) {      

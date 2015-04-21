@@ -83,6 +83,8 @@ define(['search/events'], function(Events) {
           busy = true;
           
           jQuery.getJSON(buildQueryURL(), function(response) {    
+            console.log(response.items);
+            
             response.params = params;        
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
@@ -126,17 +128,6 @@ define(['search/events'], function(Events) {
       currentMapBounds = bounds;
       updateView();
     });
-    
-    /* If the user de-selects a place, the place filter should be removed automatically
-    eventBroker.addHandler(Events.SELECTION, function(result) {
-      if (searchParams.place &&  
-          (!result || result.object_type !== 'Place')) {
-        
-        searchParams.place = false;
-        search();
-      }
-    });
-    */
 
   };
   

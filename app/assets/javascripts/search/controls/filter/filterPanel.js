@@ -58,10 +58,6 @@ define(['search/events',
     
     buttonToggleFilters.click(toggleFilters);
     buttonListAll.click(function() { eventBroker.fireEvent(Events.TOGGLE_ALL_RESULTS); });
-    buttonListAll.mouseover(function() { 
-      if (!currentSelection)
-        eventBroker.fireEvent(Events.SHOW_ALL_RESULTS); 
-    });
     
     // We want to know about user selections, because as long as there is
     // no selection, mouseover should trigger 'the list all' action. Otherwise,
