@@ -33,6 +33,7 @@ define(['search/controls/autoComplete', 'search/events'], function(AutoComplete,
     clearSearch = function() {
       autoComplete.clear();
       form.submit();
+      updateIcon();
     };
     
     // Set up events

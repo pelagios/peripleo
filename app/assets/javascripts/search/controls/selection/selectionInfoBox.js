@@ -55,12 +55,18 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
 
         showObject = function(obj) {      
+          var currentType = (currentObject) ? currentObject.object_type : false;
+          
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it
               element.slideToggle(SLIDE_DURATION, function() {
                 currentObject = false;
                 clearTemplate();
-                eventBroker.fireEvent(Events.SELECTION); // Deselect event
+                eventBroker.fireEvent(Events.SELECTION); // Deselect event      
+                
+                // If the user de-selected a place, place search filter is cleared automatically
+                if (currentType === 'Place')
+                  eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
               });
             } else {
               if (currentObject.identifier !== obj.identifier) { // New object - reset
@@ -68,6 +74,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 clearTemplate();
                 fillTemplate(obj);
                 eventBroker.fireEvent(Events.SELECTION, obj); 
+                
+                // If the user de-selected a place, place search filter is cleared automatically
+                if (currentType === 'Place')
+                  eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
               }
             }
           } else { // Currently closed 
@@ -99,7 +109,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
     eventBroker.addHandler(Events.SELECT_MARKER, showObject);
     eventBroker.addHandler(Events.SELECT_RESULT, showObject);
-    eventBroker.addHandler(Events.SEARCH_CHANGED, hide);
   };
   
   return SelectionInfoBox;

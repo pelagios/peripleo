@@ -1,7 +1,9 @@
 /** The result list **/
 define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
-  var SLIDE_DURATION = 200;
+  var SLIDE_DURATION = 200,
+  
+      KEEP_OPEN_PERIOD = 500;
 
   var ResultList = function(container, eventBroker) {
     var element = jQuery(
@@ -36,8 +38,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
          * If the UI element is open, the function rebuilds the
          * list.
          */
-        update = function(results) {
-          currentResults = results.items;
+        update = function(result) {
+          currentResults = result.items;
           
           if (pendingQuery || element.is(':visible')) {
             list.empty();
@@ -132,7 +134,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           list.empty();
           list.append(rows);
         };      
-      
+    
     element.hide();
     container.append(element);
     
@@ -141,13 +143,20 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     });
 
     // Listen for search results
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(results) {
-      // The map will change automatically after the search - in this case 
-      // we don't want to close the panel, so allow for a short grace period
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(result) {
+      update(result);
+      
+      // If there was a user-supplied query or place filter we open automatically
+      if (result.params.query || result.params.place)    
+        show();
+      
+      // The map will change after search response - we want to keep open
+      // in this case nonetheless
       keepOpen = true; 
-      update(results);
-      setTimeout(function() { keepOpen = false; }, 500);
+      setTimeout(function() { keepOpen = false; }, KEEP_OPEN_PERIOD);
     });   
+    
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
     
     // We want to know about user-issued queries, because after
     // a "user-triggered" (rather than "map-triggered") search
@@ -160,12 +169,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     // Like Google Maps, we close the result list when the user
     // resumes map browsing, or selects a result
     eventBroker.addHandler(Events.VIEW_CHANGED, hide);
-    eventBroker.addHandler(Events.SELECTION, function(place) {
-      if (place)
-        hide();
-      else
-        show();
-    });
+    
+    eventBroker.addHandler(Events.SELECTION, hide);
 
     // Manual open/close events
     eventBroker.addHandler(Events.TOGGLE_ALL_RESULTS, toggle); 

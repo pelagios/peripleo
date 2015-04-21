@@ -36,11 +36,11 @@ define(['search/events'], function(Events) {
     
     var featureGroup = L.featureGroup().addTo(map),
     
+        currentSelection = false,
+    
         selectionPin = false,
         
         pendingQuery = false,
-        
-        allowMouseOverHighlights = true,
     
         /** (idOrURI -> { obj, marker }) map of places and items **/
         objects = {},
@@ -86,22 +86,25 @@ define(['search/events'], function(Events) {
         
         /** Highlights (and returns) the object with the specified id **/
         highlight = function(id) {
-          var tuple, latlon;
+          var tuple, latlon, 
+              
+              // If id is false, fall back to the current selection
+              idToHighlight = (id) ? id : currentSelection;
           
           if (selectionPin) {
             map.removeLayer(selectionPin);
             selectionPin = false;
           }
           
-          if (id) {
-            tuple = objects[id];    
+          if (idToHighlight) {
+            tuple = objects[idToHighlight];    
             
             if (tuple) {
               latlon = tuple.marker.getBounds().getCenter();
               selectionPin = L.marker(latlon).addTo(map);
               return tuple;
             }
-          }          
+          }
         },
         
         /** Shorthand: highlights the object and triggers the select event **/
@@ -111,9 +114,13 @@ define(['search/events'], function(Events) {
           if (id) {
             tuple = highlight(id);
 
-            if (tuple)
+            if (tuple) {
+              currentSelection = tuple.obj.identifier;
               eventBroker.fireEvent(Events.SELECT_MARKER, tuple.obj);
+              return tuple;
+            }
           } else {
+            currentSelection = false;
             if (selectionPin)
               map.removeLayer(selectionPin);
             eventBroker.fireEvent(Events.SELECT_MARKER);
@@ -240,38 +247,30 @@ define(['search/events'], function(Events) {
         
     // We only plot result items if there's an active user search term
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(results) {     
-      clear();
-       
-      if (pendingQuery)
+      if (pendingQuery) {
         addObjects(results);
-        
-      pendingQuery = false;
-      
-      setTimeout(fitToObjects, 1);
+        setTimeout(fitToObjects, 1);
+      }
+              
+      pendingQuery = false;      
     });
     
     eventBroker.addHandler(Events.MOUSE_OVER_RESULT, function(result) {
-      var id = (result) ? result.identifier : false;
-      
-      if (allowMouseOverHighlights) // See below!
-        highlight(id);
+      if (result) {
+        if (exists(result.identifier))
+          highlight(result.identifier);
+      } else {
+        highlight();
+      }
     });
     
-    // This event can be triggered from the objectLayer or the resultList
-    // Highlight the marker when the trigger comes from the result list
     eventBroker.addHandler(Events.SELECT_RESULT, function(result) {
       if (result) {
-        var tuple = highlight(result.identifier),
-            markerLatLng = tuple.marker.getBounds().getCenter();
-          
-        if (!map.getBounds().contains(markerLatLng))
+        var tuple = select(result.identifier),
+            markerLatLng = (tuple) ? tuple.marker.getBounds().getCenter() : false;
+            
+        if (markerLatLng && !map.getBounds().contains(markerLatLng))
           map.panTo(markerLatLng);
-      
-        // Note: there can be accidential mouseovers as the result list closes
-        // Make sure we have a 'grace period' for that, in which mouseovers
-        // are ignored
-        allowMouseOverHighlights = false;
-        setTimeout(function() { allowMouseOverHighlights = true; }, 500);
       } else {
         highlight();
       }

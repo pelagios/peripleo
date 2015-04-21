@@ -79,48 +79,64 @@ define(['search/events'], function(Events) {
         },
         
         makeSearchRequest = function() {
+          var params = jQuery.extend({}, searchParams); // Clone params at time of query
           busy = true;
           
-          jQuery.getJSON(buildQueryURL(), function(response) {
-            
-            console.log(response);
-            
+          jQuery.getJSON(buildQueryURL(), function(response) {    
+            response.params = params;        
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
         },
         
-        makeViewUpdateRequest = function() {          
+        search = function() {
+          if (busy)
+            pendingSearch = true;
+          else 
+            makeSearchRequest();
+        },
+        
+        makeViewUpdateRequest = function() {     
           busy = true;
           
           jQuery.getJSON(buildQueryURL(), function(response) {
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
+        },
+        
+        updateView = function() {
+          if (busy)
+            pendingViewUpdate = true;
+          else
+            makeViewUpdateRequest();
         };
 
-    /** Run an initial search on load **/
+    /** Run an initial view update on load **/
     eventBroker.addHandler(Events.LOAD, function(bounds) {
       currentMapBounds = bounds;
-      makeSearchRequest();
+      updateView();
     });
     
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {      
       jQuery.extend(searchParams, change); // Merge changes
-      
-      if (busy)
-        pendingSearch = true;
-      else
-        makeSearchRequest();
+      search();
     });
     
     eventBroker.addHandler(Events.VIEW_CHANGED, function(bounds) {      
       currentMapBounds = bounds;
-      
-      if (busy)
-        pendingViewUpdate = true; // Record the request for later processing
-      else
-        makeViewUpdateRequest();
+      updateView();
     });
+    
+    /* If the user de-selects a place, the place filter should be removed automatically
+    eventBroker.addHandler(Events.SELECTION, function(result) {
+      if (searchParams.place &&  
+          (!result || result.object_type !== 'Place')) {
+        
+        searchParams.place = false;
+        search();
+      }
+    });
+    */
 
   };
   
