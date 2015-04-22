@@ -17,6 +17,8 @@ object IndexFields {
   val SOURCE_DATASET = "source_dataset"    
 
   val HOMEPAGE = "homepage"
+  
+  val DEPICTION = "depiction" 
     
   val IS_PART_OF = "is_part_of"
 

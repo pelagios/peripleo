@@ -26,6 +26,8 @@ case class IndexedObject(private val doc: Document) {
   
   val homepage: Option[String] = Option(doc.get(IndexFields.HOMEPAGE))
   
+  val depictions: Seq[String] = doc.getValues(IndexFields.DEPICTION).toSeq
+  
   val temporalBoundsStart: Option[Int] = Option(doc.get(IndexFields.DATE_FROM)).map(_.toInt)
   
   val temporalBoundsEnd: Option[Int] = Option(doc.get(IndexFields.DATE_TO)).map(_.toInt)

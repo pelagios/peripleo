@@ -6,12 +6,20 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
     var element = jQuery(
           '<div id="selection-info">' +
-          '  <h3></h3>' +
-          '  <p class="names"></p>' +
-          '  <p class="description"></p>' +
-          '  <ul class="uris"></ul>' +
-          '  <p class="related"></p>' +
+          '  <div class="content">' +
+          '    <h3></h3>' +
+          '    <p class="names"></p>' +
+          '    <p class="description"></p>' +
+          '    <ul class="uris"></ul>' +
+          '    <p class="related"></p>' +
+          '  </div>' +
+          '  <div class="thumbnail">' +
+          '  </div>' +
           '</div>'),
+          
+        content = element.find('.content'),
+        
+        thumbnail = element.find('.thumbnail'),
           
         currentObject = false,
         
@@ -25,7 +33,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         related = element.find('.related'),
         
-        fillTemplate = function(obj) {          
+        fillTemplate = function(obj) {   
+          var img;
+           
           title.html(obj.title);
           
           if (obj.names)
@@ -45,6 +55,18 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           
           if (obj.result_count)
             related.html(Formatting.formatNumber(obj.result_count) + ' related results');
+            
+          // TODO pick random rather than always first?
+          if (obj.depictions && obj.depictions.length > 0) {
+            content.addClass('with-thumb');
+            
+            img = jQuery('<img src="' + obj.depictions[0] + '">');
+            img.error(function() { 
+              // If the image fails to load, just create a DIV we can style via CSS
+              thumbnail.html('<div class="img-404"></div>');
+            });
+            thumbnail.append(img);
+          }
         },
         
         clearTemplate = function() {
@@ -53,6 +75,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           description.empty();
           uris.empty();
           related.empty();
+          
+          content.removeClass('with-thumb');
+          thumbnail.empty();
         },
 
         showObject = function(obj) {      
@@ -96,8 +121,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           clearTemplate();
           element.slideUp(SLIDE_DURATION);
         };
-       
-       
+    
     element.on('click', '.related', function() {
       var type = (currentObject) ? currentObject.object_type : false;
 

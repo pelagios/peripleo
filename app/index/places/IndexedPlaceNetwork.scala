@@ -171,6 +171,9 @@ object IndexedPlaceNetwork {
     // Index all names
     place.names.foreach(literal => doc.add(new TextField(IndexFields.PLACE_NAME, literal.chars, Field.Store.YES)))
     
+    // Depictions
+    place.depictions.foreach(depiction => doc.add(new StringField(IndexFields.DEPICTION, depiction, Field.Store.YES)))
+    
     // Update list of source gazetteers, if necessary
     val sourceGazetteers = doc.getValues(IndexFields.SOURCE_DATASET).toSet
     if (!sourceGazetteers.contains(place.sourceGazetteer)) {

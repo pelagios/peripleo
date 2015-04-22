@@ -29,12 +29,14 @@ class IndexedPlace(json: String) {
   
   lazy val category: Option[PlaceCategory.Category] = ((asJson \ "category").asOpt[String]).map(PlaceCategory.withName(_))
   
-  lazy val names: List[PlainLiteral] = (asJson \ "names").as[List[JsObject]]
+  lazy val names: Seq[PlainLiteral] = (asJson \ "names").as[List[JsObject]]
     .map(literal => {
       val chars = (literal \ "chars").as[String]
       val lang = (literal \ "lang").asOpt[String]
       PlainLiteral(chars, lang)
     })
+    
+  lazy val depictions: Seq[String] = (asJson \ "depictions").asOpt[List[String]].getOrElse(List.empty[String])
     
   lazy val temporalBoundsStart: Option[Int] = (asJson \ "temporal" \ "from").asOpt[Int]
   
@@ -49,11 +51,11 @@ class IndexedPlace(json: String) {
   
   lazy val centroid: Option[Coordinate] = geometry.map(_.getCentroid.getCoordinate)
   
-  lazy val closeMatches: List[String] = (asJson \ "close_matches").as[List[String]]
+  lazy val closeMatches: Seq[String] = (asJson \ "close_matches").as[List[String]]
   
-  lazy val exactMatches: List[String] = (asJson \ "exact_matches").as[List[String]]
+  lazy val exactMatches: Seq[String] = (asJson \ "exact_matches").as[List[String]]
   
-  lazy val matches: List[String] = closeMatches ++ exactMatches
+  lazy val matches: Seq[String] = closeMatches ++ exactMatches
   
   def patch(patch: PlacePatch, config: PatchConfig): IndexedPlace = 
     patchGeometry(patch, config.geometryStrategy).patchNames(patch, config.namesStrategy)
@@ -111,6 +113,7 @@ object IndexedPlace {
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "category").writeNullable[String] ~
     (JsPath \ "names").write[Seq[PlainLiteral]] ~
+    (JsPath \ "depictions").writeNullable[Seq[String]] ~
     (JsPath \ "temporal").writeNullable[JsValue] ~
     (JsPath \ "geometry").writeNullable[JsValue] ~
     (JsPath \ "close_matches").write[Seq[String]] ~
@@ -121,6 +124,7 @@ object IndexedPlace {
       p.descriptions.headOption.map(_.chars),
       p.category.map(_.toString),
       p.names,
+      { if (p.depictions.size == 0) None else Some(p.depictions) },
       p.temporal.map(t => Json.obj("from" -> t.start, "to" -> t.end.getOrElse(t.start).toInt)),
       p.locations.headOption.map(location => Json.parse(location.geoJSON)),
       p.closeMatches.map(Index.normalizeURI(_)),

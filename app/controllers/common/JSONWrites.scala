@@ -227,6 +227,7 @@ object JSONWrites {
     (JsPath \ "title").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "homepage").writeNullable[String] ~
+    (JsPath \ "depictions").writeNullable[Seq[String]] ~
     (JsPath \ "object_type").write[String] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
     (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
@@ -253,6 +254,7 @@ object JSONWrites {
        obj.title,
        obj.description,
        obj.homepage,
+       { if (obj.depictions.size == 0) None else Some(obj.depictions) },
        obj.objectType.toString,
        obj.temporalBoundsStart.map(start => Json.obj( 
          "start" -> start,
