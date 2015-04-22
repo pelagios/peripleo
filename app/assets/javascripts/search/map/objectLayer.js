@@ -134,38 +134,37 @@ define(['search/events'], function(Events) {
           objects = {};
         },
         
-        addPlace = function(p) {                     
-          var marker, uri = p.identifier, type,
-              cLon = (p.geo_bounds) ? (p.geo_bounds.max_lon + p.geo_bounds.min_lon) / 2 : false,
-              cLat = (p.geo_bounds) ? (p.geo_bounds.max_lat + p.geo_bounds.min_lat) / 2 : false;
+        /** Adds a marker for a search result object (place or item) **/
+        addMarker = function(obj) {
+          var type, marker, cLon, cLat,
+              id = obj.identifier;
           
-          if (p.geo_bounds) { // Ignore places without geometry
+          if (obj.geo_bounds) {
+            
+            if (!exists(id)) {
+              // Get rid of Barrington grid squares
+              collapseRectangles(obj);
+              type = obj.geometry.type;
           
-            // Get rid of Barrington grid squares    
-            collapseRectangles(p);
-          
-            if (!exists(uri)) {
-              type = p.geometry.type;
-              
               if (type === 'Point') {
+                cLon = (obj.geo_bounds.max_lon + obj.geo_bounds.min_lon) / 2;
+                cLat = (obj.geo_bounds.max_lat + obj.geo_bounds.min_lat) / 2;
+                
                 marker = L.circleMarker([cLat, cLon], Styles.SMALL);
               } else if (type === 'Polygon' || type === 'LineString' || type === 'MultiPolygon') {
-                marker = L.geoJson(p.geometry, Styles.POLYGON);
+                marker = L.geoJson(obj.geometry, Styles.POLYGON);
               } else {
-                console.log('Unsupported convex hull type: ' + p.geometry.type , p);
+                console.log('Unsupported geometry type: ' + obj.geometry.type, obj);
               }
-            
+          
               if (marker) {
-                marker.on('click', function(e) { select(uri); return false; });
-                objects[uri] = { obj: p, marker: marker };
+                marker.on('click', function(e) { select(id); return false; });
+                objects[id] = { obj: obj, marker: marker };
                 marker.addTo(featureGroup);
               }
-            } 
-          }          
-        },
-        
-        addItem = function(item) {
-          console.log('addItem not implemented yet');
+            }
+          
+          }
         },
         
         addDataset = function(dataset) {
@@ -177,10 +176,8 @@ define(['search/events'], function(Events) {
           jQuery.each(response.items, function(idx, obj) {
             var t = obj.object_type;
             
-            if (t === 'Place') {
-              addPlace(obj);
-            } else if (t === 'Item') {
-              addItem(obj);
+            if (t === 'Place' || t === 'Item') {
+              addMarker(obj);
             } else if (t === 'Dataset') {
               addDataset(obj);
             } else {
@@ -241,7 +238,7 @@ define(['search/events'], function(Events) {
     // We update top places if the view changes
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
       jQuery.each(results.top_places, function(idx, place) {
-        addPlace(place);
+        addMarker(place);
       });      
     });
         

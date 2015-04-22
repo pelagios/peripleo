@@ -3,7 +3,9 @@ define(['search/events'], function(Events) {
   
   var QUERY_DELAY_MS = 100,
   
-      NUM_TOP_PLACES = 10;
+      NUM_TOP_PLACES = 10,
+      
+      ITEM_LIMIT = 100;
   
   var API = function(eventBroker) {
   
@@ -34,10 +36,8 @@ define(['search/events'], function(Events) {
 
         /** Builds the URL query string from the current search params **/
         buildQueryURL = function() {
-          var url = '/api-v3/search?verbose=true&facets=true&top_places=' + NUM_TOP_PLACES;
-
-          // if (includeTimeHistogram)
-          //  url += '&time_histogram=true';
+          var url = '/api-v3/search?verbose=true&limit=' + ITEM_LIMIT + 
+                    '&facets=true&top_places=' + NUM_TOP_PLACES;
           
           if (searchParams.query)
             url += '&query=' + searchParams.query;
@@ -83,8 +83,6 @@ define(['search/events'], function(Events) {
           busy = true;
           
           jQuery.getJSON(buildQueryURL(), function(response) {    
-            console.log(response.items);
-            
             response.params = params;        
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
