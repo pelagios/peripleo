@@ -35,27 +35,30 @@ define(['search/events'], function(Events) {
         pendingViewUpdate = false,
 
         /** Builds the URL query string from the current search params **/
-        buildQueryURL = function() {
+        buildQueryURL = function(params) {
+          if (!params)
+            params = searchParams;
+            
           var url = '/api-v3/search?verbose=true&limit=' + ITEM_LIMIT + 
                     '&facets=true&top_places=' + NUM_TOP_PLACES;
           
-          if (searchParams.query)
-            url += '&query=' + searchParams.query;
+          if (params.query)
+            url += '&query=' + params.query;
             
-          if (searchParams.objectType)
-            url += '&type=' + searchParams.objectType;
+          if (params.objectType)
+            url += '&type=' + params.objectType;
             
-          if (searchParams.dataset)
-            url += '&dataset=' + searchParams.dataset;
+          if (params.dataset)
+            url += '&dataset=' + params.dataset;
             
-          if (searchParams.timespan)
-            url += '&from=' + searchParams.timespan.from + '&to=' + searchParams.timespan.to;
+          if (params.timespan)
+            url += '&from=' + params.timespan.from + '&to=' + params.timespan.to;
             
-          if (searchParams.place)
-            url += '&places=' + encodeURIComponent(searchParams.place);
+          if (params.place)
+            url += '&places=' + encodeURIComponent(params.place);
           
           // Note: if there's a user queries, we don't want the bounding box limit
-          if (!searchParams.query)
+          if (!params.query)
             url += '&bbox=' +
               currentMapBounds.west + ',' + currentMapBounds.east + ',' + 
               currentMapBounds.south + ',' + currentMapBounds.north;
@@ -125,6 +128,21 @@ define(['search/events'], function(Events) {
     eventBroker.addHandler(Events.VIEW_CHANGED, function(bounds) {      
       currentMapBounds = bounds;
       updateView();
+    });
+    
+    eventBroker.addHandler(Events.SELECTION, function(obj) {
+      // Just make sure we clear place filters when places get de-selected
+      searchParams.place = false;
+    });
+    
+    eventBroker.addHandler(Events.API_DO_ONETIME_SEARCH, function(params) {
+      var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
+      jQuery.extend(mergedParams, params); // Merge current state with params
+      jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
+        response.params = mergedParams;
+        delete response.params.callback; // Clean up the params object
+        params.callback(response);
+      });
     });
 
   };

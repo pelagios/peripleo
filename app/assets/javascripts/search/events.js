@@ -27,7 +27,21 @@ define(function() {
     API_SEARCH_RESPONSE : 'searchResponse',  
     
     
+    /**
+     * The API returned a data to update the map view
+     *
+     * @param search result
+     */
     API_VIEW_UPDATE : 'viewUpdate',    
+    
+    /**
+     * Requests a one-time search from the API, which will not trigger the global
+     * event broker.
+     * 
+     * @param any search parameter that should be different than the current search state
+     * plus a callback function
+     */
+    API_DO_ONETIME_SEARCH : 'doOnetimeSearch',
     
     
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -42,12 +56,19 @@ define(function() {
     VIEW_CHANGED : 'viewChanged',
     
     /**
-     * The user changed the search parameters, e.g. by typing & hitting ENTER in the search box
+     * The user changed any of the search parameters, e.g. by typing & hitting ENTER in the search box
      * or by changing the filter settings
      * 
      * @param change
      */
     SEARCH_CHANGED : 'searchChanged',
+    
+    /** 
+     * The user changed the query phrase by typing and hitting ENTER in the search box
+     * 
+     * @param the new query phrase
+     */
+    QUERY_PHRASE_CHANGED : 'queryPhraseChanged',
     
     /** 
      * Event for showing the result list box. (Can either happen as a

@@ -40,10 +40,13 @@ define(['search/controls/autoComplete', 'search/events'], function(AutoComplete,
     form.submit(function(e) {
       var chars = input.val().trim();
       
-      if (chars.length === 0)
+      if (chars.length === 0) {
+        eventBroker.fireEvent(Events.QUERY_PHRASE_CHANGED, false);
         eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : false });
-      else
+      } else {
+        eventBroker.fireEvent(Events.QUERY_PHRASE_CHANGED, chars);
         eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : chars });
+      }
     
       input.blur();
       return false; // preventDefault + stopPropagation

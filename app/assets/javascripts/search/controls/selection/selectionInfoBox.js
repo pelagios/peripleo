@@ -33,6 +33,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         related = element.find('.related'),
         
+        ignoreQueryPhrase = false,
+        
         fillTemplate = function(obj) {   
           var img;
            
@@ -53,8 +55,22 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             }
           }
           
-          if (obj.result_count)
+          if (obj.result_count) {
+            ignoreQueryPhrase = false;
             related.html(Formatting.formatNumber(obj.result_count) + ' related results');
+          } else if (obj.object_type === 'Place') {
+            // A place was selected that came as a search result, not a facet
+            // In this case we ignore the query phrase, since it was used to find the place, not to filter the search further
+            ignoreQueryPhrase = true;
+            
+            eventBroker.fireEvent(Events.API_DO_ONETIME_SEARCH,
+              { 
+                place: obj.identifier, query: false,
+                callback: function(response) { 
+                  related.html(Formatting.formatNumber(response.total) + ' related results');  
+                }
+              });
+          }
             
           // TODO pick random rather than always first?
           if (obj.depictions && obj.depictions.length > 0) {
@@ -123,10 +139,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         };
     
     element.on('click', '.related', function() {
-      var type = (currentObject) ? currentObject.object_type : false;
+      var type = (currentObject) ? currentObject.object_type : false,
+          searchParams = { place: currentObject.identifier };
+          
+      if (ignoreQueryPhrase)
+        searchParams.query = false;
 
       if (type === 'Place')      
-        eventBroker.fireEvent(Events.SEARCH_CHANGED, { place: currentObject.identifier }); 
+        eventBroker.fireEvent(Events.SEARCH_CHANGED, searchParams); 
     });
     
     element.hide();
@@ -134,6 +154,12 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
     eventBroker.addHandler(Events.SELECT_MARKER, showObject);
     eventBroker.addHandler(Events.SELECT_RESULT, showObject);
+    eventBroker.addHandler(Events.QUERY_PHRASE_CHANGED, function(query) {
+      if (query) { // No need to hide if the user just cleared the search
+        eventBroker.fireEvent(Events.SELECTION);
+        hide(); 
+      }
+    });
   };
   
   return SelectionInfoBox;
