@@ -37,16 +37,25 @@ trait ObjectReader extends AnnotationReader {
   /** Helper function that adds time query condition if defined **/
   private def addTimeFilter(query: BooleanQuery, from: Option[Int], to: Option[Int]) = {
     if (from.isDefined || to.isDefined) {
-      val timeIntervalQuery = new BooleanQuery()
+      // Open intervals are allowed
+      val start = from match {
+        case Some(start) => start
+        case None => Integer.MIN_VALUE
+      }
+    
+      val end = to match {
+        case Some(end) => end
+        case None => Integer.MAX_VALUE
+      }
       
-      if (from.isDefined)
-        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_TO, from.get, null, true, true), BooleanClause.Occur.MUST)
-        
-      if (to.isDefined)
-        timeIntervalQuery.add(NumericRangeQuery.newIntRange(IndexFields.DATE_FROM, null, to.get, true, true), BooleanClause.Occur.MUST)
-       
-      query.add(timeIntervalQuery, BooleanClause.Occur.MUST)
-    }    
+      val dateRange =
+        if (start > end) // Just a safety precaution... 
+          Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")
+        else
+          Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
+
+      query.add(Index.temporalStrategy.makeQuery(new SpatialArgs(SpatialOperation.Intersects, dateRange)), BooleanClause.Occur.MUST)
+    }
   }
   
   /** TODO make this more sophisticated **/
