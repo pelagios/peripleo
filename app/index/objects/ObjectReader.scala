@@ -239,26 +239,8 @@ trait ObjectReader extends AnnotationReader {
     (q, valuesource)
   }
   
-  /*
-  private def executeDrillSideways(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher,
-    taxonomyReader: DirectoryTaxonomyReader): (TopDocs, Option[Facets]) = {
-    
-    val drilldownQuery = new DrillDownQuery(Index.facetsConfig, query)
-    places.foreach(p => drilldownQuery.add(IndexFields.ITEM_PLACES, p))
-          
-    val ds = new DrillSideways(searcher, Index.facetsConfig, taxonomyReader)
-    val dsResult = ds.search(drilldownQuery, offset + limit)
-      
-    (dsResult.hits, Some(dsResult.facets))
-  }
-  */
-  
   private def executeStandardQuery(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, 
       taxonomyReader: DirectoryTaxonomyReader, valueSource: Option[ValueSource], includeFacets: Boolean): (TopDocs, Option[Facets]) = {
-    
-    // Places filter
-    // places.foreach(uri =>
-    //   query.add(new TermQuery(new Term(IndexFields.ITEM_PLACES, uri)), BooleanClause.Occur.MUST))
     
     val (docCollector, facetsCollector) = { 
       val dc =
@@ -293,14 +275,8 @@ trait ObjectReader extends AnnotationReader {
   private def executeSearch(query: BooleanQuery, phrase: Option[String], places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
       valueSource: Option[ValueSource], includeFacets: Boolean, includeSnippets: Boolean, snippetSearcher: IndexSearcher): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
     
-    
     val (topDocs, facets) =
-      // if (places.size > 0 && includeFacets) {
-        // If there is a place filter, we need to drill sideways, rather than execute a standard search
-        // executeDrillSideways(query, places, limit, offset, searcher, taxonomyReader)
-      // } else {
-        executeStandardQuery(query, places, limit, offset, searcher, taxonomyReader, valueSource, includeFacets)
-      // }
+      executeStandardQuery(query, places, limit, offset, searcher, taxonomyReader, valueSource, includeFacets)
     
     val total = topDocs.totalHits
 
