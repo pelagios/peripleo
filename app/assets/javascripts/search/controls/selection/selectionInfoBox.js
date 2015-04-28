@@ -63,7 +63,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             // In this case we ignore the query phrase, since it was used to find the place, not to filter the search further
             ignoreQueryPhrase = true;
             
-            eventBroker.fireEvent(Events.API_DO_ONETIME_SEARCH,
+            eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
               { 
                 place: obj.identifier, query: false,
                 callback: function(response) { 
@@ -146,7 +146,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         searchParams.query = false;
 
       if (type === 'Place')      
-        eventBroker.fireEvent(Events.SEARCH_CHANGED, searchParams); 
+        eventBroker.fireEvent(Events.SUB_SEARCH, searchParams); 
     });
     
     element.hide();

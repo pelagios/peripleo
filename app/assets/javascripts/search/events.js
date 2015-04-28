@@ -18,7 +18,7 @@ define(function() {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     /* API-related events             */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
+    
     /**
      * The API returned a search result
      * 
@@ -26,6 +26,12 @@ define(function() {
      */
     API_SEARCH_RESPONSE : 'searchResponse',  
     
+    /**
+     * The API returned a result for a sub-search
+     * 
+     * @param search result
+     */
+    API_SUB_SEARCH_RESPONE : 'subSearchResponse',
     
     /**
      * The API returned a data to update the map view
@@ -33,16 +39,6 @@ define(function() {
      * @param search result
      */
     API_VIEW_UPDATE : 'viewUpdate',    
-    
-    /**
-     * Requests a one-time search from the API, which will not trigger the global
-     * event broker.
-     * 
-     * @param any search parameter that should be different than the current search state
-     * plus a callback function
-     */
-    API_DO_ONETIME_SEARCH : 'doOnetimeSearch',
-    
     
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     /* UI events                      */
@@ -62,6 +58,25 @@ define(function() {
      * @param change
      */
     SEARCH_CHANGED : 'searchChanged',
+    
+    /**
+     * The users issued a sub-search (i.e. a search with narrower paramters than the 
+     * current 'main' search).
+     * 
+     * @param diff to the current main search
+     */
+    SUB_SEARCH : 'subSearch',
+    
+    /**
+     * Requests a one-time search from the API. The result will not trigger the global
+     * event pool; the search request will always be fired immediately (i.e. not affected
+     * by caching or delay policies); and the response will be passed back to a callback
+     * function to be provided as parameter.
+     * 
+     * @param any search parameter that should be different than the current search state
+     * plus a callback function
+     */   
+    ONE_TIME_SEARCH : 'oneTimeSearch',
     
     /** 
      * The user changed the query phrase by typing and hitting ENTER in the search box

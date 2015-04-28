@@ -43,7 +43,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           
           if (pendingQuery || element.is(':visible')) {
             list.empty();
-            rebuildList();
+            rebuildList(currentResults);
           }
           
           if (pendingQuery) {
@@ -54,20 +54,15 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           }
         },
         
+        /** Toggles visibility of the result list **/
         toggle = function() {
           if (element.is(':visible'))
             hide();
           else
             show();
         },
-        
-        show = function() {
-          if (currentResults.length > 0) {
-            rebuildList();
-            element.slideDown(SLIDE_DURATION, constrainHeight);
-          }
-        },
-        
+
+        /** Hides the result list **/
         hide = function() {
           if (!keepOpen) {
             element.slideUp(SLIDE_DURATION);
@@ -75,11 +70,24 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           }
         },
         
-        /**
-         * Rebuilds the list element from the current results.
+        /** 
+         * Shows the result list. If no opt_results are provided, the list
+         * will show the globally buffered currentResults
+         * 
+         * @param opt_results a result list (leave undefined to show currentResults)
          */
-        rebuildList = function() {          
-          var rows = jQuery.map(currentResults, function(result) {
+        show = function(opt_results) {
+          var results = (opt_results) ? opt_results : currentResults;
+
+          if (results.length > 0) {
+            rebuildList(results);
+            element.slideDown(SLIDE_DURATION, constrainHeight);
+          }
+        },        
+        
+        /** Rebuilds the list element **/
+        rebuildList = function(results) {          
+          var rows = jQuery.map(results, function(result) {
             var li, icon, html;
             
             switch (result.object_type.toLowerCase()) {
@@ -123,9 +131,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             html += '</li>';
               
             li = jQuery(html);
-            li.mouseenter(function() {
-              eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, result);
-            });
+            li.mouseenter(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, result); });
+            li.mouseleave(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT); });
+            
             li.click(function() {
               hide();
               eventBroker.fireEvent(Events.SELECT_RESULT, result);
@@ -140,24 +148,25 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
     element.hide();
     container.append(element);
-    
-    element.mouseleave(function() {
-      eventBroker.fireEvent(Events.MOUSE_OVER_RESULT);
-    });
 
     // Listen for search results
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(result) {
-      update(result);
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
+      update(response);
       
       // If there was a user-supplied query or place filter we open automatically
-      if (result.params.query || result.params.place)    
+      if (response.params.query || response.params.place)    
         show();
       
       // The map will change after search response - we want to keep open
       // in this case nonetheless
       keepOpen = true; 
       setTimeout(function() { keepOpen = false; }, KEEP_OPEN_PERIOD);
-    });   
+    });
+    
+    // Listen for sub-searche results
+    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONE, function(response) {
+      show(response.items);
+    });
     
     eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
     

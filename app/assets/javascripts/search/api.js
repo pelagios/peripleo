@@ -9,7 +9,7 @@ define(['search/events'], function(Events) {
   
   var API = function(eventBroker) {
   
-        /** Current search parameters **/
+        /** Current search parameter state **/
     var searchParams = {
           
           query: false,
@@ -81,6 +81,7 @@ define(['search/events'], function(Events) {
           }, QUERY_DELAY_MS);
         },
         
+        /** Fires a search request against the API **/
         makeSearchRequest = function() {
           var params = jQuery.extend({}, searchParams); // Clone params at time of query
           busy = true;
@@ -92,6 +93,7 @@ define(['search/events'], function(Events) {
           }).always(handlePending);
         },
         
+        /** Helper: either fires a search request, or schedules for later if busy **/
         search = function() {
           if (busy)
             pendingSearch = true;
@@ -99,6 +101,7 @@ define(['search/events'], function(Events) {
             makeSearchRequest();
         },
         
+        /** Fires a search request against the API to accomodate a view update **/
         makeViewUpdateRequest = function() {     
           busy = true;
           
@@ -107,11 +110,52 @@ define(['search/events'], function(Events) {
           }).always(handlePending);
         },
         
+        /** Helper: either fires a view update request, or schedules for later if busy **/
         updateView = function() {
           if (busy)
             pendingViewUpdate = true;
           else
             makeViewUpdateRequest();
+        },
+        
+        /**
+         * Fires a sub-search request. A sub-search uses the current global search parameter
+         * settings, plus a set of changes. The changes are, however, not remembered beyond
+         * the request, nor do they change the current global parameter values.
+         * 
+         * Unlike normal searches or view-updates, sub-searches are performed immediately.
+         * I.e. they are not affected by the 'busy' state, caching or delay policies.
+         * 
+         * @diff the changes to the current global search parameters
+         */
+        makeSubSearchRequest = function(diff) {
+          var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
+          jQuery.extend(mergedParams, diff); // Merge current state with diff
+          jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
+            response.params = mergedParams;
+            eventBroker.fireEvent(Events.API_SUB_SEARCH_RESPONE, response);
+          });          
+        },
+        
+        /**
+         * Fires a one-time search request. The one-time search uses the current global
+         * search parameter settings, plus a set of changes. The request is fired to the API
+         * immediately.
+         * 
+         * The one-time search is similar to the sub-search. However, the result is not
+         * communicated via the global event pool. Instead, the response is ONLY passed back
+         * to a callback function provided in the parameters.
+         * 
+         * @params the changes to the current global search parameters, and the callback function
+         */        
+        makeOneTimeSearchRequest = function(params) {
+          var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
+          jQuery.extend(mergedParams, params); // Merge current state with params
+          jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
+            response.params = mergedParams;
+            delete response.params.callback; // Clean up the params object, i.e. remove the callback fn reference
+            params.callback(response);
+          });
         };
 
     /** Run an initial view update on load **/
@@ -130,19 +174,12 @@ define(['search/events'], function(Events) {
       updateView();
     });
     
-    eventBroker.addHandler(Events.SELECTION, function(obj) {
-      // Just make sure we clear place filters when places get de-selected
-      searchParams.place = false;
-    });
+    eventBroker.addHandler(Events.SUB_SEARCH, makeSubSearchRequest);
+    eventBroker.addHandler(Events.ONE_TIME_SEARCH, makeOneTimeSearchRequest);
     
-    eventBroker.addHandler(Events.API_DO_ONETIME_SEARCH, function(params) {
-      var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-      jQuery.extend(mergedParams, params); // Merge current state with params
-      jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
-        response.params = mergedParams;
-        delete response.params.callback; // Clean up the params object
-        params.callback(response);
-      });
+    // Just make sure we clear place filters when places get de-selected
+    eventBroker.addHandler(Events.SELECTION, function(obj) {
+      searchParams.place = false;
     });
 
   };
