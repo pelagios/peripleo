@@ -163,11 +163,25 @@ define(['search/events'], function(Events) {
               toX = fromX + width,
               toYear = xToYear(toX);
               
-          // Drag handles
+          fromHandleLabel.html(formatYear(fromYear));
+          fromHandleLabel.show();
           fromHandle.css('left', offsetX - handleWidth);
+          
+          toHandleLabel.html(formatYear(toYear));
+          toHandleLabel.show();
           toHandle.css('left', offsetX + width);
 
           eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: getSelectedRange() });
+        },
+        
+        onStopBounds = function(e) {
+          onDragBounds(e);
+          
+          fromHandleLabel.empty();
+          fromHandleLabel.hide();
+          
+          toHandleLabel.empty();
+          toHandleLabel.hide();
         },
         
         update = function(response) {
@@ -211,7 +225,7 @@ define(['search/events'], function(Events) {
     
     makeXDraggable(fromHandle, onDragHandle, onStopHandle);
     makeXDraggable(toHandle, onDragHandle, onStopHandle);
-    makeXDraggable(selectionBounds, onDragBounds, onDragBounds, canvas);
+    makeXDraggable(selectionBounds, onDragBounds, onStopBounds, canvas);
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
     
