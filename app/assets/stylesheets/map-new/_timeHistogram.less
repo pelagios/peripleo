@@ -29,17 +29,49 @@
     right:2px;
   }
   
-  .handle {
-    top:10px;
-    cursor:pointer;
+  .selection {
+    top:3px;
+    bottom:19px;
+    left:31px;
+    right:31px;
+    .box-shadow-inset(0, 0, 2px, 0, rgba(0,0,0,0.3));
+    border:1px solid rgba(0,0,0,0.3);
+    background-color:rgba(255,255,255,0.3);
+  }
+  
+  .selection:before, .selection:after {
+    position:absolute;
+    top:6px;
+    content:'\e801';
+    width:6px;
     padding:10px 3px 10px 4px;
     font-family:Fontello;
     font-size:11px;
     color:rgba(0,0,0,0.4);
-    background-color:rgba(0,0,0,0.25);
+    background-color:#bcbcbc;
     border-color:rgba(0,0,0,0.2);
     border-style:solid;
     .box-shadow(0, 0, 2px, 0, rgba(0,0,0,0.3));
+  }
+  
+  .selection:before {
+    left:-15px;
+    border-width:1px 0 1px 1px;
+    .rounded-corners-left(5px);
+  }
+  
+  .selection:after {
+    right:-15px;
+    border-width:1px 1px 1px 0;
+    .rounded-corners-right(5px);
+  }
+  
+  .handle {
+    top:10px;
+    bottom:28px;
+    width:15px;
+    // background-color:rgba(255, 0, 0, 0.3);
+    cursor:pointer;
     
     .label {
       color:#efefef;
@@ -70,30 +102,12 @@
   
   .handle.from {
     left:17px;
-    border-width:1px 0 1px 1px;
-    .rounded-corners-left(5px);
-    
-    .label { left:-16px; }
-    
+    .label { left:-16px; }    
   }
   
   .handle.to {
-    left:315px;
-    border-width:1px 1px 1px 0;
-    .rounded-corners-right(5px);
-    
+    right:17px;    
     .label { left:-32px; }
-    
-  }
-  
-  .selection {
-    top:3px;
-    bottom:19px;
-    left:33px;
-    right:33px;
-    .box-shadow-inset(0, 0, 2px, 0, rgba(0,0,0,0.3));
-    border:1px solid rgba(0,0,0,0.3);
-    background-color:rgba(255,255,255,0.3);
   }
 
 }

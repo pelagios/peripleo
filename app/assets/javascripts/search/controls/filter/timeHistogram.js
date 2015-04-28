@@ -14,11 +14,11 @@ define(['search/events'], function(Events) {
           
           '  <div class="selection"></div>' +
           
-          '  <div class="handle from">&#xe801;' +
+          '  <div class="handle from">' +
           '    <div class="label"></div>' +
           '  </div>' +
-          
-          '  <div class="handle to">&#xe801;' +
+      
+          '  <div class="handle to">' +
           '    <div class="label"></div>' +
           '  </div>' +
           '</div>'),
@@ -79,30 +79,6 @@ define(['search/events'], function(Events) {
             stop: onStop
           });
         },
-        
-        /** Shorthand to set the left (from) handle + selection interval **/
-        setFromHandle = function(x) {
-          fromHandle.css('left', x - 1);
-          selectionBounds.css('left', x + handleWidth - 1);
-        },
-        
-        /** Shorthand to set the right (to) handle + selection interval **/
-        setToHandle = function(x) {
-          toHandle.css('left', x);
-          selectionBounds.css('width', x - fromHandle.position().left - handleWidth);
-        },
-        
-        /** Make sure the handles are with the restricted area **/
-        constrainHandles = function() {    
-          var fromHandleMin = canvasOffset - handleWidth,
-              toHandleMax = canvasOffset + canvasWidth + 2;
-              
-          if (fromHandle.position().left < fromHandleMin)
-            setFromHandle(fromHandleMin);
-                    
-          if (toHandle.position().left > toHandleMax)
-            setToHandle(toHandleMax)
-        },
       
         /** Returns the currently selected time range **/
         getSelectedRange = function() {
@@ -121,14 +97,14 @@ define(['search/events'], function(Events) {
               
           if (e.target === fromHandle[0]) {
             // Left handle
-            minX = canvasOffset - handleWidth - 1;
+            minX = handleWidth + 1;
             maxX = toHandle.position().left - handleWidth;
             
             if (posX < minX) {
-              setFromHandle(minX + 1);
+              fromHandle.css('left', minX);
               return false;
             } else if (posX > maxX) {
-              setFromHandle(maxX);
+              fromHandle.css('left', maxX);
               return false;
             }
             
@@ -138,17 +114,17 @@ define(['search/events'], function(Events) {
               
             // Update selection bounds
             selectionBounds.css('left', posX + handleWidth);
-            selectionBounds.css('width', maxX - posX - 2);
+            selectionBounds.css('width', maxX - posX - 1);
           } else {
             // Right handle constraint check
-            minX = fromHandle.position().left + handleWidth;
+            minX = fromHandle.position().left + handleWidth + 1;
             maxX = canvasOffset + canvasWidth + 2; 
-
+            
             if (posX < minX) {
-              setToHandle(minX);
+              toHandle.css('left', minX + 1);
               return false;
             } else if (posX > maxX) {
-              setToHandle(maxX);
+              toHandle.css('left', maxX);
               return false;
             }
             
@@ -157,7 +133,7 @@ define(['search/events'], function(Events) {
             toHandleLabel.html(formatYear(getSelectedRange().to));
             
             // Update selection bounds
-            selectionBounds.css('width', posX - minX - 2);           
+            selectionBounds.css('width', posX - minX);        
           }
         },
         
@@ -170,11 +146,12 @@ define(['search/events'], function(Events) {
           toHandleLabel.empty();
           toHandleLabel.hide();
             
-          if (selection.from == histogramRange.from && selection.to == histogramRange.to)
+          if (selection.from <= histogramRange.from && selection.to >= histogramRange.to) {
             // Remove time filter altogether
-            eventBroker.fireEvent(Events.SET_TIME_FILTER); 
-          else
-            eventBroker.fireEvent(Events.SET_TIME_FILTER, selection);
+            eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: false }); 
+          } else {
+            eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: selection });
+          }
         },
         
         onDragBounds = function(e) {
@@ -189,12 +166,13 @@ define(['search/events'], function(Events) {
           // Drag handles
           fromHandle.css('left', offsetX - handleWidth);
           toHandle.css('left', offsetX + width);
-          
-          eventBroker.fireEvent(Events.SET_TIME_FILTER, getSelectedRange());
+
+          eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: getSelectedRange() });
         },
         
         update = function(response) {
           var values = response.time_histogram;
+          
           if (values && values.length > 0) {                      
             var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
                 minYear = values[0].year,
@@ -219,30 +197,24 @@ define(['search/events'], function(Events) {
             histogramRange.to = maxYear;
                 
             histogramFromLabel.html(formatYear(minYear));
-            histogramToLabel.html(formatYear(maxYear));    
-            
-            constrainHandles();    
+            histogramToLabel.html(formatYear(maxYear));      
           };
         };
     
     fromHandleLabel.hide();
     toHandleLabel.hide();
-    
     parent.append(container);
-    ctx = canvas[0].getContext('2d');
     
+    ctx = canvas[0].getContext('2d');
     canvasWidth = canvas.outerWidth(false);
     canvasOffset = (canvas.outerWidth(true) - canvasWidth) / 2;
     handleWidth = fromHandle.outerWidth();
-    
-    /** We listen for new histograms **/
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
     
     makeXDraggable(fromHandle, onDragHandle, onStopHandle);
     makeXDraggable(toHandle, onDragHandle, onStopHandle);
     makeXDraggable(selectionBounds, onDragBounds, onDragBounds, canvas);
 
-    this.update = update;
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
     
   };
   
