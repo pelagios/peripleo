@@ -350,13 +350,13 @@ trait ObjectReader extends AnnotationReader {
     (Page(results.toSeq, offset, limit, total), facetTree)
   }
   
-  private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher): TimeHistogram = {    
+  private def calculateTemporalProfile(filter: Filter, searcher: IndexSearcher): TimeHistogram = {        
     val startCal = Index.dateRangeTree.newCal()
-    startCal.set(-10000, Calendar.JANUARY, 1)
+    startCal.set(-8000, Calendar.JANUARY, 1)
     val start = Index.dateRangeTree.toShape(startCal)
     
     val endCal = Index.dateRangeTree.newCal()
-    endCal.set(10000, Calendar.DECEMBER, 31)
+    endCal.set(3000, Calendar.DECEMBER, 31)
     val end = Index.dateRangeTree.toShape(endCal)
     
     val facetRange = Index.dateRangeTree.toRangeShape(start, end);    
