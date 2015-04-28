@@ -34,8 +34,8 @@ define(['search/events'], function(Events) {
       
   var ObjectLayer = function(map, eventBroker) {
     
-    var featureGroup = L.featureGroup().addTo(map),
-    
+    var featureGroup = L.featureGroup().addTo(map);
+        
         currentSelection = false,
     
         selectionPin = false,
@@ -235,7 +235,7 @@ define(['search/events'], function(Events) {
       }
     });
     
-    // We update top places if the view changes
+    // Once the initial view update is over, we update top places on view changes
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
       jQuery.each(results.top_places, function(idx, place) {
         addMarker(place);

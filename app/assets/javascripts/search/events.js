@@ -7,7 +7,7 @@ define(function() {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     
     /**
-     * Initial page LOAD event
+     * Initial page LOAD event. Fired after the page has loaded.
      * 
      * @param initial map bounds 
      */
@@ -18,6 +18,9 @@ define(function() {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     /* API-related events             */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    
+    /** The API returned an initial search result **/
+    API_INITIAL_RESPONSE : 'initialLoad',
     
     /**
      * The API returned a search result

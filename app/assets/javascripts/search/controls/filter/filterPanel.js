@@ -46,6 +46,20 @@ define(['search/events',
             else
               buttonToggleFilters.addClass('open');
           });
+        },
+        
+        render = function(response) {      
+          var facets = response.facets, 
+              typeDimension = jQuery.grep(facets, function(facet) { return facet.dimension === 'type'; }),
+              typeFacets = (typeDimension.length > 0) ? typeDimension[0].top_children : [],
+          
+              sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'source_dataset'; });
+              sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
+           
+          footerTotals.html('(' + numeral(response.total).format('0,0') + ')');
+          
+          typeFacetChart.update(typeFacets);
+          sourceFacetChart.update(sourceFacets);
         };
         
     /** Instantiate child controls **/
@@ -67,19 +81,8 @@ define(['search/events',
     });
     
     /** Forward updates to the facet charts **/
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
-      footerTotals.html('(' + numeral(response.total).format('0,0') + ')'); 
-      
-      var facets = response.facets, 
-          typeDimension = jQuery.grep(facets, function(facet) { return facet.dimension === 'type'; }),
-          typeFacets = (typeDimension.length > 0) ? typeDimension[0].top_children : [],
-          
-          sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'source_dataset'; });
-          sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
-          
-      typeFacetChart.update(typeFacets);
-      sourceFacetChart.update(sourceFacets);
-    });
+    eventBroker.addHandler(Events.API_INITIAL_RESPONSE, render);
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, render);
 
   };
   

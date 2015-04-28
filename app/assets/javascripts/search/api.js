@@ -81,6 +81,15 @@ define(['search/events'], function(Events) {
           }, QUERY_DELAY_MS);
         },
         
+        /** Fires an initial load request using the current map bounds **/
+        initialLoad = function() {
+          busy = true;
+          
+          jQuery.getJSON(buildQueryURL(), function(response) {
+            eventBroker.fireEvent(Events.API_INITIAL_RESPONSE, response);
+          }).always(handlePending);          
+        },
+        
         /** Fires a search request against the API **/
         makeSearchRequest = function() {
           var params = jQuery.extend({}, searchParams); // Clone params at time of query
@@ -126,7 +135,7 @@ define(['search/events'], function(Events) {
          * Unlike normal searches or view-updates, sub-searches are performed immediately.
          * I.e. they are not affected by the 'busy' state, caching or delay policies.
          * 
-         * @diff the changes to the current global search parameters
+         * @param diff the changes to the current global search parameters
          */
         makeSubSearchRequest = function(diff) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
@@ -146,7 +155,7 @@ define(['search/events'], function(Events) {
          * communicated via the global event pool. Instead, the response is ONLY passed back
          * to a callback function provided in the parameters.
          * 
-         * @params the changes to the current global search parameters, and the callback function
+         * @param the changes to the current global search parameters, and the callback function
          */        
         makeOneTimeSearchRequest = function(params) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
@@ -161,7 +170,7 @@ define(['search/events'], function(Events) {
     /** Run an initial view update on load **/
     eventBroker.addHandler(Events.LOAD, function(bounds) {
       currentMapBounds = bounds;
-      updateView();
+      initialLoad();
     });
     
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {      
