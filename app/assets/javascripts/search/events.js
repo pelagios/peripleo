@@ -89,6 +89,16 @@ define(function() {
     QUERY_PHRASE_CHANGED : 'queryPhraseChanged',
     
     /** 
+     * The users has opened the filters panel
+     */
+    SHOW_FILTERS : 'showFilters',
+    
+    /**
+     * The user has hidden the filters panel
+     */
+    HIDE_FILTERS : 'hideFilters',
+    
+    /** 
      * Event for showing the result list box. (Can either happen as a
      * user action or as a result of a search response.)
      */

@@ -232,6 +232,8 @@ define(['search/events'], function(Events) {
           clear();
         
         pendingQuery = change.query;
+      } else  if (change.hasOwnProperty('query')) { // If the change removed the query, clear the map
+        clear();
       }
     });
     

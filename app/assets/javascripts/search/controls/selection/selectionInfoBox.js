@@ -107,8 +107,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 eventBroker.fireEvent(Events.SELECTION); // Deselect event      
                 
                 // If the user de-selected a place, place search filter is cleared automatically
-                if (currentType === 'Place')
-                  eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
+                // if (currentType === 'Place')
+                //   eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
               });
             } else {
               if (currentObject.identifier !== obj.identifier) { // New object - reset
@@ -118,8 +118,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 eventBroker.fireEvent(Events.SELECTION, obj); 
                 
                 // If the user de-selected a place, place search filter is cleared automatically
-                if (currentType === 'Place')
-                  eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
+                // if (currentType === 'Place')
+                //  eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
               }
             }
           } else { // Currently closed 

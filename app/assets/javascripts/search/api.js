@@ -24,6 +24,9 @@ define(['search/events'], function(Events) {
           
         },
         
+        /** Flag indicating whether time histogram should be included **/
+        includeTimeHistogram = false,
+        
         /** The current map bounds **/
         currentMapBounds = false,
         
@@ -41,6 +44,9 @@ define(['search/events'], function(Events) {
             
           var url = '/api-v3/search?verbose=true&limit=' + ITEM_LIMIT + 
                     '&facets=true&top_places=' + NUM_TOP_PLACES;
+                    
+          if (includeTimeHistogram) 
+            url += '&time_histogram=true';
           
           if (params.query)
             url += '&query=' + params.query;
@@ -189,6 +195,16 @@ define(['search/events'], function(Events) {
     // Just make sure we clear place filters when places get de-selected
     eventBroker.addHandler(Events.SELECTION, function(obj) {
       searchParams.place = false;
+    });
+    
+    // If the filter panel is closed, we don't request the time histogram (it's expensive!)
+    eventBroker.addHandler(Events.SHOW_FILTERS, function() {
+      includeTimeHistogram = true;
+      updateView();
+    });
+    
+    eventBroker.addHandler(Events.HIDE_FILTERS, function() {
+      includeTimeHistogram = false;
     });
 
   };

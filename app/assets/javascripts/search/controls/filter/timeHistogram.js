@@ -26,9 +26,7 @@ define(['search/events'], function(Events) {
         /** Canvas element **/
         canvas = container.find('canvas'),
         
-        canvasWidth,
-        
-        canvasOffset,
+        canvasWidth, canvasOffset,
         
         /** Drawing context - initialize after appending canvas to DOM **/
         ctx, 
@@ -195,7 +193,8 @@ define(['search/events'], function(Events) {
           eventBroker.fireEvent(Events.SET_TIME_FILTER, getSelectedRange());
         },
         
-        update = function(values) {
+        update = function(response) {
+          var values = response.time_histogram;
           if (values && values.length > 0) {                      
             var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
                 minYear = values[0].year,
@@ -237,7 +236,7 @@ define(['search/events'], function(Events) {
     handleWidth = fromHandle.outerWidth();
     
     /** We listen for new histograms **/
-    eventBroker.addHandler(Events.UPDATED_TIME_HISTOGRAM, update);
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
     
     makeXDraggable(fromHandle, onDragHandle, onStopHandle);
     makeXDraggable(toHandle, onDragHandle, onStopHandle);

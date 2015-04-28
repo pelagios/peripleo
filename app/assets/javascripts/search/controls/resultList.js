@@ -63,10 +63,12 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         /** Toggles visibility of the result list **/
         toggle = function() {
           if (element.is(':visible')) { // List visible
-            if (subsearch) // The list shows sub-search results - show currentResults instead
+            if (subsearch) { // The list shows sub-search results - show currentResults instead
+              subsearch = false;
               show();
-            else // If the list shows the currentResults, hide it
+            } else { // If the list shows the currentResults, hide it
               hide();
+            }
           } else { // List hidden - show it
             show();
           }

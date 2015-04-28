@@ -40,6 +40,12 @@ define(['search/events',
         
         toggleFilters = function() {
           var visible = body.is(':visible');
+          
+          if (visible)
+            eventBroker.fireEvent(Events.HIDE_FILTERS);
+          else
+            eventBroker.fireEvent(Events.SHOW_FILTERS);
+          
           body.slideToggle(200, function() {
             if (visible)
               buttonToggleFilters.removeClass('open');
@@ -65,7 +71,7 @@ define(['search/events',
     /** Instantiate child controls **/
     body.hide();
     container.append(element);
-    // timeHistogram = new TimeHistogram(histogramSection, eventBroker);
+    timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     
     typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type');
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'dataset');
@@ -80,7 +86,7 @@ define(['search/events',
       currentSelection = selection;
     });
     
-    /** Forward updates to the facet charts **/
+    // Forward updates to the facet charts
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, render);
     eventBroker.addHandler(Events.API_VIEW_UPDATE, render);
 
