@@ -13,10 +13,16 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
         list = element.find('ul'),
         
+        /** TODO revisit - do we need this? **/
         pendingQuery = false,
         
+        /** Helper flag - forces the list to stay open, even on hide()-calls **/
         keepOpen = false,
+        
+        /** Helper flag - indicates that the current list represents a sub-search result **/
+        subsearch = false,
           
+        /** The currently buffered search results **/
         currentResults = [],
         
         /** Checks current height and limits to max screen height **/
@@ -56,10 +62,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         /** Toggles visibility of the result list **/
         toggle = function() {
-          if (element.is(':visible'))
-            hide();
-          else
+          if (element.is(':visible')) { // List visible
+            if (subsearch) // The list shows sub-search results - show currentResults instead
+              show();
+            else // If the list shows the currentResults, hide it
+              hide();
+          } else { // List hidden - show it
             show();
+          }
         },
 
         /** Hides the result list **/
@@ -151,6 +161,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
     // Listen for search results
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
+      subsearch = false;
+      
       update(response);
       
       // If there was a user-supplied query or place filter we open automatically
@@ -165,6 +177,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
     // Listen for sub-searche results
     eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONE, function(response) {
+      subsearch = true;
       show(response.items);
     });
     
