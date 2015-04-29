@@ -23,7 +23,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           
         currentObject = false,
         
-        title = element.find('h3'),
+        heading = element.find('h3'),
         
         names = element.find('.names'),
         
@@ -36,12 +36,17 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         ignoreQueryPhrase = false,
         
         fillTemplate = function(obj) {   
-          console.log(obj);
+          var img,
+              title = obj.title;
           
-          var img;
-           
-          title.html(obj.title);
+          if (obj.temporal_bounds)
+            if (obj.temporal_bounds.start === obj.temporal_bounds.end)
+              title += ' (' + obj.temporal_bounds.start + ')';
+            else 
+              title += ' (' + obj.temporal_bounds.start + ' - ' + obj.temporal_bounds.end + ')';
           
+          heading.html(title);
+                    
           if (obj.names)
             names.html(obj.names.slice(0, 8).join(', '));
           
@@ -88,7 +93,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
         
         clearTemplate = function() {
-          title.empty();
+          heading.empty();
           names.empty();
           description.empty();
           uris.empty();
