@@ -110,12 +110,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 icon = '<span class="icon" title="Item">&#xf219;</span>';
             }
             
-            if (result.homepage)
-              html = 
-                '<li><h3>' + icon + ' <a target="_blank" href="' + result.homepage + '">' + result.title + '</a></h3>'; 
-            else
-              html = 
-                '<li><h3>' + icon + ' ' + result.title + '</h3>';
+           html = '<li><h3>' + icon + ' ' + result.title + '</h3>';
               
             if (result.names)
               html += '<p class="names">' +

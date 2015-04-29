@@ -36,6 +36,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         ignoreQueryPhrase = false,
         
         fillTemplate = function(obj) {   
+          console.log(obj);
+          
           var img;
            
           title.html(obj.title);
@@ -105,10 +107,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 currentObject = false;
                 clearTemplate();
                 eventBroker.fireEvent(Events.SELECTION); // Deselect event      
-                
-                // If the user de-selected a place, place search filter is cleared automatically
-                // if (currentType === 'Place')
-                //   eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
               });
             } else {
               if (currentObject.identifier !== obj.identifier) { // New object - reset
@@ -116,10 +114,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 clearTemplate();
                 fillTemplate(obj);
                 eventBroker.fireEvent(Events.SELECTION, obj); 
-                
-                // If the user de-selected a place, place search filter is cleared automatically
-                // if (currentType === 'Place')
-                //  eventBroker.fireEvent(Events.SEARCH_CHANGED, { place : false });
               }
             }
           } else { // Currently closed 

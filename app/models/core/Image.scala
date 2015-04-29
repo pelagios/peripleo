@@ -1,18 +1,43 @@
 package models.core
 
+import java.sql.Timestamp
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 
-/** DB entity **/
-case class Image(id: Option[Int], dataset: String, annotatedThing: String, url: String, isThumbnail: Boolean)
+case class Image(
+    
+    /** ID **/
+    id: Option[Int], 
+    
+    /** ID of the dataset **/
+    dataset: String, 
+    
+    /** ID of the annotated thing **/
+    annotatedThing: String, 
+    
+    /** Image URL **/
+    url: String, 
+    
+    /** An image caption **/
+    title: Option[String] = None,
+    
+    /** A (longer) description **/
+    description: Option[String] = None,
+    
+    /** URL to a thumbnail image **/
+    thumbnail: Option[String] = None,
 
-/** Wrappers to provide readable, typesafe access to depictions vs. thumbnails **/
-case class Depiction(url: String)
+    /** Image creator **/
+    creator: Option[String] = None,
+    
+    /** Time of creation info **/
+    created: Option[Timestamp] = None,
 
-case class Thumbnail(url: String)
+    /** Image license **/
+    license: Option[String] = None)
 
-/** DB table **/
+    
 class Images(tag: SlickTag) extends Table[Image](tag, "images") {
   
   def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
@@ -23,9 +48,20 @@ class Images(tag: SlickTag) extends Table[Image](tag, "images") {
   
   def url = column[String]("url", O.NotNull)
   
-  def isThumbnail = column[Boolean]("is_thumbnail", O.NotNull)
+  def title = column[String]("title", O.Nullable)
   
-  def * = (id.?, datasetId, annotatedThingId, url, isThumbnail) <> (Image.tupled, Image.unapply)
+  def description = column[String]("description", O.Nullable, O.DBType("text"))
+  
+  def thumbnail = column[String]("thumbnail", O.Nullable)
+  
+  def creator = column[String]("creator", O.Nullable)
+  
+  def created = column[Timestamp]("created", O.Nullable)
+  
+  def license = column[String]("license", O.Nullable)
+  
+  def * = (id.?, datasetId, annotatedThingId, url, title.?, description.?, 
+    thumbnail.?, creator.?, created.?, license.?) <> (Image.tupled, Image.unapply)
 
   /** Foreign key constraints **/
   
@@ -54,11 +90,7 @@ object Images {
   def deleteForDatasets(ids: Seq[String])(implicit s: Session) =
     query.where(_.datasetId inSet ids).delete
     
-  def findByAnnotatedThing(id: String)(implicit s: Session): (Seq[Thumbnail], Seq[Depiction]) = {
-    val images = query.where(_.annotatedThingId === id).list
-    val thumbnails = images.filter(_.isThumbnail).map(img => Thumbnail(img.url))
-    val depictions = images.filter(!_.isThumbnail).map(img => Depiction(img.url))
-    (thumbnails, depictions)
-  }
+  def findByAnnotatedThing(id: String)(implicit s: Session): Seq[Image] =
+    query.where(_.annotatedThingId === id).list
   
 }

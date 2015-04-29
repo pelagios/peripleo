@@ -118,9 +118,8 @@ object PelagiosOAImporter extends AbstractImporter {
                        ConvexHull.fromPlaces(places.map(_._1)))
       
       val images = 
-        oaThing.depictions.map(url => Image(None, dataset.id, thingId, url, false)) ++
-        oaThing.thumbnails.map(url => Image(None, dataset.id, thingId, url, true))
-        
+        oaThing.depictions.map(url => Image(None, dataset.id, thingId, url))
+      
       // TODO make use of 'quote' and 'offset' fields
       val annotations = oaThing.annotations.map(a =>
         Annotation(UUID.randomUUID, dataset.id, thingId, a.places.head, None, None))     

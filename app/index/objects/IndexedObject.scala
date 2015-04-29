@@ -53,6 +53,9 @@ object IndexedObject {
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
     thing.homepage.map(homepage => doc.add(new StoredField(IndexFields.HOMEPAGE, homepage)))
     
+    // Depictionss
+    // thing..depictions.foreach(depiction => doc.add(new StringField(IndexFields.DEPICTION, depiction, Field.Store.YES)))
+    
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
@@ -78,7 +81,6 @@ object IndexedObject {
     
     // Place URIs
     places.foreach(place => doc.add(new StringField(IndexFields.PLACE_URI, place.uri, Field.Store.NO)))
-    // places.foreach(place => doc.add(new FacetField(IndexFields.ITEM_PLACES, place.uri)))
     
     // Detailed geometry as spatially indexed features
     val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)

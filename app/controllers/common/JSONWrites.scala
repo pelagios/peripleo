@@ -33,19 +33,13 @@ object JSONWrites {
     (JsPath \ "description").writeNullable[String] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
     (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
-    // TODO change image format
-    (JsPath \ "thumbnails").writeNullable[Seq[String]] ~
-    (JsPath \ "images").writeNullable[Seq[String]] ~
+    (JsPath \ "depictions").writeNullable[Seq[String]] ~
     (JsPath \ "num_subitems").writeNullable[Int] ~
     (JsPath \ "num_annotations").write[Int] ~ 
     (JsPath \ "num_unique_places").write[Int]
   )(thing => { 
-     val (thumbnails, depictions) = {
-       val (t, d) = Images.findByAnnotatedThing(thing.id)
-       (if (t.size > 0) Some(t.map(_.url)) else None,
-        if (d.size > 0) Some(d.map(_.url)) else None) 
-     }
-     
+     val depictions =  Images.findByAnnotatedThing(thing.id)
+
      (thing.id,
       thing.title,
       thing.dataset,
@@ -56,8 +50,7 @@ object JSONWrites {
         "start" -> start,
         "end" -> { val end = thing.temporalBoundsEnd.getOrElse(start); end })),
       thing.convexHull.map(_.bounds),
-      thumbnails,
-      depictions,
+      { if (depictions.size > 0) Some(depictions.map(_.url)) else None },
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),
       Associations.countPlacesForThing(thing.id))})
