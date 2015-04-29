@@ -5,7 +5,7 @@ import com.vividsolutions.jts.geom.Geometry
 import index.Index
 import index.IndexFields
 import index.places.{ IndexedPlace, IndexedPlaceNetwork }
-import models.core.{ AnnotatedThing, Dataset }
+import models.core.{ AnnotatedThing, Dataset, Image }
 import models.geo.BoundingBox
 import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
@@ -43,7 +43,7 @@ case class IndexedObject(private val doc: Document) {
 
 object IndexedObject {
   
-  def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
+  def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], images: Seq[Image], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
     
     // ID, publisher, parent dataset ID, title, description, homepage, type = AnnotatedThing
@@ -53,8 +53,8 @@ object IndexedObject {
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
     thing.homepage.map(homepage => doc.add(new StoredField(IndexFields.HOMEPAGE, homepage)))
     
-    // Depictionss
-    // thing..depictions.foreach(depiction => doc.add(new StringField(IndexFields.DEPICTION, depiction, Field.Store.YES)))
+    // Images
+    images.foreach(image => doc.add(new StringField(IndexFields.DEPICTION, image.url, Field.Store.YES)))
     
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))

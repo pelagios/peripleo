@@ -110,7 +110,7 @@ abstract class AbstractImporter {
           Some(childTexts.mkString(" "))
       }
       
-      (r.thing, r.places.map(_._1), collapsedFulltext)
+      (r.thing, r.places.map(_._1), r.images, collapsedFulltext)
     })
     val datasetHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
     Logger.info("Indexing items")
@@ -135,7 +135,7 @@ abstract class AbstractImporter {
     // Update suggestion index
     Logger.info("Updating the suggestion index")
     val titlesAndDescriptions = topLevelThings.flatMap(t => Seq(Some(t._1.title), t._1.description).flatten).distinct
-    val fulltext = topLevelThings.map(_._3).flatten
+    val fulltext = topLevelThings.map(_._4).flatten
     Global.index.suggester.addTerms(titlesAndDescriptions ++ fulltext)
     Global.index.refresh()
     
