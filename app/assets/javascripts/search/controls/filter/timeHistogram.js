@@ -1,4 +1,4 @@
-define(['search/events'], function(Events) {
+define(['search/events', 'common/formatting'], function(Events, Formatting) {
   
   /** Constants **/
   var  BAR_STROKE = '#3182bd',
@@ -8,7 +8,7 @@ define(['search/events'], function(Events) {
     
     var container = jQuery(
           '<div id="time-histogram">' +
-          '  <canvas width="280" height="40"></canvas>' +
+          '  <canvas width="320" height="40"></canvas>' +
           '  <span class="axislabel from"></span>' +
           '  <span class="axislabel to"></span>' +
           
@@ -51,8 +51,7 @@ define(['search/events'], function(Events) {
         /** Caches the current histogram range  **/
         histogramRange = { from: 0, to: 0 },
         
-        /** Helper to format an integer year for screen display **/
-        formatYear = function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; },
+
         
         /** Conversion function: x offset to year **/
         xToYear = function(x) {
@@ -110,7 +109,7 @@ define(['search/events'], function(Events) {
             
             // Update handle label
             fromHandleLabel.show();
-            fromHandleLabel.html(formatYear(getSelectedRange().from));
+            fromHandleLabel.html(Formatting.formatYear(getSelectedRange().from));
               
             // Update selection bounds
             selectionBounds.css('left', posX + handleWidth);
@@ -130,7 +129,7 @@ define(['search/events'], function(Events) {
             
             // Update handle label
             toHandleLabel.show();
-            toHandleLabel.html(formatYear(getSelectedRange().to));
+            toHandleLabel.html(Formatting.formatYear(getSelectedRange().to));
             
             // Update selection bounds
             selectionBounds.css('width', posX - minX);        
@@ -163,11 +162,11 @@ define(['search/events'], function(Events) {
               toX = fromX + width,
               toYear = xToYear(toX);
               
-          fromHandleLabel.html(formatYear(fromYear));
+          fromHandleLabel.html(Formatting.formatYear(fromYear));
           fromHandleLabel.show();
           fromHandle.css('left', offsetX - handleWidth);
           
-          toHandleLabel.html(formatYear(toYear));
+          toHandleLabel.html(Formatting.formatYear(toYear));
           toHandleLabel.show();
           toHandle.css('left', offsetX + width);
 
@@ -209,8 +208,8 @@ define(['search/events'], function(Events) {
             histogramRange.from = minYear;
             histogramRange.to = maxYear;
                 
-            histogramFromLabel.html(formatYear(minYear));
-            histogramToLabel.html(formatYear(maxYear));      
+            histogramFromLabel.html(Formatting.formatYear(minYear));
+            histogramToLabel.html(Formatting.formatYear(maxYear));      
           };
         };
     

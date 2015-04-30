@@ -3,9 +3,9 @@ define(function() {
   var Formatting = {
     
     /** Runs numeral.js over all elements with CSS class 'number'.
-      * 
-      * If no DOM element is provided, the function will run over the entire page.
-      */
+     * 
+     * If no DOM element is provided, the function will run over the entire page.
+     */
     formatNumbers: function(opt_parent) {
       var elements = (opt_parent) ? $(opt_parent).find('.number') : $('.number');	
       $.each(elements, function(idx, el) {
@@ -14,10 +14,15 @@ define(function() {
       });
     },
     
+    /** Formats a single number on demand **/
     formatNumber: function(n) {
       return numeral(n).format('0,0');
     },
     
+    /** Helper to format an integer year for screen display **/
+    formatYear: function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; },
+    
+    /** Creates a 'shortcode label' from a gazetteer URI **/
     formatGazetteerURI: function(uri) {
       var prefix, gazId;
 
@@ -43,6 +48,15 @@ define(function() {
       }
  
       return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + gazId + '</a>'; 
+    },
+    
+    /** Creates a nice & short representation for a source URL **/
+    formatSourceURL: function(url) {
+      var urlWithoutProtocol = (url.indexOf('http') === 0) ? url.substring(url.indexOf(':') + 3) : url;
+      if (urlWithoutProtocol.indexOf('/') > 0) 
+        return '<a target="_blank" href="' + url + '">' + urlWithoutProtocol.substring(0, urlWithoutProtocol.indexOf('/')) + '</a>';
+      else
+        return '<a target="_blank" href="' + url + '">' + urlWithoutProtocol + '</a>';
     }
     
   }

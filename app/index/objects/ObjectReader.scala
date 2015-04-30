@@ -5,6 +5,7 @@ import com.spatial4j.core.distance.DistanceUtils
 import com.vividsolutions.jts.geom.Coordinate
 import index._
 import index.annotations.AnnotationReader
+import index.places.IndexedPlaceNetwork
 import java.util.{ Calendar, GregorianCalendar }
 import models.Page
 import models.core.Datasets
@@ -17,14 +18,12 @@ import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
 import org.apache.lucene.search._
 import org.apache.lucene.search.highlight.{ Highlighter, SimpleHTMLFormatter, SimpleFragmenter, TokenSources, QueryScorer }
 import org.apache.lucene.queries.function.ValueSource
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
+import org.apache.lucene.queryparser.classic.{ MultiFieldQueryParser, QueryParser }
 import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import org.apache.lucene.spatial.prefix.tree.NumberRangePrefixTree.UnitNRShape
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import play.api.db.slick._
 import scala.collection.JavaConverters._
-import play.api.Logger
-import index.places.IndexedPlaceNetwork
 
 trait ObjectReader extends AnnotationReader {
   
@@ -79,7 +78,8 @@ trait ObjectReader extends AnnotationReader {
   def search(params: SearchParameters, includeFacets: Boolean, includeSnippets: Boolean,
       includeTimeHistogram: Boolean, includeTopPlaces: Int, includeHeatmap: Boolean)(implicit s: Session): 
       (Page[(IndexedObject, Option[String])], Option[FacetTree], Option[TimeHistogram], Option[Seq[(IndexedPlaceNetwork, Int)]], Option[Heatmap]) = {
-     
+
+    
     val rectangle = params.bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
     
     // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
@@ -101,7 +101,11 @@ trait ObjectReader extends AnnotationReader {
             IndexFields.ANNOTATION_FULLTEXT_PREFIX,
             IndexFields.ANNOTATION_FULLTEXT_SUFFIX).toArray
             
-        baseSearchQuery.add(new MultiFieldQueryParser(fields, analyzer).parse(params.query.get), BooleanClause.Occur.MUST)  
+        val parser = new MultiFieldQueryParser(fields, analyzer)
+        parser.setPhraseSlop(0)
+        parser.setDefaultOperator(QueryParser.Operator.AND)
+        parser.setAutoGeneratePhraseQueries(true)
+        baseSearchQuery.add(parser.parse(params.query.get), BooleanClause.Occur.MUST)  
       }
       
       // ...but we only want to restrict the SEARCH by time interval - the histogram should count all the facets
@@ -124,8 +128,10 @@ trait ObjectReader extends AnnotationReader {
         addTimeFilter(h, params.from, params.to)
       
         if (params.query.isDefined) { 
-          val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray       
-          h.add(new MultiFieldQueryParser(fields, analyzer).parse(params.query.get), BooleanClause.Occur.MUST)  
+          val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray   
+          val parser = new MultiFieldQueryParser(fields, analyzer)
+          parser.setAutoGeneratePhraseQueries(true)
+          h.add(parser.parse(params.query.get), BooleanClause.Occur.MUST)  
         }
       
         Some(new QueryWrapperFilter(h))
@@ -373,7 +379,7 @@ trait ObjectReader extends AnnotationReader {
       (year, count)
     }}
 
-    TimeHistogram.create(values, 30)
+    TimeHistogram.create(values, 35)
   }
   
   private def calculateItemHeatmap(filter: Filter, bbox: Rectangle, level: Int, searcher: IndexSearcher): Heatmap = {

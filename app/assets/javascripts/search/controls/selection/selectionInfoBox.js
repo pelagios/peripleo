@@ -8,45 +8,76 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '<div id="selection-info">' +
           '  <div class="content">' +
           '    <h3></h3>' +
+          '    <p>' +
+          '      <span class="temp-bounds"></span>' +
+          '      <span class="top-places"></span>' +
+          '    </p>' +
           '    <p class="names"></p>' +
           '    <p class="description"></p>' +
           '    <ul class="uris"></ul>' +
+          '    <p class="homepage"></p>' +
           '    <p class="related"></p>' +
           '  </div>' +
           '  <div class="thumbnail">' +
           '  </div>' +
           '</div>'),
+
+        /** The currently displayed object **/
+        currentObject = false,
           
+        /** DOM elements **/
         content = element.find('.content'),
-        
         thumbnail = element.find('.thumbnail'),
           
-        currentObject = false,
-        
         heading = element.find('h3'),
-        
+        tempBounds = element.find('.temp-bounds'),
+        topPlaces = element.find('.top-places'),
         names = element.find('.names'),
-        
         description = element.find('.description'),
-        
         uris = element.find('.uris'),
-        
+        homepage = element.find('.homepage'),
         related = element.find('.related'),
         
         ignoreQueryPhrase = false,
         
+        clearTemplate = function() {
+          // Empty all container elements
+          thumbnail.empty();
+
+          heading.empty();
+          tempBounds.empty();
+          topPlaces.empty();
+          names.empty();
+          description.empty();
+          uris.empty();
+          homepage.empty();
+          related.empty();
+
+          // In addition, hide homepage (so we don't see the :before icons)...
+          homepage.hide();
+
+          // ... and set the content to 'wide mode' (without thumbnail)
+          content.removeClass('with-thumb');
+        },
+        
         fillTemplate = function(obj) {   
-          var img,
-              title = obj.title;
+          var img;
+
+          heading.html(obj.title);
           
-          if (obj.temporal_bounds)
+          if (obj.temporal_bounds) {
+            tempBounds.show();
             if (obj.temporal_bounds.start === obj.temporal_bounds.end)
-              title += ' (' + obj.temporal_bounds.start + ')';
+              tempBounds.html(Formatting.formatYear(obj.temporal_bounds.start));
             else 
-              title += ' (' + obj.temporal_bounds.start + ' - ' + obj.temporal_bounds.end + ')';
+              tempBounds.html(Formatting.formatYear(obj.temporal_bounds.start) + ' - ' + Formatting.formatYear(obj.temporal_bounds.end));
+          } else {
+            tempBounds.hide();
+          }
+                
+          if (obj.top_places)
+            topPlaces.html('<span class="icon">&#xf041;</span><span class="top">' + obj.top_places[0].title + '</span>');
           
-          heading.html(title);
-                    
           if (obj.names)
             names.html(obj.names.slice(0, 8).join(', '));
           
@@ -60,6 +91,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 uris.append(jQuery('<li>' + Formatting.formatGazetteerURI(uri) + '</li>'));
               });
             }
+          } else if (obj.homepage) {
+            homepage.append(Formatting.formatSourceURL(obj.homepage));
+            homepage.show();
           }
           
           if (obj.result_count) {
@@ -90,17 +124,40 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             });
             thumbnail.append(img);
           }
+          
         },
         
-        clearTemplate = function() {
-          heading.empty();
-          names.empty();
-          description.empty();
-          uris.empty();
-          related.empty();
+        /** Fetches additional info about the places referenced by the item **/
+        fetchItemExtras = function(item, callback) {
+          jQuery.getJSON('/api-v3/items/' + item.identifier + '/places', function(response) {
+            item.num_unique_places = response.total;
+            item.top_places = response.items;
+            
+            // Just make sure no other object was selected in the meantime
+            if (currentObject.identifier === item.identifier)
+              callback(item);            
+          });
+        },
+        
+        /**
+         * Fetches additional object details via the API, merges the response with
+         * the original object, and passes the result back to the callback
+         * function.
+         */
+        fetchExtras = function(obj, callback) {
+          var id = obj.identifier;
           
-          content.removeClass('with-thumb');
-          thumbnail.empty();
+          if (obj.object_type === 'Place') {
+            // TODO implement
+            callback(obj);
+          } else if (obj.object_type === 'Item') {
+            fetchItemExtras(obj, callback);
+          } else if (obj.object_type === 'Dataset') {
+            // TODO implement
+            callback(obj);
+          } else {
+            console.log('Error: unkown object type "' + obj.object_type + '"');
+          }
         },
 
         showObject = function(obj) {      
@@ -117,7 +174,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               if (currentObject.identifier !== obj.identifier) { // New object - reset
                 currentObject = obj;
                 clearTemplate();
-                fillTemplate(obj);
+                fetchExtras(obj, fillTemplate);
                 eventBroker.fireEvent(Events.SELECTION, obj); 
               }
             }
@@ -125,7 +182,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             if (obj) { // Open
               currentObject = obj;
               element.slideToggle(SLIDE_DURATION);
-              fillTemplate(obj);
+              fetchExtras(obj, fillTemplate);
               eventBroker.fireEvent(Events.SELECTION, obj); 
             }
           }  
@@ -147,7 +204,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       if (type === 'Place')      
         eventBroker.fireEvent(Events.SUB_SEARCH, searchParams); 
     });
-    
+
+    homepage.hide();
     element.hide();
     container.append(element);
     
