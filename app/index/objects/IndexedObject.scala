@@ -74,7 +74,7 @@ object IndexedObject {
     // Dataset hierarchy as stored & facet field (uses a custom {label}#{id} syntax to store human-readable title plus ID at the same time)
     val path = datasetHierarchy.map(d => d.title + DATASET_NAME_SEPARATOR + d.id).reverse // Note: hierarchy is from bottom leaf upwards, we want top-down
     doc.add(new StoredField(IndexFields.DATASET_HIERARCHY, path.mkString(DATASET_PATH_SEPARATOR)))
-    doc.add(new FacetField(IndexFields.DATASET_HIERARCHY, path:_*))
+    doc.add(new FacetField(IndexFields.SOURCE_DATASET, path:_*))
     
     // Images
     images.foreach(image => doc.add(new StringField(IndexFields.DEPICTION, image.url, Field.Store.YES)))
