@@ -34,10 +34,20 @@ object IndexedAnnotation {
     doc.add(new StringField(IndexFields.ID, annotation.uuid.toString, Field.Store.YES))
     doc.add(new StringField(IndexFields.SOURCE_DATASET, annotation.dataset, Field.Store.YES))
     doc.add(new StringField(IndexFields.ANNOTATION_THING, annotation.annotatedThing, Field.Store.YES))
-    
+
     // Temporal bounds
-    temporalBoundsStart.map(d => doc.add(new IntField(IndexFields.DATE_FROM, d, Field.Store.NO)))
-    temporalBoundsEnd.map(d => doc.add(new IntField(IndexFields.DATE_TO, d, Field.Store.NO)))
+    temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))
+    temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
+    temporalBoundsStart.map(start => {
+      val end = temporalBoundsEnd.getOrElse(start)
+      val dateRange =
+        if (start > end) // Minimal safety precaution... 
+          Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")
+        else
+          Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
+          
+      Index.temporalStrategy.createIndexableFields(dateRange).foreach(doc.add(_))
+    })
     
     // Text
     annotation.quote.map(quote => doc.add(new TextField(IndexFields.ANNOTATION_QUOTE, quote, Field.Store.YES)))
@@ -46,9 +56,7 @@ object IndexedAnnotation {
     
     // Place & geometry
     doc.add(new StringField(IndexFields.PLACE_URI, annotation.gazetteerURI, Field.Store.NO)) 
-    doc.add(new FacetField(IndexFields.PLACE_URI, annotation.gazetteerURI))
-    
-    // Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geometry)).foreach(doc.add(_))
+    doc.add(new FacetField(IndexFields.PLACE_URI, Index.normalizeURI(annotation.gazetteerURI)))
     
     // Bounding box to enable efficient best-fit queries
     val b = geometry.getEnvelopeInternal()

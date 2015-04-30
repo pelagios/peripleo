@@ -49,7 +49,7 @@ define(['search/events'], function(Events) {
         exists = function(identifier) {
           return objects.hasOwnProperty(identifier);
         },
-        
+                
         /** 
          * Hack: 'normalizes' a GeoJSON geometry in place, by collapsing
          * rectangular polygons to centroid points. This is because rectangles
@@ -137,13 +137,18 @@ define(['search/events'], function(Events) {
         /** Adds a marker for a search result object (place or item) **/
         addMarker = function(obj) {
           var type, marker, cLon, cLat,
-              id = obj.identifier;
+              id = obj.identifier,
+              existing = objects[id];
           
           if (obj.geo_bounds) {
+            collapseRectangles(obj);
             
-            if (!exists(id)) {
+            if (existing) {
+              // Just update the data, leave everything else unchanged
+
+              existing.obj = obj;
+            } else {
               // Get rid of Barrington grid squares
-              collapseRectangles(obj);
               type = obj.geometry.type;
           
               if (type === 'Point') {
@@ -240,6 +245,10 @@ define(['search/events'], function(Events) {
     // Once the initial view update is over, we update top places on view changes
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
       jQuery.each(results.top_places, function(idx, place) {
+        
+        if (place.title === 'Carnuntum')
+          console.log(place.identifier, place.result_count);
+        
         addMarker(place);
       });      
     });

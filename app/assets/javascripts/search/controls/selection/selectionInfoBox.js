@@ -113,6 +113,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               { 
                 place: obj.identifier, query: false,
                 callback: function(response) { 
+                  console.log(response);
                   related.html(Formatting.formatNumber(response.total) + ' related results');  
                 }
               });

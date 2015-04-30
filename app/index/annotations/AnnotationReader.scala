@@ -42,6 +42,8 @@ trait AnnotationReader extends IndexBase {
         result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))
       }).getOrElse(Seq.empty[(String, Int)])
     
+    Logger.info(topURIs.toString)
+      
     topURIs.map { case (uri, count) => 
       Global.index.findNetworkByPlaceURI(uri).map((_, count)) }.flatten
   }
