@@ -55,7 +55,7 @@ object IndexedAnnotation {
     fulltextSuffix.map(text => doc.add(new TextField(IndexFields.ANNOTATION_FULLTEXT_SUFFIX, text, Field.Store.YES)))
     
     // Place & geometry
-    doc.add(new StringField(IndexFields.PLACE_URI, annotation.gazetteerURI, Field.Store.NO)) 
+    doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(annotation.gazetteerURI), Field.Store.NO)) 
     doc.add(new FacetField(IndexFields.PLACE_URI, Index.normalizeURI(annotation.gazetteerURI)))
     
     // Bounding box to enable efficient best-fit queries

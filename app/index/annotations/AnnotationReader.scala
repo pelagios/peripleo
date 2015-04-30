@@ -1,10 +1,13 @@
 package index.annotations
 
 import com.spatial4j.core.distance.DistanceUtils
+import com.spatial4j.core.shape.Rectangle
 import com.spatial4j.core.shape.impl.RectangleImpl
 import com.vividsolutions.jts.geom.Coordinate
+import global.Global
 import index.{ Heatmap, Index, IndexBase, IndexFields, SearchParameters }
-import models.core.Datasets
+import index.places.IndexedPlaceNetwork
+import models.core.{ AnnotatedThings, Datasets }
 import models.geo.BoundingBox
 import org.apache.lucene.facet.FacetsCollector
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
@@ -15,16 +18,6 @@ import org.apache.lucene.queryparser.classic.MultiFieldQueryParser
 import org.apache.lucene.search.{ BooleanClause, BooleanQuery, IndexSearcher, NumericRangeQuery, Query, QueryWrapperFilter, TermQuery }
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
-import play.api.db.slick._
-import com.spatial4j.core.shape.Rectangle
-import play.api.Logger
-import global.Global
-import index.places.IndexedPlaceNetwork
-
-import org.apache.lucene.search.PrefixQuery
-import org.apache.lucene.search.MatchAllDocsQuery
-import models.core.AnnotatedThings
-
 import play.api.Play
 import play.api.Play.current
 import play.api.db.slick._
@@ -42,8 +35,6 @@ trait AnnotationReader extends IndexBase {
         result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))
       }).getOrElse(Seq.empty[(String, Int)])
     
-    Logger.info(topURIs.toString)
-      
     topURIs.map { case (uri, count) => 
       Global.index.findNetworkByPlaceURI(uri).map((_, count)) }.flatten
   }

@@ -145,7 +145,6 @@ define(['search/events'], function(Events) {
             
             if (existing) {
               // Just update the data, leave everything else unchanged
-
               existing.obj = obj;
             } else {
               // Get rid of Barrington grid squares
@@ -245,10 +244,6 @@ define(['search/events'], function(Events) {
     // Once the initial view update is over, we update top places on view changes
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
       jQuery.each(results.top_places, function(idx, place) {
-        
-        if (place.title === 'Carnuntum')
-          console.log(place.identifier, place.result_count);
-        
         addMarker(place);
       });      
     });
