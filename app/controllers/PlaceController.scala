@@ -27,7 +27,7 @@ object PlaceController extends AbstractController {
     val gazetteer = Gazetteers.findByName(gazetteerName) 
     if (gazetteer.isDefined) {
       val allPlaces = Global.index.listAllPlaces(gazetteer.get.name.toLowerCase, bboxTupled, offset.getOrElse(0), limit.getOrElse(20))
-      jsonOk(Json.toJson(allPlaces), session.request)
+      jsonOk(Json.toJson(allPlaces.map(_.asJson)), session.request)
     } else {
       NotFound(Json.parse("{ \"message\": \"Place not found.\" }"))
     }
@@ -50,7 +50,7 @@ object PlaceController extends AbstractController {
   def getPlace(uri: String) = loggingAction { implicit session =>
     val place = Global.index.findPlaceByURI(uri)
     if (place.isDefined)
-      jsonOk(Json.toJson(place.get), session.request)
+      jsonOk(Json.toJson(place.get.asJson), session.request)
     else
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
   }
@@ -75,7 +75,7 @@ object PlaceController extends AbstractController {
           Associations.findOccurrences(place.get.uri)      
         }
       implicit val verbose = false
-      jsonOk(Json.toJson((place.get, occurrences)), request.request)
+      jsonOk(Json.toJson(place.get.asJson), request.request)
     } else {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
     }

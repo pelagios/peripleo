@@ -117,19 +117,15 @@ object JSONWrites {
       
   /** TODO this (optionally) inlines a place with an index request - optimize with a Writes[(Gazetteer, IndexedPlace)] **/
   implicit def gazetteerReferenceWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (
-    (JsPath \ "gazetteer_uri").write[String] ~
+    (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
-    (JsPath \ "location").writeNullable[JsValue] ~
-    (JsPath \ "centroid_lat").writeNullable[Double] ~
-    (JsPath \ "centroid_lng").writeNullable[Double] ~ 
-    (JsPath).writeNullable[IndexedPlace]
+    (JsPath \ "geometry").writeNullable[JsValue] ~
+    (JsPath).writeNullable[IndexedPlaceNetwork]
   )(gRef => (
       gRef.uri,
       gRef.title,
       gRef.geometryJson.map(Json.parse(_)),
-      gRef.centroid.map(_.y),
-      gRef.centroid.map(_.x),
-      { if (verbose) Global.index.findPlaceByURI(gRef.uri) else None })) 
+      { if (verbose) Global.index.findNetworkByPlaceURI(gRef.uri) else None })) 
 
      
   implicit def gazetteerReferenceWithCountWrites(implicit verbose: Boolean = true): Writes[(GazetteerReference, Int)] = (
@@ -264,40 +260,7 @@ object JSONWrites {
     (JsPath).write[IndexedObject] ~
     (JsPath \ "snippet").writeNullable[String]
   )(t => (t._1, t._2))  
-    
-  /** @deprecated **/
-  implicit val placeWrites: Writes[IndexedPlace] = (
-    (JsPath \ "gazetteer_uri").write[String] ~
-    (JsPath \ "title").write[String] ~
-    (JsPath \ "place_category").writeNullable[String] ~
-    (JsPath \ "names").write[Seq[String]] ~
-    (JsPath \ "description").writeNullable[String] ~
-    (JsPath \ "geometry").writeNullable[JsValue] ~
-    (JsPath \ "centroid_lat").writeNullable[Double] ~
-    (JsPath \ "centroid_lng").writeNullable[Double]
-  )(place => {
-      (place.uri,
-       place.label,
-       place.category.map(_.toString),
-       place.names.map(_.chars),
-       place.description,
-       place.geometryJson,
-       place.centroid.map(_.y),
-       place.centroid.map(_.x)) })  
-    
-  /** @deprecated **/
-  implicit val placeWithAlternativesWrites: Writes[(IndexedPlace, Seq[String])] = (
-    (JsPath).write[IndexedPlace] ~
-    (JsPath \ "matches").write[Seq[String]]
-  )(t => (t._1, t._2))
-  
-  /** @deprecated **/
-  implicit def placeOccurencesWrites(implicit s: Session): Writes[(IndexedPlace, Seq[(Dataset, Int)])] = (
-    (JsPath \ "to_place").write[IndexedPlace] ~
-    (JsPath \ "occurrences").write[Seq[(Dataset, Int)]]
-  )(t => (t._1, t._2))
-  
-  
+
   implicit val networkNodeWrites: Writes[NetworkNode] = (
     (JsPath \ "uri").write[String] ~
     (JsPath \ "label").writeNullable[String] ~

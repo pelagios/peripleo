@@ -75,8 +75,13 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             tempBounds.hide();
           }
                 
-          if (obj.top_places)
+          if (obj.top_places) {
             topPlaces.html('<span class="icon">&#xf041;</span><span class="top">' + obj.top_places[0].title + '</span>');
+            // console.log(obj.top_places[0]);
+            topPlaces.click(function() {
+              eventBroker.fireEvent(Events.SELECT_RESULT, obj.top_places[0]);
+            });
+          }
           
           if (obj.names)
             names.html(obj.names.slice(0, 8).join(', '));
