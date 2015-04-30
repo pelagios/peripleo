@@ -13,6 +13,7 @@ import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.db.slick._
 import org.geotools.geojson.geom.GeometryJSON
+import play.api.Logger
 
 case class IndexedObject(private val doc: Document) {
 
@@ -23,6 +24,12 @@ case class IndexedObject(private val doc: Document) {
   val title: String = doc.get(IndexFields.TITLE)
     
   val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
+  
+  val datasetPath: Option[Seq[(String, String)]] = Option(doc.get(IndexFields.DATASET_HIERARCHY))
+    .map(_.split(IndexedObject.DATASET_PATH_SEPARATOR).map(titleAndId => {
+      val tuple = titleAndId.split(IndexedObject.DATASET_NAME_SEPARATOR)
+      (tuple(0), tuple(1))
+    }))
   
   val homepage: Option[String] = Option(doc.get(IndexFields.HOMEPAGE))
   
@@ -43,24 +50,34 @@ case class IndexedObject(private val doc: Document) {
 
 object IndexedObject {
   
+  private val DATASET_PATH_SEPARATOR = Character.toString(7.asInstanceOf[Char]) // Beep character
+  
+  private val DATASET_NAME_SEPARATOR = "#"
+  
   def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], images: Seq[Image], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
     
-    // ID, publisher, parent dataset ID, title, description, homepage, type = AnnotatedThing
+    // ID, title, description, homepage
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
-    doc.add(new StringField(IndexFields.SOURCE_DATASET, thing.dataset, Field.Store.YES))
     doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
     thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
     thing.homepage.map(homepage => doc.add(new StoredField(IndexFields.HOMEPAGE, homepage)))
     
-    // Images
-    images.foreach(image => doc.add(new StringField(IndexFields.DEPICTION, image.url, Field.Store.YES)))
-    
+    // Object type = AnnotatedThing (stored + facet) 
     doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString, Field.Store.YES))
     doc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATED_THING.toString))
     
-    // Dataset hierarchy as facet (facet field uses {label}#{id} syntax to store human-readable title plus ID at the same time
-    doc.add(new FacetField(IndexFields.SOURCE_DATASET, datasetHierarchy.map(d => d.title + "#" + d.id).reverse:_*))
+    // Dataset hierarchy - all parent IDs for search
+    datasetHierarchy.foreach(dataset => 
+      doc.add(new StringField(IndexFields.SOURCE_DATASET, dataset.id, Field.Store.NO)))
+    
+    // Dataset hierarchy as stored & facet field (uses a custom {label}#{id} syntax to store human-readable title plus ID at the same time)
+    val path = datasetHierarchy.map(d => d.title + DATASET_NAME_SEPARATOR + d.id).reverse // Note: hierarchy is from bottom leaf upwards, we want top-down
+    doc.add(new StoredField(IndexFields.DATASET_HIERARCHY, path.mkString(DATASET_PATH_SEPARATOR)))
+    doc.add(new FacetField(IndexFields.DATASET_HIERARCHY, path:_*))
+    
+    // Images
+    images.foreach(image => doc.add(new StringField(IndexFields.DEPICTION, image.url, Field.Store.YES)))
     
     // Temporal bounds
     thing.temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))

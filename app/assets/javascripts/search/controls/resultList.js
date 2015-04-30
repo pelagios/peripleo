@@ -16,8 +16,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         /** TODO revisit - do we need this? **/
         pendingQuery = false,
         
-        /** Helper flag - forces the list to stay open, even on hide()-calls **/
-        keepOpen = false,
+        /** Helper flag - forces the list to ignore updates and hide()-calls **/
+        ignoreUpdates = false,
         
         /** Helper flag - indicates that the current list represents a sub-search result **/
         subsearch = false,
@@ -45,18 +45,20 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
          * list.
          */
         update = function(result) {
-          currentResults = result.items;
+          if (!ignoreUpdates) {
+            currentResults = result.items;
           
-          if (pendingQuery || element.is(':visible')) {
-            list.empty();
-            rebuildList(currentResults);
-          }
+            if (pendingQuery || element.is(':visible')) {
+              list.empty();
+              rebuildList(currentResults);
+            }
           
-          if (pendingQuery) {
-            if (currentResults.length > 0)
-              element.slideDown(SLIDE_DURATION, constrainHeight);
+            if (pendingQuery) {
+              if (currentResults.length > 0)
+                element.slideDown(SLIDE_DURATION, constrainHeight);
               
-            pendingQuery = false;
+              pendingQuery = false;
+            }
           }
         },
         
@@ -76,7 +78,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
         /** Hides the result list **/
         hide = function() {
-          if (!keepOpen) {
+          if (!ignoreUpdates) {
             element.slideUp(SLIDE_DURATION);
             element.css({ height: 'auto', maxHeight: 'none' });     
           }
@@ -89,16 +91,18 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
          * @param opt_results a result list (leave undefined to show currentResults)
          */
         show = function(opt_results) {
-          var results = (opt_results) ? opt_results : currentResults;
+          if (!element.is(':visible')) {
+            var results = (opt_results) ? opt_results : currentResults;
 
-          if (results.length > 0) {
-            rebuildList(results);
-            element.slideDown(SLIDE_DURATION, constrainHeight);
+            if (results.length > 0) {
+              rebuildList(results);
+              element.slideDown(SLIDE_DURATION, constrainHeight);
+            }
           }
         },        
         
         /** Rebuilds the list element **/
-        rebuildList = function(results) {          
+        rebuildList = function(results) {    
           var rows = jQuery.map(results, function(result) {
             var li, icon, html;
             
@@ -110,7 +114,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 icon = '<span class="icon" title="Item">&#xf219;</span>';
             }
             
-           html = '<li><h3>' + icon + ' ' + result.title + '</h3>';
+            html = '<li><h3>' + icon + ' ' + result.title + '</h3>';
               
             if (result.names)
               html += '<p class="names">' +
@@ -134,6 +138,11 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             
             if (result.snippet)
               html += result.snippet;
+              
+            if (result.dataset_path)
+              html += '<p class="source">Source:' +
+                      ' <span data-id="' + result.dataset_path[0].id + '">' + result.dataset_path[0].title + '</span>' +
+                      '</p>';
               
             html += '</li>';
               
@@ -162,14 +171,15 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       
       update(response);
       
+      // The map will change after search response - we want to ignore change
+      // and update requests in this case
+      ignoreUpdates = true; 
+      
       // If there was a user-supplied query or place filter we open automatically
       if (response.params.query || response.params.place)    
         show();
       
-      // The map will change after search response - we want to keep open
-      // in this case nonetheless
-      keepOpen = true; 
-      setTimeout(function() { keepOpen = false; }, KEEP_OPEN_PERIOD);
+      setTimeout(function() { ignoreUpdates = false; }, KEEP_OPEN_PERIOD);
     });
     
     // Listen for sub-searche results

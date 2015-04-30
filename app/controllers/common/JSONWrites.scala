@@ -219,6 +219,7 @@ object JSONWrites {
     (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
     (JsPath \ "description").writeNullable[String] ~
+    (JsPath \ "dataset_path").writeNullable[Seq[JsValue]] ~
     (JsPath \ "homepage").writeNullable[String] ~
     (JsPath \ "depictions").writeNullable[Seq[String]] ~
     (JsPath \ "object_type").write[String] ~
@@ -246,6 +247,7 @@ object JSONWrites {
       (obj.identifier,
        obj.title,
        obj.description,
+       obj.datasetPath.map(_.map { case (title, id) => Json.obj("title" -> title, "id" -> id) } ),
        obj.homepage,
        { if (obj.depictions.size == 0) None else Some(obj.depictions) },
        obj.objectType.toString,

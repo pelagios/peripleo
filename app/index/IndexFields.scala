@@ -14,7 +14,9 @@ object IndexFields {
   
   val OBJECT_TYPE = "type"
   
-  val SOURCE_DATASET = "source_dataset"    
+  val SOURCE_DATASET = "source_dataset"
+  
+  val DATASET_HIERARCHY = "dataset_hierarchy"
 
   val HOMEPAGE = "homepage"
   

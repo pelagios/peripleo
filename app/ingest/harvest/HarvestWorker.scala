@@ -96,7 +96,7 @@ class HarvestWorker {
     Datasets.delete(subsetsRecursive)
     
     // Purge from index
-    Global.index.dropDatasets(subsetsRecursive)
+    Global.index.dropDataset(id)
     Global.index.refresh()    
   }
   

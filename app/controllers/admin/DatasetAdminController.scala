@@ -75,7 +75,7 @@ object DatasetAdminController extends BaseUploadController with Secured {
     
       // Purge from index
       Logger.info("Updating index")
-      Global.index.dropDatasets(subsetsRecursive)
+      Global.index.dropDataset(id)
       Global.index.refresh()
       
       Logger.info("Done.")

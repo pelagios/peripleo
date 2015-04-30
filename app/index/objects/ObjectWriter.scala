@@ -37,21 +37,16 @@ trait ObjectWriter extends IndexBase {
       objectWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, IndexedObject.toDoc(dataset))))   
   }
   
-  /** Removes datasets from the index. 
-    *  
-    * This method does NOT automatically take care of removing subsets - you need to 
-    * hand the the whole dataset hierarchy
-    */
-  def dropDatasets(ids: Seq[String]) =
-    ids.foreach(id => {
-      // Delete annotated things for this dataset
-      objectWriter.deleteDocuments(new Term(IndexFields.SOURCE_DATASET, id))
+  /** Removes the dataset (and all items inside it) from the index **/
+  def dropDataset(id: String) = {
+    // Delete annotated things for this dataset
+    objectWriter.deleteDocuments(new Term(IndexFields.SOURCE_DATASET, id))
       
-      // Delete the dataset
-      val q = new BooleanQuery()
-      q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)
-      q.add(new TermQuery(new Term(IndexFields.ID, id)), BooleanClause.Occur.MUST)
-      objectWriter.deleteDocuments(q)
-    })
+    // Delete the dataset
+    val q = new BooleanQuery()
+    q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)
+    q.add(new TermQuery(new Term(IndexFields.ID, id)), BooleanClause.Occur.MUST)
+    objectWriter.deleteDocuments(q)
+  }
 
 }
