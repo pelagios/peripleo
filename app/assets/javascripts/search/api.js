@@ -63,8 +63,7 @@ define(['search/events'], function(Events) {
           if (params.place)
             url += '&places=' + encodeURIComponent(params.place);
           
-          // Note: if there's a user queries, we don't want the bounding box limit
-          if (!params.query)
+          if (currentMapBounds)
             url += '&bbox=' +
               currentMapBounds.west + ',' + currentMapBounds.east + ',' + 
               currentMapBounds.south + ',' + currentMapBounds.north;
@@ -103,6 +102,7 @@ define(['search/events'], function(Events) {
           
           jQuery.getJSON(buildQueryURL(), function(response) {    
             response.params = params;        
+            console.log(response);
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
@@ -181,6 +181,11 @@ define(['search/events'], function(Events) {
     
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {      
       jQuery.extend(searchParams, change); // Merge changes
+    
+      // SPECIAL: if the user added a query phrase, ignore geo-bounds
+      if (change.query)
+        currentMapBounds = false;
+      
       search();
     });
     
