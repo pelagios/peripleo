@@ -38,30 +38,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             element.css({ height: maxHeight, maxHeight: maxHeight });          
         },
         
-        /**
-         * Updates the results. If the UI element is closed,
-         * the function just buffers the results for later.
-         * If the UI element is open, the function rebuilds the
-         * list.
-         */
-        update = function(result) {
-          if (!ignoreUpdates) {
-            currentResults = result.items;
-          
-            if (pendingQuery || element.is(':visible')) {
-              list.empty();
-              rebuildList(currentResults);
-            }
-          
-            if (pendingQuery) {
-              if (currentResults.length > 0)
-                element.slideDown(SLIDE_DURATION, constrainHeight);
-              
-              pendingQuery = false;
-            }
-          }
-        },
-        
         /** Toggles visibility of the result list **/
         toggle = function() {
           if (element.is(':visible')) { // List visible
@@ -91,18 +67,23 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
          * @param opt_results a result list (leave undefined to show currentResults)
          */
         show = function(opt_results) {
-          if (!element.is(':visible')) {
-            var results = (opt_results) ? opt_results : currentResults;
+          var results = (opt_results) ? opt_results : currentResults;
 
+          if (!element.is(':visible')) { // Currently hidden - show
             if (results.length > 0) {
               rebuildList(results);
               element.slideDown(SLIDE_DURATION, constrainHeight);
             }
+          } else { // Just replace the list
+            element.slideUp(SLIDE_DURATION, function() {
+              rebuildList(results);
+              element.slideDown(SLIDE_DURATION, constrainHeight);
+            });
           }
         },        
         
         /** Rebuilds the list element **/
-        rebuildList = function(results) {    
+        rebuildList = function(results) {  
           var rows = jQuery.map(results, function(result) {
             var li, icon, html;
             
@@ -151,7 +132,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             li.mouseleave(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT); });
             
             li.click(function() {
-              hide();
               eventBroker.fireEvent(Events.SELECT_RESULT, result);
             });
                           
@@ -164,12 +144,11 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
     element.hide();
     container.append(element);
-
+    
     // Listen for search results
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
       subsearch = false;
-      
-      update(response);
+      currentResults = response.items;
       
       // The map will change after search response - we want to ignore change
       // and update requests in this case
@@ -182,13 +161,20 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       setTimeout(function() { ignoreUpdates = false; }, KEEP_OPEN_PERIOD);
     });
     
-    // Listen for sub-searche results
+    // Listen for sub-search results
     eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONE, function(response) {
       subsearch = true;
       show(response.items);
     });
     
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
+    // View updates (and initial view load)
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
+      currentResults = response.items;
+    });
+    
+    eventBroker.addHandler(Events.API_INITIAL_RESPONSE, function(response) {
+      currentResults = response.items;
+    });
     
     // We want to know about user-issued queries, because after
     // a "user-triggered" (rather than "map-triggered") search
@@ -201,8 +187,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     // Like Google Maps, we close the result list when the user
     // resumes map browsing, or selects a result
     eventBroker.addHandler(Events.VIEW_CHANGED, hide);
-    
-    eventBroker.addHandler(Events.SELECTION, hide);
 
     // Manual open/close events
     eventBroker.addHandler(Events.TOGGLE_ALL_RESULTS, toggle); 

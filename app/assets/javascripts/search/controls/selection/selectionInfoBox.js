@@ -77,7 +77,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 
           if (obj.top_places) {
             topPlaces.html('<span class="icon">&#xf041;</span><span class="top">' + obj.top_places[0].title + '</span>');
-            // console.log(obj.top_places[0]);
             topPlaces.click(function() {
               eventBroker.fireEvent(Events.SELECT_RESULT, obj.top_places[0]);
             });
@@ -113,7 +112,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               { 
                 place: obj.identifier, query: false,
                 callback: function(response) { 
-                  console.log(response);
                   related.html(Formatting.formatNumber(response.total) + ' related results');  
                 }
               });
