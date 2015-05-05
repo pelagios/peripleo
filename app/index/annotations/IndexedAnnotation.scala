@@ -3,7 +3,7 @@ package index.annotations
 import com.vividsolutions.jts.geom.Geometry
 import index.{ Index, IndexFields }
 import java.util.UUID
-import models.core.Annotation
+import models.core.{ Annotation, AnnotatedThing }
 import org.apache.lucene.document.{ Document, Field, IntField, StringField, TextField }
 import org.apache.lucene.facet.FacetField
 import models.geo.BoundingBox
@@ -25,7 +25,7 @@ class IndexedAnnotation(private val doc: Document) {
 
 object IndexedAnnotation {
 
-  def toDoc(annotation: Annotation, temporalBoundsStart: Option[Int], temporalBoundsEnd: Option[Int], geometry: Geometry,
+  def toDoc(thing: AnnotatedThing, annotation: Annotation, geometry: Geometry,
       fulltextPrefix: Option[String], fulltextSuffix: Option[String]): Document = {
     
     val doc = new Document()
@@ -34,12 +34,16 @@ object IndexedAnnotation {
     doc.add(new StringField(IndexFields.ID, annotation.uuid.toString, Field.Store.YES))
     doc.add(new StringField(IndexFields.SOURCE_DATASET, annotation.dataset, Field.Store.YES))
     doc.add(new StringField(IndexFields.ANNOTATION_THING, annotation.annotatedThing, Field.Store.YES))
+    
+    // Thing title and description
+    doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
+    thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
 
     // Temporal bounds
-    temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))
-    temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
-    temporalBoundsStart.map(start => {
-      val end = temporalBoundsEnd.getOrElse(start)
+    thing.temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))
+    thing.temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
+    thing.temporalBoundsStart.map(start => {
+      val end = thing.temporalBoundsEnd.getOrElse(start)
       val dateRange =
         if (start > end) // Minimal safety precaution... 
           Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")

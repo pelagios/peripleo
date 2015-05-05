@@ -120,13 +120,12 @@ abstract class AbstractImporter {
     // Update annotation index
     val annotationsWithContext = ingestBatch.flatMap(record => {
       // Temporal bounds of the annotation are those of their annotated thing
-      val tempBoundsStart = record.thing.temporalBoundsStart
-      val tempBoundsEnd = record.thing.temporalBoundsEnd
+      val thing = record.thing
       
       record.annotationsWithText.map { case (annotation, prefix, suffix) => {        
         // Geometry is that of the gazetteer
         val geom = placeLookup.get(Index.normalizeURI(annotation.gazetteerURI)).flatMap(_.geometry)
-        geom.map(g => (annotation, tempBoundsStart, tempBoundsEnd, g, prefix, suffix))
+        geom.map(g => (thing, annotation, g, prefix, suffix))
       }}
     }).flatten // The annotation index is to support heatmaps, so we're not interested in annotation without geometry
     Logger.info("Indexing " + annotationsWithContext.size + " annotations")
