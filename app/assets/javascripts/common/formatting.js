@@ -20,7 +20,9 @@ define(function() {
     },
     
     /** Helper to format an integer year for screen display **/
-    formatYear: function(year) { if (year < 0) return -year + ' BC'; else return year + ' AD'; },
+    formatYear: function(year) { 
+      if (year < 0) return -year + ' BC'; else return year + ' AD'; 
+    },
     
     /** Creates a 'shortcode label' from a gazetteer URI **/
     formatGazetteerURI: function(uri) {
