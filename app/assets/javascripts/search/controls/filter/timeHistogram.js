@@ -218,7 +218,13 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               // Relabel
               histogramFromLabel.html(Formatting.formatYear(minYear));
               histogramToLabel.html(Formatting.formatYear(maxYear));
-              histogramZeroLabel[0].style.left = (yearToX(0) - 35) + 'px';
+              
+              if (minYear < 0 && maxYear > 0) {
+                histogramZeroLabel.show();
+                histogramZeroLabel[0].style.left = (yearToX(0) - 35) + 'px';
+              } else { 
+                histogramZeroLabel.hide();
+              }
             
               // Redraw
               ctx.clearRect(0, 0, canvasWidth, ctx.canvas.height);
