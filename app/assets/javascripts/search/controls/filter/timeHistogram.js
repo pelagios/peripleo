@@ -2,7 +2,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
   
   /** Constants **/
   var  BAR_STROKE = '#3182bd',
-       BAR_FILL = '#6baed6';
+       BAR_FILL = '#6baed6',
+       MIN_UPDATE_DELAY = 800;
        
   var TimeHistogram = function(parent, eventBroker) {
     
@@ -52,6 +53,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         /** Caches the current histogram range  **/
         histogramRange = false,
+        
+        /** Ignore subsequent updates **/
+        ignoreUpdates = false,
         
         /** Caches the selection range **/
         selectionRange = false,
@@ -197,53 +201,60 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
         
         update = function(response) {
-          var values = response.time_histogram; 
+          if (!ignoreUpdates) {
+            var values = response.time_histogram; 
                              
-          if (values && values.length > 0) {                      
-            var currentSelection = getSelectedRange(),
-                selectionNewFromX, selectionNewToX, // Updated selection bounds
-                maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
-                minYear = values[0].year,
-                maxYear = values[values.length - 1].year,
-                height = ctx.canvas.height - 1,
-                xOffset = 5;
-        
-            // Redraw
-            ctx.clearRect (0, 0, canvasWidth, ctx.canvas.height);
-            jQuery.each(values, function(idx, value) {
-              var barHeight = Math.round(Math.sqrt(value.val / maxValue) * height);   
-              ctx.strokeStyle = BAR_STROKE;
-              ctx.fillStyle = BAR_FILL;
-              ctx.beginPath();
-              ctx.rect(xOffset + 0.5, height - barHeight + 0.5, 5, barHeight);
-              ctx.fill();
-              ctx.stroke();
-              xOffset += 9;
-            });
-            
-            if (!histogramRange)
+            if (values && values.length > 0) {                      
+              var currentSelection = getSelectedRange(),
+                  selectionNewFromX, selectionNewToX, // Updated selection bounds
+                  maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
+                  minYear = values[0].year,
+                  maxYear = values[values.length - 1].year,
+                  height = ctx.canvas.height - 1,
+                  xOffset = 5;
+                
               histogramRange = { from: minYear, to: maxYear };
             
-            // Relabel
-            histogramFromLabel.html(Formatting.formatYear(minYear));
-            histogramToLabel.html(Formatting.formatYear(maxYear));  
-            histogramZeroLabel.css('left', yearToX(0) - 35);
+              // Relabel
+              histogramFromLabel.html(Formatting.formatYear(minYear));
+              histogramToLabel.html(Formatting.formatYear(maxYear));
+              histogramZeroLabel[0].style.left = (yearToX(0) - 35) + 'px';
+            
+              // Redraw
+              ctx.clearRect(0, 0, canvasWidth, ctx.canvas.height);
+              
+              // Zero AD marker
+              jQuery.each(values, function(idx, value) {
+                var barHeight = Math.round(Math.sqrt(value.val / maxValue) * height);   
+                ctx.strokeStyle = BAR_STROKE;
+                ctx.fillStyle = BAR_FILL;
+                ctx.beginPath();
+                ctx.rect(xOffset + 0.5, height - barHeight + 0.5, 5, barHeight);
+                ctx.fill();
+                ctx.stroke();
+                xOffset += 9;
+              }); 
 
-            // Reset labels & selection
-            if (minYear !== histogramRange.from || maxYear !== histogramRange.to) {          
+              // Reset labels & selection      
               histogramRange.from = minYear;
               histogramRange.to = maxYear;
             
               selectionNewFromX = Math.max(2 * handleWidth + 1, yearToX(currentSelection.from));
               selectionNewToX = Math.min(yearToX(currentSelection.to), canvasOffset + canvasWidth + 2);
+              if (selectionNewFromX > selectionNewToX)
+                selectionNewFromX = selectionNewToX;
 
               selectionBounds.css('left', selectionNewFromX);
               fromHandle.css('left', selectionNewFromX - handleWidth);
               
               selectionBounds.css('width', selectionNewToX - selectionNewFromX - 1);
               toHandle.css('left', selectionNewToX);
+            
+              // We don't want to handle to many updates - introduce a wait
+              ignoreUpdates = true;
+              setTimeout(function() { ignoreUpdates = false; }, MIN_UPDATE_DELAY);
             }
-          };
+          }
         };
     
     fromHandleLabel.hide();
