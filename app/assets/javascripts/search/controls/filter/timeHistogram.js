@@ -49,9 +49,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         histogramToLabel = container.find('.axislabel.to'),
         
         /** Caches the current histogram range  **/
-        histogramRange = { from: 0, to: 0 },
+        histogramRange = false,
         
-
+        /** Caches the selection range **/
+        selectionRange = false,
         
         /** Conversion function: x offset to year **/
         xToYear = function(x) {
@@ -81,19 +82,26 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       
         /** Returns the currently selected time range **/
         getSelectedRange = function() {
-          var xFrom = fromHandle.position().left + handleWidth - canvasOffset,
-              yearFrom = xToYear(xFrom),
+          if (!selectionRange) {
+            var xFrom = fromHandle.position().left + handleWidth - canvasOffset,
+                yearFrom = xToYear(xFrom),
               
-              xTo = toHandle.position().left - canvasOffset,
-              yearTo = xToYear(xTo);
+                xTo = toHandle.position().left - canvasOffset,
+                yearTo = xToYear(xTo);
               
-          return { from: yearFrom, to: yearTo };
+            selectionRange = { from: yearFrom, to: yearTo };
+          }
+          
+          return selectionRange;
         },
 
         onDragHandle = function(e) {
           var maxX, minX,
               posX = jQuery(e.target).position().left;
-              
+          
+          // Clear cached range   
+          selectionRange = false;
+          
           if (e.target === fromHandle[0]) {
             // Left handle
             minX = handleWidth + 1;
@@ -161,7 +169,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               fromYear = xToYear(fromX),
               toX = fromX + width,
               toYear = xToYear(toX);
-              
+             
+          // Clear cached range   
+          selectionRange = false;
+          
           fromHandleLabel.html(Formatting.formatYear(fromYear));
           fromHandleLabel.show();
           fromHandle.css('left', offsetX - handleWidth);
@@ -184,16 +195,19 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
         
         update = function(response) {
-          var values = response.time_histogram;                    
+          var values = response.time_histogram; 
+                             
           if (values && values.length > 0) {                      
-            var maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
+            var currentSelection = getSelectedRange(),
+                selectionNewFromX, selectionNewToX, // Updated selection bounds
+                maxValue = Math.max.apply(Math, jQuery.map(values, function(value) { return value.val; })),
                 minYear = values[0].year,
                 maxYear = values[values.length - 1].year,
                 height = ctx.canvas.height - 1,
                 xOffset = 5;
         
+            // Redraw
             ctx.clearRect (0, 0, canvasWidth, ctx.canvas.height);
-        
             jQuery.each(values, function(idx, value) {
               var barHeight = Math.round(Math.sqrt(value.val / maxValue) * height);   
               ctx.strokeStyle = BAR_STROKE;
@@ -204,12 +218,27 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               ctx.stroke();
               xOffset += 9;
             });
+            
+            if (!histogramRange)
+              histogramRange = { from: minYear, to: maxYear };
+
+            // Reset labels & selection
+            if (minYear !== histogramRange.from || maxYear !== histogramRange.to) {
+              histogramFromLabel.html(Formatting.formatYear(minYear));
+              histogramToLabel.html(Formatting.formatYear(maxYear));  
           
-            histogramRange.from = minYear;
-            histogramRange.to = maxYear;
-                
-            histogramFromLabel.html(Formatting.formatYear(minYear));
-            histogramToLabel.html(Formatting.formatYear(maxYear));      
+              histogramRange.from = minYear;
+              histogramRange.to = maxYear;
+            
+              selectionNewFromX = Math.max(2 * handleWidth + 1, yearToX(currentSelection.from));
+              selectionNewToX = Math.min(yearToX(currentSelection.to), canvasOffset + canvasWidth + 2);
+
+              selectionBounds.css('left', selectionNewFromX);
+              fromHandle.css('left', selectionNewFromX - handleWidth);
+              
+              selectionBounds.css('width', selectionNewToX - selectionNewFromX - 1);
+              toHandle.css('left', selectionNewToX);
+            }
           };
         };
     
