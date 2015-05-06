@@ -5,12 +5,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
   
       KEEP_OPEN_PERIOD = 500;
 
-  var ResultList = function(container, eventBroker) {
+  var ResultList = function(parent, eventBroker) {
     var element = jQuery(
           '<div id="search-results">' +
           '  <ul></ul>' +
           '</div>'),
-
+          
+        margin, 
+        
         list = element.find('ul'),
         
         /** TODO revisit - do we need this? **/
@@ -27,17 +29,15 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         /** Checks current height and limits to max screen height **/
         constrainHeight = function() {
-          // TODO revise!
-          var windowHeight = jQuery(window).outerHeight(),
-              elTop = element.position().top,
-              elHeight = element.outerHeight(),
-              marginAndPadding = element.outerHeight(true) - element.height(),
-              maxHeight = windowHeight - elTop - 2 * marginAndPadding;
-          
-          if (elHeight > maxHeight) 
-            element.css({ height: maxHeight, maxHeight: maxHeight });          
+          var top = element.position().top,
+              height = element.outerHeight(true),
+              availableHeight = parent.height() - top;
+                        
+          element.css({ height: 'auto' }); 
+          if (height > availableHeight)
+            element.css('height', availableHeight - margin);
         },
-        
+                
         /** Toggles visibility of the result list **/
         toggle = function() {
           if (element.is(':visible')) { // List visible
@@ -54,10 +54,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
         /** Hides the result list **/
         hide = function() {
-          if (!ignoreUpdates) {
-            element.slideUp(SLIDE_DURATION);
-            element.css({ height: 'auto', maxHeight: 'none' });     
-          }
+          if (!ignoreUpdates)
+            element.slideUp(SLIDE_DURATION, function() { element.css({ height: 'auto' }); });
         },
         
         /** 
@@ -72,11 +70,13 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           if (!element.is(':visible')) { // Currently hidden - show
             if (results.length > 0) {
               rebuildList(results);
-              element.slideDown(SLIDE_DURATION, constrainHeight);
+              element.slideDown({ duration: SLIDE_DURATION, complete: constrainHeight });
             }
           } else { // Just replace the list
+            element.css({ height: 'auto' });  
             element.slideUp(SLIDE_DURATION, function() {
               rebuildList(results);
+              element.css({ height: 'auto' });
               element.slideDown(SLIDE_DURATION, constrainHeight);
             });
           }
@@ -141,9 +141,24 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           list.empty();
           list.append(rows);
         };      
+        
     
+    
+    parent.append(element);
+    element.css('max-height', parent.height() - element.position().top);
     element.hide();
-    container.append(element);
+    
+    margin = parseInt(element.css('margin-top'));
+
+    eventBroker.addHandler(Events.CONTROLS_ANIMATION, function() { 
+      element.css({ height: 'auto' });  
+      constrainHeight();
+    });
+    
+    eventBroker.addHandler(Events.CONTROLS_ANIMATION_END, function() { 
+      element.css({ height: 'auto' });  
+      constrainHeight();
+    });
     
     // Listen for search results
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
@@ -155,8 +170,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       ignoreUpdates = true; 
       
       // If there was a user-supplied query or place filter we open automatically
-      if (response.params.query || response.params.place)    
-        show();
+      if (response.params.query || response.params.place) { 
+        rebuildList(response.items);
+        element.slideDown(SLIDE_DURATION, constrainHeight);
+      }
       
       setTimeout(function() { ignoreUpdates = false; }, KEEP_OPEN_PERIOD);
     });
@@ -180,7 +197,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     // a "user-triggered" (rather than "map-triggered") search
     // returns, we want the list to open automatically
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
-      hide();
       pendingQuery = change.query;
     });
     

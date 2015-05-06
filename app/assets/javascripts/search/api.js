@@ -102,7 +102,6 @@ define(['search/events'], function(Events) {
           
           jQuery.getJSON(buildQueryURL(), function(response) {    
             response.params = params;        
-            console.log(response);
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);

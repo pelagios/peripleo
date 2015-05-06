@@ -169,10 +169,15 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it
-              element.slideToggle(SLIDE_DURATION, function() {
-                currentObject = false;
-                clearTemplate();
-                eventBroker.fireEvent(Events.SELECTION); // Deselect event      
+              element.slideToggle({ 
+                duration: SLIDE_DURATION, 
+                step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
+                complete: function() {
+                  currentObject = false;
+                  clearTemplate();
+                  eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
+                  eventBroker.fireEvent(Events.SELECTION); // Deselect event      
+                }
               });
             } else {
               if (currentObject.identifier !== obj.identifier) { // New object - reset
@@ -185,7 +190,11 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           } else { // Currently closed 
             if (obj) { // Open
               currentObject = obj;
-              element.slideToggle(SLIDE_DURATION);
+              element.slideToggle({ 
+                duration: SLIDE_DURATION,
+                step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
+                complete: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); }
+              });
               fetchExtras(obj, fillTemplate);
               eventBroker.fireEvent(Events.SELECTION, obj); 
             }
@@ -219,6 +228,17 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
       if (query) { // No need to hide if the user just cleared the search
         eventBroker.fireEvent(Events.SELECTION);
         hide(); 
+      }
+    });
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
+      if (element.is(':visible') && currentObject && currentObject.object_type === 'Place') {
+        eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
+          { 
+            place: currentObject.identifier,
+            callback: function(response) { 
+              related.html(Formatting.formatNumber(response.total) + ' related results');  
+            }
+        });
       }
     });
   };

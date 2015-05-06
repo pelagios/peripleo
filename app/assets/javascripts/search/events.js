@@ -43,8 +43,21 @@ define(function() {
      */
     API_VIEW_UPDATE : 'viewUpdate',    
     
+    
+    
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    /* UI events                      */
+    /* General/global UI events       */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */   
+    
+    /**
+     *  Generic 'selection' event triggered when the users selected a marker or result
+     */
+    SELECTION : 'selection',
+    
+    
+        
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    /* Map-related UI events          */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     
     /**
@@ -53,6 +66,19 @@ define(function() {
      * @param new map bounds
      */
     VIEW_CHANGED : 'viewChanged',
+    
+    /**
+     * The user selected a marker on the map
+     * 
+     * @param place or array of places
+     */
+    SELECT_MARKER : 'selectMarker',
+    
+        
+    
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    /* Search-related UI events       */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     
     /**
      * The user changed any of the search parameters, e.g. by typing & hitting ENTER in the search box
@@ -87,6 +113,18 @@ define(function() {
      * @param the new query phrase
      */
     QUERY_PHRASE_CHANGED : 'queryPhraseChanged',
+    
+    
+    
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    /* Control-related UI events       */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */    
+    
+    /** The controls panel is going through an animated change **/
+    CONTROLS_ANIMATION: 'controlsAnim',
+    
+    /** The controls panel has finished an animated change **/
+    CONTROLS_ANIMATION_END: 'controlsAnimEnd',
     
     /** 
      * The users has opened the filters panel
@@ -123,23 +161,11 @@ define(function() {
     MOUSE_OVER_RESULT : 'mouseOverResult',
     
     /**
-     * The user selected a marker on the map
-     * 
-     * @param place or array of places
-     */
-    SELECT_MARKER : 'selectMarker',
-    
-    /**
      * The user selected a result in the list
      * 
      * @param the result
      */
-    SELECT_RESULT : 'selectResult',
-    
-    /**
-     *  Generic 'selection' event triggered when the users selected a marker or result
-     */
-    SELECTION : 'selection'
+    SELECT_RESULT : 'selectResult'
     
   };
     

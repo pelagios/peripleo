@@ -3,7 +3,7 @@ define(['search/events',
         'search/controls/filter/timeHistogram',
         'search/controls/filter/facetChart'], function(Events, TimeHistogram, FacetChart) {
   
-  var FilterPanel = function(container, eventBroker) {
+  var FilterPanel = function(parent, eventBroker) {
     var element = jQuery(
           '<div id="filterpanel">' +
           '  <div class="body">' +
@@ -46,11 +46,19 @@ define(['search/events',
           else
             eventBroker.fireEvent(Events.SHOW_FILTERS);
           
-          body.slideToggle(200, function() {
-            if (visible)
-              buttonToggleFilters.removeClass('open');
-            else
-              buttonToggleFilters.addClass('open');
+          body.slideToggle({ 
+            duration: 200, 
+            
+            step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
+            
+            complete: function() {
+              if (visible)
+                buttonToggleFilters.removeClass('open');
+              else
+                buttonToggleFilters.addClass('open');
+              
+              eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
+            }
           });
         },
         
@@ -70,7 +78,7 @@ define(['search/events',
         
     /** Instantiate child controls **/
     body.hide();
-    container.append(element);
+    parent.append(element);
     timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     
     typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type');
