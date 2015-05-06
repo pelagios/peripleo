@@ -29,13 +29,19 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         /** Checks current height and limits to max screen height **/
         constrainHeight = function() {
-          var top = element.position().top,
-              height = element.outerHeight(true),
-              availableHeight = parent.height() - top;
-                        
-          element.css({ height: 'auto' }); 
-          if (height > availableHeight)
-            element.css('height', availableHeight - margin);
+          var top, height, availableHeight;
+          
+          if (element.is(':visible')) {
+            element.css({ height: 'auto' });  
+            
+            top = element.position().top;
+            height = element.outerHeight(true);
+            availableHeight = parent.height() - top;
+                
+            if (height > availableHeight)
+              element.css('height', availableHeight - margin);
+              
+          }
         },
                 
         /** Toggles visibility of the result list **/
@@ -150,15 +156,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
     margin = parseInt(element.css('margin-top'));
 
-    eventBroker.addHandler(Events.CONTROLS_ANIMATION, function() { 
-      element.css({ height: 'auto' });  
-      constrainHeight();
-    });
-    
-    eventBroker.addHandler(Events.CONTROLS_ANIMATION_END, function() { 
-      element.css({ height: 'auto' });  
-      constrainHeight();
-    });
+    eventBroker.addHandler(Events.CONTROLS_ANIMATION, constrainHeight);
+    eventBroker.addHandler(Events.CONTROLS_ANIMATION_END, constrainHeight);
     
     // Listen for search results
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {

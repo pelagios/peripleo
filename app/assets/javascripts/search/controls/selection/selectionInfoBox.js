@@ -99,23 +99,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             homepage.append(Formatting.formatSourceURL(obj.homepage));
             homepage.show();
           }
-          
-          if (obj.result_count) {
-            ignoreQueryPhrase = false;
-            related.html(Formatting.formatNumber(obj.result_count) + ' related results');
-          } else if (obj.object_type === 'Place') {
-            // A place was selected that came as a search result, not a facet
-            // In this case we ignore the query phrase, since it was used to find the place, not to filter the search further
-            ignoreQueryPhrase = true;
-            
-            eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
-              { 
-                place: obj.identifier, query: false,
-                callback: function(response) { 
-                  related.html(Formatting.formatNumber(response.total) + ' related results');  
-                }
-              });
-          }
             
           // TODO pick random rather than always first?
           if (obj.depictions && obj.depictions.length > 0) {
@@ -127,6 +110,25 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               thumbnail.html('<div class="img-404"></div>');
             });
             thumbnail.append(img);
+          }
+          
+          if (obj.result_count) {
+            ignoreQueryPhrase = false;
+            related.html(Formatting.formatNumber(obj.result_count) + ' related results');
+            eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
+          } else if (obj.object_type === 'Place') {
+            // A place was selected that came as a search result, not a facet
+            // In this case we ignore the query phrase, since it was used to find the place, not to filter the search further
+            ignoreQueryPhrase = true;
+            
+            eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
+              { 
+                place: obj.identifier, query: false,
+                callback: function(response) { 
+                  related.html(Formatting.formatNumber(response.total) + ' related results');  
+                  eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
+                }
+              });
           }
           
         },
@@ -184,6 +186,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 currentObject = obj;
                 clearTemplate();
                 fetchExtras(obj, fillTemplate);
+                eventBroker.fireEvent(Events.CONTROLS_ANIMATION);
                 eventBroker.fireEvent(Events.SELECTION, obj); 
               }
             }
