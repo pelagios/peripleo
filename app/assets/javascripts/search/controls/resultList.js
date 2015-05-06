@@ -11,7 +11,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '  <ul></ul>' +
           '</div>'),
           
-        margin, 
+        margin, top, // To be set after element was added to DOM
         
         list = element.find('ul'),
         
@@ -27,14 +27,19 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         /** The currently buffered search results **/
         currentResults = [],
         
+        /** Helper that sets the CSS max-height property on the element **/
+        resetMaxHeight = function() {
+          element.css('max-height', parent.height() - top);
+        },
+        
         /** Checks current height and limits to max screen height **/
         constrainHeight = function() {
-          var top, height, availableHeight;
+          var height, availableHeight;
           
           if (element.is(':visible')) {
             element.css({ height: 'auto' });  
             
-            top = element.position().top;
+            top = element.position().top;   
             height = element.outerHeight(true);
             availableHeight = parent.height() - top;
                 
@@ -147,15 +152,18 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           list.empty();
           list.append(rows);
         };      
-        
-    
     
     parent.append(element);
-    element.css('max-height', parent.height() - element.position().top);
-    element.hide();
-    
     margin = parseInt(element.css('margin-top'));
-
+    top = element.position().top;    
+    resetMaxHeight();
+    element.hide();
+ 
+    // Reset max-height after window resized
+    jQuery(window).resize(function() {
+      setTimeout(resetMaxHeight, 100);
+    });
+  
     eventBroker.addHandler(Events.CONTROLS_ANIMATION, constrainHeight);
     eventBroker.addHandler(Events.CONTROLS_ANIMATION_END, constrainHeight);
     
