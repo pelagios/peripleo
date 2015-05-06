@@ -10,6 +10,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '<div id="time-histogram">' +
           '  <canvas width="320" height="40"></canvas>' +
           '  <span class="axislabel from"></span>' +
+          '  <span class="axislabel zero">0 AD</span>' +
           '  <span class="axislabel to"></span>' +
           
           '  <div class="selection"></div>' +
@@ -46,6 +47,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         /** Labels for earliest/latest year of histogram **/
         histogramFromLabel = container.find('.axislabel.from'),
+        histogramZeroLabel = container.find('.axislabel.zero'),
         histogramToLabel = container.find('.axislabel.to'),
         
         /** Caches the current histogram range  **/
@@ -83,10 +85,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         /** Returns the currently selected time range **/
         getSelectedRange = function() {
           if (!selectionRange) {
-            var xFrom = fromHandle.position().left + handleWidth - canvasOffset,
+            var xFrom = fromHandle.position().left + handleWidth,
                 yearFrom = xToYear(xFrom),
               
-                xTo = toHandle.position().left - canvasOffset,
+                xTo = toHandle.position().left,
                 yearTo = xToYear(xTo);
                 
             if ((Math.ceil(xFrom) >= 0) && (Math.floor(xTo) <= canvasWidth + 2))
@@ -219,11 +221,13 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               xOffset += 9;
             });
             
-            histogramFromLabel.html(Formatting.formatYear(minYear));
-            histogramToLabel.html(Formatting.formatYear(maxYear));  
-            
             if (!histogramRange)
               histogramRange = { from: minYear, to: maxYear };
+            
+            // Relabel
+            histogramFromLabel.html(Formatting.formatYear(minYear));
+            histogramToLabel.html(Formatting.formatYear(maxYear));  
+            histogramZeroLabel.css('left', yearToX(0) - 35);
 
             // Reset labels & selection
             if (minYear !== histogramRange.from || maxYear !== histogramRange.to) {          
