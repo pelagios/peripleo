@@ -85,7 +85,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         /** Returns the currently selected time range **/
         getSelectedRange = function() {
           if (!selectionRange) {
-<<<<<<< HEAD
             var xFrom = fromHandle.position().left + handleWidth,
                 yearFrom = xToYear(xFrom),
               
@@ -96,17 +95,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               selectionRange = { from: yearFrom, to: yearTo };
           }
 
-=======
-            var xFrom = fromHandle.position().left + handleWidth - canvasOffset,
-                yearFrom = xToYear(xFrom),
-              
-                xTo = toHandle.position().left - canvasOffset,
-                yearTo = xToYear(xTo);
-              
-            selectionRange = { from: yearFrom, to: yearTo };
-          }
-          
->>>>>>> 6ff2f69acf549b113ab903317648f7e99a3ceb4e
           return selectionRange;
         },
 
