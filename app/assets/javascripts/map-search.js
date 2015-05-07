@@ -2,11 +2,12 @@ require(['search/map/map',
          'search/controls/searchBox', 
          'search/controls/selection/selectionInfoBox',
          'search/controls/filter/filterPanel',
+         'search/controls/filter/filterEditor',
          'search/controls/resultList',
          'search/urlBar',
          'search/api',
          'search/eventBroker',
-         'search/events'], function(Map, SearchBox, SelectionInfoBox, FilterPanel, ResultList, URLBar, API, EventBroker, Events) {
+         'search/events'], function(Map, SearchBox, SelectionInfoBox, FilterPanel, FilterEditor, ResultList, URLBar, API, EventBroker, Events) {
   
   jQuery(document).ready(function() {  
     var container = jQuery('#controls'),
@@ -24,6 +25,8 @@ require(['search/map/map',
         selectionInfoBox = new SelectionInfoBox(container, eventBroker),
         
         filterPanel = new FilterPanel(container, eventBroker),
+        
+        filterEditor = new FilterEditor(eventBroker),
         
         resultList = new ResultList(container, eventBroker);
         

@@ -81,8 +81,8 @@ define(['search/events',
     parent.append(element);
     timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     
-    typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type');
-    sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'dataset');
+    typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type', eventBroker);
+    sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'source_dataset', eventBroker);
     
     buttonToggleFilters.click(toggleFilters);
     buttonListAll.click(function() { eventBroker.fireEvent(Events.TOGGLE_ALL_RESULTS); });

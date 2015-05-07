@@ -136,6 +136,11 @@ define(function() {
      */
     HIDE_FILTERS : 'hideFilters',
     
+    /**
+     * The user clicked the 'Set Filter' button
+     */
+    EDIT_FILTER_SETTINGS : 'editFilterSettings',
+    
     /** 
      * Event for showing the result list box. (Can either happen as a
      * user action or as a result of a search response.)

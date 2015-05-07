@@ -1,15 +1,17 @@
 /** One 'facet dimension chart' block **/
-define(function() {
+define(['search/events'], function(Events) {
   
-  var FacetChart = function(parent, title, cssClass) {
+  var FacetChart = function(parent, title, dimension, eventBroker) {
     var header = jQuery(
           '<div class="facet-header">' +
           '  <h3>' + title + '</h3>' +
-          '  <a class="filter" href="#"><span class="icon">&#xf0b0;</span><span class="label">Set Filter</span></a>' +
+          '  <a class="btn-set-filter" href="#"><span class="icon">&#xf0b0;</span><span class="label">Set Filter</span></a>' +
           '</div>'),
           
+        setFilterButton = header.find('.btn-set-filter'),
+          
         list = jQuery(
-          '<ul class="chart ' + cssClass + '"></ul>'),
+          '<ul class="chart ' + dimension + '"></ul>'),
           
         facetValTemplate = 
           '<li>' +
@@ -52,6 +54,11 @@ define(function() {
             list.append(row);
           });
         };
+    
+    setFilterButton.click(function() {
+      eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, dimension);
+      return false;
+    });
     
     parent.append(header);
     parent.append(list);
