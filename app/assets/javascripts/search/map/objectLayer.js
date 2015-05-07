@@ -23,11 +23,11 @@ define(['search/events'], function(Events) {
         },
         
         POLYGON: {
-          color: '#a64a40',
+          color: '#db473a',
           opacity: 1,
-          fillColor: '#e75444',
-          fillOpacity: 0.65,
-          weight:1.5
+          fillColor: '#db473a',
+          fillOpacity: 0.12,
+          weight:0.75
         }
         
       };
