@@ -3,14 +3,17 @@ require(['search/map/map',
          'search/controls/selection/selectionInfoBox',
          'search/controls/filter/filterPanel',
          'search/controls/resultList',
+         'search/urlBar',
          'search/api',
          'search/eventBroker',
-         'search/events'], function(Map, SearchBox, SelectionInfoBox, FilterPanel, ResultList, API, EventBroker, Events) {
+         'search/events'], function(Map, SearchBox, SelectionInfoBox, FilterPanel, ResultList, URLBar, API, EventBroker, Events) {
   
   jQuery(document).ready(function() {  
     var container = jQuery('#controls'),
     
         eventBroker = new EventBroker(),
+        
+        urlBar = new URLBar(eventBroker),
         
         api = new API(eventBroker),
         
