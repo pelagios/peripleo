@@ -64,6 +64,14 @@ define(['search/controls/autoComplete', 'search/events'], function(AutoComplete,
         
     // Append to container
     container.append(element);
+    
+    // Fill with intial query, if any
+    eventBroker.addHandler(Events.LOAD, function(initialSettings) {
+      if (initialSettings.query) {
+        input.val(initialSettings.query);
+        updateIcon();
+      }
+    });
   };
   
   return SearchBox;

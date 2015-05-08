@@ -4,7 +4,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     var element = jQuery(
           '<div class="clicktrap">' +
           '  <div id="filter-editor">' +
-          '   <span class="close">CLOSE</span>' +
+          '   <span class="close icon">&#xf057;</span>' +
           '   <ul class="chart"></ul>' +
           '  </div>' +
           '</div>'
