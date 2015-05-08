@@ -15,7 +15,7 @@ class FacetTree(facetCounts: Facets) {
     results.flatMap(Option(_)).map(_.dim).toSeq
   }
   
-  def getTopChildren(dimension: String, limit: Int = 5, path: Seq[String] = Seq.empty[String]): Seq[(String, Int)] =
+  def getTopChildren(dimension: String, limit: Int = 10, path: Seq[String] = Seq.empty[String]): Seq[(String, Int)] =
     Option(facetCounts.getTopChildren(limit, dimension, path:_*)).map(result =>
       result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))).getOrElse(Seq.empty[(String, Int)])
 

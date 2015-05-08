@@ -1,5 +1,5 @@
 /** One 'facet dimension chart' block **/
-define(['search/events'], function(Events) {
+define(['search/events', 'common/formatting'], function(Events, Formatting) {
   
   var FacetChart = function(parent, title, dimension, eventBroker) {
     var header = jQuery(
@@ -13,50 +13,28 @@ define(['search/events'], function(Events) {
         list = jQuery(
           '<ul class="chart ' + dimension + '"></ul>'),
           
-        facetValTemplate = 
-          '<li>' +
-          '  <div class="meter"><div class="bar"></div><div class="label"></div></div>' +
-          '</li>',
+        facets = [],
           
         /** Shorthand function for sorting facet values by count **/
         sortFacetValues = function(a,b) { return b.count - a.count },
-        
-        /** Shorthand function for formatting numbers **/
-        formatNumber = function(number) { return numeral(number).format('0,0'); },
-        
-        formatFacetLabel = function(label) {
-          // TODO optimize by handing the approprate formatting function on initialization
-          if (label.indexOf('gazetteer:') === 0) {
-            // Gazetteer label
-            return label.substring(10);
-          } else if (label.indexOf('#') > -1) {
-            // Dataset label
-            return label.substring(0, label.indexOf('#'));
-          } else {
-            return label;
-          }
-        },
           
-        update = function(facets) {
-          var maxCount = (facets.length > 0) ? facets.slice().sort(sortFacetValues)[0].count : 0;
+        update = function(updatedFacets) {
+          var maxCount = (updatedFacets.length > 0) ? updatedFacets.slice().sort(sortFacetValues)[0].count : 0;
               
+          facets = updatedFacets;
           list.empty();
-          jQuery.each(facets, function(idx, val) {
-            var row = jQuery(facetValTemplate),
-                bar = row.find('.bar'),
-                percentage = (100 * val.count / maxCount) + '%',
-                label = formatFacetLabel(val.label);
-              
-            
-            bar.css('width', percentage);
-            bar.attr('title', formatNumber(val.count) + ' Results');
-            row.find('.label').html(label);
-            list.append(row);
+          
+          jQuery.each(updatedFacets.slice(0, 5), function(idx, val) {
+            var label = Formatting.formatFacetLabel(val.label),
+                tooltip = Formatting.formatNumber(val.count) + ' Results',
+                percentage = 100 * val.count / maxCount;
+                
+            list.append(Formatting.createMeter(label, tooltip, percentage));
           });
         };
     
     setFilterButton.click(function() {
-      eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, dimension);
+      eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, { dimension: dimension, facets: facets });
       return false;
     });
     

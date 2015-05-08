@@ -1,5 +1,10 @@
 define(function() {
   
+  var METER_TEMPLATE = 
+    '<li>' +
+    '  <div class="meter"><div class="bar"></div><div class="label"></div></div>' +
+    '</li>';
+  
   var Formatting = {
     
     /** Runs numeral.js over all elements with CSS class 'number'.
@@ -59,9 +64,32 @@ define(function() {
         return '<a target="_blank" href="' + url + '">' + urlWithoutProtocol.substring(0, urlWithoutProtocol.indexOf('/')) + '</a>';
       else
         return '<a target="_blank" href="' + url + '">' + urlWithoutProtocol + '</a>';
+    },
+    
+    formatFacetLabel: function(label) {
+      if (label.indexOf('gazetteer:') === 0) {
+        // Gazetteer label
+        return label.substring(10);
+      } else if (label.indexOf('#') > -1) {
+        // Dataset label
+        return label.substring(0, label.indexOf('#'));
+      } else {
+        return label;
+      }
+    },
+    
+    createMeter: function(label, tooltip, percentage) {
+      var row = jQuery(METER_TEMPLATE),
+          bar = row.find('.bar');
+            
+      bar.css('width', percentage + '%');
+      bar.attr('title', tooltip);
+      row.find('.label').html(label);
+      
+      return row;
     }
     
-  }
+  };
   
   return Formatting;
   
