@@ -12,7 +12,7 @@
   position:absolute;
   background-color:#fff;
   width:640px;
-  height:480px;
+  height:420px;
   margin:auto;
   top:0;
   bottom:0;
@@ -20,12 +20,77 @@
   right:0;
   .rounded-corners(2px);
   
+  .mode-selector {
+    padding:10px 14px;
+    
+    .btn {
+      font-size:13px;
+      font-weight:normal;
+      display:inline-block;
+      border-style:solid;
+      border-color:#e6e6e6;
+      padding:4px 8px;
+      color:#686868;
+      cursor:pointer;
+      background-color:#fff;
+      
+      .icon { padding-right:2px; }
+      
+    }
+    
+    .btn:hover {
+      background-color:#fafafa;
+    }
+    
+    .btn.selected {
+      .box-shadow-inset(0, 0, 7px, -2px, #000);    
+    }
+    
+    .btn.show {
+      .rounded-corners-left(2px);
+      border-width:1px;
+    }
+    
+    .btn.hide {
+      .rounded-corners-right(2px);
+      border-width:1px 1px 1px 0;
+    }
+    
+  }
+  
   .close {
     float:right;
-    padding:5px 8px;
+    padding:8px 10px;
     font-size:28px;
     color:#3f3f3f;
     cursor:pointer;
   }
   
 }
+
+ul.chart.large {
+  margin:30px 0 0 100px;
+  padding:0;
+    
+  li { padding: 6px 0; }
+  
+  .meter {
+    width:300px;
+
+    .bar { 
+      height:12px; 
+      .rounded-corners(2px);
+      .box-shadow(1px, 1px, 2px, 0, rgba(0,0,0,0.2));
+    }
+        
+  } /* .meter */
+    
+  .label {
+    width:300px;
+    max-width:300px;
+    color:#323232;
+    font-size:12px;
+    padding:0 0 3px 8px;
+  }
+  
+} /* ul.chart */

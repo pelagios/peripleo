@@ -2,6 +2,8 @@
 define(['search/events', 
         'search/controls/filter/timeHistogram',
         'search/controls/filter/facetChart'], function(Events, TimeHistogram, FacetChart) {
+          
+  var SLIDE_DURATION = 120;
   
   var FilterPanel = function(parent, eventBroker) {
     var element = jQuery(
@@ -47,7 +49,7 @@ define(['search/events',
             eventBroker.fireEvent(Events.SHOW_FILTERS);
           
           body.slideToggle({ 
-            duration: 200, 
+            duration: SLIDE_DURATION, 
             
             step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
             

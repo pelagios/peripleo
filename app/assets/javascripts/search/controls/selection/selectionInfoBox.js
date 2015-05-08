@@ -2,7 +2,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
   
   var SelectionInfoBox = function(container, eventBroker) {
     
-    var SLIDE_DURATION = 200;
+    var SLIDE_DURATION = 100;
     
     var element = jQuery(
           '<div id="selection-info">' +

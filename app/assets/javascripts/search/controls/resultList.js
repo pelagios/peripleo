@@ -1,7 +1,7 @@
 /** The result list **/
 define(['search/events', 'common/formatting'], function(Events, Formatting) {
 
-  var SLIDE_DURATION = 200,
+  var SLIDE_DURATION = 100,
   
       KEEP_OPEN_PERIOD = 500;
 
