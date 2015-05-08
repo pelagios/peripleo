@@ -20,15 +20,14 @@ define(['search/events'], function(Events) {
           
           timespan: false,
           
-          place: false
+          place: false,
+          
+          bbox: false
           
         },
         
         /** Flag indicating whether time histogram should be included **/
         includeTimeHistogram = false,
-        
-        /** The current map bounds **/
-        currentMapBounds = false,
         
         /** Indicates whether we're currenly waiting for an API response **/
         busy = false,
@@ -63,10 +62,10 @@ define(['search/events'], function(Events) {
           if (params.place)
             url += '&places=' + encodeURIComponent(params.place);
           
-          if (currentMapBounds)
+          if (params.bbox)
             url += '&bbox=' +
-              currentMapBounds.west + ',' + currentMapBounds.east + ',' + 
-              currentMapBounds.south + ',' + currentMapBounds.north;
+              params.bbox.west + ',' + params.bbox.east + ',' + 
+              params.bbox.south + ',' + params.bbox.north;
           
           return url;
         },
@@ -86,7 +85,7 @@ define(['search/events'], function(Events) {
           }, QUERY_DELAY_MS);
         },
         
-        /** Fires an initial load request using the current map bounds **/
+        /** Fires an initial load request **/
         initialLoad = function() {
           busy = true;
           
@@ -174,7 +173,7 @@ define(['search/events'], function(Events) {
 
     /** Run an initial view update on load **/
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
-      currentMapBounds = initialSettings.bbox;
+      jQuery.extend(searchParams, initialSettings); // Incorporate inital settings      
       initialLoad();
     });
     
@@ -183,13 +182,13 @@ define(['search/events'], function(Events) {
     
       // SPECIAL: if the user added a query phrase, ignore geo-bounds
       if (change.query)
-        currentMapBounds = false;
+        searchParams.bbox = false;
       
       search();
     });
     
     eventBroker.addHandler(Events.VIEW_CHANGED, function(bounds) {      
-      currentMapBounds = bounds;
+      searchParams.bbox = bounds;
       updateView();
     });
     

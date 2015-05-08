@@ -49,13 +49,21 @@ require(['search/map/map',
               else
                 keyValObject[asArray[0]] = asArray[1];
             });
+            
+            // Special handling for timespan
+            if (keyValObject.from) {
+              keyValObject.timespan = { from: parseInt(keyValObject.from), to: parseInt(keyValObject.to) };
+              delete keyValObject.from;
+              delete keyValObject.to;
+            }
+              
             return keyValObject;
           }
         })(),
         
         /** Initial settings from URL hash, or defaults if no hash **/
         initialSettings = (parsedURLHash) ? parsedURLHash : { bbox: map.getBounds() };
-        
+    
     // Fire 'load' event with initial settings
     eventBroker.fireEvent(Events.LOAD, initialSettings);
         
