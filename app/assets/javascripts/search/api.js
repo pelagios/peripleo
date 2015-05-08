@@ -173,8 +173,8 @@ define(['search/events'], function(Events) {
         };
 
     /** Run an initial view update on load **/
-    eventBroker.addHandler(Events.LOAD, function(bounds) {
-      currentMapBounds = bounds;
+    eventBroker.addHandler(Events.LOAD, function(initialSettings) {
+      currentMapBounds = initialSettings.bbox;
       initialLoad();
     });
     

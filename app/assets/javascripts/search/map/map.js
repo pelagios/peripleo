@@ -45,6 +45,20 @@ define(['search/map/objectLayer', 'search/events'], function(ObjectLayer, Events
               n = (b.getNorth() > 90) ? 90 : b.getNorth();
               
           return { north: n, east: e, south: s, west: w };
+        },
+        
+        /** JavaScript equality is by reference - we need to compare values **/
+        boundsEqual = function(a, b) {
+          if (a.north !== b.north)
+            return false;
+          if (a.east !== b.east)
+            return false;
+          if (a.south !== b.south)
+            return false;
+          if (a.west !== b.west)
+            return false;
+            
+          return true;
         };
     
     /** Request an updated heatmap on every moveend **/
@@ -55,6 +69,12 @@ define(['search/map/objectLayer', 'search/events'], function(ObjectLayer, Events
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
       eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
+    });
+    
+    eventBroker.addHandler(Events.LOAD, function(initialSettings) {
+      var b = initialSettings.bbox
+      if (!boundsEqual(b, getBounds()))
+        map.fitBounds([[b.south, b.west], [b.north, b.east]]);
     });
     
     this.getBounds = getBounds;

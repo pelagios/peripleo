@@ -28,10 +28,36 @@ require(['search/map/map',
         
         filterEditor = new FilterEditor(eventBroker),
         
-        resultList = new ResultList(container, eventBroker);
+        resultList = new ResultList(container, eventBroker),
         
-    // Fire initial 'load' event
-    eventBroker.fireEvent(Events.LOAD, map.getBounds());
+        parseBBox = function(bboxStr) {
+          var values = bboxStr.split(',');
+          return { north: parseFloat(values[3]), east: parseFloat(values[1]), 
+                   south: parseFloat(values[2]), west: parseFloat(values[0]) };
+        },
+        
+        parsedURLHash = (function() {
+          var hash = window.location.hash;
+              keysValArray = (hash.indexOf('#') === 0) ? hash.substring(1).split('&') : false,
+              keyValObject = {};
+              
+          if (keysValArray) {
+            jQuery.each(keysValArray, function(idx, keyVal) {
+              var asArray = keyVal.split('=');     
+              if (asArray[0] === 'bbox') // Special handling for bbox string
+                keyValObject[asArray[0]] = parseBBox(asArray[1]);
+              else
+                keyValObject[asArray[0]] = asArray[1];
+            });
+            return keyValObject;
+          }
+        })(),
+        
+        /** Initial settings from URL hash, or defaults if no hash **/
+        initialSettings = (parsedURLHash) ? parsedURLHash : { bbox: map.getBounds() };
+        
+    // Fire 'load' event with initial settings
+    eventBroker.fireEvent(Events.LOAD, initialSettings);
         
   });
   

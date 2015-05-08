@@ -9,7 +9,7 @@ define(function() {
     /**
      * Initial page LOAD event. Fired after the page has loaded.
      * 
-     * @param initial map bounds 
+     * @param initial conditions & search params
      */
     LOAD : 'load',
     
