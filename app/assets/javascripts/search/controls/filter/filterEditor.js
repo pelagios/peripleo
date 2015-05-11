@@ -1,7 +1,5 @@
 define(['search/events', 'common/formatting'], function(Events, Formatting) {
-  
-  var FADE_DURATION = 100;
-  
+
   var FilterSettingsPopup = function(eventBroker) {
     var element = jQuery(
           '<div class="clicktrap">' +
@@ -51,12 +49,12 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           
           if (element.hasClass('selected')) {
             targetOpacity = (selectionHides) ? 1 : 0.3;
-            element.fadeTo(FADE_DURATION, targetOpacity);
+            element.css('opacity', targetOpacity);
             element.removeClass('selected');
             selected.splice(indexOfVal, 1);
           } else {
             targetOpacity = (selectionHides) ? 0.3 : 1;
-            element.fadeTo(FADE_DURATION, targetOpacity);
+            element.css('opacity', targetOpacity);
             element.addClass('selected');
             selected.push(value.label);
           }
@@ -69,8 +67,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               unselectedOpacity = (selectionHides) ? 1 : 0.3,
               unselectedRows = list.find('li').not('.selected');
 
-          selectedRows.fadeTo(FADE_DURATION, selectedOpacity); 
-          unselectedRows.fadeTo(FADE_DURATION, unselectedOpacity); 
+          selectedRows.css('opacity', selectedOpacity); 
+          unselectedRows.css('opacity', unselectedOpacity); 
         },
         
         clear = function() {
