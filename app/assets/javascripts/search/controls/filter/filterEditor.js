@@ -1,5 +1,7 @@
 define(['search/events', 'common/formatting'], function(Events, Formatting) {
   
+  var FADE_DURATION = 100;
+  
   var FilterSettingsPopup = function(eventBroker) {
     var element = jQuery(
           '<div class="clicktrap">' +
@@ -35,6 +37,16 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           element.find('.selection-toggle').html('&#xf00d;');
         },
         
+        select = function(element, value) {
+          if (element.hasClass('selected')) {
+            element.fadeTo(FADE_DURATION, 1);
+            element.removeClass('selected');
+          } else {
+            element.fadeTo(FADE_DURATION, 0.3);
+            element.addClass('selected');
+          }
+        },
+        
         /** Shorthand function for sorting facet values by count **/
         sortFacetValues = function(a,b) { return b.count - a.count },
         
@@ -54,6 +66,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 meter = Formatting.createMeter(label, tooltip, percentage);
                 
             meter.prepend('<span class="icon selection-toggle">&#xf00d;</span>');
+            meter.click(function() { select(meter, val); });
                 
             list.append(meter);
           });
