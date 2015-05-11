@@ -75,6 +75,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           selected = [];
           list.removeClass();
           list.empty();
+          setModeHide();
         },
         
         /** Shorthand function for sorting facet values by count **/
