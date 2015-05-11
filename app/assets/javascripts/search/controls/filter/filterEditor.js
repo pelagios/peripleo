@@ -6,7 +6,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '  <div id="filter-editor">' +
           '   <span class="close icon">&#xf057;</span>' +
           '   <div class="mode-selector">' + 
-          '     <span class="btn show selected"><span class="icon">&#xf00c;</span> Show only Selected</span><span class="btn hide"><span class="icon">&#xf00d;</span> Hide selected</span>' +
+          '     <span class="btn hide selected">' +
+          '       <span class="icon">&#xf00d;</span> Hide selected</span><span class="btn show">' +
+          '       <span class="icon">&#xf00c;</span> Show only selected</span>' +
           '   </div>' +
           '   <ul class="chart large"></ul>' +
           '  </div>' +
@@ -17,16 +19,20 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         btnModeHide = element.find('.hide'),
         btnClose = element.find('.close'),
         
+        toggleSwitches,
+        
         list = element.find('.chart'),
         
         setModeShow = function() {
           btnModeShow.addClass('selected');
           btnModeHide.removeClass('selected');
+          element.find('.selection-toggle').html('&#xf00c;');
         },
         
         setModeHide = function() {
           btnModeShow.removeClass('selected');
           btnModeHide.addClass('selected');
+          element.find('.selection-toggle').html('&#xf00d;');
         },
         
         /** Shorthand function for sorting facet values by count **/
@@ -44,11 +50,14 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           jQuery.each(facets, function(idx, val) {
             var label = Formatting.formatFacetLabel(val.label),
                 tooltip = Formatting.formatNumber(val.count) + ' Results',
-                percentage = 100 * val.count / maxCount;
+                percentage = 100 * val.count / maxCount,
+                meter = Formatting.createMeter(label, tooltip, percentage);
                 
-            list.append(Formatting.createMeter(label, tooltip, percentage));
+            meter.prepend('<span class="icon selection-toggle">&#xf00d;</span>');
+                
+            list.append(meter);
           });
-          
+
           element.show();  
         };
       
