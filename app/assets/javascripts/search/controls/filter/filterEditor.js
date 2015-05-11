@@ -25,26 +25,58 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         
         list = element.find('.chart'),
         
+        selected = [],
+        
+        selectionHides = true, // Selection mode - true for 'hide selected'
+        
         setModeShow = function() {
+          selectionHides = false;
           btnModeShow.addClass('selected');
           btnModeHide.removeClass('selected');
           element.find('.selection-toggle').html('&#xf00c;');
+          redraw();
         },
         
         setModeHide = function() {
+          selectionHides = true;
           btnModeShow.removeClass('selected');
           btnModeHide.addClass('selected');
           element.find('.selection-toggle').html('&#xf00d;');
+          redraw();
         },
         
         select = function(element, value) {
+          var indexOfVal = selected.indexOf(value.label),
+              targetOpacity;
+          
           if (element.hasClass('selected')) {
-            element.fadeTo(FADE_DURATION, 1);
+            targetOpacity = (selectionHides) ? 1 : 0.3;
+            element.fadeTo(FADE_DURATION, targetOpacity);
             element.removeClass('selected');
+            selected.splice(indexOfVal, 1);
           } else {
-            element.fadeTo(FADE_DURATION, 0.3);
+            targetOpacity = (selectionHides) ? 0.3 : 1;
+            element.fadeTo(FADE_DURATION, targetOpacity);
             element.addClass('selected');
+            selected.push(value.label);
           }
+        },
+        
+        redraw = function() {
+          var selectedOpacity = (selectionHides) ? 0.3 : 1,
+              selectedRows = list.find('li.selected'),
+              
+              unselectedOpacity = (selectionHides) ? 1 : 0.3,
+              unselectedRows = list.find('li').not('.selected');
+
+          selectedRows.fadeTo(FADE_DURATION, selectedOpacity); 
+          unselectedRows.fadeTo(FADE_DURATION, unselectedOpacity); 
+        },
+        
+        clear = function() {
+          selected = [];
+          list.removeClass();
+          list.empty();
         },
         
         /** Shorthand function for sorting facet values by count **/
@@ -55,9 +87,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               facets = facetValues.facets,
               maxCount = (facets.length > 0) ? facets.slice().sort(sortFacetValues)[0].count : 0;
               
-          list.removeClass();
+          clear();
           list.addClass('chart large ' + dim);
-          list.empty();
  
           jQuery.each(facets, function(idx, val) {
             var label = Formatting.formatFacetLabel(val.label),
