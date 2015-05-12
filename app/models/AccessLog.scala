@@ -16,13 +16,13 @@ class AccessLog(slickTag: SlickTag) extends Table[AccessLogRecord](slickTag, "ac
   
   def timestamp = column[Timestamp]("timestamp", O.NotNull)
   
-  def path = column[String]("path", O.NotNull)
+  def path = column[String]("path", O.NotNull, O.DBType("text"))
   
   def ip = column[String]("ip", O.NotNull)
   
   def userAgent = column[String]("user_agent", O.NotNull)
   
-  def referrer = column[String]("referrer", O.Nullable)
+  def referrer = column[String]("referrer", O.Nullable, O.DBType("text"))
   
   def accept = column[String]("accept", O.Nullable)
   
