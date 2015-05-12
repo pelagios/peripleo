@@ -218,7 +218,7 @@ trait ObjectReader extends AnnotationReader {
     
     // Source (dataset/gazetteer) filter
     if (datasets.size > 0 || gazetteers.size > 0) {
-      val datasetsWithSubsets = datasets ++ datasets.flatMap(id => Datasets.listSubsetsRecursive(id))
+      val datasetsWithSubsets = datasets ++ datasets.flatMap(Datasets.listSubsetsRecursive(_))
       val allSourceIDs = datasetsWithSubsets ++ gazetteers.map(_.toLowerCase)
       
       if (allSourceIDs.size == 1) {
@@ -229,8 +229,12 @@ trait ObjectReader extends AnnotationReader {
           sourceQuery.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.SHOULD))
         q.add(sourceQuery, BooleanClause.Occur.MUST)
       }
-    } else if (excludeDatasets.size > 0) {
-      // TODO implement
+    } else if (excludeDatasets.size > 0 || excludeGazetteers.size > 0) {
+      val datasetsWithSubsets = excludeDatasets ++ excludeDatasets.flatMap(Datasets.listSubsetsRecursive(_))
+      val allExcludeIDs = datasetsWithSubsets ++ excludeGazetteers.map(_.toLowerCase)
+      
+      allExcludeIDs.foreach(id =>
+        q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.MUST_NOT))
     }
     
     // Places filter

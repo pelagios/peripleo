@@ -68,7 +68,7 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
           if (params.gazetteers)
             url += '&gazetteers=' + params.gazetteers;
             
-          if (params.exclude_datasets)
+          if (params.exclude_gazetteers)
             url += '&exclude_gazetteers=' + params.exclude_gazetteers;
             
           if (params.timespan)

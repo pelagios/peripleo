@@ -27,7 +27,7 @@ abstract class AbstractController extends Controller {
   protected val KEY_DATASETS = "datasets"
   protected val KEY_EXCLUDE_DATASETS = "exclude_datasets"
   protected val KEY_GAZETTEERS = "gazetteers"
-  protected val KEY_EXCLUDE_GAZETTEERS = "exclude_gazetters"
+  protected val KEY_EXCLUDE_GAZETTEERS = "exclude_gazetteers"
   protected val KEY_FROM = "from"
   protected val KEY_TO = "to"
   protected val KEY_PLACES = "places"
