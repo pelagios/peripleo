@@ -38,17 +38,18 @@ define([], function() {
   return {
     
     parseFacetFilter: function(args) {
-      var apiName;
+      var newArgs = jQuery.extend({}, args), // clone & leave the original unmutated
+          translatedArgs;
       
       if (args.hasOwnProperty('facetFilter')) {
-        var translatedArgs = 
+        translatedArgs = 
           parse[args.facetFilter.dimension](args.facetFilter.values, args.facetFilter.exclusive);
           
-        jQuery.extend(args, translatedArgs);
-        delete args.facetFilter;
+        jQuery.extend(newArgs, translatedArgs);
+        delete newArgs.facetFilter;
       }
       
-      return args;      
+      return newArgs;      
     }
     
   };

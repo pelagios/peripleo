@@ -188,7 +188,7 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
 
     /** Run an initial view update on load **/
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
-      jQuery.extend(searchParams, FilterParser.parseFacetFilter(initialSettings)); // Incorporate inital settings      
+      jQuery.extend(searchParams, initialSettings); // Incorporate inital settings      
       initialLoad();
     });
     

@@ -9,6 +9,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           '</div>'),
           
         setFilterButton = header.find('.btn-set-filter'),
+        setFilterButtonLabel = setFilterButton.find('.label'),
+        
+        /** Flag indicating whether this chart currently has a filter set **/
+        isFilterSet = false,
           
         list = jQuery(
           '<ul class="chart ' + dimension + '"></ul>'),
@@ -27,19 +31,42 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           jQuery.each(updatedFacets.slice(0, 5), function(idx, val) {
             var label = Formatting.formatFacetLabel(val.label),
                 tooltip = Formatting.formatNumber(val.count) + ' Results',
-                percentage = 100 * val.count / maxCount;
+                percentage = 100 * val.count / maxCount; 
                 
             list.append(Formatting.createMeter(label, tooltip, percentage));
           });
+        },
+        
+        /** Monitor if the user set a filter on this dimension **/
+        onSearchChanged = function(change) {
+          if (change.hasOwnProperty('facetFilter')) {
+            if (change.facetFilter && change.facetFilter.dimension === dimension) {
+              if (change.facetFilter.values) {
+                isFilterSet = true;
+                setFilterButtonLabel.html('Clear Filter');
+              } else {
+                isFilterSet = false;
+                setFilterButtonLabel.html('Set Filter');
+              }
+              
+              
+            }
+          }
         };
     
     setFilterButton.click(function() {
-      eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, { dimension: dimension, facets: facets });
+      if (isFilterSet) // Clear filters
+        eventBroker.fireEvent(Events.SEARCH_CHANGED, { facetFilter: { dimension: dimension } });
+      else // Open filter dialog
+        eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, { dimension: dimension, facets: facets });
+    
       return false;
     });
     
     parent.append(header);
     parent.append(list);
+    
+    eventBroker.addHandler(Events.SEARCH_CHANGED, onSearchChanged);
     
     this.update = update;
   };
