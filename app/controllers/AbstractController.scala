@@ -24,8 +24,10 @@ abstract class AbstractController extends Controller {
   
   protected val KEY_QUERY = "query"
   protected val KEY_OBJECT_TYPE = "type"
-  protected val KEY_DATASET = "dataset"
-  protected val KEY_GAZETTEER = "gazetteer"
+  protected val KEY_DATASETS = "datasets"
+  protected val KEY_EXCLUDE_DATASETS = "exclude_datasets"
+  protected val KEY_GAZETTEERS = "gazetteers"
+  protected val KEY_EXCLUDE_GAZETTEERS = "exclude_gazetters"
   protected val KEY_FROM = "from"
   protected val KEY_TO = "to"
   protected val KEY_PLACES = "places"
@@ -75,11 +77,21 @@ abstract class AbstractController extends Controller {
           case _=> None          
         })
       
-      val dataset =
-        getQueryParam(KEY_DATASET, request)
+      val datasets =
+        getQueryParam(KEY_DATASETS, request)
+          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
         
-      val gazetteer =
-        getQueryParam(KEY_GAZETTEER, request)
+      val excludeDatasets =
+        getQueryParam(KEY_EXCLUDE_DATASETS, request)
+          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
+        
+      val gazetteers =
+        getQueryParam(KEY_GAZETTEERS, request)
+          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
+        
+      val excludeGazetteers =
+        getQueryParam(KEY_EXCLUDE_GAZETTEERS, request)
+          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
         
       val fromYear =
         getQueryParam(KEY_FROM, request).map(_.toInt)
@@ -113,7 +125,10 @@ abstract class AbstractController extends Controller {
       val offset =
         getQueryParam(KEY_OFFSET, request).map(_.toInt).getOrElse(0)
     
-      val params = SearchParameters(query, objectType, dataset, gazetteer, fromYear, toYear, places, bbox, coord, radius, limit, offset)
+      val params = 
+        SearchParameters(query, objectType, datasets, excludeDatasets, gazetteers, 
+          excludeGazetteers, fromYear, toYear, places, bbox, coord, radius, limit, offset)
+          
       if (params.isValid)
         Success(params)
       else 

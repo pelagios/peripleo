@@ -85,7 +85,8 @@ trait AnnotationReader extends IndexBase {
   
   def calculateAnnotationHeatmap(
       query: Option[String] = None,
-      dataset: Option[String] = None,
+      datasets: Seq[String] = Seq.empty[String],
+      excludeDatasets: Seq[String] = Seq.empty[String],
       fromYear: Option[Int] = None,
       toYear: Option[Int] = None,      
       places: Seq[String] = Seq.empty[String], 
@@ -104,7 +105,7 @@ trait AnnotationReader extends IndexBase {
       q.add(new MultiFieldQueryParser(fields, analyzer).parse(query.get), BooleanClause.Occur.MUST)  
     }     
     
-    // Dataset filter
+    /* Dataset filter
     if (dataset.isDefined) {
       val datasetHierarchy = dataset.get +: Datasets.listSubsetsRecursive(dataset.get)
       if (datasetHierarchy.size == 1) {
@@ -117,6 +118,7 @@ trait AnnotationReader extends IndexBase {
         q.add(datasetQuery, BooleanClause.Occur.MUST)
       }
     }
+    */
     
     // Timespan filter
     if (fromYear.isDefined || toYear.isDefined) {

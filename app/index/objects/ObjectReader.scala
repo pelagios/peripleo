@@ -83,8 +83,9 @@ trait ObjectReader extends AnnotationReader {
     val rectangle = params.bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
     
     // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
-    val (baseQuery, valueSource) = prepareBaseQuery(params.objectType, params.dataset, 
-      params.gazetteer, params.places, rectangle, params.coord, params.radius)
+    val (baseQuery, valueSource) = prepareBaseQuery(
+      params.objectType, params.datasets, params.excludeDatasets, params.gazetteers,
+      params.excludeGazetteers, params.places, rectangle, params.coord, params.radius)
       
     // Finalize search query and time histogram filter
     val (searchQuery, timeHistogramFilter) = {
@@ -181,7 +182,7 @@ trait ObjectReader extends AnnotationReader {
         if (params.query.isDefined) {
           // If there is a query phrase, we include the annotation heatmap 
           calculateItemHeatmap(filter, rect, level, searcher) +
-          calculateAnnotationHeatmap(params.query, params.dataset, params.from, params.to, params.places, rectangle,
+          calculateAnnotationHeatmap(params.query, params.datasets, params.excludeDatasets, params.from, params.to, params.places, rectangle,
             params.coord, params.radius, level, annotationSearcher)
         } else {
           // Otherwise, we only need the item-based heatmap
@@ -199,13 +200,15 @@ trait ObjectReader extends AnnotationReader {
   
   /** Constructs the query as far as it's common for search and heatmap computation **/
   private def prepareBaseQuery(
-      objectType: Option[IndexedObjectTypes.Value],
-      dataset:    Option[String],
-      gazetteer:  Option[String],    
-      places:     Seq[String], 
-      bbox:       Option[Rectangle],
-      coord:      Option[Coordinate], 
-      radius:     Option[Double])(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
+      objectType:        Option[IndexedObjectTypes.Value],
+      datasets:          Seq[String],
+      excludeDatasets:   Seq[String],
+      gazetteers:        Seq[String],
+      excludeGazetteers: Seq[String],
+      places:            Seq[String], 
+      bbox:              Option[Rectangle],
+      coord:             Option[Coordinate], 
+      radius:            Option[Double])(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
     
     val q = new BooleanQuery()
       
@@ -213,7 +216,7 @@ trait ObjectReader extends AnnotationReader {
     if (objectType.isDefined)
       q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.get.toString)), BooleanClause.Occur.MUST)
     
-    // Dataset filter
+    /* Dataset filter
     if (dataset.isDefined) {
       val datasetHierarchy = dataset.get +: Datasets.listSubsetsRecursive(dataset.get)
       if (datasetHierarchy.size == 1) {
@@ -230,6 +233,8 @@ trait ObjectReader extends AnnotationReader {
     // Gazetteer filter
     if (gazetteer.isDefined)
       q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
+      
+    */
       
     // Places filter
     places.foreach(uri =>

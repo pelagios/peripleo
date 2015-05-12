@@ -19,10 +19,10 @@ object SearchController extends AbstractController {
         val startTime = System.currentTimeMillis
         
         // Format filter screen names
-        val filters = Seq(
-          params.objectType.map(typ => ("type", typ.toString)),
-          params.dataset.flatMap(datasetId => Datasets.findById(datasetId).map(dataset => ("dataset", dataset.title)))
-        ).flatten.toMap
+        // val filters = Seq(
+          // params.objectType.map(typ => ("type", typ.toString)),
+          // params.dataset.flatMap(datasetId => Datasets.findById(datasetId).map(dataset => ("dataset", dataset.title)))
+        // ).flatten.toMap
 
         // Search
         // val results = 

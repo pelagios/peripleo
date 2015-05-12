@@ -1,5 +1,5 @@
 /** A wrapper around the API functions required by the map search UI **/
-define(['search/events'], function(Events) {
+define(['search/events', 'search/apiFilterParser'], function(Events, FilterParser) {
   
   var QUERY_DELAY_MS = 100,
   
@@ -14,9 +14,15 @@ define(['search/events'], function(Events) {
           
           query: false,
           
-          objectType: false,
+          object_type: false,
           
-          dataset: false,
+          datasets: false,
+          
+          exclude_datasets: false,
+          
+          gazetteers: false,
+          
+          exclude_gazetteers: false,
           
           timespan: false,
           
@@ -50,11 +56,14 @@ define(['search/events'], function(Events) {
           if (params.query)
             url += '&query=' + params.query;
             
-          if (params.objectType)
+          if (params.object_type)
             url += '&type=' + params.objectType;
             
-          if (params.dataset)
-            url += '&dataset=' + params.dataset;
+          if (params.datasets)
+            url += '&datasets=' + params.datasets;
+            
+          if (params.exclude_datasets)
+            url += '&exclude_datasets=' + params.exclude_datasets;
             
           if (params.timespan)
             url += '&from=' + params.timespan.from + '&to=' + params.timespan.to;
@@ -143,7 +152,7 @@ define(['search/events'], function(Events) {
          */
         makeSubSearchRequest = function(diff) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, diff); // Merge current state with diff
+          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(diff)); // Merge current state with diff
           jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
             response.params = mergedParams;
             eventBroker.fireEvent(Events.API_SUB_SEARCH_RESPONE, response);
@@ -163,7 +172,7 @@ define(['search/events'], function(Events) {
          */        
         makeOneTimeSearchRequest = function(params) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, params); // Merge current state with params
+          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params)); // Merge current state with params
           jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
             response.params = mergedParams;
             delete response.params.callback; // Clean up the params object, i.e. remove the callback fn reference
@@ -173,12 +182,12 @@ define(['search/events'], function(Events) {
 
     /** Run an initial view update on load **/
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
-      jQuery.extend(searchParams, initialSettings); // Incorporate inital settings      
+      jQuery.extend(searchParams, FilterParser.parseFacetFilter(initialSettings)); // Incorporate inital settings      
       initialLoad();
     });
     
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {      
-      jQuery.extend(searchParams, change); // Merge changes
+      jQuery.extend(searchParams, FilterParser.parseFacetFilter(change)); // Merge changes
     
       // SPECIAL: if the user added a query phrase, ignore geo-bounds
       if (change.query)

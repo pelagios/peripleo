@@ -1,117 +1,165 @@
 define(['search/events', 'common/formatting'], function(Events, Formatting) {
+  
+  var OPACITY_UNSELECTED = 0.4;
 
   var FilterSettingsPopup = function(eventBroker) {
+    
     var element = jQuery(
           '<div class="clicktrap">' +
           '  <div id="filter-editor">' +
           '   <span class="close icon">&#xf057;</span>' +
-          '   <div class="mode-selector">' + 
-          '     <span class="btn hide selected">' +
-          '       <span class="icon">&#xf00d;</span> Hide selected</span><span class="btn show">' +
-          '       <span class="icon">&#xf00c;</span> Show only selected</span>' +
+          '   <div class="buttons">' +
+          '     <span class="btn select-all"><span class="icon">&#xf046;</span> <span class="label">Select all</span></span>' +
+          '     <span class="btn select-none"><span class="icon">&#xf096;</span> <span class="label">Select none</span></span>' +
           '   </div>' +
           '   <ul class="chart large"></ul>' +
           '  </div>' +
           '</div>'
         ),
         
-        btnModeShow = element.find('.show'),
-        btnModeHide = element.find('.hide'),
-        btnClose = element.find('.close'),
+        otherTemplate = 
+          '<li class="selected other">' +
+          '  <span class="icon selection-toggle">&#xf046;</span>' +
+          '  <div class="label-other">Other</div>' +
+          '</li>',
         
-        toggleSwitches,
+        btnSelectAll = element.find('.select-all'),
+        btnSelectNone = element.find('.select-none'),
+        btnClose = element.find('.close'),
         
         list = element.find('.chart'),
         
-        selected = [],
+        dimension,
         
-        selectionHides = true, // Selection mode - true for 'hide selected'
-        
-        setModeShow = function() {
-          selectionHides = false;
-          btnModeShow.addClass('selected');
-          btnModeHide.removeClass('selected');
-          element.find('.selection-toggle').html('&#xf00c;');
-          redraw();
+        selectAll = function() {
+          getSelectedValues();
+          select(list.find('li').not('.other'));
+          selectOther();   
         },
         
-        setModeHide = function() {
-          selectionHides = true;
-          btnModeShow.removeClass('selected');
-          btnModeHide.addClass('selected');
-          element.find('.selection-toggle').html('&#xf00d;');
-          redraw();
+        selectNone = function() {
+          deselect(list.find('li').not('.other'));
+          deselectOther();   
         },
         
-        select = function(element, value) {
-          var indexOfVal = selected.indexOf(value.label),
-              targetOpacity;
-          
-          if (element.hasClass('selected')) {
-            targetOpacity = (selectionHides) ? 1 : 0.3;
-            element.css('opacity', targetOpacity);
-            element.removeClass('selected');
-            selected.splice(indexOfVal, 1);
-          } else {
-            targetOpacity = (selectionHides) ? 0.3 : 1;
-            element.css('opacity', targetOpacity);
-            element.addClass('selected');
-            selected.push(value.label);
-          }
+        select = function(element) {
+          element.addClass('selected');
+          element.find('.meter').css('opacity', 1);
+          element.find('.icon').html('&#xf046;');       
         },
         
-        redraw = function() {
-          var selectedOpacity = (selectionHides) ? 0.3 : 1,
-              selectedRows = list.find('li.selected'),
-              
-              unselectedOpacity = (selectionHides) ? 1 : 0.3,
-              unselectedRows = list.find('li').not('.selected');
+        deselect = function(element) {
+          element.removeClass('selected');
+          element.find('.meter').css('opacity', OPACITY_UNSELECTED);
+          element.find('.icon').html('&#xf096;');       
+        },
+        
+        toggle = function(element) {
+          if (element.hasClass('selected'))
+            deselect(element);
+          else
+            select(element);
+        },
 
-          selectedRows.css('opacity', selectedOpacity); 
-          unselectedRows.css('opacity', unselectedOpacity); 
+        selectOther = function() {
+          var li = element.find('.other');
+          li.addClass('selected');
+          li.find('.label-other').css('opacity', 1);
+          li.find('.icon').html('&#xf046;');
         },
         
-        clear = function() {
-          selected = [];
+        deselectOther = function() {
+          var li = element.find('.other');
+          li.removeClass('selected');
+          li.find('.label-other').css('opacity', OPACITY_UNSELECTED);
+          li.find('.icon').html('&#xf096;');
+        },
+        
+        toggleOther = function() {
+          if (element.find('.other').hasClass('selected'))
+            deselectOther();
+          else
+            selectOther();
+        },
+        
+        clearList = function() {
           list.removeClass();
           list.empty();
-          setModeHide();
         },
         
-        /** Shorthand function for sorting facet values by count **/
+        getSelectedValues = function() {
+          return jQuery.map(list.find('li.selected').not('.other'), function(li) {
+            return jQuery(li).attr('data-value');
+          });
+        },
+        
+        getUnselectedValues = function() {
+          return jQuery.map(list.find('li').not('.selected').not('.other'), function(li) {
+            return jQuery(li).attr('data-value');
+          });
+        },
+        
+        isOtherSet = function() {
+          return element.find('.other').hasClass('selected');
+        },
+        
         sortFacetValues = function(a,b) { return b.count - a.count },
         
-        editFilterSettings = function(facetValues) {
-          var dim = facetValues.dimension,
-              facets = facetValues.facets,
+        createList = function(facetValues) {
+          var facets = facetValues.facets,
               maxCount = (facets.length > 0) ? facets.slice().sort(sortFacetValues)[0].count : 0;
+          
+          dimension = facetValues.dimension;
               
-          clear();
-          list.addClass('chart large ' + dim);
+          clearList();
+          
+          list.addClass('chart large ' + dimension);
  
           jQuery.each(facets, function(idx, val) {
             var label = Formatting.formatFacetLabel(val.label),
                 tooltip = Formatting.formatNumber(val.count) + ' Results',
                 percentage = 100 * val.count / maxCount,
-                meter = Formatting.createMeter(label, tooltip, percentage);
-                
-            meter.prepend('<span class="icon selection-toggle">&#xf00d;</span>');
-            meter.click(function() { select(meter, val); });
-                
-            list.append(meter);
+                li = Formatting.createMeter(label, tooltip, percentage);
+               
+            li.addClass('selected');
+            li.attr('data-value', val.label);
+            li.prepend('<span class="icon selection-toggle">&#xf046;</span>');
+            li.click(function() { toggle(li); });
+            list.append(li);
           });
-
+          
+          list.append(otherTemplate);
           element.show();  
+        },
+        
+        close = function() {
+          // 'Inclusive' or 'exclusive' filtering? I.e. does the user want to 
+          // see selected categories AND others not in the list (inclusive)? Or
+          // restrict to ONLY the selected ones (exclusive)?
+          var inclusiveFiltering = isOtherSet(),
+              filterValues;
+          
+          if (inclusiveFiltering)
+            filterValues = getUnselectedValues(); // Inclusive: supress unselected items 
+          else
+            filterValues = getSelectedValues(); // Exclusive: show only selected items
+          
+          eventBroker.fireEvent(Events.SEARCH_CHANGED, 
+            { facetFilter:  { dimension: dimension, values: filterValues, exclusive: !inclusiveFiltering } });
+            
+          element.hide();
         };
       
     element.hide();
     jQuery(document.body).append(element);
+
+    btnSelectAll.click(selectAll);
+    btnSelectNone.click(selectNone);
+    btnClose.click(close);    
     
-    btnModeShow.click(setModeShow);
-    btnModeHide.click(setModeHide);
-    btnClose.click(function() { element.hide(); });
+    list.on('click', '.other', toggleOther);
     
-    eventBroker.addHandler(Events.EDIT_FILTER_SETTINGS, editFilterSettings);
+    eventBroker.addHandler(Events.EDIT_FILTER_SETTINGS, createList);
     
   };
   
