@@ -177,7 +177,7 @@ object IndexedPlaceNetwork {
     // Update list of source gazetteers, if necessary
     val sourceGazetteers = doc.getValues(IndexFields.SOURCE_DATASET).toSet
     if (!sourceGazetteers.contains(place.sourceGazetteer)) {
-      doc.add(new StringField(IndexFields.SOURCE_DATASET, place.sourceGazetteer, Field.Store.YES))
+      doc.add(new TextField(IndexFields.SOURCE_DATASET, place.sourceGazetteer, Field.Store.YES))
       doc.add(new FacetField(IndexFields.SOURCE_DATASET, "gazetteer:" + place.sourceGazetteer))
     }
       

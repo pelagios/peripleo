@@ -216,26 +216,23 @@ trait ObjectReader extends AnnotationReader {
     if (objectType.isDefined)
       q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.get.toString)), BooleanClause.Occur.MUST)
     
-    /* Dataset filter
-    if (dataset.isDefined) {
-      val datasetHierarchy = dataset.get +: Datasets.listSubsetsRecursive(dataset.get)
-      if (datasetHierarchy.size == 1) {
-        q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, dataset.get)), BooleanClause.Occur.MUST)        
+    // Source (dataset/gazetteer) filter
+    if (datasets.size > 0 || gazetteers.size > 0) {
+      val datasetsWithSubsets = datasets ++ datasets.flatMap(id => Datasets.listSubsetsRecursive(id))
+      val allSourceIDs = datasetsWithSubsets ++ gazetteers.map(_.toLowerCase)
+      
+      if (allSourceIDs.size == 1) {
+        q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, allSourceIDs.head)), BooleanClause.Occur.MUST)        
       } else {
-        val datasetQuery = new BooleanQuery()
-        datasetHierarchy.foreach(id => {
-          datasetQuery.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.SHOULD)       
-        })
-        q.add(datasetQuery, BooleanClause.Occur.MUST)
+        val sourceQuery = new BooleanQuery()
+        allSourceIDs.foreach(id =>
+          sourceQuery.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.SHOULD))
+        q.add(sourceQuery, BooleanClause.Occur.MUST)
       }
+    } else if (excludeDatasets.size > 0) {
+      // TODO implement
     }
     
-    // Gazetteer filter
-    if (gazetteer.isDefined)
-      q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, gazetteer.get.toLowerCase)), BooleanClause.Occur.MUST)
-      
-    */
-      
     // Places filter
     places.foreach(uri =>
       q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
