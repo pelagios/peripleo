@@ -10,19 +10,22 @@ case class SearchParameters(
   /** Keyword/ phrase query **/
   query:             Option[String],
   
-  /** Object type restriction **/
-  objectType:        Option[IndexedObjectTypes.Value],
+  /** Object type filter **/
+  objectTypes:        Seq[IndexedObjectTypes.Value],
+  
+  /** Inverse object type that excludes specific types **/
+  excludeObjectTypes:        Seq[IndexedObjectTypes.Value],  
   
   /** Dataset filter **/
   datasets:          Seq[String],
   
-  /** Alternative dataset filter, which excludes specific sets **/
+  /** Inverse dataset filter that excludes specific sets **/
   excludeDatasets:   Seq[String],
   
   /** Gazetteer filter **/
   gazetteers:        Seq[String],
   
-  /** Alternative gazetteer filter, which excludes specific gazetteers **/
+  /** Inverse gazetteer filter that excludes specific gazetteers **/
   excludeGazetteers: Seq[String],
   
   /** Date filter (start year) **/
@@ -51,7 +54,7 @@ case class SearchParameters(
     
     /** Query is valid if at least one param is set **/
     def isValid: Boolean =
-      Seq(query, objectType, from, to, bbox, coord, radius).filter(_.isDefined).size > 0 ||
-      (places ++ datasets ++ excludeDatasets ++ gazetteers ++ excludeGazetteers).size > 0
+      Seq(query, from, to, bbox, coord, radius).filter(_.isDefined).size > 0 ||
+      Seq(places, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, excludeGazetteers).filter(_.size > 0).size > 0
 
 }

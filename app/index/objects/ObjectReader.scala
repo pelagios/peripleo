@@ -84,8 +84,8 @@ trait ObjectReader extends AnnotationReader {
     
     // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
     val (baseQuery, valueSource) = prepareBaseQuery(
-      params.objectType, params.datasets, params.excludeDatasets, params.gazetteers,
-      params.excludeGazetteers, params.places, rectangle, params.coord, params.radius)
+      params.objectTypes, params.excludeObjectTypes, params.datasets, params.excludeDatasets,
+      params.gazetteers, params.excludeGazetteers, params.places, rectangle, params.coord, params.radius)
       
     // Finalize search query and time histogram filter
     val (searchQuery, timeHistogramFilter) = {
@@ -145,17 +145,8 @@ trait ObjectReader extends AnnotationReader {
     val objectSearcher = objectSearcherManager.acquire()
     val annotationSearcher = annotationSearcherManager.acquire()
     
-    val searcher = params.objectType match { // Just a bit of optimization
-      case Some(typ) if typ == IndexedObjectTypes.PLACE => // Search place index only
-        placeSearcher.searcher
-        
-      case Some(typ) => // Items or Datasets - search object index only
-        objectSearcher.searcher
-        
-      case None => // Search both indices  
-        new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
-    } 
-
+    // TODO we could optimize this a bit by searching only place and/or item index, depending on filters
+    val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
     
     try {   
       // Search & facet counts
@@ -200,21 +191,33 @@ trait ObjectReader extends AnnotationReader {
   
   /** Constructs the query as far as it's common for search and heatmap computation **/
   private def prepareBaseQuery(
-      objectType:        Option[IndexedObjectTypes.Value],
-      datasets:          Seq[String],
-      excludeDatasets:   Seq[String],
-      gazetteers:        Seq[String],
-      excludeGazetteers: Seq[String],
-      places:            Seq[String], 
-      bbox:              Option[Rectangle],
-      coord:             Option[Coordinate], 
-      radius:            Option[Double])(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
+      objectTypes:        Seq[IndexedObjectTypes.Value],
+      excludeObjectTypes: Seq[IndexedObjectTypes.Value],
+      datasets:           Seq[String],
+      excludeDatasets:    Seq[String],
+      gazetteers:         Seq[String],
+      excludeGazetteers:  Seq[String],
+      places:             Seq[String], 
+      bbox:               Option[Rectangle],
+      coord:              Option[Coordinate], 
+      radius:             Option[Double])(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
     
     val q = new BooleanQuery()
       
     // Object type filter
-    if (objectType.isDefined)
-      q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.get.toString)), BooleanClause.Occur.MUST)
+    if (objectTypes.size > 0) {
+      if (objectTypes.size == 1) {
+        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectTypes.head.toString)), BooleanClause.Occur.MUST)
+      } else {
+        val typeQuery = new BooleanQuery()
+        objectTypes.foreach(objectType => 
+          q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.toString)), BooleanClause.Occur.SHOULD))
+        q.add(typeQuery, BooleanClause.Occur.MUST)
+      }
+    } else if (excludeObjectTypes.size > 0) {
+      excludeObjectTypes.foreach(objectType =>
+        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.toString)), BooleanClause.Occur.MUST_NOT))
+    }
     
     // Source (dataset/gazetteer) filter
     if (datasets.size > 0 || gazetteers.size > 0) {

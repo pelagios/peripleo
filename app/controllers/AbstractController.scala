@@ -23,7 +23,8 @@ abstract class AbstractController extends Controller {
   /** Protected constants **/
   
   protected val KEY_QUERY = "query"
-  protected val KEY_OBJECT_TYPE = "type"
+  protected val KEY_OBJECT_TYPE = "types"
+  protected val KEY_EXCLUDE_OBJECT_TYPES = "exclude_types"
   protected val KEY_DATASETS = "datasets"
   protected val KEY_EXCLUDE_DATASETS = "exclude_datasets"
   protected val KEY_GAZETTEERS = "gazetteers"
@@ -61,37 +62,37 @@ abstract class AbstractController extends Controller {
     request.queryString
       .filter(_._1.equalsIgnoreCase(key))
       .headOption.flatMap(_._2.headOption)
-      
-      
+  
+  /** Helper to grab a parameter that's a list of comma-separated values as a Seq[String] **/ 
+  protected def getQueryParamList(key: String, request: RequestHeader): Seq[String] =
+    getQueryParam(key, request).map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
+  
+  /** Shorthand for parsing a parameter that's a list of object types **/
+  protected def getQueryParamAsListOfTypes(key: String, request: RequestHeader) =
+    getQueryParamList(key, request).flatMap(_.toLowerCase match {
+      case DATASET => Some(IndexedObjectTypes.DATASET)
+      case ITEM => Some(IndexedObjectTypes.ANNOTATED_THING)
+      case PLACE => Some(IndexedObjectTypes.PLACE)
+      case _=> None          
+    })    
+    
   /** Helper methods that parses all search paramters from the query string **/
   protected def parseSearchParams(request: RequestHeader): Try[SearchParameters] = {
     try {
       val query = 
         getQueryParam(KEY_QUERY, request)
       
-      val objectType = 
-        getQueryParam(KEY_OBJECT_TYPE, request).flatMap(name => name.toLowerCase match {
-          case DATASET => Some(IndexedObjectTypes.DATASET)
-          case ITEM => Some(IndexedObjectTypes.ANNOTATED_THING)
-          case PLACE => Some(IndexedObjectTypes.PLACE)
-          case _=> None          
-        })
+      val objectTypes = getQueryParamAsListOfTypes(KEY_OBJECT_TYPE, request)
+
+      val excludeObjectTypes = getQueryParamAsListOfTypes(KEY_EXCLUDE_OBJECT_TYPES, request)        
       
-      val datasets =
-        getQueryParam(KEY_DATASETS, request)
-          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
+      val datasets = getQueryParamList(KEY_DATASETS, request)
         
-      val excludeDatasets =
-        getQueryParam(KEY_EXCLUDE_DATASETS, request)
-          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
+      val excludeDatasets = getQueryParamList(KEY_EXCLUDE_DATASETS, request)
         
-      val gazetteers =
-        getQueryParam(KEY_GAZETTEERS, request)
-          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
+      val gazetteers = getQueryParamList(KEY_GAZETTEERS, request)
         
-      val excludeGazetteers =
-        getQueryParam(KEY_EXCLUDE_GAZETTEERS, request)
-          .map(_.split(",").toSeq.map(_.trim)).getOrElse(Seq.empty[String])
+      val excludeGazetteers = getQueryParamList(KEY_EXCLUDE_GAZETTEERS, request)
         
       val fromYear =
         getQueryParam(KEY_FROM, request).map(_.toInt)
@@ -126,7 +127,7 @@ abstract class AbstractController extends Controller {
         getQueryParam(KEY_OFFSET, request).map(_.toInt).getOrElse(0)
     
       val params = 
-        SearchParameters(query, objectType, datasets, excludeDatasets, gazetteers, 
+        SearchParameters(query, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, 
           excludeGazetteers, fromYear, toYear, places, bbox, coord, radius, limit, offset)
           
       if (params.isValid)

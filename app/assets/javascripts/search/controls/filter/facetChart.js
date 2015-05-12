@@ -37,7 +37,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           });
         },
         
-        /** Monitor if the user set a filter on this dimension **/
+        /** Monitor if the user set or removed a filter on this dimension **/
         onSearchChanged = function(change) {
           if (change.hasOwnProperty('facetFilter')) {
             if (change.facetFilter && change.facetFilter.dimension === dimension) {
@@ -48,8 +48,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
                 isFilterSet = false;
                 setFilterButtonLabel.html('Set Filter');
               }
-              
-              
             }
           }
         };

@@ -14,7 +14,9 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
           
           query: false,
           
-          object_type: false,
+          object_types: false,
+          
+          exclude_object_types: false,
           
           datasets: false,
           
@@ -56,8 +58,11 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
           if (params.query)
             url += '&query=' + params.query;
             
-          if (params.object_type)
-            url += '&type=' + params.objectType;
+          if (params.object_types)
+            url += '&types=' + params.object_types;
+            
+          if (params.exclude_object_types)
+            url += '&exclude_types=' + params.exclude_object_types;
             
           if (params.datasets)
             url += '&datasets=' + params.datasets;

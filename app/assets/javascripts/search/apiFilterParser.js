@@ -29,8 +29,14 @@ define([], function() {
               gazetteers: false , exclude_gazetteers: gazetteerFilter }             
         },
         
-        'type': function(values) {
+        /** Object type (place, item, dataset) **/
+        type: function(values, exclusive) {
+          var typeFilter = (values) ? values.join(',') : false;
           
+          if (exclusive)
+            return { object_types: typeFilter, exclude_object_types: false };
+          else
+            return { object_types: false, exclude_object_types: typeFilter };
         }
         
       };
