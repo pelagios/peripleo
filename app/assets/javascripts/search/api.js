@@ -26,7 +26,9 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
           
           exclude_gazetteers: false,
           
-          timespan: false,
+          from: false,
+          
+          to: false,
           
           place: false,
           
@@ -76,8 +78,11 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
           if (params.exclude_gazetteers)
             url += '&exclude_gazetteers=' + params.exclude_gazetteers;
             
-          if (params.timespan)
-            url += '&from=' + params.timespan.from + '&to=' + params.timespan.to;
+          if (params.from)
+            url += '&from=' + params.from;
+            
+          if (params.to)
+            url += '&to=' + params.to;
             
           if (params.place)
             url += '&places=' + encodeURIComponent(params.place);

@@ -12,8 +12,18 @@ define(['search/events'], function(Events) {
         busy = false,
           
         updatePending = false,
+        
+        /** Updates a particular segment field with the value from the diff, if any **/
+        setParam = function(name, diff) {
+          if (diff.hasOwnProperty(name)) {
+            if (diff[name])
+              segments[name] = diff[name];
+            else // diff[name] = false -> remove this segment field
+              delete segments[name];
+          }          
+        },
                 
-        updateURLFragment = function() {
+        updateURLField = function() {
           var scheduleUpdate = function() {
                 busy = true;
                 setTimeout(function() {
@@ -38,29 +48,15 @@ define(['search/events'], function(Events) {
     
     eventBroker.addHandler(Events.VIEW_CHANGED, function(bounds) {
       segments.bbox = bounds.west + ',' + bounds.east + ',' + bounds.south + ',' + bounds.north;
-      updateURLFragment()
+      updateURLField()
     });
     
-    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
-      if (change.hasOwnProperty('query')) {
-        if (change.query) {
-          segments.query = change.query;
-        } else {
-          delete segments.query;
-        }
-      }
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {
+      setParam('query', diff);
+      setParam('from', diff);
+      setParam('to', diff);
       
-      if (change.hasOwnProperty('timespan')) {
-        if (change.timespan) {
-          segments.from = change.timespan.from;
-          segments.to = change.timespan.to;
-        } else {
-          delete segments.from;
-          delete segments.to;
-        }
-      }
-      
-      updateURLFragment();
+      updateURLField();
     });
     
   };

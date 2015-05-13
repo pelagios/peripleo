@@ -161,10 +161,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           toHandleLabel.hide();
             
           if (selection)
-            eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: selection });
+            eventBroker.fireEvent(Events.SEARCH_CHANGED, selection);
           else
             // Remove time filter altogether
-            eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: false }); 
+            eventBroker.fireEvent(Events.SEARCH_CHANGED, { from: false, to: false }); 
         },
         
         onDragBounds = function(e) {
@@ -185,7 +185,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           toHandleLabel.show();
           toHandle.css('left', offsetX + width + canvasOffset);
 
-          eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: getSelectedRange() });
+          eventBroker.fireEvent(Events.SEARCH_CHANGED, getSelectedRange());
         },
         
         onStopBounds = function(e) {

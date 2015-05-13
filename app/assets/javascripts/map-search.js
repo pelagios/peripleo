@@ -50,12 +50,12 @@ require(['search/map/map',
                 keyValObject[asArray[0]] = asArray[1];
             });
             
-            // Special handling for timespan
-            if (keyValObject.from) {
-              keyValObject.timespan = { from: parseInt(keyValObject.from), to: parseInt(keyValObject.to) };
-              delete keyValObject.from;
-              delete keyValObject.to;
-            }
+            // Number parsing for timespan
+            if (keyValObject.from)
+              keyValObject.from = parseInt(keyValObject.from);
+
+            if (keyValObject.to)
+              keyValObject.to = parseInt(keyValObject.to);
               
             return keyValObject;
           }
