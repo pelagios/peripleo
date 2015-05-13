@@ -163,7 +163,7 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
          */
         makeSubSearchRequest = function(diff) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(diff)); // Merge current state with diff
+          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(diff, searchParams)); // Merge current state with diff
           jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
             response.params = mergedParams;
             eventBroker.fireEvent(Events.API_SUB_SEARCH_RESPONE, response);
@@ -181,9 +181,9 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
          * 
          * @param the changes to the current global search parameters, and the callback function
          */        
-        makeOneTimeSearchRequest = function(params) {
+        makeOneTimeSearchRequest = function(diff) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params)); // Merge current state with params
+          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(diff, searchParams)); // Merge current state with params
           jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
             response.params = mergedParams;
             delete response.params.callback; // Clean up the params object, i.e. remove the callback fn reference
@@ -197,11 +197,11 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
       initialLoad();
     });
     
-    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {      
-      jQuery.extend(searchParams, FilterParser.parseFacetFilter(change)); // Merge changes
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {      
+      jQuery.extend(searchParams, FilterParser.parseFacetFilter(diff, searchParams)); // Merge changes
     
       // SPECIAL: if the user added a query phrase, ignore geo-bounds
-      if (change.query)
+      if (diff.query)
         searchParams.bbox = false;
       
       search();

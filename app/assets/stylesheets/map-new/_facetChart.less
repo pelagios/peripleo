@@ -14,27 +14,37 @@
       margin:0 0 2px 0;
     }
     
-    .btn-set-filter {
-      color:#4e78ac;
-      text-decoration:none;
+    .filter-buttons {
       position:absolute;
       right:0;
       padding:3px 4px;
       font-family:Roboto, Arial, sans-serif;
       font-size:12px;
       
-      .icon { 
-        position:relative;
-        top:1px;
-        font-size:11px;
-        vertical-align:top;
-        margin-right:4px; 
+      .btn {
+        margin-left:5px;
+        color:#4e78ac;
+        text-decoration:none;
+        
+        .icon { 
+          position:relative;
+          top:1px;
+          font-size:11px;
+          vertical-align:top;
+          margin-right:1px; 
+        }
+      
       }
       
-    }
-    
-    .btn-set-filter:hover .label {
-      text-decoration:underline;
+      .btn.clear .icon {
+        top:0;
+        font-size:13px;
+      }
+      
+      .btn:hover .label {
+        text-decoration:underline;
+      }
+      
     }
     
   } /* .facet-header */

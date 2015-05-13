@@ -143,9 +143,13 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             filterValues = getUnselectedValues(); // Inclusive: supress unselected items 
           else
             filterValues = getSelectedValues(); // Exclusive: show only selected items
+            
+          // Sanitize 0-length filter value array to 'false'
+          if (filterValues.length === 0)
+            filterValues = false;
           
           eventBroker.fireEvent(Events.SEARCH_CHANGED, 
-            { facetFilter:  { dimension: dimension, values: filterValues, exclusive: !inclusiveFiltering } });
+            { facetFilter:  { dimension: dimension, values: filterValues, inclusive: inclusiveFiltering } });
             
           element.hide();
         };

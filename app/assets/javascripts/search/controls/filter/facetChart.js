@@ -5,11 +5,16 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     var header = jQuery(
           '<div class="facet-header">' +
           '  <h3>' + title + '</h3>' +
-          '  <a class="btn-set-filter" href="#"><span class="icon">&#xf0b0;</span><span class="label">Set Filter</span></a>' +
+          '  <span class="filter-buttons">' +
+          '    <a href="#" class="btn set-filter"><span class="icon">&#xf0b0;</span> <span class="label">Set Filter</span></a>' +
+          '    <a href="#" class="btn refine"><span class="icon">&#xf0b0;</span> <span class="label">Refine</span></a>' +
+          '    <a href="#" class="btn clear"><span class="icon">&#xf00d;</span> <span class="label">Clear</span></a>' +
+          '  </span>' +
           '</div>'),
           
-        setFilterButton = header.find('.btn-set-filter'),
-        setFilterButtonLabel = setFilterButton.find('.label'),
+        btnSetFilter = header.find('.btn.set-filter'),
+        btnRefine = header.find('.btn.refine'),
+        btnClear = header.find('.btn.clear'),
         
         /** Flag indicating whether this chart currently has a filter set **/
         isFilterSet = false,
@@ -43,21 +48,29 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             if (change.facetFilter && change.facetFilter.dimension === dimension) {
               if (change.facetFilter.values) {
                 isFilterSet = true;
-                setFilterButtonLabel.html('Clear Filter');
+                btnSetFilter.hide();
+                btnRefine.show();
+                btnClear.show();
               } else {
                 isFilterSet = false;
-                setFilterButtonLabel.html('Set Filter');
+                btnSetFilter.show();
+                btnRefine.hide();
+                btnClear.hide();
               }
             }
           }
         };
     
-    setFilterButton.click(function() {
-      if (isFilterSet) // Clear filters
-        eventBroker.fireEvent(Events.SEARCH_CHANGED, { facetFilter: { dimension: dimension } });
-      else // Open filter dialog
-        eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, { dimension: dimension, facets: facets });
+    btnRefine.hide();
+    btnClear.hide();
     
+    btnSetFilter.add(btnRefine).click(function() {
+      eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, { dimension: dimension, facets: facets });
+      return false;
+    });    
+    
+    btnClear.click(function() {
+      eventBroker.fireEvent(Events.SEARCH_CHANGED, { facetFilter: { dimension: dimension } });
       return false;
     });
     

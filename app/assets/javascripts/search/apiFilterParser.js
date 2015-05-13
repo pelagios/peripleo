@@ -1,9 +1,21 @@
 define([], function() {
+      
+      /** Helper to properly concatenate two strings, which may both be 'false' **/
+  var merge = function(currentFilterString, newFilterString) {
+        if (currentFilterString && newFilterString)
+          return currentFilterString + ',' + newFilterString;
+        else if (currentFilterString)
+          return currentFilterString;
+        else if (newFilterString)
+          return newFilterString
+        else
+          return false;
+      },
   
-  var parse = {
+      parse = {
     
         /** Datasets and gazetteers **/
-        source_dataset: function(values, exclusive) {
+        source_dataset: function(values, inclusive, currentFilters) {
           var datasetIDs = [], datasetFilter,
               gazetteerIDs = [], gazetteerFilter;
           
@@ -19,43 +31,43 @@ define([], function() {
           datasetFilter = (datasetIDs.length === 0) ? false : datasetIDs.join(',');
           gazetteerFilter = (gazetteerIDs.length === 0) ? false : gazetteerIDs.join(',');
             
-          if (exclusive)
+          if (inclusive) // In this case, we need to merge with the current filter!
+            return { 
+              datasets: false, exclude_datasets: merge(currentFilters.exclude_datasets, datasetFilter),
+              gazetteers: false , exclude_gazetteers: merge(currentFilters.exclude_gazetteers, gazetteerFilter) };
+          else // In this case, we just replace the current filter
             return { 
               datasets: datasetFilter, exclude_datasets: false,
-              gazetteers: gazetteerFilter, exclude_gazetteers: false }
-          else 
-            return { 
-              datasets: false, exclude_datasets: datasetFilter,
-              gazetteers: false , exclude_gazetteers: gazetteerFilter }             
+              gazetteers: gazetteerFilter, exclude_gazetteers: false };
         },
         
         /** Object type (place, item, dataset) **/
-        type: function(values, exclusive) {
+        type: function(values, inclusive, currentFilters) {
           var typeFilter = (values) ? values.join(',') : false;
           
-          if (exclusive)
+          if (inclusive) // In this case, we need to merge with the current filter!
+            return { object_types: false, exclude_object_types: merge(currentFilters.exclude_object_types, typeFilter) };
+          else // In this case, we just replace the current filter
             return { object_types: typeFilter, exclude_object_types: false };
-          else
-            return { object_types: false, exclude_object_types: typeFilter };
         }
         
       };
   
   return {
     
-    parseFacetFilter: function(args) {
-      var newArgs = jQuery.extend({}, args), // clone & leave the original unmutated
-          translatedArgs;
+    parseFacetFilter: function(diff, currentFilters) {
+      var clonedDiff = jQuery.extend({}, diff), // clone & leave the original unmutated
+          translatedFacets; // Will hold the diff, translated to API terminology
       
-      if (args.hasOwnProperty('facetFilter')) {
-        translatedArgs = 
-          parse[args.facetFilter.dimension](args.facetFilter.values, args.facetFilter.exclusive);
+      if (clonedDiff.hasOwnProperty('facetFilter')) {
+        translatedFacets = 
+          parse[clonedDiff.facetFilter.dimension](clonedDiff.facetFilter.values, clonedDiff.facetFilter.inclusive, currentFilters);
           
-        jQuery.extend(newArgs, translatedArgs);
-        delete newArgs.facetFilter;
+        jQuery.extend(clonedDiff, translatedFacets);
+        delete clonedDiff.facetFilter;
       }
       
-      return newArgs;      
+      return clonedDiff;      
     }
     
   };
