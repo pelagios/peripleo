@@ -1,4 +1,4 @@
-define(['search/events', 'common/formatting'], function(Events, Formatting) {
+define(['search/events', 'common/formatting', 'common/draggable'], function(Events, Formatting, Draggable) {
   
   /** Constants **/
   var  BAR_STROKE = '#3182bd',
@@ -74,16 +74,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               pixelsPerYear = canvasWidth / duration;
               
           return Math.round((year - histogramRange.from) * pixelsPerYear);
-        },
-        
-        /** Shorthand for making DOM element draggable along X-axis **/
-        makeXDraggable = function(element, onDrag, onStop, opt_containment) {
-          element.draggable({ 
-            axis: 'x', 
-            containment: opt_containment,
-            drag: onDrag,
-            stop: onStop
-          });
         },
       
         /** Returns the currently selected time range **/
@@ -270,9 +260,9 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     canvasOffset = (canvas.outerWidth(true) - canvasWidth) / 2;
     handleWidth = fromHandle.outerWidth();
     
-    makeXDraggable(fromHandle, onDragHandle, onStopHandle);
-    makeXDraggable(toHandle, onDragHandle, onStopHandle);
-    makeXDraggable(selectionBounds, onDragBounds, onStopBounds, canvas);
+    Draggable.makeXDraggable(fromHandle, onDragHandle, onStopHandle);
+    Draggable.makeXDraggable(toHandle, onDragHandle, onStopHandle);
+    Draggable.makeXDraggable(selectionBounds, onDragBounds, onStopBounds, canvas);
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
     

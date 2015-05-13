@@ -63,7 +63,7 @@ require(['search/map/map',
         
         /** Initial settings from URL hash, or defaults if no hash **/
         initialSettings = (parsedURLHash) ? parsedURLHash : { bbox: map.getBounds() };
-    
+
     // Fire 'load' event with initial settings
     eventBroker.fireEvent(Events.LOAD, initialSettings);
         
