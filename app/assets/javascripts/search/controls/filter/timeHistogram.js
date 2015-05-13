@@ -89,13 +89,13 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         /** Returns the currently selected time range **/
         getSelectedRange = function() {
           if (!selectionRange) {
-            var xFrom = fromHandle.position().left + handleWidth,
+            var xFrom = Math.max(0, selectionBounds.position().left) - canvasOffset,
                 yearFrom = xToYear(xFrom),
               
-                xTo = toHandle.position().left,
+                xTo = Math.min(xFrom + selectionBounds.outerWidth(), canvasWidth + 2),
                 yearTo = xToYear(xTo);
                 
-            if ((Math.ceil(xFrom) >= 0) && (Math.floor(xTo) <= canvasWidth + 2))
+            if (yearFrom > histogramRange.from || yearTo < histogramRange.to)
               selectionRange = { from: yearFrom, to: yearTo };
           }
 
@@ -124,7 +124,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             
             // Update handle label
             fromHandleLabel.show();
-            fromHandleLabel.html(Formatting.formatYear(xToYear(posX + handleWidth)));
+            fromHandleLabel.html(Formatting.formatYear(xToYear(posX + handleWidth - canvasOffset)));
               
             // Update selection bounds
             selectionBounds.css('left', posX + handleWidth);
@@ -144,7 +144,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
             
             // Update handle label
             toHandleLabel.show();
-            toHandleLabel.html(Formatting.formatYear(xToYear(posX)));
+            toHandleLabel.html(Formatting.formatYear(xToYear(posX - canvasOffset)));
             
             // Update selection bounds
             selectionBounds.css('width', posX - minX);        
@@ -168,24 +168,22 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
         },
         
         onDragBounds = function(e) {
-          var offsetX = selectionBounds.position().left,
+          var offsetX = selectionBounds.position().left - canvasOffset,
               width = selectionBounds.outerWidth(),
               
-              fromX = offsetX - canvasOffset,
-              fromYear = xToYear(fromX),
-              toX = fromX + width,
-              toYear = xToYear(toX);
+              fromYear = xToYear(offsetX),
+              toYear = xToYear(offsetX + width);
              
           // Clear cached range   
           selectionRange = false;
           
           fromHandleLabel.html(Formatting.formatYear(fromYear));
           fromHandleLabel.show();
-          fromHandle.css('left', offsetX - handleWidth);
+          fromHandle.css('left', offsetX - handleWidth + canvasOffset);
           
           toHandleLabel.html(Formatting.formatYear(toYear));
           toHandleLabel.show();
-          toHandle.css('left', offsetX + width);
+          toHandle.css('left', offsetX + width + canvasOffset);
 
           eventBroker.fireEvent(Events.SEARCH_CHANGED, { timespan: getSelectedRange() });
         },
@@ -221,7 +219,7 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               
               if (minYear < 0 && maxYear > 0) {
                 histogramZeroLabel.show();
-                histogramZeroLabel[0].style.left = (yearToX(0) - 35) + 'px';
+                histogramZeroLabel[0].style.left = (yearToX(0) + canvasOffset - 35) + 'px';
               } else { 
                 histogramZeroLabel.hide();
               }
@@ -245,16 +243,16 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
               histogramRange.from = minYear;
               histogramRange.to = maxYear;
             
-              selectionNewFromX = Math.max(2 * handleWidth + 1, yearToX(currentSelection.from));
-              selectionNewToX = Math.min(yearToX(currentSelection.to), canvasOffset + canvasWidth + 2);
+              selectionNewFromX = Math.max(0, yearToX(currentSelection.from));
+              selectionNewToX = Math.min(yearToX(currentSelection.to), canvasWidth + 2);
               if (selectionNewFromX > selectionNewToX)
                 selectionNewFromX = selectionNewToX;
 
-              selectionBounds.css('left', selectionNewFromX);
-              fromHandle.css('left', selectionNewFromX - handleWidth);
+              selectionBounds.css('left', selectionNewFromX + canvasOffset);
+              fromHandle.css('left', selectionNewFromX + canvasOffset - handleWidth);
               
               selectionBounds.css('width', selectionNewToX - selectionNewFromX - 1);
-              toHandle.css('left', selectionNewToX);
+              toHandle.css('left', selectionNewToX + canvasOffset);
             
               // We don't want to handle to many updates - introduce a wait
               ignoreUpdates = true;
