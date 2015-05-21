@@ -34,27 +34,41 @@ define(['search/events'], function(Events) {
       
   var ObjectLayer = function(map, eventBroker) {
     
-    var featureGroup = L.featureGroup().addTo(map);
+        /** One feature group to hold all overlays **/   
+    var featureGroup = L.featureGroup().addTo(map),
         
+        /** Map[id -> (object, marker)] to support 'findById'-type queries **/
+        objectIndex = {},
+        
+        /** Map[geometryHash -> (marker, Array<object>)] to support 'findByGeometryHash'-type queries **/
+        markerIndex = {},
+        
+        /** A tuple (marker, Array<object>) **/        
         currentSelection = false,
-    
-        selectionPin = false,
         
-        pendingQuery = false,
-    
-        /** (idOrURI -> { obj, marker }) map of places and items **/
-        objects = {},
+        /** The map pin highlighting the currently emphasised marker **/
+        emphasisPin = false,
         
-        /** Returns true if a marker for the specified URI exists on the map **/
-        exists = function(identifier) {
-          return objects.hasOwnProperty(identifier);
+        /** 
+         * Creates a string representation of a GeoJSON geometry to be used as a
+         * key in the marker index. (The only requirements are that the representation
+         * is unique for every possible geometry, and that identical geometries
+         * will result in the same representation.)
+         */
+        createGeometryHash = function(geometry) {
+          return JSON.stringify(geometry);
+        },
+        
+        /** Tests if the object with the specified ID exists on the object layer **/
+        objectExists = function(id) {
+          return objectIndex.hasOwnProperty(id);
         },
                 
         /** 
-         * Hack: 'normalizes' a GeoJSON geometry in place, by collapsing
-         * rectangular polygons to centroid points. This is because rectangles
-         * are usually from Barrington grid squares, and we don't want those in 
-         * the UI.
+         * An unfortunate hack we need due to the ugliness introduced by Pleiades'
+         * Barrington grid squares. We don't want the grid squares to mess up the UI,
+         * so this function 'normalizes' a GeoJSON geometry (mutating it in place), by
+         * collapsing rectangular polygons to centroid points.
          */
         collapseRectangles = function(place) {  
           if (place.geometry.type == 'Polygon' && 
@@ -67,14 +81,46 @@ define(['search/events'], function(Events) {
           }
         },
         
-        /** Computes a 'location hash code' - objects with the same location/geometry share the same hash **/
-        locationHashCode = function(object) {
+        /** Updates the object layer with a new search response or view update **/
+        update = function(objects) {
+          jQuery.each(objects, function(idx, obj) {
+            var id = obj.identifier,
+                existingObjectTuple = objectIndex[id],
 
+                geomHash = (obj.geo_bounds) ? createGeometryHash(obj.geometry) : false,
+                existingMarkerTuple = (geomHash) ? markerIndex[geomHash] : false,
+                  
+                type, marker;
+          
+            if (geomHash) { // No need to bother if there is no geometry
+              collapseRectangles(obj); // Get rid of Barrington grid squares
+                
+              if (existingObjectTuple) {
+                jQuery.extend(existingObjectTuple.obj, obj); // Object exists - just update the data
+              } else {                  
+                if (existingMarkerTuple) { // There's a marker at that location already - add the object
+                  existingMarkerTuple._2.push(obj); 
+                } else { // Create and add a new marker
+                  type = obj.geometry.type;
+                  if (type === 'Point')
+                    marker = L.circleMarker([obj.geo_bounds.max_lat, obj.geo_bounds.max_lon], Styles.SMALL);
+                  else
+                    marker = L.geoJson(obj.geometry, Styles.POLYGON);
+          
+                  marker.on('click', function(e) { selectByGeomHash(geomHash); return false; });
+                  markerIndex[geomHash] = { _1: marker, _2: [obj] };
+                  marker.addTo(featureGroup); 
+                }
+
+                objectIndex[id] = { _1: obj, _2: marker };
+              }
+            }
+          });
         },
         
-        /** Shorthand: resets location and zoom of the map to fit all current objects **/
+        /** Helper method that resets map location and zoom to fit all current objects **/
         fitToObjects = function() {
-          if (!jQuery.isEmptyObject(objects)) {
+          if (!jQuery.isEmptyObject(markerIndex)) {
             map.fitBounds(featureGroup.getBounds(), {
               animate: true,
               paddingTopLeft: [380, 20],
@@ -84,31 +130,41 @@ define(['search/events'], function(Events) {
           }
         },
         
-        /** Highlights (and returns) the object with the specified id **/
-        highlight = function(id) {
-          var tuple, latlon, 
-              
-              // If id is false, fall back to the current selection
-              idToHighlight = (id) ? id : currentSelection;
-          
-          if (selectionPin) {
-            map.removeLayer(selectionPin);
-            selectionPin = false;
+        /** Clears all ojbects from the map **/
+        clear = function() {
+          clearSelection();
+          featureGroup.clearLayers();          
+          objectIndex = {};
+          markerIndex = {};
+        },
+        
+        /** Function that emphasises the marker passed to it **/
+        emphasise = function(marker) {  
+          var latlon;
+                  
+          if (emphasisPin) {
+            map.removeLayer(emphasisPin);
+            emphasisPin = false;
           }
           
-          if (idToHighlight) {
-            tuple = objects[idToHighlight];    
-            
-            if (tuple) {
-              latlon = tuple.marker.getBounds().getCenter();
-              selectionPin = L.marker(latlon).addTo(map);
-              return tuple;
-            }
+          if (marker) {
+            latlon = marker.getBounds().getCenter();
+            emphasisPin = L.marker(latlon).addTo(map);
+          }          
+        }
+        
+        /** Selects (and emphasises) the marker with the specified geometry hash **/
+        selectByGeomHash = function(geomHash) {    
+          currentSelection = markerIndex[geomHash]; // (marker, Array<object>)
+          if (currentSelection) {
+            emphasise(currentSelection._1); 
+            // TODO fire event
           }
         },
         
-        /** Shorthand: highlights the object and triggers the select event **/
-        select = function(id) {
+        /** Selects (and emphasises) the marker linked to the object with the specified ID **/
+        selectById = function(id) {
+          /*
           var tuple;
           
           if (id) {
@@ -125,112 +181,70 @@ define(['search/events'], function(Events) {
               map.removeLayer(selectionPin);
             eventBroker.fireEvent(Events.SELECT_MARKER);
           }
+           */
         },
         
-        /** Clears all ojbects from the map **/
-        clear = function() {
-          highlight();
-          featureGroup.clearLayers();          
-          objects = {};
+        clearSelection = function() {
+          emphasise();
+          currentSelection = false;
         },
         
-        /** Adds a marker for a search result object (place or item) **/
-        addMarker = function(obj) {
-          var type, marker, cLon, cLat,
-              id = obj.identifier,
-              existing = objects[id];
-          
-          if (obj.geo_bounds) {
-            collapseRectangles(obj);
-            
-            if (existing) {
-              // Just update the data, leave everything else unchanged
-              existing.obj = obj;
-            } else {
-              // Get rid of Barrington grid squares
-              type = obj.geometry.type;
-          
-              if (type === 'Point') {
-                cLon = (obj.geo_bounds.max_lon + obj.geo_bounds.min_lon) / 2;
-                cLat = (obj.geo_bounds.max_lat + obj.geo_bounds.min_lat) / 2;
-                
-                marker = L.circleMarker([cLat, cLon], Styles.SMALL);
-              } else if (type === 'Polygon' || type === 'LineString' || type === 'MultiPolygon') {
-                marker = L.geoJson(obj.geometry, Styles.POLYGON);
-              } else {
-                console.log('Unsupported geometry type: ' + obj.geometry.type, obj);
-              }
-          
-              if (marker) {
-                marker.on('click', function(e) { select(id); return false; });
-                objects[id] = { obj: obj, marker: marker };
-                marker.addTo(featureGroup);
-              }
-            }
-          
-          }
-        },
-        
-        addDataset = function(dataset) {
-          console.log('addDataset not implemented yet');          
-        },
-        
-        addObjects = function(response) {          
-          // Items
-          jQuery.each(response.items, function(idx, obj) {
-            var t = obj.object_type;
-            
-            if (t === 'Place' || t === 'Item') {
-              addMarker(obj);
-            } else if (t === 'Dataset') {
-              addDataset(obj);
-            } else {
-              console.log('Invalid search result!', obj);
-            }
-          });
-        },
-      
         /**
-         * Selects the object or place closest to the given latlng.
-         * 
-         * This is primarily a means to support touch devices. Markers are
-         * otherwise too small that you could properly tap them.
+         * Selects the marker nearest the given latlng. This is primarily a
+         * means to support touch devices, where touch events will usually miss 
+         * the markers because they are too small for properly hitting them.
          */
-        selectNearest = function(latlng) {
+        selectNearest = function(latlng, maxDistance) {
           var xy = map.latLngToContainerPoint(latlng),
-              nearest = { distSq: 9007199254740992 },
+              nearest = { distSq: 9007199254740992 }, // Distance to nearest initialied with Integer.MAX
               nearestXY, distPx;
               
-          jQuery.each(objects, function(id, t) {
-            var markerLatLng = t.marker.getBounds().getCenter(),
+          jQuery.each(markerIndex, function(geomHash, tuple) {
+            var markerLatLng = tuple._1.getBounds().getCenter(),
                 distSq = 
                   Math.pow(latlng.lat - markerLatLng.lat, 2) + 
                   Math.pow(latlng.lng - markerLatLng.lng, 2);  
                    
             if (distSq < nearest.distSq)
-              nearest = { obj: t.obj, latlng: markerLatLng, distSq: distSq };
+              nearest = { geomHash: geomHash, latlng: markerLatLng, distSq: distSq };
           });
           
-          if (nearest.obj) {
+          if (nearest.geomHash) {
             nearestXY = map.latLngToContainerPoint(nearest.latlng);
             distPx = 
               Math.sqrt(
                 Math.pow((xy.x - nearestXY.x), 2) + 
                 Math.pow((xy.y - nearestXY.y), 2));
           
-            if (distPx < TOUCH_DISTANCE_THRESHOLD)
-              select(nearest.obj.identifier);
+            if (distPx < maxDistance)
+              selectByGeomHash(nearest.geomHash);
             else
-              select();
+              clearSelection();
           } else {
-            select();
+            clearSelection();
           }
         };
+     
+    // TODO only for touch?
+    map.on('click', function(e) { selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); });
+
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
+      update(results.top_places);
+    });
         
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {     
+      clear();
+      if (response.params.query) // Don't plot results for empty queries
+        update(response.items);
+      setTimeout(fitToObjects, 1);              
+    });        
+    
     // We want to know about user-issued queries, because as long
     // as a user query is 'active', we don't want to add/remove
-    // stuff from the map
+    /* stuff from the map
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
+      console.log(change);
+
       if (change.query) {
         if (pendingQuery !== change.query) // New query - clear the map
           clear();
@@ -240,24 +254,10 @@ define(['search/events'], function(Events) {
         clear();
       }
     });
-    
-    // Once the initial view update is over, we update top places on view changes
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
-      jQuery.each(results.top_places, function(idx, place) {
-        addMarker(place);
-      });      
-    });
+    */
         
-    // We only plot result items if there's an active user search term
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(results) {     
-      if (pendingQuery) {
-        addObjects(results);
-        setTimeout(fitToObjects, 1);
-      }
-              
-      pendingQuery = false;      
-    });
     
+    /*
     eventBroker.addHandler(Events.MOUSE_OVER_RESULT, function(result) {
       if (result) {
         if (exists(result.identifier))
@@ -266,7 +266,9 @@ define(['search/events'], function(Events) {
         highlight();
       }
     });
+    */
     
+    /*
     eventBroker.addHandler(Events.SELECT_RESULT, function(result) {
       if (result) {
         var tuple = select(result.identifier),
@@ -278,8 +280,7 @@ define(['search/events'], function(Events) {
         highlight();
       }
     });
-    
-    map.on('click', function(e) { selectNearest(e.latlng); });
+    */
   };
   
   return ObjectLayer;
