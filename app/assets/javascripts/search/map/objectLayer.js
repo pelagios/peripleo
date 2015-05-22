@@ -11,6 +11,7 @@ define(['search/events'], function(Events) {
         radius:5
       },
   
+      // TODO revise the way styles are created
       Styles = {
     
         SMALL: (function() { return jQuery.extend({}, BASE_STYLE); })(),
@@ -245,42 +246,30 @@ define(['search/events'], function(Events) {
     // TODO only for touch?
     map.on('click', function(e) { selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); });
 
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(results) {
-      update(results.top_places);
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
+      var  hasTimeIntervalChanged = 
+        (response.diff) ? response.diff.hasOwnProperty('from') || response.diff.hasOwnProperty('to') : false;
+      
+      // 'IxD policy': if the time interval changed, we want to grey-out all markers that are
+      // not top places in this response
+      update(response.top_places, hasTimeIntervalChanged);
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
-      var hasTimeIntervalChanged = response.diff.hasOwnProperty('from') || response.diff.hasOwnProperty('to');
-      
-      // If this search was a change to the time interval, we want to keep all our markers on the map
-      if (hasTimeIntervalChanged) {
-        update(response.items, true);
-      } else {
+      // 'IxD policy': search results are ONLY mapped if the user submitted a new query phrase.
+      // Otherwise, we only want to see the results when the user hovers over the result list.
+      // If the user cleared the query phrase, we want to clear the map. NOTE: top places will 
+      // always be mapped by the following view update (which is what we want).
+      if (response.diff.hasOwnProperty('query')) {
         clear();
-        update(response.items);
-      }
         
-      // setTimeout(fitToObjects, 1);              
+        if (response.diff.query) {
+          update(response.items);
+          setTimeout(fitToObjects, 1);      
+        }
+      }      
     });        
-    
-    // We want to know about user-issued queries, because as long
-    // as a user query is 'active', we don't want to add/remove
-    /* stuff from the map
-    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
-      console.log(change);
 
-      if (change.query) {
-        if (pendingQuery !== change.query) // New query - clear the map
-          clear();
-        
-        pendingQuery = change.query;
-      } else  if (change.hasOwnProperty('query')) { // If the change removed the query, clear the map
-        clear();
-      }
-    });
-    */
-        
-    
     /*
     eventBroker.addHandler(Events.MOUSE_OVER_RESULT, function(result) {
       if (result) {
