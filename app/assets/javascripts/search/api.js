@@ -45,6 +45,9 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
         /** Indicating whether the user has already issued a new search/view update request while busy **/
         pendingSearch = false,
         pendingViewUpdate = false,
+        
+        /** The last search parameter change **/
+        lastDiff = false,
 
         /** Builds the URL query string from the current search params **/
         buildQueryURL = function(params) {
@@ -121,11 +124,14 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
         
         /** Fires a search request against the API **/
         makeSearchRequest = function() {
-          var params = jQuery.extend({}, searchParams); // Clone params at time of query
+          var params = jQuery.extend({}, searchParams), // Clone params at time of query
+              diff = lastDiff; // Keep most recent diff at time of query
+              
           busy = true;
           
           jQuery.getJSON(buildQueryURL(), function(response) {    
-            response.params = params;        
+            response.params = params;  
+            response.diff = diff;      
             eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
@@ -202,8 +208,11 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
       initialLoad();
     });
     
-    eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {      
-      jQuery.extend(searchParams, FilterParser.parseFacetFilter(diff, searchParams)); // Merge changes
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {     
+      var diffNormalized = FilterParser.parseFacetFilter(diff, searchParams);
+       
+      jQuery.extend(searchParams, diffNormalized); // Update search params
+      lastDiff = diffNormalized; // Store as last diff
     
       // SPECIAL: if the user added a query phrase, ignore geo-bounds
       if (diff.query)

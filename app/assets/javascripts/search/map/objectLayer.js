@@ -2,34 +2,41 @@ define(['search/events'], function(Events) {
   
   var TOUCH_DISTANCE_THRESHOLD = 18,
   
+      BASE_STYLE = {
+        color: '#a64a40',
+        opacity: 1,
+        fillColor: '#e75444',
+        fillOpacity: 1,
+        weight:1.5,
+        radius:5
+      },
+  
       Styles = {
     
-        SMALL: {
-          color: '#a64a40',
-          opacity: 1,
-          fillColor: '#e75444',
-          fillOpacity: 1,
-          weight:1.5,
-          radius:5
-        },
+        SMALL: (function() { return jQuery.extend({}, BASE_STYLE); })(),
+        
+        SMALL_GREY: (function() { 
+          var style = jQuery.extend({}, BASE_STYLE);
+          style.color = '#959595';
+          style.fillColor = '#aeaeae';
+          return style;
+        })(),
       
-        LARGE: {
-          color: '#a64a40',
-          opacity: 1,
-          fillColor: '#e75444',
-          fillOpacity: 1,
-          weight:1.5,
-          radius:9
-        },
+        LARGE: (function() { 
+          var style = jQuery.extend({}, BASE_STYLE);
+          style.radius = 9;
+          return style;
+        })(),
         
-        POLYGON: {
-          color: '#db473a',
-          opacity: 1,
-          fillColor: '#db473a',
-          fillOpacity: 0.12,
-          weight:0.75
-        }
-        
+        POLYGON: (function() { 
+          var style = jQuery.extend({}, BASE_STYLE);
+          style.color = '#db473a';
+          style.fillColor = '#db473a';
+          style.fillOpacity = 0.12;
+          style.weight = 0.75;
+          return style;
+        })()
+                
       };
       
   var ObjectLayer = function(map, eventBroker) {
@@ -82,7 +89,11 @@ define(['search/events'], function(Events) {
         },
         
         /** Updates the object layer with a new search response or view update **/
-        update = function(objects) {
+        update = function(objects, invalidateMarkers) {
+          // Set all markers to 'out-of-filter'
+          if (invalidateMarkers)
+            featureGroup.setStyle(Styles.SMALL_GREY);
+          
           jQuery.each(objects, function(idx, obj) {
             var id = obj.identifier,
                 existingObjectTuple = objectIndex[id],
@@ -96,10 +107,15 @@ define(['search/events'], function(Events) {
               collapseRectangles(obj); // Get rid of Barrington grid squares
                 
               if (existingObjectTuple) {
-                jQuery.extend(existingObjectTuple.obj, obj); // Object exists - just update the data
+                jQuery.extend(existingObjectTuple._1, obj); // Object exists - just update the data
+                existingObjectTuple._2.setStyle(Styles.SMALL);
+                existingObjectTuple._2.bringToFront();
               } else {                  
                 if (existingMarkerTuple) { // There's a marker at that location already - add the object
                   existingMarkerTuple._2.push(obj); 
+                  marker = existingMarkerTuple._1;
+                  marker.setStyle(Styles.SMALL);
+                  marker.bringToFront();
                 } else { // Create and add a new marker
                   type = obj.geometry.type;
                   if (type === 'Point')
@@ -232,11 +248,10 @@ define(['search/events'], function(Events) {
       update(results.top_places);
     });
         
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {     
-      clear();
-      if (response.params.query) // Don't plot results for empty queries
-        update(response.items);
-      setTimeout(fitToObjects, 1);              
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
+      console.log(response);
+      update(response.items, true);
+      // setTimeout(fitToObjects, 1);              
     });        
     
     // We want to know about user-issued queries, because as long
