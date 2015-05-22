@@ -249,8 +249,16 @@ define(['search/events'], function(Events) {
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
-      console.log(response);
-      update(response.items, true);
+      var hasTimeIntervalChanged = response.diff.hasOwnProperty('from') || response.diff.hasOwnProperty('to');
+      
+      // If this search was a change to the time interval, we want to keep all our markers on the map
+      if (hasTimeIntervalChanged) {
+        update(response.items, true);
+      } else {
+        clear();
+        update(response.items);
+      }
+        
       // setTimeout(fitToObjects, 1);              
     });        
     
