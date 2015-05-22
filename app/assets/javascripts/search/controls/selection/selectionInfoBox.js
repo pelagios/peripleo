@@ -166,8 +166,10 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
           }
         },
 
-        showObject = function(obj) {      
-          var currentType = (currentObject) ? currentObject.object_type : false;
+        show = function(objects) {                
+          // TODO support display of lists of objects, rather than just single one
+          var obj = (jQuery.isArray(objects)) ? objects[0] : objects,
+              currentType = (currentObject) ? currentObject.object_type : false;
           
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it
@@ -225,8 +227,8 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     element.hide();
     container.append(element);
     
-    eventBroker.addHandler(Events.SELECT_MARKER, showObject);
-    eventBroker.addHandler(Events.SELECT_RESULT, showObject);
+    eventBroker.addHandler(Events.SELECT_MARKER, show);
+    eventBroker.addHandler(Events.SELECT_RESULT, show);
     eventBroker.addHandler(Events.QUERY_PHRASE_CHANGED, function(query) {
       if (query) { // No need to hide if the user just cleared the search
         eventBroker.fireEvent(Events.SELECTION);

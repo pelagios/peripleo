@@ -192,9 +192,9 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
          * 
          * @param the changes to the current global search parameters, and the callback function
          */        
-        makeOneTimeSearchRequest = function(diff) {
+        makeOneTimeSearchRequest = function(params) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(diff, searchParams)); // Merge current state with params
+          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params, searchParams)); // Merge current state with params
           jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
             response.params = mergedParams;
             delete response.params.callback; // Clean up the params object, i.e. remove the callback fn reference

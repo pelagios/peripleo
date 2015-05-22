@@ -174,7 +174,7 @@ define(['search/events'], function(Events) {
           currentSelection = markerIndex[geomHash]; // (marker, Array<object>)
           if (currentSelection) {
             emphasise(currentSelection._1); 
-            // TODO fire event
+            eventBroker.fireEvent(Events.SELECT_MARKER, currentSelection._2);
           }
         },
         
@@ -203,6 +203,7 @@ define(['search/events'], function(Events) {
         clearSelection = function() {
           emphasise();
           currentSelection = false;
+          eventBroker.fireEvent(Events.SELECT_MARKER);
         },
         
         /**
