@@ -67,9 +67,18 @@ define(['search/events'], function(Events) {
           return JSON.stringify(geometry);
         },
         
-        /** Tests if the object with the specified ID exists on the object layer **/
-        objectExists = function(id) {
-          return objectIndex.hasOwnProperty(id);
+        /**
+         * Returns the marker corresponding to the geometry of the specified object.
+         * 
+         * Since the method works based on geometry rather than ID, it will return
+         * correct markers for places as well as objects related to them.
+         */
+        getMarkerForObject = function(object) {
+          if (object && object.geometry) {
+            var tuple = markerIndex[createGeometryHash(object.geometry)];
+            if (tuple)
+              return tuple._1;
+          }
         },
                 
         /** 
@@ -156,53 +165,55 @@ define(['search/events'], function(Events) {
         },
         
         /** Function that emphasises the marker passed to it **/
-        emphasise = function(marker) {  
-          var latlon;
+        emphasiseMarker = function(marker) {  
+          var markerToHighlight = (marker) ? marker : (currentSelection) ? currentSelection._1 : false,
+              latlon;
                   
           if (emphasisPin) {
             map.removeLayer(emphasisPin);
             emphasisPin = false;
           }
           
-          if (marker) {
-            latlon = marker.getBounds().getCenter();
+          if (markerToHighlight) {
+            latlon = markerToHighlight.getBounds().getCenter();
             emphasisPin = L.marker(latlon).addTo(map);
-          }          
-        }
+          }   
+        },
+        
+        /**
+         * Helper that finds the marker for the specified object and emphasizes it.
+         * 
+         * Returns the marker that was emphasized, if any.
+         */
+        emphasiseObject = function(object) {
+          var tuple;
+          if (object && object.geometry) {
+            tuple = markerIndex[createGeometryHash(object.geometry)];
+            if (tuple) {
+              emphasiseMarker(tuple._1);
+              return tuple._1;
+            } else {
+                
+              // TODO implement 'show-on-hover' behavior
+                
+            }
+          } else { // No object or object without geometry- de-emphasize
+            emphasiseMarker();
+          }
+        },
         
         /** Selects (and emphasises) the marker with the specified geometry hash **/
         selectByGeomHash = function(geomHash) {    
           currentSelection = markerIndex[geomHash]; // (marker, Array<object>)
           if (currentSelection) {
-            emphasise(currentSelection._1); 
+            emphasiseMarker(currentSelection._1); 
             eventBroker.fireEvent(Events.SELECT_MARKER, currentSelection._2);
           }
         },
         
-        /** Selects (and emphasises) the marker linked to the object with the specified ID **/
-        selectById = function(id) {
-          /*
-          var tuple;
-          
-          if (id) {
-            tuple = highlight(id);
-
-            if (tuple) {
-              currentSelection = tuple.obj.identifier;
-              eventBroker.fireEvent(Events.SELECT_MARKER, tuple.obj);
-              return tuple;
-            }
-          } else {
-            currentSelection = false;
-            if (selectionPin)
-              map.removeLayer(selectionPin);
-            eventBroker.fireEvent(Events.SELECT_MARKER);
-          }
-           */
-        },
-        
+        /** Clears the current selection & emphasis **/
         clearSelection = function() {
-          emphasise();
+          emphasiseMarker();
           currentSelection = false;
           eventBroker.fireEvent(Events.SELECT_MARKER);
         },
@@ -243,7 +254,7 @@ define(['search/events'], function(Events) {
           }
         };
      
-    // TODO only for touch?
+    // TODO use click->select nearest only on touch devices?
     map.on('click', function(e) { selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
@@ -256,44 +267,29 @@ define(['search/events'], function(Events) {
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
-      // 'IxD policy': search results are ONLY mapped if the user submitted a new query phrase.
-      // Otherwise, we only want to see the results when the user hovers over the result list.
-      // If the user cleared the query phrase, we want to clear the map. NOTE: top places will 
-      // always be mapped by the following view update (which is what we want).
+      // 'IxD policy': if the user submitted a new query phrase (or cleared the current one), we want
+      // to clear the map; in case of a new query phrase, we also want to fit the view area to the results
       if (response.diff.hasOwnProperty('query')) {
         clear();
-        
-        if (response.diff.query) {
-          update(response.items);
+        if (response.diff.query)
           setTimeout(fitToObjects, 1);      
-        }
-      }      
+      }     
     });        
 
-    /*
-    eventBroker.addHandler(Events.MOUSE_OVER_RESULT, function(result) {
-      if (result) {
-        if (exists(result.identifier))
-          highlight(result.identifier);
-      } else {
-        highlight();
-      }
-    });
-    */
+    eventBroker.addHandler(Events.MOUSE_OVER_RESULT, emphasiseObject);
     
-    /*
     eventBroker.addHandler(Events.SELECT_RESULT, function(result) {
-      if (result) {
-        var tuple = select(result.identifier),
-            markerLatLng = (tuple) ? tuple.marker.getBounds().getCenter() : false;
-            
-        if (markerLatLng && !map.getBounds().contains(markerLatLng))
-          map.panTo(markerLatLng);
-      } else {
-        highlight();
+      var marker = emphasiseObject(result),
+          latlng;
+          
+      if (marker) {
+        currentSelection = { _1: marker , _2: [ result ] };
+        latlng = marker.getBounds().getCenter();
+        
+        if (!map.getBounds().contains(latlng))
+          map.panTo(latlng);
       }
     });
-    */
   };
   
   return ObjectLayer;

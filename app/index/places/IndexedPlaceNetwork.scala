@@ -108,12 +108,7 @@ object IndexedPlaceNetwork {
       // No priority geom - just use first available
       placesWithGeometry.headOption.flatMap(_.geometry)
   }
-  
-  /** Creates a new place network with a single place *
-  def createNew(): IndexedPlaceNetwork = 
-    new IndexedPlaceNetwork(new Document())
-  */
-  
+
   def join(places: Seq[IndexedPlace]) = {
     val joinedDoc = new Document() 
     joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))

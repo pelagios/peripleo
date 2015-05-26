@@ -10,7 +10,7 @@ import index.places.IndexedPlaceNetwork
 import models.core.{ AnnotatedThings, Datasets }
 import models.geo.BoundingBox
 import org.apache.lucene.facet.FacetsCollector
-import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
+import org.apache.lucene.facet.taxonomy.{ FastTaxonomyFacetCounts, TaxonomyReader }
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
 import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxonomy
 import org.apache.lucene.index.Term
@@ -24,18 +24,18 @@ import play.api.db.slick._
 
 trait AnnotationReader extends IndexBase {
   
-  def calculateTopPlaces(query: Query, limit: Int, searcher: SearcherAndTaxonomy): Seq[(IndexedPlaceNetwork, Int)] = {
+  def calculateTopPlaces(query: Query, limit: Int, searcher: IndexSearcher, taxonomyReader: TaxonomyReader): Seq[(IndexedPlaceNetwork, Int)] = {
     val fc = new FacetsCollector()
-    searcher.searcher.search(query, fc)
+    searcher.search(query, fc)
     
-    val facets = new FastTaxonomyFacetCounts(searcher.taxonomyReader, Index.facetsConfig, fc)
+    val facets = new FastTaxonomyFacetCounts(taxonomyReader, Index.facetsConfig, fc)
     
     val topURIs = 
       Option(facets.getTopChildren(limit, IndexFields.PLACE_URI)).map(result => {
         result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))
       }).getOrElse(Seq.empty[(String, Int)])
     
-    topURIs.map { case (uri, count) => 
+    topURIs.map { case (uri, count) =>
       Global.index.findNetworkByPlaceURI(uri).map((_, count)) }.flatten
   }
   

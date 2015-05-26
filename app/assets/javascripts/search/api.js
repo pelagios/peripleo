@@ -1,11 +1,17 @@
 /** A wrapper around the API functions required by the map search UI **/
 define(['search/events', 'search/apiFilterParser'], function(Events, FilterParser) {
   
+      /** A throttle for allowing max. one query every QUERY_DELAY_MS milliseconds **/
   var QUERY_DELAY_MS = 100,
   
-      NUM_TOP_PLACES = 10,
+      /** Number of top places to fetch when there is no query phrase **/
+      NUM_TOP_PLACES_WITHOUT_QUERY = 20,
       
-      ITEM_LIMIT = 100;
+      /** Number of top places to fetch when there is a query phrase **/
+      NUM_TOP_PLACES_WITH_QUERY = 600,
+      
+      /** Number of search results to fetch **/
+      SEARCH_RESULT_LIMIT = 20;
   
   var API = function(eventBroker) {
   
@@ -54,8 +60,13 @@ define(['search/events', 'search/apiFilterParser'], function(Events, FilterParse
           if (!params)
             params = searchParams;
             
-          var url = '/api-v3/search?verbose=true&limit=' + ITEM_LIMIT + 
-                    '&facets=true&top_places=' + NUM_TOP_PLACES;
+          var url = '/api-v3/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT + 
+                    '&facets=true&top_places=';
+                    
+          if (params.query)
+            url += NUM_TOP_PLACES_WITH_QUERY;
+          else 
+            url += NUM_TOP_PLACES_WITHOUT_QUERY;
                     
           if (includeTimeHistogram) 
             url += '&time_histogram=true';

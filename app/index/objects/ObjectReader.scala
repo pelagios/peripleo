@@ -145,39 +145,41 @@ trait ObjectReader extends AnnotationReader {
     val objectSearcher = objectSearcherManager.acquire()
     val annotationSearcher = annotationSearcherManager.acquire()
     
-    // TODO we could optimize this a bit by searching only place and/or item index, depending on filters
-    val searcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
+    // TODO we could optimize this a bit by searching only one index if filter are set accordingly
+    val objectAndPlaceSearcher = new IndexSearcher(new MultiReader(objectSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
+    val annotationAndPlaceSearcher = new IndexSearcher(new MultiReader(annotationSearcher.searcher.getIndexReader, placeSearcher.searcher.getIndexReader))
     
     try {   
       // Search & facet counts
       val (results, facets) = 
-        executeSearch(searchQuery, params.query, params.places, params.limit, params.offset, searcher, objectSearcher.taxonomyReader,
+        executeSearch(searchQuery, params.query, params.places, params.limit, params.offset, objectAndPlaceSearcher, objectSearcher.taxonomyReader,
           valueSource, includeFacets, includeSnippets, annotationSearcher.searcher)
       
       // Top places
       val topPlaces = 
         if (includeTopPlaces > 0) {
-          Some(calculateTopPlaces(searchQuery, includeTopPlaces, annotationSearcher))
+          Some(calculateTopPlaces(searchQuery, includeTopPlaces, annotationAndPlaceSearcher, annotationSearcher.taxonomyReader))
         } else {
           None
         }
           
       // Time histogram computation
-      val temporalProfile = timeHistogramFilter.map(filter => calculateTemporalProfile(filter, searcher))
+      val temporalProfile = timeHistogramFilter.map(filter => calculateTemporalProfile(filter, objectAndPlaceSearcher))
       
       // Heatmap computation
+      // TODO fix! do we really need item heatmap any more? should it be annotationAndPlaceSearcher instead?
       val heatmap = heatmapFilter.map(filter => {
         val rect = rectangle.getOrElse(Index.spatialCtx.makeRectangle(-90, 90, -90, 90))
         val level = getHeatmapLevelForRect(rect)
         
         if (params.query.isDefined) {
           // If there is a query phrase, we include the annotation heatmap 
-          calculateItemHeatmap(filter, rect, level, searcher) +
+          calculateItemHeatmap(filter, rect, level, objectAndPlaceSearcher) +
           calculateAnnotationHeatmap(params.query, params.datasets, params.excludeDatasets, params.from, params.to, params.places, rectangle,
             params.coord, params.radius, level, annotationSearcher)
         } else {
           // Otherwise, we only need the item-based heatmap
-          calculateItemHeatmap(filter, rect, level, searcher)
+          calculateItemHeatmap(filter, rect, level, objectAndPlaceSearcher)
         }
       })
       
