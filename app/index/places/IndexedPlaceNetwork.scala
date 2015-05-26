@@ -109,9 +109,10 @@ object IndexedPlaceNetwork {
       placesWithGeometry.headOption.flatMap(_.geometry)
   }
   
-  /** Creates a new place network with a single place **/
+  /** Creates a new place network with a single place *
   def createNew(): IndexedPlaceNetwork = 
     new IndexedPlaceNetwork(new Document())
+  */
   
   def join(places: Seq[IndexedPlace]) = {
     val joinedDoc = new Document() 
@@ -119,6 +120,10 @@ object IndexedPlaceNetwork {
     joinedDoc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString))
     
     places.foreach(addPlaceToDoc(_, joinedDoc))
+    
+    // Add seed URI as facet, so the place shows up in top places count as well (as if it were an object referencing one place)
+    val seedURI = places.head.uri
+    joinedDoc.add(new FacetField(IndexFields.PLACE_URI, Index.normalizeURI(seedURI)))
     
     getPreferredGeometry(places).map(geometry => {
       try {
