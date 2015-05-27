@@ -311,13 +311,4 @@ object JSONWrites {
     (JsPath \ "result_count").write[Int]
   )(t => (t._1, t._2))
        
-  /**    
-  implicit val networkWrites: Writes[IndexedPlaceNetwork] = (
-    (JsPath \ "nodes").write[Seq[NetworkNode]] ~
-    (JsPath \ "edges").write[Seq[NetworkEdge]]
-  )(network => (
-      network.nodes,
-      network.edges))
-      */
-
 }
