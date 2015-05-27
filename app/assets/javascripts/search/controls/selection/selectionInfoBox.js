@@ -1,4 +1,6 @@
-define(['search/events', 'common/formatting'], function(Events, Formatting) {
+define(['search/controls/selection/thumbnailWidget',
+        'search/events',
+        'common/formatting'], function(ThumbnailWidget, Events, Formatting) {
   
   var SelectionInfoBox = function(container, eventBroker) {
     
