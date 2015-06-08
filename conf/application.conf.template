@@ -70,7 +70,7 @@ api.enable.cors=false
 
 # Gazetteers 
 api.gazetteer.names="Pleiades, DARE"
-api.gazetteer.files="pleiades-20120826-migrated.ttl.gz, dare.ttl.gz"
+api.gazetteer.files="pleiades-201207-migrated.ttl.gz, dare-2015-0422.ttl.gz"
 
 # A comma-separated list of gazetteer patch files
 # recogito.gazetteer.patches="pelagios_geojson.ttl"
