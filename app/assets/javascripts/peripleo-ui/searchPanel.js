@@ -1,5 +1,5 @@
 /** The search input form **/
-define(['search/controls/autoComplete', 'search/events'], function(AutoComplete, Events) {
+define(['peripleo-ui/controls/autoSuggest', 'peripleo-ui/events/events'], function(AutoSuggest, Events) {
   
   var SearchBox = function(container, eventBroker) {
     var element = jQuery(
@@ -16,7 +16,7 @@ define(['search/controls/autoComplete', 'search/events'], function(AutoComplete,
         
         icon = element.find('.icon'),
         
-        autoComplete = new AutoComplete(form, input);
+        autoSuggest = new AutoSuggest(form, input);
        
     updateIcon = function() {
       var chars = input.val().trim();
@@ -31,7 +31,7 @@ define(['search/controls/autoComplete', 'search/events'], function(AutoComplete,
     },
     
     clearSearch = function() {
-      autoComplete.clear();
+      autoSuggest.clear();
       form.submit();
       updateIcon();
     };

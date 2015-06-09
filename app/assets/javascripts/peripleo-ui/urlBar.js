@@ -1,5 +1,5 @@
 /** In charge of updating the URL bar hash segment with current map & search settings **/
-define(['search/events'], function(Events) {
+define(['peripleo-ui/events/events'], function(Events) {
   
   // Make sure we don't update the URL bar too frequently as it
   // introduces noticable delays

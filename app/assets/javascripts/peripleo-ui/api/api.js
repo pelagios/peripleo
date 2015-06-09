@@ -1,5 +1,5 @@
 /** A wrapper around the API functions required by the map search UI **/
-define(['search/events', 'search/apiFilterParser'], function(Events, FilterParser) {
+define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], function(Events, FilterParser) {
   
       /** A throttle for allowing max. one query every QUERY_DELAY_MS milliseconds **/
   var QUERY_DELAY_MS = 100,

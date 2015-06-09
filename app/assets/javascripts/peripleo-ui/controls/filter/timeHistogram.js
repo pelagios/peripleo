@@ -1,4 +1,4 @@
-define(['search/events', 'common/formatting', 'common/draggable'], function(Events, Formatting, Draggable) {
+define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], function(Events, Formatting, Draggable) {
   
   /** Constants **/
   var  BAR_STROKE = '#3182bd',

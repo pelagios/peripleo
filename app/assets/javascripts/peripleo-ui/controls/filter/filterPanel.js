@@ -1,7 +1,7 @@
 /** One 'facet dimension chart' block **/
-define(['search/events', 
-        'search/controls/filter/timeHistogram',
-        'search/controls/filter/facetChart'], function(Events, TimeHistogram, FacetChart) {
+define(['peripleo-ui/events/events', 
+        'peripleo-ui/controls/filter/timeHistogram',
+        'peripleo-ui/controls/filter/facetChart'], function(Events, TimeHistogram, FacetChart) {
           
   var SLIDE_DURATION = 120;
   

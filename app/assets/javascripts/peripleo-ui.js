@@ -1,13 +1,13 @@
-require(['search/map/map', 
-         'search/controls/searchBox', 
-         'search/controls/selection/selectionInfoBox',
-         'search/controls/filter/filterPanel',
-         'search/controls/filter/filterEditor',
-         'search/controls/resultList',
-         'search/urlBar',
-         'search/api',
-         'search/eventBroker',
-         'search/events'], function(Map, SearchBox, SelectionInfoBox, FilterPanel, FilterEditor, ResultList, URLBar, API, EventBroker, Events) {
+require(['peripleo-ui/map', 
+         'peripleo-ui/searchPanel', 
+         'peripleo-ui/controls/selectionInfo',
+         'peripleo-ui/controls/filter/filterPanel',
+         'peripleo-ui/controls/filter/filterEditor',
+         'peripleo-ui/resultList',
+         'peripleo-ui/urlBar',
+         'peripleo-ui/api/api',
+         'peripleo-ui/events/eventBroker',
+         'peripleo-ui/events/events'], function(Map, SearchBox, SelectionInfoBox, FilterPanel, FilterEditor, ResultList, URLBar, API, EventBroker, Events) {
   
   jQuery(document).ready(function() {  
     var container = jQuery('#controls'),

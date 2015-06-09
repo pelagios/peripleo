@@ -1,4 +1,4 @@
-define(['search/events'], function(Events) {
+define(['peripleo-ui/events/events'], function(Events) {
   
   var TOUCH_DISTANCE_THRESHOLD = 18,
   

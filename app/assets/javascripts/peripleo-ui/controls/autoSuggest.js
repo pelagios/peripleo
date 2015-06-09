@@ -1,6 +1,6 @@
 define(function() {
   
-  var AutoComplete = function(form, input) {
+  var AutoSuggest = function(form, input) {
     input.typeahead({
       hint: false,
       highlight: true,
@@ -24,6 +24,6 @@ define(function() {
     };
   };
   
-  return AutoComplete;
+  return AutoSuggest;
   
 });

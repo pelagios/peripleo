@@ -1,8 +1,8 @@
-define(['search/events', 'common/formatting'], function(Events, Formatting) {
+define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Formatting) {
   
   var OPACITY_UNSELECTED = 0.4;
 
-  var FilterSettingsPopup = function(eventBroker) {
+  var FilterEditor = function(eventBroker) {
     
     var element = jQuery(
           '<div class="clicktrap">' +
@@ -167,6 +167,6 @@ define(['search/events', 'common/formatting'], function(Events, Formatting) {
     
   };
   
-  return FilterSettingsPopup;
+  return FilterEditor;
     
 });

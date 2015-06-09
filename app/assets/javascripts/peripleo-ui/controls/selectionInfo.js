@@ -1,8 +1,8 @@
-define(['search/controls/selection/thumbnailWidget',
-        'search/events',
+define(['peripleo-ui/controls/thumbnailWidget',
+        'peripleo-ui/events/events',
         'common/formatting'], function(ThumbnailWidget, Events, Formatting) {
   
-  var SelectionInfoBox = function(container, eventBroker) {
+  var SelectionInfo = function(container, eventBroker) {
     
     var SLIDE_DURATION = 100;
     
@@ -250,6 +250,6 @@ define(['search/controls/selection/thumbnailWidget',
     });
   };
   
-  return SelectionInfoBox;
+  return SelectionInfo;
   
 });
