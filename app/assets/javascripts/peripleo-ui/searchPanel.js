@@ -7,6 +7,8 @@ define(['peripleo-ui/events/events',
         'peripleo-ui/controls/selectionInfo',
         'peripleo-ui/controls/searchAtButton'], function(Events, AutoSuggest, FilterPanel, SelectionInfo, SearchAtButton) {
   
+  var SLIDE_DURATION = 100;
+  
   var SearchPanel = function(container, eventBroker) {
     
         /** 
@@ -73,7 +75,10 @@ define(['peripleo-ui/events/events',
         /** Switch to 'subsearch' state **/
         toStateSubsearch = function(places) {
           btnListAll.show();
-          selectionInfoContainer.insertBefore(filterPanelContainer);
+          filterPanelContainer.slideUp(SLIDE_DURATION, function() {
+            selectionInfoContainer.insertBefore(filterPanelContainer);
+            filterPanelContainer.slideDown(SLIDE_DURATION);            
+          });
         };
     
     
