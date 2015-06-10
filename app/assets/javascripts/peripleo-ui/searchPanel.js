@@ -1,44 +1,69 @@
-/** The search input form **/
-define(['peripleo-ui/controls/autoSuggest', 'peripleo-ui/events/events'], function(AutoSuggest, Events) {
+/** 
+ * The main search control container.
+ */
+define(['peripleo-ui/events/events',
+        'peripleo-ui/controls/autoSuggest',
+        'peripleo-ui/controls/filterPanel',
+        'peripleo-ui/controls/searchAtButton'], function(Events, AutoSuggest, FilterPanel, SearchAtButton) {
   
-  var SearchBox = function(container, eventBroker) {
-    var element = jQuery(
-          '<div id="searchbox">' +
-          '  <form>' +
-          '    <input type="text" id="query" name="query" autocomplete="off">' +
-          '    <span class="icon">&#xf002;</span>' +
-          '  </form>' +
-          '</div>'),
-          
-        form = element.find('form'),
-        
-        input = form.find('input'),
-        
-        icon = element.find('.icon'),
-        
-        autoSuggest = new AutoSuggest(form, input);
-       
-    updateIcon = function() {
-      var chars = input.val().trim();
-      
-      if (chars.length === 0) {
-        icon.html('&#xf002;');
-        icon.removeClass('clear');
-      } else {
-        icon.html('&#xf00d;');
-        icon.addClass('clear');
-      }
-    },
+  var SearchPanel = function(container, eventBroker) {
     
-    clearSearch = function() {
-      autoSuggest.clear();
-      form.submit();
-      updateIcon();
-    };
+        /** 
+         * A container DIV holding:
+         * - the search form
+         * - the flat 'List All' button shown while UI is in subsearch state
+         * - a container DIV for the filter panel
+         * - a container DIV for the 'search at' subsearch button.
+         */
+    var element = jQuery(
+          '<div id="searchpanel-container">' +
+          '  <div id="searchbox">' +
+          '    <form>' +
+          '      <input type="text" id="query" name="query" autocomplete="off">' +
+          '      <span id="search-icon" class="icon">&#xf002;</span>' +
+          '      <div id="button-listall"><span class="icon">&#xf03a;</span> List all results</div>' +
+          '    </form>' +
+          '  </div>' +
+          '  <div id="filterpanel"></div>' +
+          '  <div id="button-search-at"></div>' +  
+          '</div>'),
+                    
+        /** DOM element shorthands **/
+        searchForm = element.find('form'),
+        searchInput = searchForm.find('input'),
+        searchIcon = element.find('#search-icon'),
+        btnListAll = element.find('#button-listall'),
+        
+        filterPanelContainer = element.find('#filterPanel'),
+        searchAtContainer = element.find('#button-search-at'),
+        
+        /** Sub-elements - to be initialized after element was added to DOM **/
+        autoSuggest, filterPanel, searchAtButton,
+       
+        /** Updates the icon according to the contents of the search input field **/
+        updateIcon = function() {
+          var chars = searchInput.val().trim();
+      
+          if (chars.length === 0) {
+            searchIcon.html('&#xf002;');
+            searchIcon.removeClass('clear');
+          } else {
+            searchIcon.html('&#xf00d;');
+            searchIcon.addClass('clear');
+          }
+        },
+    
+        /** Handler for the 'X' clear button **/
+        onClearSearch = function() {
+          autoSuggest.clear();
+          searchForm.submit();
+          updateIcon();
+        };
+    
     
     // Set up events
-    form.submit(function(e) {
-      var chars = input.val().trim();
+    searchForm.submit(function(e) {
+      var chars = searchInput.val().trim();
 
       if (chars.length === 0) {
         eventBroker.fireEvent(Events.QUERY_PHRASE_CHANGED, false);
@@ -48,22 +73,28 @@ define(['peripleo-ui/controls/autoSuggest', 'peripleo-ui/events/events'], functi
         eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : chars });
       }
     
-      input.blur();
+      searchInput.blur();
       return false; // preventDefault + stopPropagation
     });
     
-    form.keypress(function (e) {
+    searchForm.keypress(function (e) {
       updateIcon();
       if (e.which == 13) {
-        form.submit();
+        searchForm.submit();
         return false; // Otherwise we'll get two submit events
       }
     });
        
-    form.on('click', '.clear', clearSearch);
+    searchForm.on('click', '.clear', onClearSearch);
+    
+    // Flat 'list-all' button only shown in subsearch state
+    btnListAll.hide();
         
-    // Append to container
+    // Append panel to the DOM
     container.append(element);
+    autoSuggest = new AutoSuggest(searchForm, searchInput);
+    filterPanel = new FilterPanel(filterPanelContainer, eventBroker);
+    searchAtButton = new SearchAtButton(searchAtContainer, eventBroker);
     
     // Fill with intial query, if any
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
@@ -74,6 +105,6 @@ define(['peripleo-ui/controls/autoSuggest', 'peripleo-ui/events/events'], functi
     });
   };
   
-  return SearchBox;
+  return SearchPanel;
   
 });

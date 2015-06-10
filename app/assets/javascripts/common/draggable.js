@@ -20,7 +20,7 @@ define(function() {
           containment: opt_containment,
           drag: onDrag,
           stop: onStop
-        });      
+        });
     }
     
   };

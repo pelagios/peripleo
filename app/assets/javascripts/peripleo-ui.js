@@ -1,13 +1,10 @@
-require(['peripleo-ui/map', 
-         'peripleo-ui/searchPanel', 
-         'peripleo-ui/controls/selectionInfo',
-         'peripleo-ui/controls/filter/filterPanel',
-         'peripleo-ui/controls/filter/filterEditor',
-         'peripleo-ui/resultList',
+require(['peripleo-ui/events/events',
+         'peripleo-ui/events/eventBroker',
          'peripleo-ui/urlBar',
          'peripleo-ui/api/api',
-         'peripleo-ui/events/eventBroker',
-         'peripleo-ui/events/events'], function(Map, SearchBox, SelectionInfoBox, FilterPanel, FilterEditor, ResultList, URLBar, API, EventBroker, Events) {
+         'peripleo-ui/map', 
+         'peripleo-ui/searchPanel', 
+         'peripleo-ui/resultList'], function(Events, EventBroker, URLBar, API, Map, SearchPanel, ResultList) {
   
   jQuery(document).ready(function() {  
     var container = jQuery('#controls'),
@@ -20,15 +17,9 @@ require(['peripleo-ui/map',
         
         map = new Map(document.getElementById('map'), eventBroker),
         
-        searchBox = new SearchBox(container, eventBroker),
-        
-        selectionInfoBox = new SelectionInfoBox(container, eventBroker),
-        
-        filterPanel = new FilterPanel(container, eventBroker),
-        
-        filterEditor = new FilterEditor(eventBroker),
-        
-        resultList = new ResultList(container, eventBroker),
+        searchPanel = new SearchPanel(container, eventBroker),
+
+        // resultList = new ResultList(container, eventBroker),
         
         parseBBox = function(bboxStr) {
           var values = bboxStr.split(',');
