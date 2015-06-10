@@ -213,8 +213,8 @@ define(['peripleo-ui/events/events'], function(Events) {
         
         /** Clears the current selection & emphasis **/
         clearSelection = function() {
-          emphasiseMarker();
           currentSelection = false;
+          emphasiseMarker();
           eventBroker.fireEvent(Events.SELECT_MARKER);
         },
         

@@ -1,44 +1,39 @@
 define(['peripleo-ui/controls/thumbnailWidget',
         'peripleo-ui/events/events',
         'common/formatting'], function(ThumbnailWidget, Events, Formatting) {
+    
+  var SLIDE_DURATION = 100;
   
   var SelectionInfo = function(container, eventBroker) {
     
-    var SLIDE_DURATION = 100;
-    
-    var element = jQuery(
-          '<div id="selection-info">' +
-          '  <div class="content">' +
-          '    <h3></h3>' +
-          '    <p>' +
-          '      <span class="temp-bounds"></span>' +
-          '      <span class="top-places"></span>' +
-          '    </p>' +
-          '    <p class="names"></p>' +
-          '    <p class="description"></p>' +
-          '    <ul class="uris"></ul>' +
-          '    <p class="homepage"></p>' +
-          '    <p class="related"></p>' +
-          '  </div>' +
-          '  <div class="thumbnail">' +
-          '  </div>' +
+    var content = jQuery(
+          '<div class="content">' +
+          '  <h3></h3>' +
+          '  <p>' +
+          '    <span class="temp-bounds"></span>' +
+          '    <span class="top-places"></span>' +
+          '  </p>' +
+          '  <p class="names"></p>' +
+          '  <p class="description"></p>' +
+          '  <ul class="uris"></ul>' +
+          '  <p class="homepage"></p>' +
+          '  <p class="related"></p>' +
           '</div>'),
+          
+        thumbnail = jQuery(
+          '<div class="thumbnail"></div>'),
 
-        /** The currently displayed object **/
         currentObject = false,
           
-        /** DOM elements **/
-        content = element.find('.content'),
-        thumbnail = element.find('.thumbnail'),
-          
-        heading = element.find('h3'),
-        tempBounds = element.find('.temp-bounds'),
-        topPlaces = element.find('.top-places'),
-        names = element.find('.names'),
-        description = element.find('.description'),
-        uris = element.find('.uris'),
-        homepage = element.find('.homepage'),
-        related = element.find('.related'),
+        /** DOM element shorthands **/
+        heading = content.find('h3'),
+        tempBounds = content.find('.temp-bounds'),
+        topPlaces = content.find('.top-places'),
+        names = content.find('.names'),
+        description = content.find('.description'),
+        uris = content.find('.uris'),
+        homepage = content.find('.homepage'),
+        related = content.find('.related'),
         
         ignoreQueryPhrase = false,
         
@@ -175,7 +170,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
           
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it
-              element.slideToggle({ 
+              container.slideToggle({ 
                 duration: SLIDE_DURATION, 
                 step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
                 complete: function() {
@@ -197,7 +192,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
           } else { // Currently closed 
             if (obj) { // Open
               currentObject = obj;
-              element.slideToggle({ 
+              container.slideToggle({ 
                 duration: SLIDE_DURATION,
                 step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
                 complete: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); }
@@ -211,10 +206,10 @@ define(['peripleo-ui/controls/thumbnailWidget',
         hide = function() {
           currentObject = false;
           clearTemplate();
-          element.slideUp(SLIDE_DURATION);
+          container.slideUp(SLIDE_DURATION);
         };
     
-    element.on('click', '.related', function() {
+    content.on('click', '.related', function() {
       var type = (currentObject) ? currentObject.object_type : false,
           searchParams = { place: currentObject.identifier };
           
@@ -226,8 +221,9 @@ define(['peripleo-ui/controls/thumbnailWidget',
     });
 
     homepage.hide();
-    element.hide();
-    container.append(element);
+    container.hide();
+    container.append(content);
+    container.append(thumbnail);
     
     eventBroker.addHandler(Events.SELECT_MARKER, show);
     eventBroker.addHandler(Events.SELECT_RESULT, show);
@@ -238,7 +234,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
       }
     });
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
-      if (element.is(':visible') && currentObject && currentObject.object_type === 'Place') {
+      if (container.is(':visible') && currentObject && currentObject.object_type === 'Place') {
         eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
           { 
             place: currentObject.identifier,

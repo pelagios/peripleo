@@ -183,13 +183,17 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
          * 
          * @param diff the changes to the current global search parameters
          */
-        makeSubSearchRequest = function(diff) {
+        makeSubSearchRequest = function(places) {
+          console.log('[API] subsearch', places);
+          
+          /*
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
           jQuery.extend(mergedParams, FilterParser.parseFacetFilter(diff, searchParams)); // Merge current state with diff
           jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
             response.params = mergedParams;
             eventBroker.fireEvent(Events.API_SUB_SEARCH_RESPONE, response);
           });          
+          */
         },
         
         /**

@@ -55,12 +55,12 @@
 #button-listall, #button-search-at {
   color:#4e78ac;
   background-color:#fff;
-  padding:10px;
 }
 
 #button-listall {
   border-top:1px solid #e6e6e6;
   .rounded-corners-bottom(2px);
+  padding:11px 8px 9px 8px;
   
   .icon { 
     position:relative;
@@ -72,13 +72,25 @@
 }
 
 #button-search-at {
-  margin-top:6px;
+  position:relative;
+  margin-top:4px;
+  padding:10px;
   .rounded-corners(2px);
   .box-shadow(0, 2px, 6px, 0, rgba(0,0,0,0.3));
+ 
+  a {
+    color:#4e78ac;
+    text-decoration:none;  
+    
+    .icon { 
+      font-size: 14px; 
+      margin-right:3px;
+    }
   
-  .icon { 
-    font-size: 14px; 
-    margin-right:3px;
+  }
+  
+  a:hover .label {
+    text-decoration:underline;
   }
   
 }

@@ -4,7 +4,8 @@
 define(['peripleo-ui/events/events',
         'peripleo-ui/controls/autoSuggest',
         'peripleo-ui/controls/filterPanel',
-        'peripleo-ui/controls/searchAtButton'], function(Events, AutoSuggest, FilterPanel, SearchAtButton) {
+        'peripleo-ui/controls/selectionInfo',
+        'peripleo-ui/controls/searchAtButton'], function(Events, AutoSuggest, FilterPanel, SelectionInfo, SearchAtButton) {
   
   var SearchPanel = function(container, eventBroker) {
     
@@ -13,6 +14,7 @@ define(['peripleo-ui/events/events',
          * - the search form
          * - the flat 'List All' button shown while UI is in subsearch state
          * - a container DIV for the filter panel
+         * - container DIV for the selection info, in default (search state) position
          * - a container DIV for the 'search at' subsearch button.
          */
     var element = jQuery(
@@ -25,6 +27,7 @@ define(['peripleo-ui/events/events',
           '    </form>' +
           '  </div>' +
           '  <div id="filterpanel"></div>' +
+          '  <div id="selection-info"></div>' +
           '  <div id="button-search-at"></div>' +  
           '</div>'),
                     
@@ -35,10 +38,11 @@ define(['peripleo-ui/events/events',
         btnListAll = element.find('#button-listall'),
         
         filterPanelContainer = element.find('#filterPanel'),
+        selectionInfoContainer = element.find('#selection-info'),
         searchAtContainer = element.find('#button-search-at'),
         
         /** Sub-elements - to be initialized after element was added to DOM **/
-        autoSuggest, filterPanel, searchAtButton,
+        autoSuggest, filterPanel, selectionInfo, searchAtButton,
        
         /** Updates the icon according to the contents of the search input field **/
         updateIcon = function() {
@@ -58,6 +62,18 @@ define(['peripleo-ui/events/events',
           autoSuggest.clear();
           searchForm.submit();
           updateIcon();
+        },
+        
+        /** Switch to 'search' state **/
+        toStateSearch = function() {
+          btnListAll.hide();
+          filterPanelContainer.insertBefore(selectionInfoContainer);
+        },
+        
+        /** Switch to 'subsearch' state **/
+        toStateSubsearch = function(places) {
+          btnListAll.show();
+          selectionInfoContainer.insertBefore(filterPanelContainer);
         };
     
     
@@ -94,6 +110,7 @@ define(['peripleo-ui/events/events',
     container.append(element);
     autoSuggest = new AutoSuggest(searchForm, searchInput);
     filterPanel = new FilterPanel(filterPanelContainer, eventBroker);
+    selectionInfo = new SelectionInfo(selectionInfoContainer, eventBroker);
     searchAtButton = new SearchAtButton(searchAtContainer, eventBroker);
     
     // Fill with intial query, if any
@@ -103,6 +120,9 @@ define(['peripleo-ui/events/events',
         updateIcon();
       }
     });
+    
+    eventBroker.addHandler(Events.SUB_SEARCH, toStateSubsearch);
+    eventBroker.addHandler(Events.SELECTION, toStateSearch);
   };
   
   return SearchPanel;
