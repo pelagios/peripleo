@@ -17,7 +17,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
           '  <p class="description"></p>' +
           '  <ul class="uris"></ul>' +
           '  <p class="homepage"></p>' +
-          '  <p class="related"></p>' +
           '</div>'),
           
         thumbnail = jQuery(
@@ -33,7 +32,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
         description = content.find('.description'),
         uris = content.find('.uris'),
         homepage = content.find('.homepage'),
-        related = content.find('.related'),
         
         ignoreQueryPhrase = false,
         
@@ -48,7 +46,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
           description.empty();
           uris.empty();
           homepage.empty();
-          related.empty();
 
           // In addition, hide homepage (so we don't see the :before icons)...
           homepage.hide();
@@ -111,13 +108,14 @@ define(['peripleo-ui/controls/thumbnailWidget',
           
           if (obj.result_count) {
             ignoreQueryPhrase = false;
-            related.html(Formatting.formatNumber(obj.result_count) + ' related results');
+            // related.html(Formatting.formatNumber(obj.result_count) + ' related results');
             eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
           } else if (obj.object_type === 'Place') {
             // A place was selected that came as a search result, not a facet
             // In this case we ignore the query phrase, since it was used to find the place, not to filter the search further
             ignoreQueryPhrase = true;
             
+            /*
             eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
               { 
                 place: obj.identifier, query: false,
@@ -126,6 +124,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
                   eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
                 }
               });
+            */
           }
           
         },
@@ -209,6 +208,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
           container.slideUp(SLIDE_DURATION);
         };
     
+    /*
     content.on('click', '.related', function() {
       var type = (currentObject) ? currentObject.object_type : false,
           searchParams = { place: currentObject.identifier };
@@ -219,6 +219,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
       if (type === 'Place')      
         eventBroker.fireEvent(Events.SUB_SEARCH, searchParams); 
     });
+    */
 
     homepage.hide();
     container.hide();
@@ -233,6 +234,8 @@ define(['peripleo-ui/controls/thumbnailWidget',
         hide(); 
       }
     });
+    
+    /*
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
       if (container.is(':visible') && currentObject && currentObject.object_type === 'Place') {
         eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
@@ -244,6 +247,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
         });
       }
     });
+    */
   };
   
   return SelectionInfo;

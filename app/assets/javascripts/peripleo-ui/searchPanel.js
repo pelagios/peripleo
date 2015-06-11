@@ -69,7 +69,12 @@ define(['peripleo-ui/events/events',
             searchIcon.addClass('clear');
           }
         },
-    
+        
+        /** Updates the result totals count HTML field **/
+        updateTotalsCount = function() {
+          listAllTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
+        },
+        
         /** Handler for the 'X' clear button **/
         onClearSearch = function() {
           autoSuggest.clear();
@@ -77,16 +82,11 @@ define(['peripleo-ui/events/events',
           updateIcon();
         },
         
-        /** Updates the result totals count HTML field **/
-        updateTotals = function() {
-          listAllTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
-        },
-        
         /** We keep total search result count for display in the flat 'List All' button **/
         onAPIResponse = function(response) {
           currentTotals = response.total;
           if (isStateSubsearch)
-            updateTotals();
+            updateTotalsCount();
         },
         
         /** Switch to 'search' state **/
@@ -99,7 +99,7 @@ define(['peripleo-ui/events/events',
         /** Switch to 'subsearch' state **/
         toStateSubsearch = function(places) {
           isStateSubsearch = true;
-          updateTotals();
+          updateTotalsCount();
           btnListAll.show();
           filterPanelContainer.slideUp(SLIDE_DURATION, function() {
             selectionInfoContainer.insertBefore(filterPanelContainer);
