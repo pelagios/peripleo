@@ -5,7 +5,8 @@ define(['peripleo-ui/events/events',
         'peripleo-ui/controls/autoSuggest',
         'peripleo-ui/controls/filterPanel',
         'peripleo-ui/controls/selectionInfo',
-        'peripleo-ui/controls/searchAtButton'], function(Events, AutoSuggest, FilterPanel, SelectionInfo, SearchAtButton) {
+        'peripleo-ui/controls/searchAtButton',
+        'common/formatting'], function(Events, AutoSuggest, FilterPanel, SelectionInfo, SearchAtButton, Formatting) {
   
   var SLIDE_DURATION = 100;
   
@@ -25,7 +26,10 @@ define(['peripleo-ui/events/events',
           '    <form>' +
           '      <input type="text" id="query" name="query" autocomplete="off">' +
           '      <span id="search-icon" class="icon">&#xf002;</span>' +
-          '      <div id="button-listall"><span class="icon">&#xf03a;</span> List all results</div>' +
+          '      <div id="button-listall">' +
+          '        <span class="list-all"><span class="icon">&#xf03a;</span> <span class="label">List all results</span></span>' +
+          '        <span class="total">&nbsp;</span>' +
+          '      </div>' +
           '    </form>' +
           '  </div>' +
           '  <div id="filterpanel"></div>' +
@@ -38,6 +42,7 @@ define(['peripleo-ui/events/events',
         searchInput = searchForm.find('input'),
         searchIcon = element.find('#search-icon'),
         btnListAll = element.find('#button-listall'),
+        listAllTotals = btnListAll.find('.total'),
         
         filterPanelContainer = element.find('#filterPanel'),
         selectionInfoContainer = element.find('#selection-info'),
@@ -45,6 +50,12 @@ define(['peripleo-ui/events/events',
         
         /** Sub-elements - to be initialized after element was added to DOM **/
         autoSuggest, filterPanel, selectionInfo, searchAtButton,
+        
+        /** Shorthand flag indicating whether the current state is 'subsearch' **/
+        isStateSubsearch = false,
+        
+        /** Stores current total result count **/
+        currentTotals = 0,
        
         /** Updates the icon according to the contents of the search input field **/
         updateIcon = function() {
@@ -66,14 +77,29 @@ define(['peripleo-ui/events/events',
           updateIcon();
         },
         
+        /** Updates the result totals count HTML field **/
+        updateTotals = function() {
+          listAllTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
+        },
+        
+        /** We keep total search result count for display in the flat 'List All' button **/
+        onAPIResponse = function(response) {
+          currentTotals = response.total;
+          if (isStateSubsearch)
+            updateTotals();
+        },
+        
         /** Switch to 'search' state **/
         toStateSearch = function() {
+          isStateSubsearch = false;
           btnListAll.hide();
           filterPanelContainer.insertBefore(selectionInfoContainer);
         },
         
         /** Switch to 'subsearch' state **/
         toStateSubsearch = function(places) {
+          isStateSubsearch = true;
+          updateTotals();
           btnListAll.show();
           filterPanelContainer.slideUp(SLIDE_DURATION, function() {
             selectionInfoContainer.insertBefore(filterPanelContainer);
@@ -125,6 +151,9 @@ define(['peripleo-ui/events/events',
         updateIcon();
       }
     });
+    
+    eventBroker.addHandler(Events.API_INITIAL_RESPONSE, onAPIResponse);
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, onAPIResponse);
     
     eventBroker.addHandler(Events.SUB_SEARCH, toStateSubsearch);
     eventBroker.addHandler(Events.SELECTION, toStateSearch);

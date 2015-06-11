@@ -52,26 +52,34 @@
   
 }
 
-#button-listall, #button-search-at {
+.list-all {
   color:#4e78ac;
-  background-color:#fff;
-}
-
-#button-listall {
-  border-top:1px solid #e6e6e6;
-  .rounded-corners-bottom(2px);
-  padding:11px 10px;
-  
+  cursor:pointer;
+      
   .icon { 
     position:relative;
     font-size:14px;
     top:1px;
     margin-right:2px;
   }
-  
+    
+} /* .list-all */
+    
+.list-all:hover {
+  .label { text-decoration:underline; }
+}
+
+#button-listall {
+  background-color:#fff;
+  border-top:1px solid #e6e6e6;
+  .rounded-corners-bottom(2px);
+  padding:11px 10px;  
+  color:#686868;
 }
 
 #button-search-at {
+  color:#4e78ac;
+  background-color:#fff;
   position:relative;
   margin-top:4px;
   padding:10px;
