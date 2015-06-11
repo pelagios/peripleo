@@ -16,12 +16,19 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
         /** Current selection **/
         selectedPlaces = false,
         
-        /** Updates the related result count HTML field **/
-        updateRelatedCount = function(response) {
-          totals.html('(' + Formatting.formatNumber(response.total) + ' results)');  
+        /** Updates the related result count through a one-time search **/
+        updateRelatedCount = function() {
+          eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
+            {  
+              place: selectedPlaces[0].identifier,
+              callback: function(response) {
+                totals.html('(' + Formatting.formatNumber(response.total) + ' results)');  
+              }
+            }
+          );
         },
     
-        /** Updates the label and shows the element **/
+        /** Shows the element (and updates the label through a one-time search) **/
         show = function(selection) {
           selectedPlaces = jQuery.grep(selection, function(obj) {
             return obj.object_type === 'Place';
@@ -29,11 +36,9 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
           
           if (selectedPlaces.length > 0) {
             // TODO support multiple selected places, not just one
-            placeName.html(selectedPlaces[0].title);
-    
-            // Fetch related result count via API
-            eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
-              {  place: selectedPlaces[0].identifier, callback: updateRelatedCount });
+            placeName.html(selectedPlaces[0].title);   
+
+            updateRelatedCount();
            
             // TODO what if the filter settings change? -> count should update
                         
@@ -44,10 +49,18 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
           }
         },
         
+        /** Hides the element **/
         hide = function() {
           container.hide();
         },
         
+        /** 
+         * Handles the 'select' event. 
+         * 
+         * After this event, the element should either be shown or hidden,
+         * depending on whether the user selected a place (show), or deselected
+         * or selected an object (hide).
+         */
         onSelect = function(selection) {
           if (selection)
             show(selection);
@@ -58,14 +71,14 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
     container.hide();
     container.append(element);
     
-    eventBroker.addHandler(Events.SELECT_MARKER, onSelect);
-    eventBroker.addHandler(Events.SELECT_RESULT, onSelect);
-    
     element.click(function() {
       hide();
       eventBroker.fireEvent(Events.SUB_SEARCH, selectedPlaces); 
       return false;
     });
+    
+    eventBroker.addHandler(Events.SELECTION, onSelect);
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, updateRelatedCount);
   };
   
   return SearchAtButton;

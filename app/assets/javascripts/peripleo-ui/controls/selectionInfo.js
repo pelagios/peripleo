@@ -185,7 +185,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
                 clearTemplate();
                 fetchExtras(obj, fillTemplate);
                 eventBroker.fireEvent(Events.CONTROLS_ANIMATION);
-                eventBroker.fireEvent(Events.SELECTION, obj); 
+                eventBroker.fireEvent(Events.SELECTION, objects); 
               }
             }
           } else { // Currently closed 
@@ -197,7 +197,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
                 complete: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); }
               });
               fetchExtras(obj, fillTemplate);
-              eventBroker.fireEvent(Events.SELECTION, obj); 
+              eventBroker.fireEvent(Events.SELECTION, objects); 
             }
           }  
         },
