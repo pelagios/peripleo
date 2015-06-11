@@ -97,7 +97,7 @@ define(['peripleo-ui/events/events',
         },
         
         /** Switch to 'subsearch' state **/
-        toStateSubsearch = function(places) {
+        toStateSubsearch = function() {          
           isStateSubsearch = true;
           updateTotalsCount();
           btnListAll.show();

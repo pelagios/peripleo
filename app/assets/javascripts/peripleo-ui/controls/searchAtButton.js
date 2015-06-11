@@ -10,11 +10,12 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
           '</a>'),
         
         /** DOM element shorthand **/
-        placeName = element.find('.placename'),
-        totals = element.find('.totals'),
+        placeSpan = element.find('.placename'),
+        totalsSpan = element.find('.totals'),
         
-        /** Current selection **/
+        /** Current selection and related totals **/
         selectedPlaces = false,
+        relatedTotals = 0,
         
         /** Updates the related result count through a one-time search **/
         updateRelatedCount = function() {
@@ -22,7 +23,8 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
             {  
               place: selectedPlaces[0].identifier,
               callback: function(response) {
-                totals.html('(' + Formatting.formatNumber(response.total) + ' results)');  
+                relatedTotals = response.total;
+                totalsSpan.html('(' + Formatting.formatNumber(relatedTotals) + ' results)');  
               }
             }
           );
@@ -36,7 +38,7 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
           
           if (selectedPlaces.length > 0) {
             // TODO support multiple selected places, not just one
-            placeName.html(selectedPlaces[0].title);   
+            placeSpan.html(selectedPlaces[0].title);   
 
             updateRelatedCount();
            
@@ -73,7 +75,7 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
     
     element.click(function() {
       hide();
-      eventBroker.fireEvent(Events.SUB_SEARCH, selectedPlaces); 
+      eventBroker.fireEvent(Events.SUB_SEARCH, { places: selectedPlaces, total: relatedTotals }); 
       return false;
     });
     

@@ -2,11 +2,13 @@
 define(['peripleo-ui/events/events', 
         'peripleo-ui/controls/filter/timeHistogram',
         'peripleo-ui/controls/filter/facetChart',
-        'peripleo-ui/controls/filter/filterEditor'], function(Events, TimeHistogram, FacetChart, FilterEditor) {
+        'peripleo-ui/controls/filter/filterEditor',
+        'common/formatting'], function(Events, TimeHistogram, FacetChart, FilterEditor, Formatting) {
           
   var SLIDE_DURATION = 120;
   
   var FilterPanel = function(container, eventBroker) {
+    
         /** Slide-able body section **/
     var body = jQuery(
           '<div class="body">' +
@@ -27,6 +29,7 @@ define(['peripleo-ui/events/events',
         histogramSection = body.find('.section.histogram'),
         typeFacetSection = body.find('.section.facet.type'),
         sourceFacetSection = body.find('.section.facet.source'),
+        footerLabel = footer.find('.label'),
         footerTotals = footer.find('.total'),
         buttonListAll = footer.find('.list-all'),
         buttonToggleFilters = footer.find('.advanced'),
@@ -35,6 +38,9 @@ define(['peripleo-ui/events/events',
         timeHistogram,
         typeFacetChart,
         sourceFacetChart,
+        
+        /** Stores current total result count **/
+        currentTotals = 0,
         
         /** Filter editor **/
         filterEditor = filterEditor = new FilterEditor(eventBroker),
@@ -73,13 +79,27 @@ define(['peripleo-ui/events/events',
               sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'source_dataset'; });
               sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
            
-          footerTotals.html('(' + numeral(response.total).format('0,0') + ')');
+          // TODO wrong! needs to take the search state into account!
+          currentTotals = response.total;
+          footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
           
           typeFacetChart.update(typeFacets);
           sourceFacetChart.update(sourceFacets);
+        },
+        
+        /** Switch to 'search' state **/
+        toStateSearch = function() {
+          footerLabel.html('List all results');
+          footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
+        },
+        
+        /** Switch to 'subsearch' state **/
+        toStateSubsearch = function(subsearch) {  
+          footerLabel.html('List related results');
+          footerTotals.html('(' + Formatting.formatNumber(subsearch.total) + ')');
         };
         
-    /** Instantiate child controls **/
+    // Instantiate child controls
     body.hide();
     container.append(body);
     container.append(footer);
@@ -94,6 +114,10 @@ define(['peripleo-ui/events/events',
     // Forward updates to the facet charts
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, refresh);
     eventBroker.addHandler(Events.API_VIEW_UPDATE, refresh);
+    
+    // Footer displays different contents in 'search' and 'subsearch' states
+    eventBroker.addHandler(Events.SUB_SEARCH, toStateSubsearch);
+    eventBroker.addHandler(Events.SELECTION, toStateSearch);
   };
   
   return FilterPanel;
