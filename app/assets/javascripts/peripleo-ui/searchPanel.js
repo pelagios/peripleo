@@ -155,7 +155,7 @@ define(['peripleo-ui/events/events',
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, onAPIResponse);
     eventBroker.addHandler(Events.API_VIEW_UPDATE, onAPIResponse);
     
-    eventBroker.addHandler(Events.SUB_SEARCH, toStateSubsearch);
+    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
     eventBroker.addHandler(Events.SELECTION, toStateSearch);
   };
   

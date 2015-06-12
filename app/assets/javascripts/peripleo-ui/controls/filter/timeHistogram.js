@@ -264,7 +264,7 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
     Draggable.makeXDraggable(toHandle, onDragHandle, onStopHandle);
     Draggable.makeXDraggable(selectionBounds, onDragBounds, onStopBounds, canvas);
 
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
+    this.update = update;
     
   };
   

@@ -13,6 +13,9 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
         placeSpan = element.find('.placename'),
         totalsSpan = element.find('.totals'),
         
+        /** Visibility flag, to avoid unnecessary DOM lookups **/
+        isVisible = false,
+        
         /** Current selection and related totals **/
         selectedPlaces = false,
         relatedTotals = 0,
@@ -21,7 +24,7 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
         updateRelatedCount = function() {
           eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
             {  
-              place: selectedPlaces[0].identifier,
+              places: jQuery.map(selectedPlaces, function(p) { return p.identifier }), 
               callback: function(response) {
                 relatedTotals = response.total;
                 totalsSpan.html('(' + Formatting.formatNumber(relatedTotals) + ' results)');  
@@ -40,10 +43,8 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
             // TODO support multiple selected places, not just one
             placeSpan.html(selectedPlaces[0].title);   
 
+            isVisible = true;
             updateRelatedCount();
-           
-            // TODO what if the filter settings change? -> count should update
-                        
             container.show();
           } else {
             selectedPlaces = false;
@@ -53,6 +54,7 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
         
         /** Hides the element **/
         hide = function() {
+          isVisible = false;
           container.hide();
         },
         
@@ -75,12 +77,15 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
     
     element.click(function() {
       hide();
-      eventBroker.fireEvent(Events.SUB_SEARCH, { places: selectedPlaces, total: relatedTotals }); 
+      eventBroker.fireEvent(Events.TO_STATE_SUB_SEARCH, { places: selectedPlaces, total: relatedTotals }); 
       return false;
     });
     
     eventBroker.addHandler(Events.SELECTION, onSelect);
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, updateRelatedCount);
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function() { 
+      if (isVisible)
+        updateRelatedCount(); 
+    });
   };
   
   return SearchAtButton;

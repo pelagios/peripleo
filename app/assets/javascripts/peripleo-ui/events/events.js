@@ -34,7 +34,7 @@ define(function() {
      * 
      * @param search result
      */
-    API_SUB_SEARCH_RESPONE : 'subSearchResponse',
+    API_SUB_SEARCH_RESPONSE : 'subSearchResponse',
     
     /**
      * The API returned a data to update the map view
@@ -89,12 +89,11 @@ define(function() {
     SEARCH_CHANGED : 'searchChanged',
     
     /**
-     * The users issued a sub-search (i.e. a search with narrower paramters than the 
-     * current 'main' search).
-     * 
-     * @param diff to the current main search
+     * The users switched to sub-search state (i.e. a search restricted by place URI(s), but not map viewport).
+     *  
+     * @param subsearch
      */
-    SUB_SEARCH : 'subSearch',
+    TO_STATE_SUB_SEARCH : 'toStateSubSearch',
     
     /**
      * Requests a one-time search from the API. The result will not trigger the global
@@ -107,23 +106,20 @@ define(function() {
      */   
     ONE_TIME_SEARCH : 'oneTimeSearch',
     
-    /** 
-     * The user changed the query phrase by typing and hitting ENTER in the search box
-     * 
-     * @param the new query phrase
-     */
-    QUERY_PHRASE_CHANGED : 'queryPhraseChanged',
-    
     
     
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     /* Control-related UI events       */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */    
     
-    /** The controls panel is going through an animated change **/
+    /** 
+     * The controls panel is going through an animated change
+     */
     CONTROLS_ANIMATION: 'controlsAnim',
     
-    /** The controls panel has finished an animated change **/
+    /**
+     * The controls panel has finished an animated change
+     */
     CONTROLS_ANIMATION_END: 'controlsAnimEnd',
     
     /** 

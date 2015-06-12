@@ -5,7 +5,10 @@ define(['peripleo-ui/events/events',
         'peripleo-ui/controls/filter/filterEditor',
         'common/formatting'], function(Events, TimeHistogram, FacetChart, FilterEditor, Formatting) {
           
-  var SLIDE_DURATION = 120;
+  var SLIDE_DURATION = 120,
+  
+      /** Enum for search states **/
+      SearchState = { SEARCH : 1, SUB_SEARCH : 2 };
   
   var FilterPanel = function(container, eventBroker) {
     
@@ -39,6 +42,9 @@ define(['peripleo-ui/events/events',
         typeFacetChart,
         sourceFacetChart,
         
+        /** The current search state defines if the footer shows total or related results **/
+        currentSearchState = SearchState.SEARCH,
+        
         /** Stores current total result count **/
         currentTotals = 0,
         
@@ -71,7 +77,7 @@ define(['peripleo-ui/events/events',
         },
         
         /** Refreshes the charts **/
-        refresh = function(response) {      
+        refresh = function(response) { 
           var facets = response.facets, 
               typeDimension = jQuery.grep(facets, function(facet) { return facet.dimension === 'type'; }),
               typeFacets = (typeDimension.length > 0) ? typeDimension[0].top_children : [],
@@ -79,26 +85,28 @@ define(['peripleo-ui/events/events',
               sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'source_dataset'; });
               sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
            
-          // TODO wrong! needs to take the search state into account!
           currentTotals = response.total;
           footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
           
+          timeHistogram.update(response);
           typeFacetChart.update(typeFacets);
           sourceFacetChart.update(sourceFacets);
         },
         
-        /** Switch to 'search' state **/
+        /** Switch panel to 'search' state **/
         toStateSearch = function() {
+          currentSearchState = SearchState.SEARCH;
           footerLabel.html('List all results');
           footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
         },
         
-        /** Switch to 'subsearch' state **/
+        /** Switch panel to 'subsearch' state **/
         toStateSubsearch = function(subsearch) {  
+          currentSearchState = SearchState.SUB_SEARCH;
           footerLabel.html('List related results');
           footerTotals.html('(' + Formatting.formatNumber(subsearch.total) + ')');
         };
-        
+
     // Instantiate child controls
     body.hide();
     container.append(body);
@@ -111,12 +119,20 @@ define(['peripleo-ui/events/events',
     buttonToggleFilters.click(togglePanel);
     buttonListAll.click(function() { eventBroker.fireEvent(Events.TOGGLE_ALL_RESULTS); });
 
-    // Forward updates to the facet charts
+    // Refresh on initial load
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, refresh);
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, refresh);
+    
+    // Refresh on view updates, unless we're currently in a subsearch
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
+      if (currentSearchState === SearchState.SEARCH)
+        refresh(response);
+    });
+    
+    // Refresh on subsearch response
+    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, refresh);
     
     // Footer displays different contents in 'search' and 'subsearch' states
-    eventBroker.addHandler(Events.SUB_SEARCH, toStateSubsearch);
+    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
     eventBroker.addHandler(Events.SELECTION, toStateSearch);
   };
   

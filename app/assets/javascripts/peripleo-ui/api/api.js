@@ -11,7 +11,10 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
       NUM_TOP_PLACES_WITH_QUERY = 600,
       
       /** Number of search results to fetch **/
-      SEARCH_RESULT_LIMIT = 20;
+      SEARCH_RESULT_LIMIT = 20,
+      
+      /** Enum for search states **/
+      SearchState = { SEARCH : 1, SUB_SEARCH : 2 };
   
   var API = function(eventBroker) {
   
@@ -36,11 +39,14 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
           
           to: false,
           
-          place: false,
+          bbox: false,
           
-          bbox: false
+          places: false
           
         },
+        
+        /** Flag indicating whether we're currently in 'serch' or 'subsearch' state **/
+        currentSearchState = SearchState.SEARCH,
         
         /** Flag indicating whether time histogram should be included **/
         includeTimeHistogram = false,
@@ -55,13 +61,15 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
         /** The last search parameter change **/
         lastDiff = false,
 
-        /** Builds the URL query string from the current search params **/
-        buildQueryURL = function(params) {
+        /** Builds the URL query string **/
+        buildQueryURL = function(params, searchState) {
+          var url = '/api-v3/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT + '&facets=true&top_places=';
+          
           if (!params)
             params = searchParams;
             
-          var url = '/api-v3/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT + 
-                    '&facets=true&top_places=';
+          if (!searchState)
+            searchState = currentSearchState;
                     
           if (params.query)
             url += NUM_TOP_PLACES_WITH_QUERY;
@@ -97,11 +105,10 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
             
           if (params.to)
             url += '&to=' + params.to;
-            
-          if (params.place)
-            url += '&places=' + encodeURIComponent(params.place);
           
-          if (params.bbox)
+          if (searchState === SearchState.SUB_SEARCH)
+            url += '&places=' + jQuery.map(params.places, function(uri) { return encodeURIComponent(uri); }).join(','); 
+          else if (params.bbox)
             url += '&bbox=' +
               params.bbox.west + ',' + params.bbox.east + ',' + 
               params.bbox.south + ',' + params.bbox.north;
@@ -135,16 +142,22 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
         
         /** Fires a search request against the API **/
         makeSearchRequest = function() {
-          var params = jQuery.extend({}, searchParams), // Clone params at time of query
+          var params = jQuery.extend({}, searchParams), // Params at time of query
+              state = currentSearchState; // Search state at time of query
               diff = lastDiff; // Keep most recent diff at time of query
-              
+
           busy = true;
           
           jQuery.getJSON(buildQueryURL(), function(response) {    
             response.params = params;  
             response.diff = diff;      
-            eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
-            eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
+            
+            if (state === SearchState.SEARCH) {
+              eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
+              eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
+            } else {
+              eventBroker.fireEvent(Events.API_SUB_SEARCH_RESPONSE, response);
+            }
           }).always(handlePending);
         },
         
@@ -160,7 +173,8 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
         makeViewUpdateRequest = function() {     
           busy = true;
           
-          jQuery.getJSON(buildQueryURL(), function(response) {
+          // View updates ignore the state, and are always forced to 'search'
+          jQuery.getJSON(buildQueryURL(undefined, SearchState.SEARCH), function(response) {
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
         },
@@ -173,25 +187,18 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
             makeViewUpdateRequest();
         },
         
-        /**
-         * Fires a sub-search request. A sub-search uses the current global search parameter
-         * settings, plus a set of changes. The changes are, however, not remembered beyond
-         * the request, nor do they change the current global parameter values.
-         * 
-         * Unlike normal searches or view-updates, sub-searches are performed immediately.
-         * I.e. they are not affected by the 'busy' state, caching or delay policies.
-         * 
-         * @param diff the changes to the current global search parameters
-         */
-        makeSubSearchRequest = function(places) {          
-          /*
-          var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(diff, searchParams)); // Merge current state with diff
-          jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
-            response.params = mergedParams;
-            eventBroker.fireEvent(Events.API_SUB_SEARCH_RESPONE, response);
-          });          
-          */
+        /** Changes the search state to 'subsearch' **/
+        toStateSubSearch = function(subsearch) {
+          currentSearchState = SearchState.SUB_SEARCH;
+          searchParams.places = jQuery.map(subsearch.places, function(p) { return p.identifier; });
+          search();
+        },
+        
+        /** Changes the search state to 'search' **/
+        toStateSearch = function() {
+          currentSearchState = SearchState.SEARCH;
+          searchParams.places = false;
+          search();
         },
         
         /**
@@ -207,8 +214,10 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
          */        
         makeOneTimeSearchRequest = function(params) {
           var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params, searchParams)); // Merge current state with params
-          jQuery.getJSON(buildQueryURL(mergedParams), function(response) { 
+          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params, searchParams)); // Merge current state with params          
+          
+          // One-time searches ignore the state, and are always forced to 'sub-search'
+          jQuery.getJSON(buildQueryURL(mergedParams, SearchState.SUB_SEARCH), function(response) { 
             response.params = mergedParams;
             delete response.params.callback; // Clean up the params object, i.e. remove the callback fn reference
             params.callback(response);
@@ -239,7 +248,9 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
       updateView();
     });
     
-    eventBroker.addHandler(Events.SUB_SEARCH, makeSubSearchRequest);
+    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubSearch);
+    eventBroker.addHandler(Events.SELECTION, toStateSearch);
+    
     eventBroker.addHandler(Events.ONE_TIME_SEARCH, makeOneTimeSearchRequest);
     
     // Just make sure we clear place filters when places get de-selected

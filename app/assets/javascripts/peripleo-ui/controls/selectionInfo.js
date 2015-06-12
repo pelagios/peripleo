@@ -228,12 +228,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
     
     eventBroker.addHandler(Events.SELECT_MARKER, show);
     eventBroker.addHandler(Events.SELECT_RESULT, show);
-    eventBroker.addHandler(Events.QUERY_PHRASE_CHANGED, function(query) {
-      if (query) { // No need to hide if the user just cleared the search
-        eventBroker.fireEvent(Events.SELECTION);
-        hide(); 
-      }
-    });
     
     /*
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
