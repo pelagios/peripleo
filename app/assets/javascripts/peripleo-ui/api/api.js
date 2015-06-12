@@ -248,12 +248,9 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
       updateView();
     });
     
-    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubSearch);
-    eventBroker.addHandler(Events.SELECTION, toStateSearch);
-    
     eventBroker.addHandler(Events.ONE_TIME_SEARCH, makeOneTimeSearchRequest);
     
-    // Just make sure we clear place filters when places get de-selected
+    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubSearch);
     eventBroker.addHandler(Events.SELECTION, function(obj) {
       searchParams.place = false;
     });
@@ -261,7 +258,12 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
     // If the filter panel is closed, we don't request the time histogram (it's expensive!)
     eventBroker.addHandler(Events.SHOW_FILTERS, function() {
       includeTimeHistogram = true;
-      updateView();
+      
+      // Filter elements will ignore view updates while in sub-search
+      if (currentSearchState === SearchState.SEARCH)
+        updateView();
+      else
+        search();
     });
     
     eventBroker.addHandler(Events.HIDE_FILTERS, function() {

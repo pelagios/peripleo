@@ -147,7 +147,7 @@ define(['peripleo-ui/events/events',
     // Fill with intial query, if any
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
       if (initialSettings.query) {
-        input.val(initialSettings.query);
+        searchInput.val(initialSettings.query);
         updateIcon();
       }
     });

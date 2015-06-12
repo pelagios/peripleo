@@ -133,7 +133,7 @@ define(['peripleo-ui/events/events'], function(Events) {
                   else
                     marker = L.geoJson(obj.geometry, Styles.POLYGON);
           
-                  marker.on('click', function(e) { selectByGeomHash(geomHash); return false; });
+                  marker.on('click', function(e) { selectByGeomHash(geomHash); });
                   markerIndex[geomHash] = { _1: marker, _2: [obj] };
                   marker.addTo(featureGroup); 
                 }
@@ -213,9 +213,11 @@ define(['peripleo-ui/events/events'], function(Events) {
         
         /** Clears the current selection & emphasis **/
         clearSelection = function() {
-          currentSelection = false;
-          emphasiseMarker();
-          eventBroker.fireEvent(Events.SELECT_MARKER);
+          if (currentSelection) {
+            currentSelection = false;
+            emphasiseMarker();
+            eventBroker.fireEvent(Events.SELECT_MARKER, false);
+          }
         },
         
         /**
@@ -255,7 +257,9 @@ define(['peripleo-ui/events/events'], function(Events) {
         };
      
     // TODO use click->select nearest only on touch devices?
-    map.on('click', function(e) { selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); });
+    map.on('click', function(e) { 
+      selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); 
+    });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       var  hasTimeIntervalChanged = 

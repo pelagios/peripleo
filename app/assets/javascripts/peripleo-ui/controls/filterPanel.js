@@ -117,7 +117,9 @@ define(['peripleo-ui/events/events',
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'source_dataset', eventBroker);
     
     buttonToggleFilters.click(togglePanel);
-    buttonListAll.click(function() { eventBroker.fireEvent(Events.TOGGLE_ALL_RESULTS); });
+    buttonListAll.click(function() { 
+      eventBroker.fireEvent(Events.TOGGLE_ALL_RESULTS); 
+    });
 
     // Refresh on initial load
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, refresh);

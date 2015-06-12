@@ -114,19 +114,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
             // A place was selected that came as a search result, not a facet
             // In this case we ignore the query phrase, since it was used to find the place, not to filter the search further
             ignoreQueryPhrase = true;
-            
-            /*
-            eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
-              { 
-                place: obj.identifier, query: false,
-                callback: function(response) { 
-                  related.html(Formatting.formatNumber(response.total) + ' related results');  
-                  eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
-                }
-              });
-            */
           }
-          
         },
         
         /** Fetches additional info about the places referenced by the item **/
@@ -148,7 +136,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
          */
         fetchExtras = function(obj, callback) {
           var id = obj.identifier;
-          
+                    
           if (obj.object_type === 'Place') {
             // TODO implement
             callback(obj);
@@ -162,7 +150,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
           }
         },
 
-        show = function(objects) {                
+        show = function(objects) {         
           // TODO support display of lists of objects, rather than just single one
           var obj = (jQuery.isArray(objects)) ? objects[0] : objects,
               currentType = (currentObject) ? currentObject.object_type : false;
@@ -176,7 +164,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
                   currentObject = false;
                   clearTemplate();
                   eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
-                  eventBroker.fireEvent(Events.SELECTION); // Deselect event      
                 }
               });
             } else {
@@ -185,7 +172,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
                 clearTemplate();
                 fetchExtras(obj, fillTemplate);
                 eventBroker.fireEvent(Events.CONTROLS_ANIMATION);
-                eventBroker.fireEvent(Events.SELECTION, objects); 
               }
             }
           } else { // Currently closed 
@@ -197,7 +183,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
                 complete: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); }
               });
               fetchExtras(obj, fillTemplate);
-              eventBroker.fireEvent(Events.SELECTION, objects); 
             }
           }  
         },
@@ -207,19 +192,6 @@ define(['peripleo-ui/controls/thumbnailWidget',
           clearTemplate();
           container.slideUp(SLIDE_DURATION);
         };
-    
-    /*
-    content.on('click', '.related', function() {
-      var type = (currentObject) ? currentObject.object_type : false,
-          searchParams = { place: currentObject.identifier };
-          
-      if (ignoreQueryPhrase)
-        searchParams.query = false;
-
-      if (type === 'Place')      
-        eventBroker.fireEvent(Events.SUB_SEARCH, searchParams); 
-    });
-    */
 
     homepage.hide();
     container.hide();
@@ -228,20 +200,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
     
     eventBroker.addHandler(Events.SELECT_MARKER, show);
     eventBroker.addHandler(Events.SELECT_RESULT, show);
-    
-    /*
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
-      if (container.is(':visible') && currentObject && currentObject.object_type === 'Place') {
-        eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
-          { 
-            place: currentObject.identifier,
-            callback: function(response) { 
-              related.html(Formatting.formatNumber(response.total) + ' related results');  
-            }
-        });
-      }
-    });
-    */
+
   };
   
   return SelectionInfo;

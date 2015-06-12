@@ -186,7 +186,7 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
     });
     
     // Listen for sub-search results
-    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONE, function(response) {
+    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
       subsearch = true;
       show(response.items);
     });

@@ -57,6 +57,16 @@ require(['peripleo-ui/events/events',
 
     // Fire 'load' event with initial settings
     eventBroker.fireEvent(Events.LOAD, initialSettings);
+    
+    /** Additional event lifecycle rules **/
+    
+    // SELECT_MARKER & SELECT_RESULT trigger parent SELECTION event
+    eventBroker.addHandler(Events.SELECT_MARKER, function(evt) { 
+      eventBroker.fireEvent(Events.SELECTION, evt);
+    });
+    eventBroker.addHandler(Events.SELECT_RESULT, function(evt) { 
+      eventBroker.fireEvent(Events.SELECTION, evt);
+    });
         
   });
   
