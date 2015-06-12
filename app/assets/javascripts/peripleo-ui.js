@@ -19,7 +19,7 @@ require(['peripleo-ui/events/events',
         
         searchPanel = new SearchPanel(container, eventBroker),
 
-        // resultList = new ResultList(container, eventBroker),
+        resultList = new ResultList(container, eventBroker),
         
         parseBBox = function(bboxStr) {
           var values = bboxStr.split(',');

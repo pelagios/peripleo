@@ -143,7 +143,10 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
             li.mouseleave(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT); });
             
             li.click(function() {
-              eventBroker.fireEvent(Events.SELECT_RESULT, result);
+              if (result.object_type === 'Place')
+                hide();
+                
+              eventBroker.fireEvent(Events.SELECT_RESULT, [result]);
             });
                           
             return li;

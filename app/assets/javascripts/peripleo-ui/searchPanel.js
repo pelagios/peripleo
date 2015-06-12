@@ -103,7 +103,9 @@ define(['peripleo-ui/events/events',
           btnListAll.show();
           filterPanelContainer.slideUp(SLIDE_DURATION, function() {
             selectionInfoContainer.insertBefore(filterPanelContainer);
-            filterPanelContainer.slideDown(SLIDE_DURATION);            
+            filterPanelContainer.slideDown(SLIDE_DURATION, function() {
+              eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
+            });            
           });
         };
     

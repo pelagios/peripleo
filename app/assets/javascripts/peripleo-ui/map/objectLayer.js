@@ -283,7 +283,7 @@ define(['peripleo-ui/events/events'], function(Events) {
     eventBroker.addHandler(Events.MOUSE_OVER_RESULT, emphasiseObject);
     
     eventBroker.addHandler(Events.SELECT_RESULT, function(result) {
-      var marker = emphasiseObject(result),
+      var marker = emphasiseObject(result[0]),
           latlng;
           
       if (marker) {
