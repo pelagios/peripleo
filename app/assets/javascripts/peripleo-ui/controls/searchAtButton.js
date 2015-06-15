@@ -145,6 +145,10 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
       if (isVisible)
         updateRelatedCount(); 
     });
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {
+      if (diff.hasOwnProperty('query'))
+        currentQueryPhrase = diff.query;
+    });
   };
   
   return SearchAtButton;
