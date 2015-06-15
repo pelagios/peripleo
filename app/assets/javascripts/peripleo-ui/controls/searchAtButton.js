@@ -31,15 +31,32 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
         
         /** Updates the related result count through a one-time search **/
         updateRelatedCount = function() {
-          eventBroker.fireEvent(Events.ONE_TIME_SEARCH,
-            {  
-              places: jQuery.map(selectedPlaces, function(p) { return p.identifier }), 
-              callback: function(response) {
-                relatedTotals = response.total;
-                // totalsSpan.html('(' + Formatting.formatNumber(relatedTotals) + ' results)');  
-              }
+          var allCount = label.find('.all-count'),
+              withQueryCount = label.find('.with-query-count'),
+              hasQuery = (withQueryCount.length > 0),
+              suffix = (hasQuery) ? '' : ' results';
+              
+          // We always need total related results
+          eventBroker.fireEvent(Events.ONE_TIME_SEARCH, { 
+            places: jQuery.map(selectedPlaces, function(p) { return p.identifier }),               
+            query: false,
+            callback: function(response) {
+              count = response.total;
+              allCount.html('(' + Formatting.formatNumber(count) + suffix + ')');  
             }
-          );
+          });
+          
+          // If there's a query, we also need total results with query
+          if (hasQuery) {
+            eventBroker.fireEvent(Events.ONE_TIME_SEARCH, { 
+              places: jQuery.map(selectedPlaces, function(p) { return p.identifier }),               
+              query: currentQueryPhrase,
+              callback: function(response) {
+                count = response.total;
+                withQueryCount.html('(' + Formatting.formatNumber(count) + ')');  
+              }
+            });
+          }
         },
     
         /** Shows the element (and updates the label through a one-time search) **/
@@ -49,7 +66,12 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
           });
           
           if (selectedPlaces.length > 0) {
+            
+            
+            
             // TODO support multiple selected places, not just one
+            
+            
             
             // Explanation: if the selected place is part of the search results list, it is because
             // the user has searched for the place by name, e.g. "Roma". If we go into a subsearch now,
@@ -57,16 +79,18 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
             // *linked* to it.) If the selected place is not in the search result list, it is
             // because the user has searched for some other term (e.g. "Inscription"), and the place
             // appared as "top place" on the map. In this case, we want to keep the query phrase!
-            if ( isInCurrentResultList(selectedPlaces[0]) || !currentQueryPhrase) {
+            if (isInCurrentResultList(selectedPlaces[0]) || !currentQueryPhrase) {
               label.addClass('no-query all');
-              label.html('Search at <span class="underline">' + selectedPlaces[0].title + '</span>');
+              label.html('Search at <span class="underline">' + selectedPlaces[0].title + 
+                '</span> <span class="totals all-count"></span>');
             } else {
               label.removeClass('no-query all');
-              label.html('Search  at ' + selectedPlaces[0].title  + ': <em class="query underline">' + currentQueryPhrase + '</em> · <span class="underline all">all</span>');
+              label.html('Search  at ' + selectedPlaces[0].title  + ': <em class="query underline">' + currentQueryPhrase + 
+                '</em>  <span class="totals with-query-count"></span> · <span class="underline all">all</span>  <span class="totals all-count"></span>');
             }
 
-            isVisible = true;
             updateRelatedCount();
+            isVisible = true;
             container.show();
           } else {
             selectedPlaces = false;
