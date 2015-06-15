@@ -5,7 +5,7 @@ define(['peripleo-ui/events/events',
         'peripleo-ui/controls/filter/filterEditor',
         'common/formatting'], function(Events, TimeHistogram, FacetChart, FilterEditor, Formatting) {
           
-  var SLIDE_DURATION = 120,
+  var SLIDE_DURATION = 180,
   
       /** Enum for search states **/
       SearchState = { SEARCH : 1, SUB_SEARCH : 2 };

@@ -8,7 +8,7 @@ define(['peripleo-ui/events/events',
         'peripleo-ui/controls/searchAtButton',
         'common/formatting'], function(Events, AutoSuggest, FilterPanel, SelectionInfo, SearchAtButton, Formatting) {
   
-  var SLIDE_DURATION = 100;
+  var SLIDE_DURATION = 180;
   
   var SearchPanel = function(container, eventBroker) {
     

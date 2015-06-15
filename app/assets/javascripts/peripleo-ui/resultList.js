@@ -1,7 +1,7 @@
 /** The result list **/
 define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Formatting) {
 
-  var SLIDE_DURATION = 100,
+  var SLIDE_DURATION = 180,
   
       KEEP_OPEN_PERIOD = 500;
 

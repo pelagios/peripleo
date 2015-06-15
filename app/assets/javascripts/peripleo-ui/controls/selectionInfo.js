@@ -2,7 +2,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
         'peripleo-ui/events/events',
         'common/formatting'], function(ThumbnailWidget, Events, Formatting) {
     
-  var SLIDE_DURATION = 100;
+  var SLIDE_DURATION = 180;
   
   var SelectionInfo = function(container, eventBroker) {
     
