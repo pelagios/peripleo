@@ -16,7 +16,7 @@ import play.api.Logger
 
 /** One 'ingest record' **/
 case class IngestRecord(
-    
+
     /** The annotated thing **/
     thing: AnnotatedThing, 
     
@@ -65,6 +65,12 @@ abstract class AbstractImporter {
       }}.flatten
   }
   
+  private def getRoot(thingId: String, parentTable: Map[String, String]): String = 
+    parentTable.get(thingId) match {
+      case Some(parentId) => getRoot(parentId, parentTable)
+      case None => thingId
+    }
+  
   private def buildFullText(parent: IngestRecord, ingestBatch: Seq[IngestRecord]): Seq[String] = {
     val children = ingestBatch.filter(_.thing.isPartOf == Some(parent.thing.id))
     (parent.fulltext +: children.map(_.fulltext)).flatten ++ children.flatMap(r => buildFullText(r, ingestBatch))
@@ -80,8 +86,15 @@ abstract class AbstractImporter {
 
     val allAnnotations = ingestBatch.flatMap(_.annotationsWithText.map(_._1))
     Annotations.insertAll(allAnnotations)
-                
+       
+    // Lookup table for places by ID
     val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._1.uri, p._1))).toMap
+    
+    // Lookup table for things' parent IDs 
+    val parentTable = ingestBatch.map(record => (record.thing.id, record.thing.isPartOf))
+      .filter(_._2.isDefined)
+      .toMap
+      .mapValues(_.get)
     
     // Update aggregation table stats
     Associations.insert(ingestBatch.map(record => (record.thing, record.places)))
@@ -99,9 +112,7 @@ abstract class AbstractImporter {
     // Update object index - note: we only index metadata for top-level items, but want fulltext from children as well
     Logger.info("Updating Index") 
     val topLevelThings = ingestBatch.filter(_.thing.isPartOf.isEmpty).map(r => {
-      val collapsedFulltext = {
-        // val childTexts = buildFullText(r, ingestBatch)
-        
+      val collapsedFulltext = {        
         // Note: this should slightly speed up ingest of datasets with large no. of items & no text
         val childTexts = buildFullText(r, ingestBatch.filter(_.fulltext.isDefined))
         if (childTexts.isEmpty)
@@ -112,6 +123,7 @@ abstract class AbstractImporter {
       
       (r.thing, r.places.map(_._1), r.images, collapsedFulltext)
     })
+    
     val datasetHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
     Logger.info("Indexing items")
     Global.index.addAnnotatedThings(topLevelThings, datasetHierarchy)
@@ -122,10 +134,13 @@ abstract class AbstractImporter {
       // Temporal bounds of the annotation are those of their annotated thing
       val thing = record.thing
       
+      // Title and description are that of the root thing
+      val rootThing = allThings.find(_.id == getRoot(thing.id, parentTable)).getOrElse(thing)
+      
       record.annotationsWithText.map { case (annotation, prefix, suffix) => {        
         // Geometry is that of the gazetteer
         val geom = placeLookup.get(Index.normalizeURI(annotation.gazetteerURI)).flatMap(_.geometry)
-        geom.map(g => (thing, annotation, g, prefix, suffix))
+        geom.map(g => (rootThing, thing, annotation, g, prefix, suffix))
       }}
     }).flatten // The annotation index is to support heatmaps, so we're not interested in annotation without geometry
     Logger.info("Indexing " + annotationsWithContext.size + " annotations")

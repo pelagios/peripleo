@@ -87,12 +87,12 @@ object PelagiosOAImporter extends AbstractImporter {
       val flattendHierarchy = rootThing +: flattenThingHierarchy(rootThing)
       flattendHierarchy.map(thing => {
         val annotations = getAnnotationsRecursive(thing) 
-        (thing, resolvePlaces(annotations))
+        (thing, rootThing, resolvePlaces(annotations))
       })      
     }).toSeq
     
     // Ingest
-    val ingestBatch = preparedForIngest.map { case (oaThing, places) => { 
+    val ingestBatch = preparedForIngest.map { case (oaThing, oaRootThing, places) => { 
       val thingId = sha256(oaThing.uri)
       
       val tempBoundsStart = oaThing.temporal.map(_.start)

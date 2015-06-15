@@ -34,7 +34,7 @@ trait AnnotationReader extends IndexBase {
       Option(facets.getTopChildren(limit, IndexFields.PLACE_URI)).map(result => {
         result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))
       }).getOrElse(Seq.empty[(String, Int)])
-    
+      
     topURIs.map { case (uri, count) =>
       Global.index.findNetworkByPlaceURI(uri).map((_, count)) }.flatten
   }

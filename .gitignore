@@ -19,3 +19,4 @@ dist
 /lib
 /index
 /rebuild-scalagios.sh
+.cache-*

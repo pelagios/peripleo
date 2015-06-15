@@ -25,7 +25,7 @@ class IndexedAnnotation(private val doc: Document) {
 
 object IndexedAnnotation {
 
-  def toDoc(thing: AnnotatedThing, annotation: Annotation, geometry: Geometry,
+  def toDoc(rootParent: AnnotatedThing, parent: AnnotatedThing, annotation: Annotation, geometry: Geometry,
       fulltextPrefix: Option[String], fulltextSuffix: Option[String]): Document = {
     
     val doc = new Document()
@@ -36,14 +36,14 @@ object IndexedAnnotation {
     doc.add(new StringField(IndexFields.ANNOTATION_THING, annotation.annotatedThing, Field.Store.YES))
     
     // Thing title and description
-    doc.add(new TextField(IndexFields.TITLE, thing.title, Field.Store.YES))
-    thing.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
+    doc.add(new TextField(IndexFields.TITLE, rootParent.title, Field.Store.YES))
+    rootParent.description.map(description => new TextField(IndexFields.DESCRIPTION, description, Field.Store.YES))
 
     // Temporal bounds
-    thing.temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))
-    thing.temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
-    thing.temporalBoundsStart.map(start => {
-      val end = thing.temporalBoundsEnd.getOrElse(start)
+    parent.temporalBoundsStart.map(start => doc.add(new IntField(IndexFields.DATE_FROM, start, Field.Store.YES)))
+    parent.temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
+    parent.temporalBoundsStart.map(start => {
+      val end = parent.temporalBoundsEnd.getOrElse(start)
       val dateRange =
         if (start > end) // Minimal safety precaution... 
           Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")

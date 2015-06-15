@@ -1,4 +1,4 @@
-name := "pelagios-api-v3"
+name := "peripleo"
 
 version := "0.0.1"
 
