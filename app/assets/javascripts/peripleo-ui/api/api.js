@@ -157,6 +157,7 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
               eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
             } else {
               eventBroker.fireEvent(Events.API_SUB_SEARCH_RESPONSE, response);
+              makeViewUpdateRequest(); // In sub-search state, view-updates are different, so we want an extra request
             }
           }).always(handlePending);
         },
@@ -191,6 +192,9 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
         toStateSubSearch = function(subsearch) {
           currentSearchState = SearchState.SUB_SEARCH;
           searchParams.places = jQuery.map(subsearch.places, function(p) { return p.identifier; });
+          if (subsearch.clear_query)
+            searchParams.query = false;
+          
           search();
         },
         

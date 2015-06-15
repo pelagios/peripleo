@@ -82,11 +82,17 @@ define(['peripleo-ui/events/events',
           updateIcon();
         },
         
-        /** We keep total search result count for display in the flat 'List All' button **/
-        onAPIResponse = function(response) {
+        /** We keep the total search result count for display in the flat 'List All' button **/
+        onViewUpdate = function(response) {
           currentTotals = response.total;
           if (isStateSubsearch)
             updateTotalsCount();
+        },
+        
+        /** 
+         * This is trickier: in normal search state, the view update is all we need
+         */
+        onSearchResponse = function(response) {
         },
         
         /** Switch to 'search' state **/
@@ -97,8 +103,16 @@ define(['peripleo-ui/events/events',
         },
         
         /** Switch to 'subsearch' state **/
-        toStateSubsearch = function() {          
+        toStateSubsearch = function(subsearch) {          
           isStateSubsearch = true;
+          
+          // Sub-search may remove the query phrase - update accordingly
+          if (subsearch.clear_query) {
+            searchInput.val('');
+            updateIcon();
+          }
+          
+          // Update footer 
           updateTotalsCount();
           btnListAll.show();
           filterPanelContainer.slideUp(SLIDE_DURATION, function() {
@@ -153,9 +167,10 @@ define(['peripleo-ui/events/events',
         updateIcon();
       }
     });
-    
-    eventBroker.addHandler(Events.API_INITIAL_RESPONSE, onAPIResponse);
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, onAPIResponse);
+
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, onViewUpdate);    
+    eventBroker.addHandler(Events.API_INITIAL_RESPONSE, onViewUpdate); // Just re-use view update handler
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, onSearchResponse);
     
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
     eventBroker.addHandler(Events.SELECTION, toStateSearch);
