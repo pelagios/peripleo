@@ -157,7 +157,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
           
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it
-              container.slideToggle({ 
+              container.velocity('slideUp', { 
                 duration: SLIDE_DURATION, 
                 step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
                 complete: function() {
@@ -169,15 +169,26 @@ define(['peripleo-ui/controls/thumbnailWidget',
             } else {
               if (currentObject.identifier !== obj.identifier) { // New object - reset
                 currentObject = obj;
-                clearTemplate();
-                fetchExtras(obj, fillTemplate);
-                eventBroker.fireEvent(Events.CONTROLS_ANIMATION);
+                container.velocity('slideUp', { 
+                  duration: SLIDE_DURATION, 
+                  step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
+                  complete: function() {
+                    clearTemplate();
+                    fetchExtras(obj, fillTemplate);
+                    eventBroker.fireEvent(Events.CONTROLS_ANIMATION);
+                    container.velocity('slideDown', { 
+                      duration: SLIDE_DURATION,
+                      step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
+                      complete: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); }
+                    });
+                  }
+                });
               }
             }
           } else { // Currently closed 
             if (obj) { // Open
               currentObject = obj;
-              container.slideToggle({ 
+              container.velocity('slideDown', { 
                 duration: SLIDE_DURATION,
                 step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
                 complete: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); }
@@ -190,7 +201,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
         hide = function() {
           currentObject = false;
           clearTemplate();
-          container.slideUp(SLIDE_DURATION);
+          container.velocity('slideUp', { duration: SLIDE_DURATION });
         };
 
     homepage.hide();

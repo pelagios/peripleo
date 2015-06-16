@@ -53,14 +53,15 @@ define(['peripleo-ui/events/events',
         
         /** Slides the panel in or out **/
         togglePanel = function() {
-          var visible = body.is(':visible');
+          var visible = body.is(':visible'),
+              action = (visible) ? 'slideUp' : 'slideDown';
           
           if (visible)
             eventBroker.fireEvent(Events.HIDE_FILTERS);
           else
             eventBroker.fireEvent(Events.SHOW_FILTERS);
           
-          body.slideToggle({ 
+          body.velocity(action, { 
             duration: SLIDE_DURATION, 
             
             step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
