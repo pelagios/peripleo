@@ -11,8 +11,8 @@ window.Heatmap = function(mapId, places) {
 
   var latlngs = [];
   $.each(places, function(idx, place) {
-    if (place.centroid_lat && place.centroid_lng)
-      latlngs.push([place.centroid_lat, place.centroid_lng]);
+    if (place.centroid)
+      latlngs.push([place.centroid.lat, place.centroid.lon]);
   });    
   L.heatLayer(latlngs, { max: 1.5, maxZoom: 0, radius: 5, blur: 6 }).addTo(this.map);
 };

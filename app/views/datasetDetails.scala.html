@@ -174,7 +174,7 @@
       
         // Load places - limiting to the first 1 million places should be sufficient...
         var heatmap;
-        $.getJSON('@routes.DatasetController.listPlaces(dataset.id, 1000000)&verbose=false', function(data) {
+        $.getJSON('@routes.DatasetController.listPlaces(dataset.id, 1000000)&verbose=false', function(data) {          
           maxReferences = data.items[0].num_occurrences;
         
           // List top 5 places

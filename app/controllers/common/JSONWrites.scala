@@ -120,11 +120,13 @@ object JSONWrites {
     (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
     (JsPath \ "geometry").writeNullable[JsValue] ~
+    (JsPath \ "centroid").writeNullable[JsValue] ~
     (JsPath).writeNullable[IndexedPlaceNetwork]
   )(gRef => (
       gRef.uri,
       gRef.title,
       gRef.geometryJson.map(Json.parse(_)),
+      { if (!verbose) gRef.centroid.map(coord => Json.obj("lat" -> coord.y, "lon" -> coord.x)) else None },
       { if (verbose) Global.index.findNetworkByPlaceURI(gRef.uri) else None })) 
 
      
