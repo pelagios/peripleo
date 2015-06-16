@@ -1,78 +1,76 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Static resources
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Map static resources from the /public folder to the /assets URL path
-GET     /api-v3/static/*file                     controllers.Assets.at(path="/public", file)
+GET     /peripleo/static/*file                     controllers.Assets.at(path="/public", file)
 
-GET     /api-v3/new/search                       controllers.pages.SearchController.search
-GET     /api-v3/new/autosuggest                  controllers.pages.SearchController.autoSuggest(q: String)
-
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # API routes
-GET     /api-v3/datasets                         controllers.DatasetController.listAll(limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/datasets/:id                     controllers.DatasetController.getDataset(id: String)
-GET     /api-v3/datasets/:id/time                controllers.DatasetController.getTemporalProfile(id: String)
-GET     /api-v3/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+GET     /peripleo/datasets                         controllers.DatasetController.listAll(limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/datasets/:id                     controllers.DatasetController.getDataset(id: String)
+GET     /peripleo/datasets/:id/time                controllers.DatasetController.getTemporalProfile(id: String)
+GET     /peripleo/datasets/:id/items               controllers.DatasetController.listAnnotatedThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/datasets/:id/places              controllers.DatasetController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
+
+GET     /peripleo/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
+GET     /peripleo/items/:id/items                  controllers.AnnotatedThingController.listSubThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String, limit: Int ?= 20, offset: Int ?= 0)
+
+GET     /peripleo/annotations                      controllers.AnnotationController.listAll(limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
+
+GET     /peripleo/places                           controllers.PlaceController.listAll(gazetteer: String, bbox: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /peripleo/places/:uri                      controllers.PlaceController.getPlace(uri: String)
+GET     /peripleo/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
+GET     /peripleo/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
+
+GET     /peripleo/search                           controllers.SearchController.search
+GET     /peripleo/autosuggest                      controllers.SearchController.autoSuggest(q: String)
 
 ### Temporary hack ###
 
-GET     /api-v3/map                              controllers.pages.HomepageController.map
-GET     /api-v3/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/item-vectors                     controllers.PlaceController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/items/:id/network                controllers.AnnotatedThingController.getAdjacencyGraph(id: String)
-GET     /api-v3/pages/items/:id/network          controllers.pages.AnnotatedThingPagesController.getAdjacencyGraph(id: String)
+GET     /peripleo/map                              controllers.pages.HomepageController.map
+GET     /peripleo/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/item-vectors                     controllers.PlaceController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/items/:id/network                controllers.AnnotatedThingController.getAdjacencyGraph(id: String)
+GET     /peripleo/pages/items/:id/network          controllers.pages.AnnotatedThingPagesController.getAdjacencyGraph(id: String)
 
 ### Temporary hack ###
 
-
-
-GET     /api-v3/items                            controllers.AnnotatedThingController.listAll(limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/items/:id                        controllers.AnnotatedThingController.getAnnotatedThing(id: String)
-GET     /api-v3/items/:id/items                  controllers.AnnotatedThingController.listSubThings(id: String, limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/items/:id/places                 controllers.AnnotatedThingController.listPlaces(id: String, limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/items/:id/annotations            controllers.AnnotatedThingController.listAnnotations(id: String, limit: Int ?= 20, offset: Int ?= 0)
-
-GET     /api-v3/annotations                      controllers.AnnotationController.listAll(limit: Int ?= 20, offset: Int ?= 0)
-GET     /api-v3/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
-
-GET     /api-v3/places                           controllers.PlaceController.listAll(gazetteer: String, bbox: Option[String], limit: Option[Int], offset: Option[Int])
-GET     /api-v3/places/:uri                      controllers.PlaceController.getPlace(uri: String)
-GET     /api-v3/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
-GET     /api-v3/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
-
-GET     /api-v3/search                           controllers.SearchController.search
 
 # HTML view routes
-GET     /api-v3/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.getAnnotatedThing(id: String)
-GET     /api-v3/pages/datasets                   controllers.pages.DatasetPagesController.listAll
-GET     /api-v3/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
-GET     /api-v3/pages/places/:uri                controllers.pages.PlacePagesController.getPlace(uri: String)
-GET     /api-v3/pages/gazetteers/:name           controllers.pages.PlacePagesController.showGazetteer(name)
-GET     /api-v3/pages/search                     controllers.pages.HomepageController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int])
-GET     /api-v3/pages/advanced-search            controllers.pages.HomepageController.defineAdvancedSearch
-GET     /api-v3/pages/map                        controllers.pages.MapController.index
-GET     /api-v3/pages/map/data                   controllers.pages.MapController.masterHeatmap
-GET     /api-v3/                                 controllers.pages.HomepageController.index 
-GET     /api-v3                                  controllers.pages.HomepageController.index
+GET     /peripleo/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.getAnnotatedThing(id: String)
+GET     /peripleo/pages/datasets                   controllers.pages.DatasetPagesController.listAll
+GET     /peripleo/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
+GET     /peripleo/pages/places/:uri                controllers.pages.PlacePagesController.getPlace(uri: String)
+GET     /peripleo/pages/gazetteers/:name           controllers.pages.PlacePagesController.showGazetteer(name)
+GET     /peripleo/pages/search                     controllers.pages.HomepageController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int])
+GET     /peripleo/pages/advanced-search            controllers.pages.HomepageController.defineAdvancedSearch
+GET     /peripleo/pages/map                        controllers.pages.MapController.index
+GET     /peripleo/pages/map/data                   controllers.pages.MapController.masterHeatmap
+GET     /peripleo/                                 controllers.pages.HomepageController.index 
+GET     /peripleo                                  controllers.pages.HomepageController.index
 
 # Auth
-GET     /api-v3/login                            controllers.admin.AuthController.login
-POST    /api-v3/login                            controllers.admin.AuthController.authenticate
-GET     /api-v3/logout                           controllers.admin.AuthController.logout
+GET     /peripleo/login                            controllers.admin.AuthController.login
+POST    /peripleo/login                            controllers.admin.AuthController.authenticate
+GET     /peripleo/logout                           controllers.admin.AuthController.logout
 
 # Admin
-GET     /api-v3/admin/datasets                   controllers.admin.DatasetAdminController.index
-POST    /api-v3/admin/datasets                   controllers.admin.DatasetAdminController.uploadDataset
-DELETE  /api-v3/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
-POST    /api-v3/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
-POST    /api-v3/admin/datasets/:id/harvests      controllers.admin.DatasetAdminController.harvestDataset(id: String)
+GET     /peripleo/admin/datasets                   controllers.admin.DatasetAdminController.index
+POST    /peripleo/admin/datasets                   controllers.admin.DatasetAdminController.uploadDataset
+DELETE  /peripleo/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
+POST    /peripleo/admin/datasets/:id/annotations   controllers.admin.DatasetAdminController.uploadAnnotations(id: String)
+POST    /peripleo/admin/datasets/:id/harvests      controllers.admin.DatasetAdminController.harvestDataset(id: String)
 
-GET     /api-v3/admin/gazetteers                 controllers.admin.GazetteerAdminController.index
-POST    /api-v3/admin/gazetteers                 controllers.admin.GazetteerAdminController.uploadGazetteerDump
-DELETE  /api-v3/admin/gazetteers/:name           controllers.admin.GazetteerAdminController.deleteGazetteer(name: String)
+GET     /peripleo/admin/gazetteers                 controllers.admin.GazetteerAdminController.index
+POST    /peripleo/admin/gazetteers                 controllers.admin.GazetteerAdminController.uploadGazetteerDump
+DELETE  /peripleo/admin/gazetteers/:name           controllers.admin.GazetteerAdminController.deleteGazetteer(name: String)
 
-GET     /api-v3/admin/rebuild-suggester          controllers.admin.DatasetAdminController.rebuildAutoSuggestionIndex
+GET     /peripleo/admin/rebuild-suggester          controllers.admin.DatasetAdminController.rebuildAutoSuggestionIndex
 
-GET     /api-v3/admin/analytics                  controllers.admin.AnalyticsController.index
+GET     /peripleo/admin/analytics                  controllers.admin.AnalyticsController.index

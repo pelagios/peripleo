@@ -3,11 +3,9 @@ package controllers
 import controllers.common.JSONWrites._
 import global.Global
 import play.api.db.slick._
-import play.api.libs.json.Json
+import play.api.mvc.Action
+import play.api.libs.json.{ Json, JsObject }
 import scala.util.{ Success, Failure }
-import play.api.libs.json.JsObject
-import index.IndexFields
-import play.api.Logger
 
 object SearchController extends AbstractController {
 
@@ -69,6 +67,19 @@ object SearchController extends AbstractController {
       
       case Failure(exception) => BadRequest(Json.parse("{ \"error\": \"" + exception.getMessage + "\" }"))
     }
+  }
+  
+  def autoSuggest(query: String) = Action {
+    // We try exact matches first, and fuzzy matches from the suggester if no exact matches
+    val suggestions = { 
+      val exactMatches = Global.index.suggester.suggestCompletion(query, 5)
+      if (exactMatches.size > 0)
+        exactMatches
+      else
+        Global.index.suggester.suggestSimilar(query, 5)
+    }
+
+    Ok(Json.toJson(suggestions.map(result => Json.obj("key" -> result)) ))
   }
 
 }

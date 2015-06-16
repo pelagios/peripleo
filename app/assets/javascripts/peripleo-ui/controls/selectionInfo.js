@@ -119,7 +119,7 @@ define(['peripleo-ui/controls/thumbnailWidget',
         
         /** Fetches additional info about the places referenced by the item **/
         fetchItemExtras = function(item, callback) {
-          jQuery.getJSON('/api-v3/items/' + item.identifier + '/places', function(response) {
+          jQuery.getJSON('/peripleo/items/' + item.identifier + '/places', function(response) {
             item.num_unique_places = response.total;
             item.top_places = response.items;
             

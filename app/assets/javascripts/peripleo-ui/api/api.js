@@ -63,7 +63,7 @@ define(['peripleo-ui/events/events', 'peripleo-ui/api/apiFilterParser'], functio
 
         /** Builds the URL query string **/
         buildQueryURL = function(params, searchState) {
-          var url = '/api-v3/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT + '&facets=true&top_places=';
+          var url = '/peripleo/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT + '&facets=true&top_places=';
           
           if (!params)
             params = searchParams;
