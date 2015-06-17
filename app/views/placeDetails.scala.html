@@ -16,9 +16,9 @@
     <div id="header">
       <div id="header-menu">
         <div class="row">
-          <a class="pelagios-logo" href="@controllers.pages.routes.HomepageController.index">PELAGIOS API</a>
+          <a class="pelagios-logo" href="@controllers.pages.routes.LandingPageController.index">PELAGIOS API</a>
           <ul>
-            <li><a href="@controllers.pages.routes.HomepageController.index">Home</a></li>
+            <li><a href="@controllers.pages.routes.LandingPageController.index">Home</a></li>
             <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
             <li><a href="#">Places</a></li>
           </ul>
@@ -94,7 +94,7 @@
             var row =
               '<tr>' + 
               '  <td>' + r.dataset.publisher + '</td>' +
-              '  <td><a href="@{controllers.pages.routes.HomepageController.index}pages/search?dataset=' + r.dataset.id + '&places=' + encodeURIComponent('@place.uri') + '">' + r.dataset.title + '</a></td>' +
+              '  <td><a href="@{controllers.pages.routes.LandingPageController.index}pages/search?dataset=' + r.dataset.id + '&places=' + encodeURIComponent('@place.uri') + '">' + r.dataset.title + '</a></td>' +
               '  <td><span class="number">' + r.num_referencing_items + '</span></td>' +
               '</tr>';
               

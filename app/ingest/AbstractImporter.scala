@@ -5,7 +5,7 @@ import index.Index
 import index.places.IndexedPlace
 import java.math.BigInteger
 import java.security.MessageDigest
-import models.{ Associations, MasterHeatmap }
+import models.Associations
 import models.adjacency.{ PlaceAdjacency, PlaceAdjacencys }
 import models.core._
 import models.geo.GazetteerReference
@@ -152,10 +152,6 @@ abstract class AbstractImporter {
     val fulltext = topLevelThings.map(_._4).flatten
     Global.index.suggester.addTerms(titlesAndDescriptions ++ fulltext)
     Global.index.refresh()
-    
-    // Update the master heatmap
-    Logger.info("Updating master heatmap") 
-    MasterHeatmap.rebuild()
   }
     
   /** Utility method that returns the RDF format corresponding to a particular file extension **/

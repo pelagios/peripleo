@@ -12,9 +12,9 @@
     <div id="header">
       <div id="header-menu">
         <div class="row">
-          <a class="pelagios-logo" onclick="return false;" href="@controllers.pages.routes.HomepageController.index">PELAGIOS</a>
+          <a class="pelagios-logo" onclick="return false;" href="@controllers.pages.routes.LandingPageController.index">PELAGIOS</a>
           <ul>
-            <li class="current"><a onclick="return false;" href="@controllers.pages.routes.HomepageController.index">Home</a></li>
+            <li class="current"><a onclick="return false;" href="@controllers.pages.routes.LandingPageController.index">Home</a></li>
             <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Map</a></li>
             <li><a href="http://pelagios-project.blogspot.co.uk">Blog</a></li>
             <li><a href="#">About</a></li>
@@ -24,7 +24,7 @@
       
       <div id="header-body">
         <div id="search" class="row">
-          <form method="GET" action="@{controllers.pages.routes.HomepageController.index}new/search">
+          <form method="GET" action="@{controllers.pages.routes.LandingPageController.index}new/search">
           	<div class="form-container">
               <input type="text" name="query" autocomplete="off">
             </div>

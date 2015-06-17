@@ -19,7 +19,7 @@
           limit = 10000;
           
       var getNext = function(offset, limit, callback) {
-        $.getJSON('@{ controllers.pages.routes.HomepageController.index }places?gazetteer=@gazetteerName&offset=' + offset + '&limit=' + limit, callback);
+        $.getJSON('@{ controllers.pages.routes.LandingPageController.index }places?gazetteer=@gazetteerName&offset=' + offset + '&limit=' + limit, callback);
       };
       
       var handleResult = function(result) {

@@ -17,9 +17,9 @@
     <div id="header">
       <div id="header-menu">
         <div class="row">
-          <a class="pelagios-logo" href="@controllers.pages.routes.HomepageController.index">PELAGIOS API</a>
+          <a class="pelagios-logo" href="@controllers.pages.routes.LandingPageController.index">PELAGIOS API</a>
           <ul>
-            <li><a href="@controllers.pages.routes.HomepageController.index">Home</a></li>
+            <li><a href="@controllers.pages.routes.LandingPageController.index">Home</a></li>
             <li><a href="@controllers.pages.routes.DatasetPagesController.listAll">Datasets</a></li>
             <li><a href="#">Places</a></li>
           </ul>
@@ -138,7 +138,7 @@
           $.getJSON('@routes.DatasetController.listAnnotatedThings(dataset.id)?offset=' + offset + '&limit=' + pagesize, function(data) {
             var newTable = $('<tbody></tbody>');
             $.each(data.items, function(idx, item) {
-              var title = (item.homepage) ? '<a href="@{controllers.pages.routes.HomepageController.index}pages/items/' + item.identifier + '">' + item.title + '</a>' : item.title;
+              var title = (item.homepage) ? '<a href="@{controllers.pages.routes.LandingPageController.index}pages/items/' + item.identifier + '">' + item.title + '</a>' : item.title;
               newTable.append('<tr>' + 
                                 '<td>' + title + '</td>' +
                                 '<td class="center">' + item.num_annotations + '</td>' +

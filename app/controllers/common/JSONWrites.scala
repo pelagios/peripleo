@@ -173,12 +173,14 @@ object JSONWrites {
       profile.maxValue,
       profile.histogram.map(t => (t._1.toString, t._2))))
       
+  /*
   implicit val heatmapPointWrites: Writes[HeatmapPoint] = (
     (JsPath \ "uri").write[String] ~
     (JsPath \ "lat").write[Double] ~
     (JsPath \ "lon").write[Double] ~
     (JsPath \ "weight").write[Int]
   )(pt => (pt.uri, pt.lat, pt.lon, pt.weight))
+  */
       
   implicit val facetTreeWrites: Writes[FacetTree] =
     (JsPath \ "facets").write[Seq[JsValue]].contramap(tree => tree.dimensions().map(dimension => {

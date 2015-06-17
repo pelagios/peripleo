@@ -137,10 +137,12 @@ object Global extends GlobalSettings {
         PlaceAdjacencys.create
       }  
       
+      /*
       if (MTable.getTables("master_heatmap").list.isEmpty) {
         Logger.info("DB table 'master_heatmap' does not exist - creating")
         MasterHeatmap.create
       }    
+      */
       
       if (MTable.getTables("access_log").list.isEmpty) {
         Logger.info("DB table 'access_log' does not exit - creating")

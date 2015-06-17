@@ -33,7 +33,6 @@ GET     /peripleo/autocomplete                     controllers.SearchController.
 
 ### Temporary hack ###
 
-GET     /peripleo/map                              controllers.pages.HomepageController.map
 GET     /peripleo/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
 GET     /peripleo/item-vectors                     controllers.PlaceController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
 GET     /peripleo/items/:id/network                controllers.AnnotatedThingController.getAdjacencyGraph(id: String)
@@ -48,12 +47,9 @@ GET     /peripleo/pages/datasets                   controllers.pages.DatasetPage
 GET     /peripleo/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
 GET     /peripleo/pages/places/:uri                controllers.pages.PlacePagesController.getPlace(uri: String)
 GET     /peripleo/pages/gazetteers/:name           controllers.pages.PlacePagesController.showGazetteer(name)
-GET     /peripleo/pages/search                     controllers.pages.HomepageController.search(limit: Int ?= 20, offset: Int ?= 0, query: Option[String], type: Option[String], dataset: Option[String], places: Option[String], from: Option[Int], to: Option[Int])
-GET     /peripleo/pages/advanced-search            controllers.pages.HomepageController.defineAdvancedSearch
-GET     /peripleo/pages/map                        controllers.pages.MapController.index
-GET     /peripleo/pages/map/data                   controllers.pages.MapController.masterHeatmap
-GET     /peripleo/                                 controllers.pages.HomepageController.index 
-GET     /peripleo                                  controllers.pages.HomepageController.index
+GET     /peripleo/map                              controllers.pages.LandingPageController.map
+GET     /peripleo/                                 controllers.pages.LandingPageController.index 
+GET     /peripleo                                  controllers.pages.LandingPageController.index
 
 # Auth
 GET     /peripleo/login                            controllers.admin.AuthController.login
