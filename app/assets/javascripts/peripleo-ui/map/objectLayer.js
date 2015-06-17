@@ -57,6 +57,9 @@ define(['peripleo-ui/events/events'], function(Events) {
         /** The map pin highlighting the currently emphasised marker **/
         emphasisPin = false,
         
+        /** Flag indicating whether the UI is in subsearch state **/
+        isStateSubsearch = false,
+        
         /** 
          * Creates a string representation of a GeoJSON geometry to be used as a
          * key in the marker index. (The only requirements are that the representation
@@ -260,6 +263,14 @@ define(['peripleo-ui/events/events'], function(Events) {
     map.on('click', function(e) { 
       selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); 
     });
+    
+    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, function() {
+      isStateSubsearch = true;
+    });
+    
+    eventBroker.addHandler(Events.TO_STATE_SEARCH, function() {
+      isStateSubsearch = false;
+    });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       var  hasTimeIntervalChanged = 
@@ -267,7 +278,8 @@ define(['peripleo-ui/events/events'], function(Events) {
       
       // 'IxD policy': if the time interval changed, we want to grey-out all markers that are
       // not top places in this response
-      update(response.top_places, hasTimeIntervalChanged);
+      if (!isStateSubsearch)
+        update(response.top_places, hasTimeIntervalChanged);
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 

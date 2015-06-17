@@ -92,12 +92,6 @@ define(['peripleo-ui/events/events',
             updateTotalsCount();
         },
         
-        /** 
-         * This is trickier: in normal search state, the view update is all we need
-         */
-        onSearchResponse = function(response) {
-        },
-        
         /** Switch to 'search' state **/
         toStateSearch = function() {
           isStateSubsearch = false;
@@ -181,7 +175,6 @@ define(['peripleo-ui/events/events',
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, onViewUpdate);    
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, onViewUpdate); // Just re-use view update handler
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, onSearchResponse);
     
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
     eventBroker.addHandler(Events.SELECTION, toStateSearch);
