@@ -23,7 +23,7 @@ GET     /peripleo/items/:id/annotations            controllers.AnnotatedThingCon
 GET     /peripleo/annotations                      controllers.AnnotationController.listAll(limit: Int ?= 20, offset: Int ?= 0)
 GET     /peripleo/annotations/:id                  controllers.AnnotationController.getAnnotation(id: java.util.UUID)
 
-GET     /peripleo/places                           controllers.PlaceController.listAll(gazetteer: String, bbox: Option[String], limit: Option[Int], offset: Option[Int])
+GET     /peripleo/places                           controllers.PlaceController.listPlaces(gazetteer: String, bbox: Option[String], limit: Option[Int], offset: Option[Int])
 GET     /peripleo/places/:uri                      controllers.PlaceController.getPlace(uri: String)
 GET     /peripleo/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
 GET     /peripleo/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
@@ -31,23 +31,22 @@ GET     /peripleo/places/:uri/occurrences          controllers.PlaceController.l
 GET     /peripleo/search                           controllers.SearchController.search
 GET     /peripleo/autocomplete                     controllers.SearchController.autoComplete(q: String)
 
-### Temporary hack ###
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# HTML views
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-GET     /peripleo/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
-GET     /peripleo/item-vectors                     controllers.PlaceController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
-GET     /peripleo/items/:id/network                controllers.AnnotatedThingController.getAdjacencyGraph(id: String)
-GET     /peripleo/pages/items/:id/network          controllers.pages.AnnotatedThingPagesController.getAdjacencyGraph(id: String)
-
-### Temporary hack ###
-
-
-# HTML view routes
-GET     /peripleo/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.getAnnotatedThing(id: String)
 GET     /peripleo/pages/datasets                   controllers.pages.DatasetPagesController.listAll
-GET     /peripleo/pages/datasets/:id               controllers.pages.DatasetPagesController.getDataset(id: String)
-GET     /peripleo/pages/places/:uri                controllers.pages.PlacePagesController.getPlace(uri: String)
+GET     /peripleo/pages/datasets/:id               controllers.pages.DatasetPagesController.showDataset(id: String)
+
+GET     /peripleo/pages/items/:id                  controllers.pages.AnnotatedThingPagesController.showAnnotatedThing(id: String)
+
+GET     /peripleo/pages/gazetteers                 controllers.pages.PlacePagesController.listGazetteers
 GET     /peripleo/pages/gazetteers/:name           controllers.pages.PlacePagesController.showGazetteer(name)
+
+GET     /peripleo/pages/places/:uri                controllers.pages.PlacePagesController.showPlace(uri: String)
+
 GET     /peripleo/map                              controllers.pages.LandingPageController.map
+
 GET     /peripleo/                                 controllers.pages.LandingPageController.index 
 GET     /peripleo                                  controllers.pages.LandingPageController.index
 
@@ -70,3 +69,13 @@ DELETE  /peripleo/admin/gazetteers/:name           controllers.admin.GazetteerAd
 GET     /peripleo/admin/rebuild-suggester          controllers.admin.DatasetAdminController.rebuildAutoSuggestionIndex
 
 GET     /peripleo/admin/analytics                  controllers.admin.AnalyticsController.index
+
+
+### Temporary hack ###
+
+GET     /peripleo/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/item-vectors                     controllers.experimental.ExperimentalPagesController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
+GET     /peripleo/items/:id/network                controllers.AnnotatedThingController.getAdjacencyGraph(id: String)
+GET     /peripleo/pages/items/:id/network          controllers.experimental.ExperimentalPagesController.getAdjacencyGraph(id: String)
+
+### Temporary hack ###

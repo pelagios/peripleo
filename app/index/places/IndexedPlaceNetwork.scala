@@ -53,7 +53,7 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   lazy val geometry: Option[Geometry] = Option(doc.get(IndexFields.GEOMETRY)).map(geoJson => new GeometryJSON().read(geoJson.trim))
   
   /** Network nodes and edges **/
-  val (nodes, edges) = {
+  lazy val (nodes, edges) = {
     val links = places.flatMap(p => Seq.fill(p.matches.size)(p.uri).zip(p.matches))   
     val nodes = (links.map(_._1) ++ links.map(_._2)).distinct.map(uri => { 
       // If the node is an indexed place, it's an inner node; otherwise we require > 1 links to the node

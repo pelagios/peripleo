@@ -172,16 +172,7 @@ object JSONWrites {
       profile.boundsEnd,
       profile.maxValue,
       profile.histogram.map(t => (t._1.toString, t._2))))
-      
-  /*
-  implicit val heatmapPointWrites: Writes[HeatmapPoint] = (
-    (JsPath \ "uri").write[String] ~
-    (JsPath \ "lat").write[Double] ~
-    (JsPath \ "lon").write[Double] ~
-    (JsPath \ "weight").write[Int]
-  )(pt => (pt.uri, pt.lat, pt.lon, pt.weight))
-  */
-      
+  
   implicit val facetTreeWrites: Writes[FacetTree] =
     (JsPath \ "facets").write[Seq[JsValue]].contramap(tree => tree.dimensions().map(dimension => {
       val topChildren = tree.getTopChildren(dimension)
@@ -275,7 +266,6 @@ object JSONWrites {
       node.place.map(_.label),
       node.place.map(_.sourceGazetteer),
       node.isInnerNode))
-      
 
   implicit val networkEdgeWrites: Writes[NetworkEdge] = (
     (JsPath \ "source").write[Int] ~
@@ -286,7 +276,6 @@ object JSONWrites {
       edge.target,
       edge.isInnerEdge)) 
       
-  /** @deprecated **/
   implicit val placeNetworkWrites: Writes[IndexedPlaceNetwork] = (
     (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
@@ -297,7 +286,8 @@ object JSONWrites {
     (JsPath \ "place_category").writeNullable[String] ~
     (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
-    (JsPath \ "geometry").writeNullable[Geometry]
+    (JsPath \ "geometry").writeNullable[Geometry] ~ 
+    (JsPath \ "graph").write[JsValue]
   )(network =>
       (network.seedURI,
        network.title,
@@ -308,7 +298,8 @@ object JSONWrites {
        network.places.flatMap(_.category).headOption.map(_.toString),
        network.geoBounds,
        None, // TODO temporal bounds
-       network.geometry))  
+       network.geometry,
+       Json.obj("edges" -> Json.toJson(network.edges), "nodes" -> Json.toJson(network.nodes))))  
        
   implicit val topPlaceWrites: Writes[(IndexedPlaceNetwork, Int)] = (
     (JsPath).write[IndexedPlaceNetwork] ~

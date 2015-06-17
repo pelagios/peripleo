@@ -140,7 +140,6 @@ abstract class AbstractController extends Controller {
     }
   }
   
-  
   private def isNoBot(userAgent: String): Boolean = {
     // TODO add some basic rules to filter out at least Google and Twitter
     true

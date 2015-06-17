@@ -10,10 +10,11 @@ import play.api.mvc.Action
 import play.api.db.slick._
 import play.api.libs.json.Json
 import models.geo.Gazetteers
+import play.api.Logger
 
 object PlaceController extends AbstractController {
 
-  def listAll(gazetteerName:String, bbox: Option[String], limit: Option[Int], offset: Option[Int]) = loggingAction { implicit session => 
+  def listPlaces(gazetteerName:String, bbox: Option[String], limit: Option[Int], offset: Option[Int]) = loggingAction { implicit session => 
     // Map BBox coordinates
     val bboxTupled = bbox.flatMap(str => {
       val coords = str.split(",").map(_.trim)
@@ -32,20 +33,6 @@ object PlaceController extends AbstractController {
       NotFound(Json.parse("{ \"message\": \"Place not found.\" }"))
     }
   } 
-  
-  def listItemVectors(limit: Int, offset: Int) = DBAction { implicit session =>
-    // val places = Global.index.listAllPlaceNetworks(offset, limit).flatMap(_.places).map(p => (p.label, p.uri))
-    val vectors = Associations.findThingVectorsForPlaces()
-    val response = vectors.keySet.map(uri => {
-      val place = Global.index.findPlaceByURI(uri)
-    
-      uri + ";" +
-        place.map(_.label).getOrElse("?") + ";" +
-        vectors.get(uri).map(_.mkString(",")).getOrElse("")
-    }).mkString("\n")
-    
-    Ok(response)
-  }
 
   def getPlace(uri: String) = loggingAction { implicit session =>
     val place = Global.index.findPlaceByURI(uri)
@@ -56,6 +43,7 @@ object PlaceController extends AbstractController {
   }
   
   def getNetwork(uri: String) = loggingAction { implicit session =>
+    Logger("PlaceController.getNetwork")
     val network = Global.index.findNetworkByPlaceURI(uri)
     if(network.isDefined) {
       jsonOk(Json.toJson(network), session.request)

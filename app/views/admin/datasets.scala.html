@@ -114,7 +114,7 @@
           	    <td></td>
           	  }
           	  </td>
-              <td><a href="@controllers.pages.routes.DatasetPagesController.getDataset(dataset.id)">@dataset.title</a></td>
+              <td><a href="@controllers.pages.routes.DatasetPagesController.showDataset(dataset.id)">@dataset.title</a></td>
               <td>@dataset.publisher</td>
               <td>@dataset.created</td>
               <td class="center">@models.core.Annotations.countByDataset(dataset.id)</td>

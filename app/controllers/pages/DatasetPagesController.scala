@@ -15,7 +15,7 @@ object DatasetPagesController extends AbstractController {
     Ok(views.html.datasetList(datasets, things, annotations))
   }
   
-  def getDataset(id: String) = loggingAction { implicit session =>
+  def showDataset(id: String) = loggingAction { implicit session =>
     val dataset = Datasets.findById(id)
     if (dataset.isDefined) {
       val id = dataset.get.id

@@ -26,7 +26,7 @@
         <div class="row">
           <h2>
             @for(dataset <- datasetHierarchy) {
-          	  <a href="@controllers.pages.routes.DatasetPagesController.getDataset(dataset.id)">@dataset.title</a> &raquo;
+          	  <a href="@controllers.pages.routes.DatasetPagesController.showDataset(dataset.id)">@dataset.title</a> &raquo;
           	}
           </h2>
           <h1>

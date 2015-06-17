@@ -9,15 +9,6 @@ import controllers.AbstractController
 
 object PlacePagesController extends AbstractController {
   
-  def getPlace(uri: String) = loggingAction { implicit session =>
-    val network = Global.index.findNetworkByPlaceURI(Index.normalizeURI(uri))
-    if (network.isDefined) {
-      Ok(views.html.placeDetails(network.flatMap(_.getPlace(uri)).get, network.get))
-    } else {
-      NotFound
-    }
-  }
-  
   def listGazetteers() = DBAction { implicit session =>
     // TODO implement
     Ok("")
@@ -25,6 +16,15 @@ object PlacePagesController extends AbstractController {
   
   def showGazetteer(name: String) = Action { 
     Ok(views.html.showGazetteer(name))    
+  }
+  
+  def showPlace(uri: String) = loggingAction { implicit session =>
+    val network = Global.index.findNetworkByPlaceURI(Index.normalizeURI(uri))
+    if (network.isDefined) {
+      Ok(views.html.placeDetails(network.flatMap(_.getPlace(uri)).get, network.get))
+    } else {
+      NotFound
+    }
   }
 
 }

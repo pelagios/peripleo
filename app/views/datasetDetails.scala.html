@@ -31,7 +31,7 @@
           @if(supersets.size > 0) {
           	<h2>
           	  @for(superset <- supersets) {
-          	  	<a href="@controllers.pages.routes.DatasetPagesController.getDataset(superset.id)">@superset.title</a> &raquo;
+          	  	<a href="@controllers.pages.routes.DatasetPagesController.showDataset(superset.id)">@superset.title</a> &raquo;
           	  }
             </h2>
           }
@@ -75,7 +75,7 @@
       	  <h2>Subsets</h2>
       	  <ul>
       	    @for(subset <- subsets) {
-      	      <li><a href="@controllers.pages.routes.DatasetPagesController.getDataset(subset.id)">@subset.title</a></li>
+      	      <li><a href="@controllers.pages.routes.DatasetPagesController.showDataset(subset.id)">@subset.title</a></li>
       	    }
       	  </ul>
       	</div>
@@ -121,7 +121,7 @@
           for (var i=shown, j=shown + numResults; i<j; i++) {
             var occurrences = places[i].num_occurrences;
             var html = meterTemplate
-              .replace('@@href@@', '../places/' + encodeURIComponent(places[i].gazetteer_uri))
+              .replace('@@href@@', '../places/' + encodeURIComponent(places[i].identifier))
               .replace('@@title@@', places[i].title)
               .replace('@@width@@', (occurrences / maxReferences) * 100)
               .replace('@@occurrences@@', occurrences);

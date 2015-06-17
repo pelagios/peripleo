@@ -52,7 +52,7 @@
         <h2>@place.label in Other Gazetteers</h2>  
         <div class="close-matches">      
           @for(place <- network.places.filter(_.uri != place.uri)) {
-            <a href="@controllers.pages.routes.PlacePagesController.getPlace(place.uri)" title="@place.label">
+            <a href="@controllers.pages.routes.PlacePagesController.showPlace(place.uri)" title="@place.label">
              @tags.gazetteerURI(place.uri)
             </a>
           }
@@ -77,7 +77,7 @@
     <script type="text/javascript">
       (function() {
         $.getJSON('@routes.PlaceController.getNetwork(place.uri)', function(data) {
-          new window.PlaceNetwork('network', data.nodes, data.edges);
+          new window.PlaceNetwork('network', data.graph.nodes, data.graph.edges);
         });
         
         @if(place.centroid.isDefined) {
