@@ -66,7 +66,7 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
         /** Hides the result list **/
         hide = function() {
           if (!ignoreUpdates)
-            element.slideUp(SLIDE_DURATION, function() { element.css({ height: 'auto' }); });
+            element.velocity('slideUp' , { duration: SLIDE_DURATION, complete: function() { element.css({ height: 'auto' }); } });
         },
         
         /** 
@@ -81,15 +81,18 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
           if (!element.is(':visible')) { // Currently hidden - show
             if (results.length > 0) {
               rebuildList(results);
-              element.slideDown({ duration: SLIDE_DURATION, complete: constrainHeight });
+              element.velocity('slideDown', { duration: SLIDE_DURATION, complete: constrainHeight });
             }
           } else { // Just replace the list
             element.css({ height: 'auto' });  
-            element.slideUp(SLIDE_DURATION, function() {
-              rebuildList(results);
-              element.css({ height: 'auto' });
-              element.slideDown(SLIDE_DURATION, constrainHeight);
-            });
+            element.velocity('slideUp', 
+              { duration:SLIDE_DURATION, 
+                complete: function() {
+                  rebuildList(results);
+                  element.css({ height: 'auto' });
+                  element.velocity('slideDown', { duration: SLIDE_DURATION, complete: constrainHeight });
+                }
+              });
           }
         },        
         
@@ -182,7 +185,7 @@ define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Form
       // If there was a user-supplied query or place filter we open automatically
       if (response.params.query || response.params.place) { 
         rebuildList(response.items);
-        element.slideDown(SLIDE_DURATION, constrainHeight);
+        element.velocity('slideDown', { duration: SLIDE_DURATION, complete: constrainHeight });
       }
       
       setTimeout(function() { ignoreUpdates = false; }, KEEP_OPEN_PERIOD);

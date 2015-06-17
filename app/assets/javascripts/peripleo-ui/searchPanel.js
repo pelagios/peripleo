@@ -25,6 +25,7 @@ define(['peripleo-ui/events/events',
           '  <div id="searchbox">' +
           '    <form>' +
           '      <input type="text" id="query" name="query" autocomplete="off">' +
+          '      <span id="subsearch-indicator" class="icon">&#xf041;</span>' +
           '      <span id="search-icon" class="icon">&#xf002;</span>' +
           '      <div id="button-listall">' +
           '        <span class="list-all"><span class="icon">&#xf03a;</span> <span class="label">List all results</span></span>' +
@@ -40,8 +41,9 @@ define(['peripleo-ui/events/events',
         /** DOM element shorthands **/
         searchForm = element.find('form'),
         searchInput = searchForm.find('input'),
-        searchIcon = element.find('#search-icon'),
-        btnListAll = element.find('#button-listall'),
+        subsearchIndicator = searchForm.find('#subsearch-indicator'),
+        searchIcon = searchForm.find('#search-icon'),
+        btnListAll = searchForm.find('#button-listall'),
         listAllTotals = btnListAll.find('.total'),
         
         filterPanelContainer = element.find('#filterPanel'),
@@ -76,10 +78,11 @@ define(['peripleo-ui/events/events',
         },
         
         /** Handler for the 'X' clear button **/
-        onClearSearch = function() {
+        onResetSearch = function() {
           autoSuggest.clear();
           searchForm.submit();
           updateIcon();
+          eventBroker.fireEvent(Events.TO_STATE_SEARCH);
         },
         
         /** We keep the total search result count for display in the flat 'List All' button **/
@@ -98,6 +101,8 @@ define(['peripleo-ui/events/events',
         /** Switch to 'search' state **/
         toStateSearch = function() {
           isStateSubsearch = false;
+          subsearchIndicator.hide();
+          searchInput.removeClass('search-at');
           btnListAll.hide();
           filterPanelContainer.insertBefore(selectionInfoContainer);
         },
@@ -111,6 +116,11 @@ define(['peripleo-ui/events/events',
             searchInput.val('');
             updateIcon();
           }
+          
+          // Show indicator icon
+          subsearchIndicator.show();
+          searchInput.addClass('search-at');
+          searchInput.focus();
           
           // Update footer 
           updateTotalsCount();
@@ -148,9 +158,10 @@ define(['peripleo-ui/events/events',
       }
     });
        
-    searchForm.on('click', '.clear', onClearSearch);
+    searchForm.on('click', '.clear', onResetSearch);
     
-    // Flat 'list-all' button only shown in subsearch state
+    // Subsearch indicator and 'list-all' button only shown in subsearch state
+    subsearchIndicator.hide();
     btnListAll.hide();
         
     // Append panel to the DOM

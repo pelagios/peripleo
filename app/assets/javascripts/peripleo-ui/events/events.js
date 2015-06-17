@@ -96,6 +96,11 @@ define(function() {
     TO_STATE_SUB_SEARCH : 'toStateSubSearch',
     
     /**
+     * The users switched back to normal search state.
+     */    
+    TO_STATE_SEARCH : 'toStateSearch',
+    
+    /**
      * Requests a one-time search from the API. The result will not trigger the global
      * event pool; the search request will always be fired immediately (i.e. not affected
      * by caching or delay policies); and the response will be passed back to a callback
