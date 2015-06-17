@@ -25,8 +25,8 @@ util.licenseIcon = function(url) {
 util.formatGazetteerURI = function(uri) {
   if (uri.indexOf('http://pleiades.stoa.org/places/') > -1) {
     return 'pleiades:' + uri.substr(32);
-  } else if (uri.indexOf('http://www.imperium.ahlfeldt.se/places/') > -1) {
-    return 'dare:' + uri.substr(39);
+  } else if (uri.indexOf('http://dare.ht.lu.se/places/') > -1) {
+    return 'dare:' + uri.substr(28);
   } else if (uri.indexOf('http://gazetteer.dainst.org/place/') > -1) {
 	return 'dai:' + uri.substr(34);
   } else if (uri.indexOf('http://sws.geonames.org/') > -1) {

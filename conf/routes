@@ -50,12 +50,18 @@ GET     /peripleo/map                              controllers.pages.LandingPage
 GET     /peripleo/                                 controllers.pages.LandingPageController.index 
 GET     /peripleo                                  controllers.pages.LandingPageController.index
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Auth
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 GET     /peripleo/login                            controllers.admin.AuthController.login
 POST    /peripleo/login                            controllers.admin.AuthController.authenticate
 GET     /peripleo/logout                           controllers.admin.AuthController.logout
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Admin
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 GET     /peripleo/admin/datasets                   controllers.admin.DatasetAdminController.index
 POST    /peripleo/admin/datasets                   controllers.admin.DatasetAdminController.uploadDataset
 DELETE  /peripleo/admin/datasets/:id               controllers.admin.DatasetAdminController.deleteDataset(id: String)
@@ -66,13 +72,15 @@ GET     /peripleo/admin/gazetteers                 controllers.admin.GazetteerAd
 POST    /peripleo/admin/gazetteers                 controllers.admin.GazetteerAdminController.uploadGazetteerDump
 DELETE  /peripleo/admin/gazetteers/:name           controllers.admin.GazetteerAdminController.deleteGazetteer(name: String)
 
-GET     /peripleo/admin/rebuild-suggester          controllers.admin.DatasetAdminController.rebuildAutoSuggestionIndex
-
 GET     /peripleo/admin/analytics                  controllers.admin.AnalyticsController.index
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ... Experimental ...
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### Temporary hack ###
+### Temporary hacks ###
 
+GET     /peripleo/admin/rebuild-suggester          controllers.admin.DatasetAdminController.rebuildAutoSuggestionIndex
 GET     /peripleo/place-vectors                    controllers.AnnotatedThingController.listPlaceVectors(limit: Int ?= 20, offset: Int ?= 0)
 GET     /peripleo/item-vectors                     controllers.experimental.ExperimentalPagesController.listItemVectors(limit: Int ?= 20, offset: Int ?= 0)
 GET     /peripleo/items/:id/network                controllers.AnnotatedThingController.getAdjacencyGraph(id: String)

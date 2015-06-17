@@ -18,7 +18,7 @@ object LandingPageController extends AbstractController {
   }
   
   def map() = loggingAction { implicit session =>
-    Ok(views.html.browsableMap())
+    Ok(views.html.map())
   }
 
 }

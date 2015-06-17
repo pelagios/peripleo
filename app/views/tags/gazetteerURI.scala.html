@@ -7,8 +7,8 @@
     case s if s.startsWith("http://pleiades.stoa.org/places/") => 
       <span class={ cssClass + " pleiades" }>pleiades:{ s.substring(32) }</span>
       
-    case s if s.startsWith("http://www.imperium.ahlfeldt.se/places/") => 
-      <span class={ cssClass + " dare" }>dare:{ s.substring(39) }</span>
+    case s if s.startsWith("http://dare.ht.lu.se/places/") => 
+      <span class={ cssClass + " dare" }>dare:{ s.substring(28) }</span>
       
     case s if s.startsWith("http://gazetteer.dainst.org/place/") =>
       <span class={ cssClass + " idai" }>dai:{ s.substring(34) }</span>
