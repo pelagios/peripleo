@@ -69,7 +69,7 @@ object SearchController extends AbstractController {
     }
   }
   
-  def autoSuggest(query: String) = Action {
+  def autoComplete(query: String) = Action {
     // We try exact matches first, and fuzzy matches from the suggester if no exact matches
     val suggestions = { 
       val exactMatches = Global.index.suggester.suggestCompletion(query, 5)
@@ -79,7 +79,7 @@ object SearchController extends AbstractController {
         Global.index.suggester.suggestSimilar(query, 5)
     }
 
-    Ok(Json.toJson(suggestions.map(result => Json.obj("key" -> result)) ))
+    Ok(Json.toJson(suggestions.map(result => Json.obj("val" -> result)) ))
   }
 
 }

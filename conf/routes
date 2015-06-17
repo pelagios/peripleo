@@ -29,7 +29,7 @@ GET     /peripleo/places/:uri/network              controllers.PlaceController.g
 GET     /peripleo/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
 
 GET     /peripleo/search                           controllers.SearchController.search
-GET     /peripleo/autosuggest                      controllers.SearchController.autoSuggest(q: String)
+GET     /peripleo/autocomplete                     controllers.SearchController.autoComplete(q: String)
 
 ### Temporary hack ###
 

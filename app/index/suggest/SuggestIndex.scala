@@ -73,7 +73,7 @@ class SuggestIndex(directory: Path, placeSearcherManager: SearcherTaxonomyManage
   }
   
   def suggestCompletion(query: String, limit: Int): Seq[String] =
-    suggester.lookup(query, false, limit).asScala.map(_.key.toString).sortBy(_.size)
+    suggester.lookup(query, false, limit).asScala.map(_.key.toString) // .sortBy(_.size)
   
   def suggestSimilar(query: String, limit: Int): Seq[String] =
     spellchecker.suggestSimilar(query, limit)

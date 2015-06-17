@@ -6,9 +6,9 @@ define(function() {
       highlight: true,
       minLength: 1
     },{
-      displayKey: 'key',
+      displayKey: 'val',
       source: function(query, callback) {
-        jQuery.getJSON('/peripleo/autosuggest?q=' + query, function(results) {
+        jQuery.getJSON('/peripleo/autocomplete?q=' + query, function(results) {
           callback(results);
         });
       }
