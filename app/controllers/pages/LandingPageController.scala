@@ -14,7 +14,8 @@ object LandingPageController extends AbstractController {
   
   def index() = loggingAction { implicit session =>
     // Placeholder for a future landing page - for now we just redirect to the map
-    Redirect(controllers.pages.routes.LandingPageController.map())
+    // Redirect(controllers.pages.routes.LandingPageController.map())
+    Ok(views.html.landingPage())
   }
   
   def map() = loggingAction { implicit session =>
