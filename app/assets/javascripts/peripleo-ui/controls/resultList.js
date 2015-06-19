@@ -1,38 +1,22 @@
 /** The result list **/
 define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, Events) {
 
-  var SLIDE_DURATION = 180,
-  
-      KEEP_OPEN_PERIOD = 500;
+  var SLIDE_DURATION = 180, OPEN_DELAY = 380;
 
-  var ResultList = function(parent, eventBroker) {
-    var element = jQuery(
-          '<div id="search-results">' +
-          '  <ul></ul>' +
-          '</div>'),
-          
-        margin, top, // To be set after element was added to DOM
-        
+  var ResultList = function(container, eventBroker) {
+    
+    var element = jQuery('<div id="search-results"><ul></ul></div>'),
+
+        /** DOM element shorthands **/       
         list = element.find('ul'),
-        
-        /** TODO revisit - do we need this? **/
-        pendingQuery = false,
-        
-        /** Helper flag - forces the list to ignore updates and hide()-calls **/
-        ignoreUpdates = false,
-        
-        /** Helper flag - indicates that the current list represents a sub-search result **/
-        subsearch = false,
           
-        /** The currently buffered search results **/
-        currentResults = [],
+        /** Most recent search results **/
+        currentSearchResults = [],
         
-        /** Helper that sets the CSS max-height property on the element **/
-        resetMaxHeight = function() {
-          element.css('max-height', parent.height() - top);
-        },
+        /** Most recent subsearch results **/
+        currentSubsearchResults = [],
         
-        /** Checks current height and limits to max screen height **/
+        /** Checks current height and limits to max screen height *
         constrainHeight = function() {
           var height, availableHeight;
           
@@ -47,9 +31,9 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
               element.css('height', availableHeight - margin);
               
           }
-        },
+        },*/
                 
-        /** Toggles visibility of the result list **/
+        /** Toggles visibility of the result list **
         toggle = function() {
           if (element.is(':visible')) { // List visible
             if (subsearch) { // The list shows sub-search results - show currentResults instead
@@ -62,22 +46,94 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
             show();
           }
         },
+        */
+        
+        /**
+         * Helper that generates the appropriate icon span for a result.
+         * 
+         * This will get more complex as we introduce more types in the future.
+         */
+        getIcon = function(result) {
+          if (result.object_type === 'Place')
+            return '<span class="icon" title="Place">&#xf041;</span>';
+          else 
+            return '<span class="icon" title="Item">&#xf219;</span>';
+        },
+        
+        /** Creates the HTML for a single search result entry **/
+        renderResult = function(result) {
+          var icon = getIcon(result),
+              html = '<li><h3>' + icon + result.title + '</h3>';
+
+          if (result.temporal_bounds) {
+            html += '<p class="temp-bounds">';
+            if (result.temporal_bounds.start === result.temporal_bounds.end)
+              html += Formatting.formatYear(result.temporal_bounds.start);
+            else 
+              html += Formatting.formatYear(result.temporal_bounds.start) + ' - ' + Formatting.formatYear(result.temporal_bounds.end);
+            html += '</p>';
+          }
+              
+          if (result.names)
+            html += '<p class="names">' + result.names.slice(0, 8).join(', ') + '</p>';
+
+          if (result.description) 
+            html += '<p class="description">' + result.description + '</p>';
+              
+          if (result.object_type === 'Place') {
+            html += '<ul class="uris">' + Formatting.formatGazetteerURI(result.identifier);
+
+            if (result.matches)
+              jQuery.each(result.matches, function(idx, uri) {
+                  html += Formatting.formatGazetteerURI(uri);
+                });
+              
+            html += '</ul>';
+          }
+          
+          if (result.dataset_path)
+            html += '<p class="source">Source:' +
+                    ' <span data-id="' + result.dataset_path[0].id + '">' + result.dataset_path[0].title + '</span>' +
+                    '</p>';
+          
+          return jQuery(html + '</li>');
+        }
+                
+        rebuildList = function(results) {
+          var rows = jQuery.map(results, function(result) {
+            var li = renderResult(result);
+            li.mouseenter(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, result); });
+            li.mouseleave(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT); });
+            li.click(function() {
+              hide();                
+              eventBroker.fireEvent(Events.SELECT_RESULT, [ result ]);
+            });
+            return li;
+          });
+          
+          list.empty();
+          list.append(rows);          
+        },
 
         /** Hides the result list **/
         hide = function() {
-          if (!ignoreUpdates)
-            element.velocity('slideUp' , { duration: SLIDE_DURATION, complete: function() { element.css({ height: 'auto' }); } });
+          if (element.is(':visible'))
+            element.velocity('slideUp', { duration: SLIDE_DURATION });
         },
-        
+                
         /** 
-         * Shows the result list. If no opt_results are provided, the list
-         * will show the globally buffered currentResults
+         * Shows a list of results.
          * 
-         * @param opt_results a result list (leave undefined to show currentResults)
+         * The function will open the panel automatically if it is not yet open. 
          */
-        show = function(opt_results) {
-          var results = (opt_results) ? opt_results : currentResults;
-
+        show = function(results) {
+          rebuildList(results);
+          if (!element.is(':visible'))
+            element.velocity('slideDown', { duration: SLIDE_DURATION, delay: OPEN_DELAY });
+        };
+          
+          
+       /*
           if (!element.is(':visible')) { // Currently hidden - show
             if (results.length > 0) {
               rebuildList(results);
@@ -94,86 +150,31 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
                 }
               });
           }
-        },        
+        };       */
         
-        /** Rebuilds the list element **/
+        /** Rebuilds the list element *
         rebuildList = function(results) {  
-          var rows = jQuery.map(results, function(result) {
-            var li, icon, html;
-            
-            switch (result.object_type.toLowerCase()) {
-              case 'place': 
-                icon = '<span class="icon" title="Place">&#xf041;</span>';
-                break;
-              default:
-                icon = '<span class="icon" title="Item">&#xf219;</span>';
-            }
-            
-            html = '<li><h3>' + icon + ' ' + result.title + '</h3>';
-              
-            if (result.names)
-              html += '<p class="names">' +
-                result.names.slice(0, 8).join(', ') + '</p>';
 
-            if (result.description) 
-              html += '<p class="description">' + result.description + '</p>';
-              
-              
-            if (result.object_type === 'Place') {
-              html += '<ul class="uris">';
-              html += Formatting.formatGazetteerURI(result.identifier);
+        };    
+        */  
 
-              if (result.matches)
-                jQuery.each(result.matches, function(idx, uri) {
-                  html += Formatting.formatGazetteerURI(uri);
-                });
-              
-              html += '</ul>';
-            }
-            
-            if (result.snippet)
-              html += result.snippet;
-              
-            if (result.dataset_path)
-              html += '<p class="source">Source:' +
-                      ' <span data-id="' + result.dataset_path[0].id + '">' + result.dataset_path[0].title + '</span>' +
-                      '</p>';
-              
-            html += '</li>';
-              
-            li = jQuery(html);
-            li.mouseenter(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, result); });
-            li.mouseleave(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT); });
-            
-            li.click(function() {
-              if (result.object_type === 'Place')
-                hide();
-                
-              eventBroker.fireEvent(Events.SELECT_RESULT, [result]);
-            });
-                          
-            return li;
-          });
-          
-          list.empty();
-          list.append(rows);
-        };      
+    element.hide();    
+    container.append(element);
     
-    parent.append(element);
-    margin = parseInt(element.css('margin-top'));
-    top = element.position().top;    
-    resetMaxHeight();
-    element.hide();
+    // margin = parseInt(element.css('margin-top'));
+    // top = element.position().top;    
+    // resetMaxHeight();
  
-    // Reset max-height after window resized
+    /* Reset max-height after window resized
     jQuery(window).resize(function() {
       setTimeout(resetMaxHeight, 100);
     });
+    */
   
-    eventBroker.addHandler(Events.CONTROLS_ANIMATION, constrainHeight);
-    eventBroker.addHandler(Events.CONTROLS_ANIMATION_END, constrainHeight);
+    // eventBroker.addHandler(Events.CONTROLS_ANIMATION, constrainHeight);
+    // eventBroker.addHandler(Events.CONTROLS_ANIMATION_END, constrainHeight);
     
-    // Listen for search results
+    /* Listen for search results
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
       subsearch = false;
       currentResults = response.items;
@@ -190,37 +191,60 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
       
       setTimeout(function() { ignoreUpdates = false; }, KEEP_OPEN_PERIOD);
     });
+    */
     
-    // Listen for sub-search results
+    /* Listen for sub-search results
     eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
       subsearch = true;
       show(response.items);
     });
+    */
     
-    // View updates (and initial view load)
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
-      currentResults = response.items;
-    });
-    
+    // Initial response
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, function(response) {
-      currentResults = response.items;
+      currentSearchResults = response.items;
     });
     
-    // We want to know about user-issued queries, because after
-    // a "user-triggered" (rather than "map-triggered") search
-    // returns, we want the list to open automatically
-    eventBroker.addHandler(Events.SEARCH_CHANGED, function(change) {
-      pendingQuery = change.query;
-    });
-    
-    // Like Google Maps, we close the result list when the user
-    // resumes map browsing, or selects a result
+    // View updates - like GMaps, we close when user resumes map browsing
     eventBroker.addHandler(Events.VIEW_CHANGED, hide);
+    
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
+      currentSearchResults = response.items;
+      
+      // TODO how to update control contents? 
+      // - Don't update?
+      // - Update after wait? --> Probably best. But don't close/re-open the panel
+      // - Update only in case there's no search query
+      
+    });
+    
+    // Search
+    eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {
+      
+      // TODO if panel open, clear it and show 'loading' spinner
+      // TODO here we can also track if there's a search phrase or not
+      
+    });
+    
+    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
+      currentSearchResults = response.items;
+      
+      // TODO update control contents
+      // - If there's a query phrase -> open
+      // - If it's open, update
+      
+    });
+    
+    // Sub-search
+    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
+      currentSubsearchResults = response.items;
+      show(currentSubsearchResults); // Show immediately      
+    });
 
     // Manual open/close events
-    eventBroker.addHandler(Events.TOGGLE_ALL_RESULTS, toggle); 
-    eventBroker.addHandler(Events.SHOW_ALL_RESULTS, show); 
-    eventBroker.addHandler(Events.HIDE_ALL_RESULTS, hide); 
+    // eventBroker.addHandler(Events.TOGGLE_ALL_RESULTS, toggle); 
+    // eventBroker.addHandler(Events.SHOW_ALL_RESULTS, show); 
+    // eventBroker.addHandler(Events.HIDE_ALL_RESULTS, hide); 
   };
   
   return ResultList;

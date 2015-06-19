@@ -1,12 +1,12 @@
 #search-results {
   margin-top:6px;
   background-color:#fff;
-  box-sizing:border-box;
   position:relative;
   .box-shadow(0, 2px, 6px, 0, rgba(0,0,0,0.3));
   .rounded-corners(2px);
-  padding:10px 10px 0 10px;
+  padding:0;
   overflow-y:auto;
+  max-height:280px;
   
   ul {
     list-style-type:none;
@@ -15,43 +15,28 @@
   }
   
   li {
-    padding:4px 6px 6px 6px;
+    padding:8px 10px;
     border-bottom:1px solid #e6e6e6;
     cursor:pointer;
-    
+    color:#4f4f4f;
+        
     h3 {
-      color:#4f4f4f;
       font-size:13px;
       font-weight:normal;
       margin:0;
-      padding:3px 0 3px ;
+      padding:0;
+      line-height:140%;
       
-      .icon { 
-        display:inline-block;
-        color:#999; 
-        width:14px;
-        margin-right:2px;
-        text-align:center;
-      }
-      
-      a {
-        color:#4e78ac;
-        text-decoration:none;
-      }
-      
-      a:hover { text-decoration:underline; }
-      
+      .icon { padding-right:5px; }
     }
     
-    p {
-     margin:0;
-     padding:0 1px;
-     color:#999;
-     line-height:17px;
+    p { margin: 0 }
+    
+    .temp-bounds {
+      color:#999;
+      padding:2px 0;
     }
-    
-    .description { font-style:italic; }
-    
+        
     ul.uris {
       list-style-type:none;
       padding:4px 1px 0 1px;
@@ -59,14 +44,15 @@
 
       line-height: 26px;
     
-      li {
-        display:inline-block;
-      }
+      li { display:inline-block; }
       
-      .gazetteer-uri {
-        font-size:11px;
-      }
+      .gazetteer-uri { font-size:11px; }
 
+    }
+    
+    .source {
+      font-size:11px;
+      span { color:#4e78ac; }
     }
     
     .snippet {
@@ -79,18 +65,17 @@
       
     }
     
-    .source {
-      font-size:11px;
-      padding-top:5px;
-      
-      span { color:#4e78ac; }
-      
-    }
-    
   }
   
   li:hover { background-color:#fafafa; }
   
-  li:last-child { border-width: 0px; }
+  li:first-child {
+    padding-top:10px;
+  }
+  
+  li:last-child {
+    border-width: 0px; 
+    padding-bottom:10px;
+  }
   
 }
