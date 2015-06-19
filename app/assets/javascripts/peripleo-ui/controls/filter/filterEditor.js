@@ -1,4 +1,4 @@
-define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Formatting) {
+define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, Events) {
   
   var OPACITY_UNSELECTED = 0.4;
 

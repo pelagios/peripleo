@@ -1,10 +1,10 @@
-require(['peripleo-ui/events/events',
+require(['peripleo-ui/api/api',
+         'peripleo-ui/controls/resultList',
+         'peripleo-ui/controls/searchPanel', 
+         'peripleo-ui/events/events',
          'peripleo-ui/events/eventBroker',
-         'peripleo-ui/urlBar',
-         'peripleo-ui/api/api',
-         'peripleo-ui/map', 
-         'peripleo-ui/searchPanel', 
-         'peripleo-ui/resultList'], function(Events, EventBroker, URLBar, API, Map, SearchPanel, ResultList) {
+         'peripleo-ui/map/map', 
+         'peripleo-ui/urlBar'], function(API, ResultList, SearchPanel, Events, EventBroker, Map, URLBar) {
   
   jQuery(document).ready(function() {  
     var container = jQuery('#controls'),

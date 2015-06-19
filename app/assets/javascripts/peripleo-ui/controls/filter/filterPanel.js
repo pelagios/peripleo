@@ -1,9 +1,10 @@
 /** One 'facet dimension chart' block **/
-define(['peripleo-ui/events/events', 
-        'peripleo-ui/controls/filter/timeHistogram',
+define(['common/formatting',
         'peripleo-ui/controls/filter/facetChart',
         'peripleo-ui/controls/filter/filterEditor',
-        'common/formatting'], function(Events, TimeHistogram, FacetChart, FilterEditor, Formatting) {
+        'peripleo-ui/controls/filter/timeHistogram',
+        'peripleo-ui/events/events'
+        ], function(Formatting, FacetChart, FilterEditor, TimeHistogram, Events) {
           
   var SLIDE_DURATION = 180,
   
@@ -23,7 +24,7 @@ define(['peripleo-ui/events/events',
         /** Footer (remains visible when panel slides in) **/
         footer = jQuery(
           '<div class="footer">' +
-          '  <span class="list-all"><span class="icon">&#xf03a;</span> <span class="label">List all results</span></span>' +
+          '  <span class="list-all"><span class="icon">&#xf03a;</span> <span class="label">Show all results</span></span>' +
           '  <span class="total">&nbsp;</span>' +
           '  <span class="advanced">Filters</span>' +
           '</div>'),
@@ -97,15 +98,18 @@ define(['peripleo-ui/events/events',
         /** Switch panel to 'search' state **/
         toStateSearch = function() {
           currentSearchState = SearchState.SEARCH;
-          footerLabel.html('List all results');
+          footerLabel.html('Show all results');
           footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
         },
         
         /** Switch panel to 'subsearch' state **/
         toStateSubsearch = function(subsearch) {  
+          // TODO multi-selection?
+          var firstPlace = subsearch.places[0];
+          
           currentSearchState = SearchState.SUB_SEARCH;
-          footerLabel.html('List related results');
-          footerTotals.html('(' + Formatting.formatNumber(subsearch.total) + ')');
+          footerLabel.html('Show results at ' + firstPlace.title);
+          footerTotals.html(' (' + Formatting.formatNumber(subsearch.total) + ')');
         };
 
     // Instantiate child controls
@@ -142,3 +146,4 @@ define(['peripleo-ui/events/events',
   return FilterPanel;
     
 });
+

@@ -1,5 +1,5 @@
 /** The base map **/
-define(['peripleo-ui/map/objectLayer', 'peripleo-ui/events/events'], function(ObjectLayer, Events) {
+define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Events, ObjectLayer) {
   
   var Map = function(div, eventBroker) {  
     var Layers = {

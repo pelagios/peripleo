@@ -1,5 +1,5 @@
 /** One 'facet dimension chart' block **/
-define(['peripleo-ui/events/events', 'common/formatting'], function(Events, Formatting) {
+define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, Events) {
   
   var FacetChart = function(parent, title, dimension, eventBroker) {
     var header = jQuery(

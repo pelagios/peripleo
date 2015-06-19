@@ -33,7 +33,7 @@ define([], function() {
    * 
    */
 
-  var ThumbnailWidget = function() {
+  var ImageControl = function() {
     
     var element = jQuery(
           '<div>' +
@@ -41,6 +41,6 @@ define([], function() {
     
   };
   
-  return ThumbnailWidget;
+  return ImageControl;
 
 });

@@ -1,12 +1,12 @@
 /** 
  * The main search control container.
  */
-define(['peripleo-ui/events/events',
+define(['common/formatting',
+        'peripleo-ui/controls/filter/filterPanel',
+        'peripleo-ui/controls/selection/selectedPlace',
         'peripleo-ui/controls/autoSuggest',
-        'peripleo-ui/controls/filterPanel',
-        'peripleo-ui/controls/selectionInfo',
         'peripleo-ui/controls/searchAtButton',
-        'common/formatting'], function(Events, AutoSuggest, FilterPanel, SelectionInfo, SearchAtButton, Formatting) {
+        'peripleo-ui/events/events'], function(Formatting, FilterPanel, SelectedPlace, AutoSuggest, SearchAtButton, Events) {
   
   var SLIDE_DURATION = 180;
   
@@ -28,13 +28,13 @@ define(['peripleo-ui/events/events',
           '      <span id="subsearch-indicator" class="icon">&#xf041;</span>' +
           '      <span id="search-icon" class="icon">&#xf002;</span>' +
           '      <div id="button-listall">' +
-          '        <span class="list-all"><span class="icon">&#xf03a;</span> <span class="label">List all results</span></span>' +
+          '        <span class="list-all"><span class="icon">&#xf03a;</span> <span class="label">Show all results</span></span>' +
           '        <span class="total">&nbsp;</span>' +
           '      </div>' +
           '    </form>' +
           '  </div>' +
           '  <div id="filterpanel"></div>' +
-          '  <div id="selection-info"></div>' +
+          '  <div id="selected-place" class="selection-info"></div>' +
           '  <div id="button-search-at"></div>' +  
           '</div>'),
                     
@@ -47,11 +47,11 @@ define(['peripleo-ui/events/events',
         listAllTotals = btnListAll.find('.total'),
         
         filterPanelContainer = element.find('#filterPanel'),
-        selectionInfoContainer = element.find('#selection-info'),
+        selectedPlaceContainer = element.find('#selected-place'),
         searchAtContainer = element.find('#button-search-at'),
         
         /** Sub-elements - to be initialized after element was added to DOM **/
-        autoSuggest, filterPanel, selectionInfo, searchAtButton,
+        autoSuggest, filterPanel, selectedPlace, searchAtButton,
         
         /** Shorthand flag indicating whether the current state is 'subsearch' **/
         isStateSubsearch = false,
@@ -98,7 +98,7 @@ define(['peripleo-ui/events/events',
           subsearchIndicator.hide();
           searchInput.removeClass('search-at');
           btnListAll.hide();
-          filterPanelContainer.insertBefore(selectionInfoContainer);
+          filterPanelContainer.insertBefore(selectedPlaceContainer);
         },
         
         /** Switch to 'subsearch' state **/
@@ -120,7 +120,7 @@ define(['peripleo-ui/events/events',
           updateTotalsCount();
           btnListAll.show();
           filterPanelContainer.slideUp(SLIDE_DURATION, function() {
-            selectionInfoContainer.insertBefore(filterPanelContainer);
+            selectedPlaceContainer.insertBefore(filterPanelContainer);
             filterPanelContainer.slideDown(SLIDE_DURATION, function() {
               eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
             });            
@@ -162,7 +162,7 @@ define(['peripleo-ui/events/events',
     container.append(element);
     autoSuggest = new AutoSuggest(searchForm, searchInput);
     filterPanel = new FilterPanel(filterPanelContainer, eventBroker);
-    selectionInfo = new SelectionInfo(selectionInfoContainer, eventBroker);
+    selectedPlace = new SelectedPlace(selectedPlaceContainer, eventBroker);
     searchAtButton = new SearchAtButton(searchAtContainer, eventBroker);
     
     // Fill with intial query, if any
