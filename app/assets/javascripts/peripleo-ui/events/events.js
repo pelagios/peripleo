@@ -172,7 +172,7 @@ define(function() {
      * @param the result
      */
     SELECT_RESULT : 'selectResult'
-    
+        
   };
     
 });

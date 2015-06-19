@@ -5,7 +5,6 @@ define(['common/formatting',
   var SLIDE_DURATION = 180;
   
   var SelectedPlace = function(container, eventBroker) {
-    
     var self = this,
     
         content = jQuery(
@@ -55,7 +54,6 @@ define(['common/formatting',
           if (obj.description)
             description.html(obj.description);
           
-          
           uris.append(jQuery('<li>' + Formatting.formatGazetteerURI(obj.identifier) + '</li>'));
           if (obj.matches)
             jQuery.each(obj.matches, function(idx, uri) {
@@ -67,7 +65,11 @@ define(['common/formatting',
     SelectionInfo.apply(this, [ container, eventBroker, fill, clearContent ]);
     
     eventBroker.addHandler(Events.SELECT_MARKER, self.show);
-    eventBroker.addHandler(Events.SELECT_RESULT, self.show);
+    eventBroker.addHandler(Events.SELECT_RESULT, function(results) {
+      var firstResultType = (results) ? results[0].object_type : false;
+      if (firstResultType === 'Place')
+        self.show(results[0]);
+    });
   };
   
   SelectedPlace.prototype = Object.create(SelectionInfo.prototype);

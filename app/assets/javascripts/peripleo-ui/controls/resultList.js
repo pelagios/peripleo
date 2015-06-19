@@ -16,38 +16,6 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         /** Most recent subsearch results **/
         currentSubsearchResults = [],
         
-        /** Checks current height and limits to max screen height *
-        constrainHeight = function() {
-          var height, availableHeight;
-          
-          if (element.is(':visible')) {
-            element.css({ height: 'auto' });  
-            
-            top = element.position().top;   
-            height = element.outerHeight(true);
-            availableHeight = parent.height() - top;
-                
-            if (height > availableHeight)
-              element.css('height', availableHeight - margin);
-              
-          }
-        },*/
-                
-        /** Toggles visibility of the result list **
-        toggle = function() {
-          if (element.is(':visible')) { // List visible
-            if (subsearch) { // The list shows sub-search results - show currentResults instead
-              subsearch = false;
-              show();
-            } else { // If the list shows the currentResults, hide it
-              hide();
-            }
-          } else { // List hidden - show it
-            show();
-          }
-        },
-        */
-        
         /**
          * Helper that generates the appropriate icon span for a result.
          * 
@@ -112,7 +80,11 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           });
           
           list.empty();
-          list.append(rows);          
+          list.append(rows);      
+        },
+        
+        scrollTop = function() {
+          element.scrollTop(0);   
         },
 
         /** Hides the result list **/
@@ -127,79 +99,16 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
          * The function will open the panel automatically if it is not yet open. 
          */
         show = function(results) {
-          rebuildList(results);
-          if (!element.is(':visible'))
-            element.velocity('slideDown', { duration: SLIDE_DURATION, delay: OPEN_DELAY });
+          rebuildList(results); 
+          if (element.is(':visible'))
+            scrollTop();
+          else
+            element.velocity('slideDown', { duration: SLIDE_DURATION, delay: OPEN_DELAY, complete: scrollTop });
         };
-          
-          
-       /*
-          if (!element.is(':visible')) { // Currently hidden - show
-            if (results.length > 0) {
-              rebuildList(results);
-              element.velocity('slideDown', { duration: SLIDE_DURATION, complete: constrainHeight });
-            }
-          } else { // Just replace the list
-            element.css({ height: 'auto' });  
-            element.velocity('slideUp', 
-              { duration:SLIDE_DURATION, 
-                complete: function() {
-                  rebuildList(results);
-                  element.css({ height: 'auto' });
-                  element.velocity('slideDown', { duration: SLIDE_DURATION, complete: constrainHeight });
-                }
-              });
-          }
-        };       */
-        
-        /** Rebuilds the list element *
-        rebuildList = function(results) {  
-
-        };    
-        */  
 
     element.hide();    
     container.append(element);
-    
-    // margin = parseInt(element.css('margin-top'));
-    // top = element.position().top;    
-    // resetMaxHeight();
- 
-    /* Reset max-height after window resized
-    jQuery(window).resize(function() {
-      setTimeout(resetMaxHeight, 100);
-    });
-    */
-  
-    // eventBroker.addHandler(Events.CONTROLS_ANIMATION, constrainHeight);
-    // eventBroker.addHandler(Events.CONTROLS_ANIMATION_END, constrainHeight);
-    
-    /* Listen for search results
-    eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
-      subsearch = false;
-      currentResults = response.items;
-      
-      // The map will change after search response - we want to ignore change
-      // and update requests in this case
-      ignoreUpdates = true; 
-      
-      // If there was a user-supplied query or place filter we open automatically
-      if (response.params.query || response.params.place) { 
-        rebuildList(response.items);
-        element.velocity('slideDown', { duration: SLIDE_DURATION, complete: constrainHeight });
-      }
-      
-      setTimeout(function() { ignoreUpdates = false; }, KEEP_OPEN_PERIOD);
-    });
-    */
-    
-    /* Listen for sub-search results
-    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
-      subsearch = true;
-      show(response.items);
-    });
-    */
-    
+
     // Initial response
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, function(response) {
       currentSearchResults = response.items;
@@ -240,6 +149,9 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
       currentSubsearchResults = response.items;
       show(currentSubsearchResults); // Show immediately      
     });
+    
+    // (De)selection via map
+    eventBroker.addHandler(Events.SELECT_MARKER, hide);
 
     // Manual open/close events
     // eventBroker.addHandler(Events.TOGGLE_ALL_RESULTS, toggle); 

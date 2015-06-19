@@ -3,13 +3,16 @@ require(['peripleo-ui/api/api',
          'peripleo-ui/controls/searchPanel', 
          'peripleo-ui/events/events',
          'peripleo-ui/events/eventBroker',
+         'peripleo-ui/events/lifecycleWatcher',
          'peripleo-ui/map/map', 
-         'peripleo-ui/urlBar'], function(API, ResultList, SearchPanel, Events, EventBroker, Map, URLBar) {
+         'peripleo-ui/urlBar'], function(API, ResultList, SearchPanel, Events, EventBroker, LifeCycleWatcher, Map, URLBar) {
   
   jQuery(document).ready(function() {  
     var container = jQuery('#controls'),
     
         eventBroker = new EventBroker(),
+        
+        lifeCycleWatcher = new LifeCycleWatcher(eventBroker);
         
         urlBar = new URLBar(eventBroker),
         
@@ -57,17 +60,6 @@ require(['peripleo-ui/api/api',
 
     // Fire 'load' event with initial settings
     eventBroker.fireEvent(Events.LOAD, initialSettings);
-    
-    /** Additional event lifecycle rules **/
-    
-    // SELECT_MARKER & SELECT_RESULT trigger parent SELECTION event
-    eventBroker.addHandler(Events.SELECT_MARKER, function(evt) { 
-      eventBroker.fireEvent(Events.SELECTION, evt);
-    });
-    eventBroker.addHandler(Events.SELECT_RESULT, function(evt) { 
-      eventBroker.fireEvent(Events.SELECTION, evt);
-    });
-        
   });
   
 });

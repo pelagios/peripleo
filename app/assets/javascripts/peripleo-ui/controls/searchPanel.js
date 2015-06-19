@@ -3,10 +3,11 @@
  */
 define(['common/formatting',
         'peripleo-ui/controls/filter/filterPanel',
+        'peripleo-ui/controls/selection/selectedItem',
         'peripleo-ui/controls/selection/selectedPlace',
         'peripleo-ui/controls/autoSuggest',
         'peripleo-ui/controls/searchAtButton',
-        'peripleo-ui/events/events'], function(Formatting, FilterPanel, SelectedPlace, AutoSuggest, SearchAtButton, Events) {
+        'peripleo-ui/events/events'], function(Formatting, FilterPanel, SelectedItem, SelectedPlace, AutoSuggest, SearchAtButton, Events) {
   
   var SLIDE_DURATION = 180;
   
@@ -36,6 +37,7 @@ define(['common/formatting',
           '  <div id="filterpanel"></div>' +
           '  <div id="selected-place" class="selection-info"></div>' +
           '  <div id="button-search-at"></div>' +  
+          '  <div id="selected-item" class="selection-info"></div>' +
           '</div>'),
                     
         /** DOM element shorthands **/
@@ -49,9 +51,10 @@ define(['common/formatting',
         filterPanelContainer = element.find('#filterPanel'),
         selectedPlaceContainer = element.find('#selected-place'),
         searchAtContainer = element.find('#button-search-at'),
+        selectedItemContainer = element.find('#selected-item'),
         
         /** Sub-elements - to be initialized after element was added to DOM **/
-        autoSuggest, filterPanel, selectedPlace, searchAtButton,
+        autoSuggest, filterPanel, selectedPlace, searchAtButton, selectedItem,
         
         /** Shorthand flag indicating whether the current state is 'subsearch' **/
         isStateSubsearch = false,
@@ -164,6 +167,7 @@ define(['common/formatting',
     filterPanel = new FilterPanel(filterPanelContainer, eventBroker);
     selectedPlace = new SelectedPlace(selectedPlaceContainer, eventBroker);
     searchAtButton = new SearchAtButton(searchAtContainer, eventBroker);
+    selectedItem = new SelectedItem(selectedItemContainer, eventBroker);
     
     // Fill with intial query, if any
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
@@ -177,7 +181,7 @@ define(['common/formatting',
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, onViewUpdate); // Just re-use view update handler
     
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
-    eventBroker.addHandler(Events.SELECTION, toStateSearch);
+    eventBroker.addHandler(Events.TO_STATE_SEARCH, toStateSearch);
   };
   
   return SearchPanel;

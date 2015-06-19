@@ -6,7 +6,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
   var SelectionInfo = function(container, eventBroker, fill, clearContent) {
     
     var currentObject = false,
-
+    
         slideDown = function() {
           container.velocity('slideDown', { 
             duration: SLIDE_DURATION,
@@ -27,6 +27,11 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
             }
           });
         },
+        
+        hide = function()  {
+          currentObject = false;
+          slideUp();          
+        },
 
         show = function(objects) {         
           // TODO support display of lists of objects, rather than just single one
@@ -35,8 +40,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           
           if (currentObject) { // Box is currently open    
             if (!obj) { // Close it
-              currentObject = false;
-              slideUp();
+              hide();
             } else { 
               if (currentObject.identifier !== obj.identifier) { // New object - change
                 currentObject = obj;
@@ -57,6 +61,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
 
 
     this.show = show;
+    this.hide = hide;
     container.hide();
   };
   

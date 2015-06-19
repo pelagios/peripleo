@@ -140,7 +140,7 @@ define(['common/formatting',
     
     // Footer displays different contents in 'search' and 'subsearch' states
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
-    eventBroker.addHandler(Events.SELECTION, toStateSearch);
+    eventBroker.addHandler(Events.TO_STATE_SEARCH, toStateSearch);
   };
   
   return FilterPanel;
