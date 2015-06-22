@@ -143,15 +143,19 @@ define(function() {
     EDIT_FILTER_SETTINGS : 'editFilterSettings',
     
     /** 
-     * Event for showing the result list box. (Can either happen as a
-     * user action or as a result of a search response.)
+     * Event for showing all results in the list box.
      */
     SHOW_ALL_RESULTS : 'showAllResults',
+    
+    /** 
+     * Event for showing subsearch results in the list box.
+     */        
+    SHOW_SUBSEARCH_RESULTS : 'showSubsearchResults',
 
     /** 
      * Event for hiding the result list box.
      */
-    HIDE_ALL_RESULTS : 'hideAllResults',
+    HIDE_RESULTS : 'hideAllResults',
     
     /**
      * The user hovers over a result in the list

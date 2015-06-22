@@ -146,7 +146,7 @@ define(['common/formatting',
           if (resultsShown) {
             resultsLabel.html('Show all results');
             resultsShown = false;
-            eventBroker.fireEvent(Events.HIDE_ALL_RESULTS);
+            eventBroker.fireEvent(Events.HIDE_RESULTS);
           } else {
             resultsLabel.html('All results');
             resultsShown = true;

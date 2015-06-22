@@ -155,7 +155,8 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
 
     // Manual open/close events
     eventBroker.addHandler(Events.SHOW_ALL_RESULTS, function() { show(currentSearchResults); }); 
-    eventBroker.addHandler(Events.HIDE_ALL_RESULTS, hide); 
+    eventBroker.addHandler(Events.SHOW_SUBSEARCH_RESULTS, function() { show(currentSubsearchResults); });
+    eventBroker.addHandler(Events.HIDE_RESULTS, hide); 
   };
   
   return ResultList;

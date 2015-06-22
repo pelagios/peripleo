@@ -52,6 +52,9 @@ define(['common/formatting',
         /** Flag caching the state of the 'Show results' button **/
         resultsShown = false,
         
+        /** We need to ignore the automatic view update following a subsearch **/
+        ignoreNextViewUpdate = false,
+        
         /** Filter editor **/
         filterEditor = filterEditor = new FilterEditor(eventBroker),
         
@@ -106,9 +109,12 @@ define(['common/formatting',
         },
         
         /** Switch panel to 'subsearch' state **/
-        toStateSubsearch = function(subsearch) {  
+        toStateSubsearch = function(subsearch) { 
           // TODO multi-selection?
           var firstPlace = subsearch.places[0];
+          
+          resultsShown = true;
+          ignoreNextViewUpdate = true;
           
           currentSearchState = SearchState.SUB_SEARCH;
           footerLabel.html('Show results at ' + firstPlace.title);
@@ -119,8 +125,9 @@ define(['common/formatting',
         resultsButtonToStateShow = function() {
           if (currentSearchState === SearchState.SEARCH) {
             footerLabel.html('Show all results');
-          } else {            
-            // TODO
+          } else {
+            // Change start to 'Show r...'
+            footerLabel.html('Show r' + footerLabel.html().substr(1));
           }
         },
         
@@ -129,7 +136,8 @@ define(['common/formatting',
           if (currentSearchState === SearchState.SEARCH) {
             footerLabel.html('All results');
           } else {            
-            // TODO
+            // Strip 'Show r...' from start (and add capital R)
+            footerLabel.html('R' + footerLabel.html().substr(6));
           }
         };
 
@@ -146,18 +154,13 @@ define(['common/formatting',
     buttonListAll.click(function() { 
       if (resultsShown) {
         resultsButtonToStateShow();
-        if (currentSearchState === SearchState.SEARCH) {
-          eventBroker.fireEvent(Events.HIDE_ALL_RESULTS); 
-        } else{
-          // TODO
-        }
+        eventBroker.fireEvent(Events.HIDE_RESULTS); 
       } else {
         resultsButtonToStateHide();
-        if (currentSearchState === SearchState.SEARCH) {
+        if (currentSearchState === SearchState.SEARCH)
           eventBroker.fireEvent(Events.SHOW_ALL_RESULTS); 
-        } else{
-          // TODO
-        }        
+        else
+          eventBroker.fireEvent(Events.SHOW_SUBSEARCH_RESULTS);
       }
       resultsShown = !resultsShown;      
     });
@@ -167,19 +170,28 @@ define(['common/formatting',
     
     // Refresh on view updates, unless we're currently in a subsearch
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
-      if (resultsShown) {
+      if (!ignoreNextViewUpdate && resultsShown) {
         resultsButtonToStateShow();
         resultsShown = false;
+      } else {
+        ignoreNextViewUpdate = false;
       }
       
       if (currentSearchState === SearchState.SEARCH)
         refresh(response);
     });
     
-    eventBroker.addHandler(Events.SELECTION, resultsButtonToStateShow);
+    eventBroker.addHandler(Events.SELECTION, function() {
+      if (resultsShown)
+        resultsButtonToStateShow();
+    });
     
     // Refresh on subsearch response
-    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, refresh);
+    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) { 
+      refresh(response);
+      resultsButtonToStateHide();
+      resultsShown = true;
+    });
     
     // Footer displays different contents in 'search' and 'subsearch' states
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
