@@ -8,22 +8,16 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     var currentObject = false,
     
         slideDown = function() {
-          container.velocity('slideDown', { 
-            duration: SLIDE_DURATION,
-            step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
-            complete: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); }
-          });
+          container.velocity('slideDown', { duration: SLIDE_DURATION });
         },
       
         slideUp = function(opt_complete) {
           container.velocity('slideUp', { 
             duration: SLIDE_DURATION,
-            step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
             complete: function() { 
               clearContent();
               if (opt_complete)
                 opt_complete();
-              eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END); 
             }
           });
         },

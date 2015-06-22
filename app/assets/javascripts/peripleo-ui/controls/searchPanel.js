@@ -132,9 +132,7 @@ define(['common/formatting',
           resultsButton.show();
           filterPanelContainer.slideUp(SLIDE_DURATION, function() {
             selectedPlaceContainer.insertBefore(filterPanelContainer);
-            filterPanelContainer.slideDown(SLIDE_DURATION, function() {
-              eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
-            });            
+            filterPanelContainer.velocity('slideDown', { duration: SLIDE_DURATION });            
           });
         },
         
@@ -162,13 +160,10 @@ define(['common/formatting',
     searchForm.submit(function(e) {
       var chars = searchInput.val().trim();
 
-      if (chars.length === 0) {
-        eventBroker.fireEvent(Events.QUERY_PHRASE_CHANGED, false);
+      if (chars.length === 0)
         eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : false });
-      } else {
-        eventBroker.fireEvent(Events.QUERY_PHRASE_CHANGED, chars);
+      else
         eventBroker.fireEvent(Events.SEARCH_CHANGED, { query : chars });
-      }
     
       searchInput.blur();
       return false; // preventDefault + stopPropagation

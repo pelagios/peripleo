@@ -72,17 +72,12 @@ define(['common/formatting',
             eventBroker.fireEvent(Events.SHOW_FILTERS);
           
           body.velocity(action, { 
-            duration: SLIDE_DURATION, 
-            
-            step: function() { eventBroker.fireEvent(Events.CONTROLS_ANIMATION); },
-            
+            duration: SLIDE_DURATION,            
             complete: function() {
               if (visible)
                 buttonToggleFilters.removeClass('open');
               else
                 buttonToggleFilters.addClass('open');
-              
-              eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
             }
           });
         },

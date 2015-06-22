@@ -33,6 +33,9 @@ define(function() {
   
   /** Fires an event **/
   EventBroker.prototype.fireEvent = function(type, opt_event) {
+    if (!type)
+      throw('Event type is undefined');
+      
     var handlers = _handlers[type];
     if (handlers) {
       jQuery.each(handlers, function(idx, handler) {

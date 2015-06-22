@@ -116,17 +116,7 @@ define(function() {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     /* Control-related UI events       */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */    
-    
-    /** 
-     * The controls panel is going through an animated change
-     */
-    CONTROLS_ANIMATION: 'controlsAnim',
-    
-    /**
-     * The controls panel has finished an animated change
-     */
-    CONTROLS_ANIMATION_END: 'controlsAnimEnd',
-    
+
     /** 
      * The users has opened the filters panel
      */
