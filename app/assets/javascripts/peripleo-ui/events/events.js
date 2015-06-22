@@ -153,12 +153,6 @@ define(function() {
      */
     HIDE_ALL_RESULTS : 'hideAllResults',
     
-    /** 
-     * Event for toggling the visibility of the result list box. (Happens
-     * as a user action.)
-     */
-    TOGGLE_ALL_RESULTS : 'toggleAllResults',
-    
     /**
      * The user hovers over a result in the list
      * 

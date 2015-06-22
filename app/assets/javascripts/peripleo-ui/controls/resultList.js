@@ -98,12 +98,12 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
          * 
          * The function will open the panel automatically if it is not yet open. 
          */
-        show = function(results) {
+        show = function(results, opt_delay) {
           rebuildList(results); 
           if (element.is(':visible'))
             scrollTop();
           else
-            element.velocity('slideDown', { duration: SLIDE_DURATION, delay: OPEN_DELAY, complete: scrollTop });
+            element.velocity('slideDown', { duration: SLIDE_DURATION, delay: opt_delay, complete: scrollTop });
         };
 
     element.hide();    
@@ -147,16 +147,15 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     // Sub-search
     eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
       currentSubsearchResults = response.items;
-      show(currentSubsearchResults); // Show immediately      
+      show(currentSubsearchResults, OPEN_DELAY); // Show immediately      
     });
     
     // (De)selection via map
     eventBroker.addHandler(Events.SELECT_MARKER, hide);
 
     // Manual open/close events
-    // eventBroker.addHandler(Events.TOGGLE_ALL_RESULTS, toggle); 
-    // eventBroker.addHandler(Events.SHOW_ALL_RESULTS, show); 
-    // eventBroker.addHandler(Events.HIDE_ALL_RESULTS, hide); 
+    eventBroker.addHandler(Events.SHOW_ALL_RESULTS, function() { show(currentSearchResults); }); 
+    eventBroker.addHandler(Events.HIDE_ALL_RESULTS, hide); 
   };
   
   return ResultList;

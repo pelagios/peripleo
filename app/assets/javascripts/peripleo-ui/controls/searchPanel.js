@@ -45,8 +45,9 @@ define(['common/formatting',
         searchInput = searchForm.find('input'),
         subsearchIndicator = searchForm.find('#subsearch-indicator'),
         searchIcon = searchForm.find('#search-icon'),
-        btnListAll = searchForm.find('#button-listall'),
-        listAllTotals = btnListAll.find('.total'),
+        resultsButton = searchForm.find('#button-listall'),
+        resultsLabel = resultsButton.find('.label'),
+        listAllTotals = resultsButton.find('.total'),
         
         filterPanelContainer = element.find('#filterPanel'),
         selectedPlaceContainer = element.find('#selected-place'),
@@ -58,6 +59,9 @@ define(['common/formatting',
         
         /** Shorthand flag indicating whether the current state is 'subsearch' **/
         isStateSubsearch = false,
+        
+        /** Flag caching the state of the 'Show results' button **/
+        resultsShown = false,
         
         /** Stores current total result count **/
         currentTotals = 0,
@@ -90,6 +94,7 @@ define(['common/formatting',
         
         /** We keep the total search result count for display in the flat 'List All' button **/
         onViewUpdate = function(response) {
+          resetResultsButton();
           currentTotals = response.total;
           if (isStateSubsearch)
             updateTotalsCount();
@@ -100,7 +105,7 @@ define(['common/formatting',
           isStateSubsearch = false;
           subsearchIndicator.hide();
           searchInput.removeClass('search-at');
-          btnListAll.hide();
+          resultsButton.hide();
           filterPanelContainer.insertBefore(selectedPlaceContainer);
         },
         
@@ -121,13 +126,32 @@ define(['common/formatting',
           
           // Update footer 
           updateTotalsCount();
-          btnListAll.show();
+          resultsButton.show();
           filterPanelContainer.slideUp(SLIDE_DURATION, function() {
             selectedPlaceContainer.insertBefore(filterPanelContainer);
             filterPanelContainer.slideDown(SLIDE_DURATION, function() {
               eventBroker.fireEvent(Events.CONTROLS_ANIMATION_END);
             });            
           });
+        },
+        
+        resetResultsButton = function() {
+          if (resultsShown) {
+            resultsLabel.html('Show all results');
+            resultsShown = false;           
+          }
+        },
+        
+        onClickResultsButton = function() {
+          if (resultsShown) {
+            resultsLabel.html('Show all results');
+            resultsShown = false;
+            eventBroker.fireEvent(Events.HIDE_ALL_RESULTS);
+          } else {
+            resultsLabel.html('All results');
+            resultsShown = true;
+            eventBroker.fireEvent(Events.SHOW_ALL_RESULTS);
+          }
         };
     
     
@@ -159,7 +183,8 @@ define(['common/formatting',
     
     // Subsearch indicator and 'list-all' button only shown in subsearch state
     subsearchIndicator.hide();
-    btnListAll.hide();
+    resultsButton.click(onClickResultsButton);    
+    resultsButton.hide();
         
     // Append panel to the DOM
     container.append(element);

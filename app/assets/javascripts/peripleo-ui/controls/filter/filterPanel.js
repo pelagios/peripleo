@@ -49,6 +49,9 @@ define(['common/formatting',
         /** Stores current total result count **/
         currentTotals = 0,
         
+        /** Flag caching the state of the 'Show results' button **/
+        resultsShown = false,
+        
         /** Filter editor **/
         filterEditor = filterEditor = new FilterEditor(eventBroker),
         
@@ -110,6 +113,24 @@ define(['common/formatting',
           currentSearchState = SearchState.SUB_SEARCH;
           footerLabel.html('Show results at ' + firstPlace.title);
           footerTotals.html(' (' + Formatting.formatNumber(subsearch.total) + ')');
+        },
+        
+        /** Sets the 'list results' button to state where click triggers open **/
+        resultsButtonToStateShow = function() {
+          if (currentSearchState === SearchState.SEARCH) {
+            footerLabel.html('Show all results');
+          } else {            
+            // TODO
+          }
+        },
+        
+        /** Sets the 'list results' button to state where click triggers open **/
+        resultsButtonToStateHide = function() {
+          if (currentSearchState === SearchState.SEARCH) {
+            footerLabel.html('All results');
+          } else {            
+            // TODO
+          }
         };
 
     // Instantiate child controls
@@ -123,7 +144,22 @@ define(['common/formatting',
     
     buttonToggleFilters.click(togglePanel);
     buttonListAll.click(function() { 
-      eventBroker.fireEvent(Events.TOGGLE_ALL_RESULTS); 
+      if (resultsShown) {
+        resultsButtonToStateShow();
+        if (currentSearchState === SearchState.SEARCH) {
+          eventBroker.fireEvent(Events.HIDE_ALL_RESULTS); 
+        } else{
+          // TODO
+        }
+      } else {
+        resultsButtonToStateHide();
+        if (currentSearchState === SearchState.SEARCH) {
+          eventBroker.fireEvent(Events.SHOW_ALL_RESULTS); 
+        } else{
+          // TODO
+        }        
+      }
+      resultsShown = !resultsShown;      
     });
 
     // Refresh on initial load
@@ -131,9 +167,16 @@ define(['common/formatting',
     
     // Refresh on view updates, unless we're currently in a subsearch
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
+      if (resultsShown) {
+        resultsButtonToStateShow();
+        resultsShown = false;
+      }
+      
       if (currentSearchState === SearchState.SEARCH)
         refresh(response);
     });
+    
+    eventBroker.addHandler(Events.SELECTION, resultsButtonToStateShow);
     
     // Refresh on subsearch response
     eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, refresh);
