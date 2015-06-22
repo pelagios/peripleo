@@ -36,6 +36,9 @@ define(function() {
       if (uri.indexOf('http://pleiades.stoa.org/places/') === 0) {
         prefix = 'pleiades';
         gazId = uri.substr(32);
+      } else if (uri.indexOf('http://atlantides.org/capgrids/') === 0) {
+        prefix = 'atlantides';
+        gazId = uri.substr(31);
       } else if (uri.indexOf('http://dare.ht.lu.se/places/') === 0) {
         prefix = 'dare';
         gazId = uri.substr(28);
