@@ -107,7 +107,7 @@ define(['common/formatting',
         /** Switch panel to 'search' state **/
         toStateSearch = function() {
           currentSearchState = SearchState.SEARCH;
-          footerLabel.html('Show all results');
+          toButtonStateShowAll();
           footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
         },
         
@@ -189,9 +189,11 @@ define(['common/formatting',
         refresh(response);
     });
     
-    eventBroker.addHandler(Events.SELECTION, function() {
-      // if (resultsShown)
-      //  resultsButtonToStateShow();
+    eventBroker.addHandler(Events.SELECTION, function(selection) {
+      if (footerButtonState === FooterButton.HIDE_ALL)
+        toButtonStateShowAll();
+      else if (footerButtonState === FooterButton.HIDE_LOCAL)
+        toButtonStateShowLocal();
     });
     
     // Refresh on subsearch response
