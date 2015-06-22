@@ -110,8 +110,9 @@ define(['common/formatting',
         },
         
         /** Switch to 'subsearch' state **/
-        toStateSubsearch = function(subsearch) {          
+        toStateSubsearch = function(subsearch) {      
           isStateSubsearch = true;
+          resetResultsButton();
           
           // Sub-search may remove the query phrase - update accordingly
           if (subsearch.clear_query) {
@@ -204,6 +205,8 @@ define(['common/formatting',
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, onViewUpdate);    
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, onViewUpdate); // Just re-use view update handler
+    
+    eventBroker.addHandler(Events.SHOW_SUBSEARCH_RESULTS, resetResultsButton);
     
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubsearch);
     eventBroker.addHandler(Events.TO_STATE_SEARCH, toStateSearch);

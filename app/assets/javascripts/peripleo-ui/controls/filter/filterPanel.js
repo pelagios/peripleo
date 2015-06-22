@@ -9,7 +9,10 @@ define(['common/formatting',
   var SLIDE_DURATION = 180,
   
       /** Enum for search states **/
-      SearchState = { SEARCH : 1, SUB_SEARCH : 2 };
+      SearchState = { SEARCH : 1, SUB_SEARCH : 2 },
+      
+      /** Enum for footer show/hide result button states **/
+      FooterButton = { SHOW_LOCAL : 1, HIDE_LOCAL : 2, SHOW_ALL: 3, HIDE_ALL : 4 };
   
   var FilterPanel = function(container, eventBroker) {
     
@@ -50,7 +53,7 @@ define(['common/formatting',
         currentTotals = 0,
         
         /** Flag caching the state of the 'Show results' button **/
-        resultsShown = false,
+        footerButtonState = FooterButton.SHOW_ALL,
         
         /** We need to ignore the automatic view update following a subsearch **/
         ignoreNextViewUpdate = false,
@@ -121,24 +124,24 @@ define(['common/formatting',
           footerTotals.html(' (' + Formatting.formatNumber(subsearch.total) + ')');
         },
         
-        /** Sets the 'list results' button to state where click triggers open **/
-        resultsButtonToStateShow = function() {
-          if (currentSearchState === SearchState.SEARCH) {
-            footerLabel.html('Show all results');
-          } else {
-            // Change start to 'Show r...'
-            footerLabel.html('Show r' + footerLabel.html().substr(1));
-          }
+        toButtonStateShowAll = function() {
+          footerLabel.html('Show all results');
+          footerButtonState = FooterButton.SHOW_ALL;
         },
         
-        /** Sets the 'list results' button to state where click triggers open **/
-        resultsButtonToStateHide = function() {
-          if (currentSearchState === SearchState.SEARCH) {
-            footerLabel.html('All results');
-          } else {            
-            // Strip 'Show r...' from start (and add capital R)
-            footerLabel.html('R' + footerLabel.html().substr(6));
-          }
+        toButtonStateHideAll = function() {
+          footerLabel.html('All results');
+          footerButtonState = FooterButton.HIDE_ALL;
+        },
+        
+        toButtonStateShowLocal = function() {
+          footerLabel.html('Show r' + footerLabel.html().substr(1));   
+          footerButtonState = FooterButton.SHOW_LOCAL;       
+        },
+        
+        toButtonStateHideLocal = function() {
+          footerLabel.html('R' + footerLabel.html().substr(6));    
+          footerButtonState = FooterButton.HIDE_LOCAL;      
         };
 
     // Instantiate child controls
@@ -152,17 +155,19 @@ define(['common/formatting',
     
     buttonToggleFilters.click(togglePanel);
     buttonListAll.click(function() { 
-      if (resultsShown) {
-        resultsButtonToStateShow();
+      if (footerButtonState === FooterButton.HIDE_ALL) {
         eventBroker.fireEvent(Events.HIDE_RESULTS); 
-      } else {
-        resultsButtonToStateHide();
-        if (currentSearchState === SearchState.SEARCH)
-          eventBroker.fireEvent(Events.SHOW_ALL_RESULTS); 
-        else
-          eventBroker.fireEvent(Events.SHOW_SUBSEARCH_RESULTS);
+        toButtonStateShowAll();
+      } else if (footerButtonState === FooterButton.HIDE_LOCAL) {
+        eventBroker.fireEvent(Events.HIDE_RESULTS); 
+        toButtonStateShowLocal();
+      } else if (footerButtonState === FooterButton.SHOW_ALL) {
+        eventBroker.fireEvent(Events.SHOW_ALL_RESULTS); 
+        toButtonStateHideAll();
+      } else if (footerButtonState === FooterButton.SHOW_LOCAL) {
+        eventBroker.fireEvent(Events.SHOW_SUBSEARCH_RESULTS);
+        toButtonStateHideLocal();
       }
-      resultsShown = !resultsShown;      
     });
 
     // Refresh on initial load
@@ -170,9 +175,12 @@ define(['common/formatting',
     
     // Refresh on view updates, unless we're currently in a subsearch
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
-      if (!ignoreNextViewUpdate && resultsShown) {
-        resultsButtonToStateShow();
-        resultsShown = false;
+      // View updates hide the result list, so we want to update the footer text
+      if (!ignoreNextViewUpdate) {
+        if (footerButtonState === FooterButton.HIDE_ALL)
+          toButtonStateShowAll();
+        else if (footerButtonState === FooterButton.HIDE_LOCAL) 
+          toButtonStateShowLocal();
       } else {
         ignoreNextViewUpdate = false;
       }
@@ -182,15 +190,20 @@ define(['common/formatting',
     });
     
     eventBroker.addHandler(Events.SELECTION, function() {
-      if (resultsShown)
-        resultsButtonToStateShow();
+      // if (resultsShown)
+      //  resultsButtonToStateShow();
     });
     
     // Refresh on subsearch response
-    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) { 
+    eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
       refresh(response);
-      resultsButtonToStateHide();
-      resultsShown = true;
+      if (footerButtonState !== FooterButton.HIDE_LOCAL)
+        toButtonStateHideLocal();
+    });
+    
+    eventBroker.addHandler(Events.SHOW_ALL_RESULTS, function() { 
+      if (footerButtonState === FooterButton.HIDE_LOCAL)
+       toButtonStateShowLocal();
     });
     
     // Footer displays different contents in 'search' and 'subsearch' states
