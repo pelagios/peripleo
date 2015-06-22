@@ -57,6 +57,9 @@ define(['peripleo-ui/events/events'], function(Events) {
         /** The map pin highlighting the currently emphasised marker **/
         emphasisPin = false,
         
+        /** TODO is this a good solution? **/
+        temporaryEmphasis = false,
+        
         /** Flag indicating whether the UI is in subsearch state **/
         isStateSubsearch = false,
         
@@ -189,19 +192,32 @@ define(['peripleo-ui/events/events'], function(Events) {
          * Returns the marker that was emphasized, if any.
          */
         emphasiseObject = function(object) {
-          var tuple;
+          var tuple, geomHash;
           if (object && object.geometry) {
-            tuple = markerIndex[createGeometryHash(object.geometry)];
+            geomHash = createGeometryHash(object.geometry);
+            tuple = markerIndex[geomHash];
             if (tuple) {
               emphasiseMarker(tuple._1);
               return tuple._1;
             } else {
-                
-              // TODO implement 'show-on-hover' behavior
-                
+
+              // TODO turn this into a clean solution!
+              
+              // console.log('temporary overlay');
+              temporaryEmphasis = L.geoJson(object.geometry, Styles.POLYGON);
+              temporaryEmphasis.addTo(map);
+              // markerIndex[geomHash] = temporaryEmphasis;
+              
+              // 
+              
             }
           } else { // No object or object without geometry- de-emphasize
             emphasiseMarker();
+            
+            // TODO hack
+            if (temporaryEmphasis) {
+              map.removeLayer(temporaryEmphasis);
+            }
           }
         },
         
