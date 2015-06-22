@@ -254,7 +254,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
     eventBroker.addHandler(Events.ONE_TIME_SEARCH, makeOneTimeSearchRequest);
     
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubSearch);
-    eventBroker.addHandler(Events.SELECTION, toStateSearch);
+    eventBroker.addHandler(Events.TO_STATE_SEARCH, toStateSearch);
     
     // If the filter panel is closed, we don't request the time histogram (it's expensive!)
     eventBroker.addHandler(Events.SHOW_FILTERS, function() {

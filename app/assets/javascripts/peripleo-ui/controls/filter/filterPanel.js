@@ -105,9 +105,9 @@ define(['common/formatting',
         },
         
         /** Switch panel to 'search' state **/
-        toStateSearch = function() {
-          currentSearchState = SearchState.SEARCH;
+        toStateSearch = function() {          
           toButtonStateShowAll();
+          currentSearchState = SearchState.SEARCH;
           footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
         },
         
@@ -188,6 +188,7 @@ define(['common/formatting',
       if (currentSearchState === SearchState.SEARCH)
         refresh(response);
     });
+
     
     eventBroker.addHandler(Events.SELECTION, function(selection) {
       if (footerButtonState === FooterButton.HIDE_ALL)

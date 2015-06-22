@@ -70,7 +70,7 @@ define(['common/formatting',
         updateIcon = function() {
           var chars = searchInput.val().trim();
       
-          if (chars.length === 0) {
+          if (chars.length === 0 && !isStateSubsearch) {
             searchIcon.html('&#xf002;');
             searchIcon.removeClass('clear');
           } else {
@@ -86,10 +86,10 @@ define(['common/formatting',
         
         /** Handler for the 'X' clear button **/
         onResetSearch = function() {
+          eventBroker.fireEvent(Events.TO_STATE_SEARCH);
           autoSuggest.clear();
           searchForm.submit();
           updateIcon();
-          eventBroker.fireEvent(Events.TO_STATE_SEARCH);
         },
         
         /** We keep the total search result count for display in the flat 'List All' button **/
@@ -124,6 +124,8 @@ define(['common/formatting',
           subsearchIndicator.show();
           searchInput.addClass('search-at');
           searchInput.focus();
+          
+          updateIcon();
           
           // Update footer 
           updateTotalsCount();
