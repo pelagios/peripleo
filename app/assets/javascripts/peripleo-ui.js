@@ -21,6 +21,8 @@ require(['peripleo-ui/api/api',
         map = new Map(document.getElementById('map'), eventBroker),
         
         searchPanel = new SearchPanel(container, eventBroker),
+        
+        // imageControl = new ImageControl(container, eventBroker),
 
         resultList = new ResultList(container, eventBroker),
         

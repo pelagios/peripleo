@@ -6,8 +6,9 @@ define(['common/formatting',
         'peripleo-ui/controls/selection/selectedItem',
         'peripleo-ui/controls/selection/selectedPlace',
         'peripleo-ui/controls/autoSuggest',
+        'peripleo-ui/controls/imageControl',
         'peripleo-ui/controls/searchAtButton',
-        'peripleo-ui/events/events'], function(Formatting, FilterPanel, SelectedItem, SelectedPlace, AutoSuggest, SearchAtButton, Events) {
+        'peripleo-ui/events/events'], function(Formatting, FilterPanel, SelectedItem, SelectedPlace, AutoSuggest, ImageControl, SearchAtButton, Events) {
   
   var SLIDE_DURATION = 180;
   
@@ -36,6 +37,7 @@ define(['common/formatting',
           '  </div>' +
           '  <div id="filterpanel"></div>' +
           '  <div id="selected-place" class="selection-info"></div>' +
+          '  <div id="image-control"></div>' +
           '  <div id="button-search-at"></div>' +  
           '  <div id="selected-item" class="selection-info"></div>' +
           '</div>'),
@@ -51,11 +53,12 @@ define(['common/formatting',
         
         filterPanelContainer = element.find('#filterPanel'),
         selectedPlaceContainer = element.find('#selected-place'),
+        imageControlContainer = element.find('#image-control'),
         searchAtContainer = element.find('#button-search-at'),
         selectedItemContainer = element.find('#selected-item'),
         
         /** Sub-elements - to be initialized after element was added to DOM **/
-        autoSuggest, filterPanel, selectedPlace, searchAtButton, selectedItem,
+        autoSuggest, filterPanel, selectedPlace, imageControl, searchAtButton, selectedItem,
         
         /** Shorthand flag indicating whether the current state is 'subsearch' **/
         isStateSubsearch = false,
@@ -189,6 +192,7 @@ define(['common/formatting',
     autoSuggest = new AutoSuggest(searchForm, searchInput);
     filterPanel = new FilterPanel(filterPanelContainer, eventBroker);
     selectedPlace = new SelectedPlace(selectedPlaceContainer, eventBroker);
+    imageControl = new ImageControl(imageControlContainer, eventBroker);
     searchAtButton = new SearchAtButton(searchAtContainer, eventBroker);
     selectedItem = new SelectedItem(selectedItemContainer, eventBroker);
     
