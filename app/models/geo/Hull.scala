@@ -11,6 +11,7 @@ import play.api.libs.json.Json
 import play.api.db.slick.Config.driver.simple._
 import scala.collection.JavaConverters._
 import com.vividsolutions.jts.geom.GeometryCollection
+import org.geotools.geometry.jts.JTS
 
 case class Hull(geometry: Geometry) {
   
@@ -73,7 +74,7 @@ private object ConcaveHull {
       val factory = JTSFactoryFinder.getGeometryFactory()
       val geomCollection = new GeometryCollection(geometries.toArray, factory)
       val concaveHull = new org.opensphere.geometry.algorithm.ConcaveHull(geomCollection, THRESHOLD)
-      Some(Hull(concaveHull.getConcaveHull()))
+      Some(Hull(JTS.smooth(concaveHull.getConcaveHull(), 0.25)))
     } else {
       None
     }

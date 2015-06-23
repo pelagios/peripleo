@@ -294,8 +294,8 @@ define(['peripleo-ui/events/events'], function(Events) {
       
       // 'IxD policy': if the time interval changed, we want to grey-out all markers that are
       // not top places in this response
-      // if (!isStateSubsearch)
-      //  update(response.top_places, hasTimeIntervalChanged);
+      if (!isStateSubsearch)
+        update(response.top_places, hasTimeIntervalChanged);
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
