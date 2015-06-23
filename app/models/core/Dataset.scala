@@ -2,7 +2,7 @@ package models.core
 
 import java.sql.Date
 import models.{ Associations, Page }
-import models.geo.ConvexHull
+import models.geo.Hull
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag, Query }
@@ -56,7 +56,7 @@ case class Dataset(
   /** The full temporal profile and time histogram for the dataset **/
   temporalProfile: Option[String],
   
-  convexHull: Option[ConvexHull])
+  hull: Option[Hull])
     
 /** Dataset DB table **/
 class Datasets(tag: SlickTag) extends Table[Dataset](tag, "datasets") {
@@ -87,10 +87,10 @@ class Datasets(tag: SlickTag) extends Table[Dataset](tag, "datasets") {
   
   def temporalProfile = column[String]("temporal_profile", O.Nullable, O.DBType("text"))
   
-  def convexHull = column[ConvexHull]("convex_hull", O.Nullable, O.DBType("text"))
+  def hull = column[Hull]("hull", O.Nullable, O.DBType("text"))
   
   def * = (id, title, publisher, license, created, modified, voidURI.?, description.?, homepage.?,
-      isPartOfId.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?, convexHull.?) <> (Dataset.tupled, Dataset.unapply)
+      isPartOfId.?, temporalBoundsStart.?, temporalBoundsEnd.?, temporalProfile.?, hull.?) <> (Dataset.tupled, Dataset.unapply)
   
   /** Foreign key constraints **/
     
@@ -139,7 +139,7 @@ object Datasets {
       // Grab all places for this dataset and compute the convex hull
       Logger.info("Recomputing convex hull for dataset " + dataset.title)
       val geometries = Associations.findPlacesInDataset(dataset.id).items.flatMap(_._1.geometry)
-      val convexHull = ConvexHull.compute(geometries)
+      val convexHull = Hull.compute(geometries)
 
       // Update the DB record
       val updatedDataset = Dataset(dataset.id, dataset.title, dataset.publisher, dataset.license,

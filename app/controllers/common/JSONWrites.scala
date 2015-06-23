@@ -49,7 +49,7 @@ object JSONWrites {
       thing.temporalBoundsStart.map(start => Json.obj( 
         "start" -> start,
         "end" -> { val end = thing.temporalBoundsEnd.getOrElse(start); end })),
-      thing.convexHull.map(_.bounds),
+      thing.hull.map(_.bounds),
       { if (depictions.size > 0) Some(depictions.map(_.url)) else None },
       { val count = AnnotatedThings.countChildren(thing.id); if (count > 0) Some(count) else None },
       Annotations.countByAnnotatedThing(thing.id),

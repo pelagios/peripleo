@@ -10,7 +10,7 @@ import play.api.libs.json.Json
 import play.api.db.slick.Config.driver.simple._
 import scala.collection.JavaConverters._
 
-case class ConvexHull(geometry: Geometry) {
+case class Hull(geometry: Geometry) {
   
   lazy val bounds: BoundingBox = {
     val envelope = geometry.getEnvelopeInternal()
@@ -28,28 +28,41 @@ case class ConvexHull(geometry: Geometry) {
   
 }
 
-object ConvexHull {
+object Hull {
   
   /** DB mapper function **/
-  implicit val convexHullMapper = MappedColumnType.base[ConvexHull, String](
-    { convexHull => convexHull.toString },
-    { convexHull => ConvexHull.fromGeoJSON(convexHull) })
+  implicit val hullMapper = MappedColumnType.base[Hull, String](
+    { hull => hull.toString },
+    { hull => Hull.fromGeoJSON(hull) })
+    
+  def fromGeoJSON(json: String): Hull =
+    Hull(new GeometryJSON().read(json.trim))
+    
+  /** Shortcut to the preferred hull type **/
+  def compute(geometries: Seq[Geometry]): Option[Hull] =
+    ConvexHull.compute(geometries)
   
-  def compute(geometries: Seq[Geometry]): Option[ConvexHull] = {
+}
+
+object ConvexHull {
+  
+  def compute(geometries: Seq[Geometry]): Option[Hull] = {
     if (geometries.size > 0) {
       val factory = JTSFactoryFinder.getGeometryFactory()
       val mergedGeometry = factory.buildGeometry(geometries.asJava).union
       val cvGeometry = new JTSConvexHull(mergedGeometry).getConvexHull()
-      Some(ConvexHull(cvGeometry))
+      Some(Hull(cvGeometry))
     } else {
       None
     }
   }
     
-  def fromPlaces(places: Seq[IndexedPlace]): Option[ConvexHull] =
+  def fromPlaces(places: Seq[IndexedPlace]): Option[Hull] =
     compute(places.flatMap(_.geometry))
+    
+}
+
+object ConcaveHull {
   
-  def fromGeoJSON(json: String): ConvexHull =
-    ConvexHull(new GeometryJSON().read(json.trim))
   
 }

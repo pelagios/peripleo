@@ -110,7 +110,7 @@ object IndexedObject {
         .foreach(doc.add(_)))
     
     // Convex hull
-    thing.convexHull.map(cv => doc.add(new StoredField(IndexFields.GEOMETRY, cv.toString)))
+    thing.hull.map(cv => doc.add(new StoredField(IndexFields.GEOMETRY, cv.toString)))
     
     doc   
   }
@@ -132,7 +132,7 @@ object IndexedObject {
     dataset.temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
 
     // Datasets just store the convex hull as geometry
-    dataset.convexHull.map(cv => doc.add(new StoredField(IndexFields.GEOMETRY, cv.toString)))
+    dataset.hull.map(cv => doc.add(new StoredField(IndexFields.GEOMETRY, cv.toString)))
 
     doc
   }

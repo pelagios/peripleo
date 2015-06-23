@@ -1,7 +1,7 @@
 package models.core
 
 import models.Page
-import models.geo.ConvexHull
+import models.geo.Hull
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
@@ -41,7 +41,7 @@ case class AnnotatedThing(
   temporalBoundsEnd: Option[Int],
   
   /** Bounding box of the places the item is annotated with **/
-  convexHull: Option[ConvexHull])
+  hull: Option[Hull])
 
 /** AnnotatedThing DB table **/
 class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotated_things") {
@@ -62,10 +62,10 @@ class AnnotatedThings(tag: SlickTag) extends Table[AnnotatedThing](tag, "annotat
 
   def temporalBoundsEnd = column[Int]("temporal_bounds_end", O.Nullable)
   
-  def convexHull = column[ConvexHull]("convex_hull", O.Nullable, O.DBType("text"))
+  def hull = column[Hull]("hull", O.Nullable, O.DBType("text"))
 
   def * = (id, datasetId, title, description.?, isPartOfId.?, homepage.?, temporalBoundsStart.?, 
-    temporalBoundsEnd.?, convexHull.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
+    temporalBoundsEnd.?, hull.?) <> (AnnotatedThing.tupled, AnnotatedThing.unapply)
   
   /** Foreign key constraints **/
   
