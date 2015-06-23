@@ -99,7 +99,7 @@ object CSVImporter extends AbstractImporter {
           resolvePlaces(annotationsWithText.map(_._1.gazetteerURI))
 
         val thing = 
-          AnnotatedThing(partThingId, dataset.id, partTitle, None, Some(rootThingId), None, date, date, ConvexHull.fromPlaces(places.map(_._1)))
+          AnnotatedThing(partThingId, dataset.id, partTitle, None, Some(rootThingId), None, date, date, Hull.fromPlaces(places.map(_._1)))
           
         IngestRecord(thing, annotationsWithText, places, fulltextForParts.get(partTitle).flatten, Seq.empty[Image])
       }.toSeq
@@ -116,7 +116,7 @@ object CSVImporter extends AbstractImporter {
       val allPlaces = (rootPlaces ++ partPlaces).groupBy(_._1).foldLeft(Seq.empty[(IndexedPlace, Int)]){ case (result, (place, list)) =>
         result :+ (place, list.map(_._2).sum) }
       
-      val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, ConvexHull.fromPlaces(allPlaces.map(_._1)))
+      val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, Hull.fromPlaces(allPlaces.map(_._1)))
       
       IngestRecord(rootThing, rootAnnotationsWithText, allPlaces, fulltextOnRoot, Seq.empty[Image]) +: partIngestBatch
     }

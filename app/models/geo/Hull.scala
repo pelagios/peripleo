@@ -1,5 +1,6 @@
 package models.geo
 
+import scala.collection.JavaConverters._
 import com.vividsolutions.jts.geom.Geometry
 import com.vividsolutions.jts.algorithm.{ ConvexHull => JTSConvexHull }
 import index.places.IndexedPlace
@@ -9,6 +10,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import play.api.libs.json.Json
 import play.api.db.slick.Config.driver.simple._
 import scala.collection.JavaConverters._
+import com.vividsolutions.jts.geom.GeometryCollection
 
 case class Hull(geometry: Geometry) {
   
@@ -40,11 +42,14 @@ object Hull {
     
   /** Shortcut to the preferred hull type **/
   def compute(geometries: Seq[Geometry]): Option[Hull] =
-    ConvexHull.compute(geometries)
+    ConcaveHull.compute(geometries)
+    
+  def fromPlaces(places: Seq[IndexedPlace]): Option[Hull] =
+    compute(places.flatMap(_.geometry))
   
 }
 
-object ConvexHull {
+private object ConvexHull {
   
   def compute(geometries: Seq[Geometry]): Option[Hull] = {
     if (geometries.size > 0) {
@@ -57,12 +62,21 @@ object ConvexHull {
     }
   }
     
-  def fromPlaces(places: Seq[IndexedPlace]): Option[Hull] =
-    compute(places.flatMap(_.geometry))
-    
 }
 
-object ConcaveHull {
+private object ConcaveHull {
   
+  private val THRESHOLD = 2.0
+  
+  def compute(geometries: Seq[Geometry]): Option[Hull] = {
+    if (geometries.size > 0) {
+      val factory = JTSFactoryFinder.getGeometryFactory()
+      val geomCollection = new GeometryCollection(geometries.toArray, factory)
+      val concaveHull = new org.opensphere.geometry.algorithm.ConcaveHull(geomCollection, THRESHOLD)
+      Some(Hull(concaveHull.getConcaveHull()))
+    } else {
+      None
+    }
+  }
   
 }

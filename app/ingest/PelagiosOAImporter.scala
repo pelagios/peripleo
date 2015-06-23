@@ -6,7 +6,7 @@ import java.util.UUID
 import java.io.FileInputStream
 import models.Associations
 import models.core._
-import models.geo.ConvexHull
+import models.geo.Hull
 import org.pelagios.Scalagios
 import org.pelagios.api.annotation.{ AnnotatedThing => OAThing, Annotation => OAnnotation }
 import play.api.Logger
@@ -115,7 +115,7 @@ object PelagiosOAImporter extends AbstractImporter {
                        oaThing.homepage, 
                        tempBoundsStart, 
                        tempBoundsEnd, 
-                       ConvexHull.fromPlaces(places.map(_._1)))
+                       Hull.fromPlaces(places.map(_._1)))
       
       val images = 
         oaThing.depictions.map(url => Image(None, dataset.id, thingId, url))
