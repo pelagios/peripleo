@@ -16,7 +16,7 @@ dist
 /.target
 /bin
 /.cache
-/lib
+/lib/scalagios-*
 /index
 /rebuild-scalagios.sh
 .cache-*
