@@ -14,7 +14,10 @@ define(['peripleo-ui/events/events'], function(Events) {
       SLIDE_DURATION = 180,
       
       /** Crossfade duration **/
-      FADE_DURATION = 300;
+      FADE_DURATION = 300,
+      
+      /** A minimum time the image control stays idle after the last refresh **/
+      QUERY_DELAY_MS = 500;
   
   /**
    * NOTES...
@@ -83,9 +86,13 @@ define(['peripleo-ui/events/events'], function(Events) {
         },
           
         /** Loads an image into the work area **/
-        loadToWorkArea = function(src, callback) {
+        loadToWorkArea = function(src, onSuccess, onError) {
           var img = new Image();
-          img.onload = function() { callback(img); };
+          img.onload = function() { onSuccess(img); };
+          img.onerror = function() { 
+            jQuery(img).remove();
+            onError();
+          };
           img.src = src;
           workArea.append(jQuery(img));
           return img;
@@ -124,11 +131,12 @@ define(['peripleo-ui/events/events'], function(Events) {
           return jImage;
         },
 
-        insertIfNotExists = function(obj, offset, width) {
+        insertIfNotExists = function(obj, offset, width, onComplete) {
           var existing = currentImages[obj.src],
               alreadyShown = existing && existing.offset === offset && existing.width === width;
           
           if (alreadyShown) {
+            onComplete();
             return existing.img;
           } else {
             loadToWorkArea(obj.src, function(image) {
@@ -139,7 +147,10 @@ define(['peripleo-ui/events/events'], function(Events) {
               clippedImage.css('left', parseInt(clippedImage.css('left')) + offset);
               thumbnailContainer.append(clippedImage);
               clippedImage.velocity('fadeIn', { duration: FADE_DURATION });
-            });
+              
+              if (onComplete)
+                onComplete();
+            }, onComplete);
             return false;
           }
         },
@@ -149,14 +160,20 @@ define(['peripleo-ui/events/events'], function(Events) {
             delete currentImages[img.src];
           });
           images.velocity('fadeOut', { duration: FADE_DURATION, complete: function() { images.remove(); }});
-        }
+        },
         
-        update = function(objects) {
-          
-          // TODO make use of busy flag
-          
-          // TODO don't replace images that already exist at the right place
-          
+        handlePending = function() {
+          setTimeout(function() {
+            busy = false;
+            if (pendingUpdate) {
+              update(pendingUpdate);                    
+              pendingUpdate = false;
+            }
+          }, QUERY_DELAY_MS);
+        },
+        
+        /** Updates the image widget **/
+        update = function(objects) {          
           var imagesToRemove = thumbnailContainer.children(),
           
               objectsWithDepictions = jQuery.grep(objects, function(obj) {
@@ -173,15 +190,25 @@ define(['peripleo-ui/events/events'], function(Events) {
               // TODO pick random 3 rather than top 3?
               toShow = depictions.slice(0, 3),
               
-              width = THUMB_WIDTH[toShow.length];
+              width = THUMB_WIDTH[toShow.length],
+              
+              // To track progress
+              imagesLoadedCtr = 0;
           
           if (toShow.length > 0) {
-            
             if (isHidden)
               show();
               
+            busy = true;
+            
             jQuery.each(depictions.slice(0, 3), function(idx, obj) {
-              var existingImage = insertIfNotExists(obj, (width + 2) * idx, width);
+              var existingImage = insertIfNotExists(obj, (width + 2) * idx, width, function() {
+                imagesLoadedCtr++;
+                
+                if (imagesLoadedCtr == toShow.length)
+                  handlePending();
+              });
+              
               if (existingImage)
                 imagesToRemove = imagesToRemove.not(existingImage);
             });
@@ -198,10 +225,12 @@ define(['peripleo-ui/events/events'], function(Events) {
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       var objects = response.top_places.concat(response.items);
-      if (busy)
+      if (busy) {
         pendingUpdate = objects;
-      else
+      } else {
         update(objects);
+        pendingUpdate = false;
+      }
     });
   };
   
