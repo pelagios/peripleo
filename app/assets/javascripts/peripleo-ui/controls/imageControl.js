@@ -1,7 +1,21 @@
 define(['peripleo-ui/events/events'], function(Events) {
-  
-  var RECT_THUMB_SIZE = 120;
 
+      /** Thumbnail height **/  
+  var THUMB_HEIGHT = 98,
+  
+      /** Thumbnail widths in 1, 2 or 3-thumbnail layout **/
+      THUMB_WIDTH = {
+        1: 396,
+        2: 197,
+        3: 131 
+      }
+      
+      /** Panel open/close slide duration **/
+      SLIDE_DURATION = 180,
+      
+      /** Crossfade duration **/
+      FADE_DURATION = 300;
+  
   /**
    * NOTES...
    * 
@@ -37,11 +51,36 @@ define(['peripleo-ui/events/events'], function(Events) {
 
   var ImageControl = function(container, eventBroker) {
 
-    var padding = parseInt(container.css('padding-left')),
+        /** Container element holding the thumbnail images **/
+    var thumbnailContainer = jQuery('<div id="thumbnail-container"></div>'),
     
-        workArea = jQuery(
-          '<div id="image-workshop">' + 
-          '</div>'),
+        /** 'Control caption' overlaid on top of the images **/
+        caption = jQuery('<span class="caption">Images</span>'),
+    
+        /** Off-screen staging area where image loading and preparation takes place **/
+        workArea = jQuery('<div id="image-workshop"></div>'),
+        
+        /** Flag indicating whether images are currently loading **/
+        busy = false,
+        
+        /** A buffered update to perform as soon as busy = false **/
+        pendingUpdate = false,
+        
+        /** To keep track of currently displayed images **/
+        currentImages = {},
+        
+        /** Flag to buffer current visibility **/
+        isHidden = true,
+        
+        show = function() {
+          isHidden = false;
+          container.velocity('slideDown', { duration: SLIDE_DURATION });
+        },
+        
+        hide = function() {
+          isHidden = true;
+          container.velocity('slideUp', { duration: SLIDE_DURATION });
+        },
           
         /** Loads an image into the work area **/
         loadToWorkArea = function(src, callback) {
@@ -52,72 +91,118 @@ define(['peripleo-ui/events/events'], function(Events) {
           return img;
         },
         
-        /** Clips and scales the image to a rectangle using CSS **/
-        clipToRect = function(image) {
-          var img = jQuery(image),
-              w = image.width, 
+        clip = function(image, targetWidth, targetHeight) {
+          var w = image.width,
               h = image.height,
-              scaling, offset, clipCSS;
-            
-          // Common CSS styles
-          img.css('position', 'absolute');
+              imageAspectRatio = w / h,
+              targetAspectRatio = targetWidth / targetHeight,
+              jImage = jQuery(image), // Wrapped for easer CSS manipulation
+              scale, offset;
+              
+          jImage.css({ position: 'absolute', display: 'none' });
           
-          if (w > h) { // Landscape
-            scaling = RECT_THUMB_SIZE / h;
-            offset = (w - h) / 2 * scaling;
-            img.css({ 
-              left: - offset,
-              height: RECT_THUMB_SIZE,
-              clip: 'rect(0 ' + (offset + RECT_THUMB_SIZE) + 'px ' + RECT_THUMB_SIZE + 'px ' + offset + 'px)'
+          if (imageAspectRatio > targetAspectRatio) { // Clip left and right
+            scale = targetHeight / h;
+            offset = (w - h * targetAspectRatio) / 2 * scale;
+            jImage.css({
+              top:0,
+              left: Math.round(- offset),
+              height: targetHeight,
+              clip: 'rect(0 ' + (offset + targetWidth) + 'px ' + targetHeight + 'px ' + offset + 'px)'              
             });
-          } else { // Portrait
-            scaling = RECT_THUMB_SIZE / w;
-            offset = (h - w) / 2 * scaling;
-            img.css({ 
-              left: 0,
-              top: - offset,
-              width: RECT_THUMB_SIZE,
-              clip: 'rect(' + offset + 'px ' + RECT_THUMB_SIZE + 'px ' + (offset + RECT_THUMB_SIZE) + 'px 0)'
-            });
-          }        
-          
-          addThumbnail(img);
-        },
-        
-        /** Moves the image from the hidden work area to the UI component **/
-        addThumbnail = function(image) {
-          var index = container.children().length,
-              offset = padding + (padding + RECT_THUMB_SIZE) * index,
-              left = parseInt(image.css('left')) + offset;
-          
-          image.css('left', left);
-          container.append(image);
-          image.show();
-        },
-        
-        update = function(response) {
-          var objectsWithDepictions = jQuery.grep(response.items, function(item) {
-                return item.hasOwnProperty('depictions');
-              }),
-              
-              allDepictions = jQuery.map(objectsWithDepictions, function(item) {
-                return item.depictions;
-              });
-              
-          workArea.empty();
-          container.empty();
-              
-          if (allDepictions.length > 0) {
-            jQuery.each(allDepictions.slice(0, 3), function(idx, src) {
-              loadToWorkArea(src, clipToRect);
+          } else { // Clip top and bottom
+            scale = targetWidth / w;
+            offset = (h - w / targetAspectRatio) / 2 * scale;
+            jImage.css({
+              top: Math.round(- offset),
+              left:0,
+              width: targetWidth,
+              clip: 'rect(' + offset + 'px ' + targetWidth + 'px ' + (offset + targetHeight) + 'px 0)'              
             });
           }
-        };
-    
-    workArea.hide();
-    container.append(workArea);
+          
+          return jImage;
+        },
 
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, update);
+        insertIfNotExists = function(obj, offset, width) {
+          var existing = currentImages[obj.src],
+              alreadyShown = existing && existing.offset === offset && existing.width === width;
+          
+          if (alreadyShown) {
+            return existing.img;
+          } else {
+            loadToWorkArea(obj.src, function(image) {
+              var clippedImage = clip(image, width, THUMB_HEIGHT);
+              
+              currentImages[obj.src] = { offset: offset, width: width, img: clippedImage };
+            
+              clippedImage.css('left', parseInt(clippedImage.css('left')) + offset);
+              thumbnailContainer.append(clippedImage);
+              clippedImage.velocity('fadeIn', { duration: FADE_DURATION });
+            });
+            return false;
+          }
+        },
+        
+        remove = function(images) {
+          jQuery.each(images, function(idx, img) {
+            delete currentImages[img.src];
+          });
+          images.velocity('fadeOut', { duration: FADE_DURATION, complete: function() { images.remove(); }});
+        }
+        
+        update = function(objects) {
+          
+          // TODO make use of busy flag
+          
+          // TODO don't replace images that already exist at the right place
+          
+          var imagesToRemove = thumbnailContainer.children(),
+          
+              objectsWithDepictions = jQuery.grep(objects, function(obj) {
+                return obj.hasOwnProperty('depictions');
+              }),
+              
+              // A 'flat map' generating an array of (depiction -> object) tuples
+              depictions = jQuery.map(objectsWithDepictions, function(obj) {
+                return jQuery.map(obj.depictions, function(src) {
+                  return { src: src, obj: obj };
+                });
+              }),
+              
+              // TODO pick random 3 rather than top 3?
+              toShow = depictions.slice(0, 3),
+              
+              width = THUMB_WIDTH[toShow.length];
+          
+          if (toShow.length > 0) {
+            
+            if (isHidden)
+              show();
+              
+            jQuery.each(depictions.slice(0, 3), function(idx, obj) {
+              var existingImage = insertIfNotExists(obj, (width + 2) * idx, width);
+              if (existingImage)
+                imagesToRemove = imagesToRemove.not(existingImage);
+            });
+          } else {
+            hide();
+          }
+           
+          remove(imagesToRemove);
+        };
+
+    container.hide();
+    container.append(thumbnailContainer);
+    container.append(caption);
+
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
+      var objects = response.top_places.concat(response.items);
+      if (busy)
+        pendingUpdate = objects;
+      else
+        update(objects);
+    });
   };
   
   return ImageControl;
