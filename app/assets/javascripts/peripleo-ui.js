@@ -1,30 +1,28 @@
 require(['peripleo-ui/api/api',
          'peripleo-ui/controls/resultList',
-         'peripleo-ui/controls/searchPanel', 
+         'peripleo-ui/controls/searchPanel',
+         'peripleo-ui/controls/toolbar', 
          'peripleo-ui/events/events',
          'peripleo-ui/events/eventBroker',
          'peripleo-ui/events/lifecycleWatcher',
          'peripleo-ui/map/map', 
-         'peripleo-ui/urlBar'], function(API, ResultList, SearchPanel, Events, EventBroker, LifeCycleWatcher, Map, URLBar) {
+         'peripleo-ui/urlBar'], function(API, ResultList, SearchPanel, Toolbar, Events, EventBroker, LifeCycleWatcher, Map, URLBar) {
   
   jQuery(document).ready(function() {  
-    var container = jQuery('#controls'),
-    
-        eventBroker = new EventBroker(),
-        
-        lifeCycleWatcher = new LifeCycleWatcher(eventBroker);
-        
-        urlBar = new URLBar(eventBroker),
-        
-        api = new API(eventBroker),
-        
-        map = new Map(document.getElementById('map'), eventBroker),
-        
-        searchPanel = new SearchPanel(container, eventBroker),
-        
-        // imageControl = new ImageControl(container, eventBroker),
+        /** DOM element shorthands **/
+    var mapDIV = document.getElementById('map'),
+        controlsDIV = jQuery('#controls'),
+        toolbarDIV = jQuery('#toolbar'),
 
-        resultList = new ResultList(container, eventBroker),
+        /** Top-level components **/
+        eventBroker = new EventBroker(),
+        lifeCycleWatcher = new LifeCycleWatcher(eventBroker);
+        urlBar = new URLBar(eventBroker),
+        api = new API(eventBroker),
+        map = new Map(mapDIV, eventBroker),
+        toolbar = new Toolbar(toolbarDIV, eventBroker),
+        searchPanel = new SearchPanel(controlsDIV, eventBroker),
+        resultList = new ResultList(controlsDIV, eventBroker),
         
         parseBBox = function(bboxStr) {
           var values = bboxStr.split(',');

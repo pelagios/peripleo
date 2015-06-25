@@ -1,0 +1,36 @@
+@import "../globals-new.less";
+
+#toolbar {
+  position:absolute;
+  top:15px;
+  right:30px;
+
+  .tool {
+    margin-bottom:6px; 
+    text-align:center;
+    font-size:18px;
+    .box-shadow(0, 2px, 6px, 0, rgba(0,0,0,0.3));
+    color:#9f9f9f;
+    cursor:pointer;
+    .rounded-corners(2px);
+    .no-select();
+    overflow:hidden;
+  }
+
+  .button {
+    box-sizing:border-box;
+    width:32px;
+    height:32px;
+    padding:8px 0;
+    background-color:#fff;
+  }
+  
+  .button:hover {
+    background-color:#f2f2f2;
+  }
+
+  #toolbar-zoom-in {
+    border-bottom: 1px solid #e6e6e6;
+  }
+
+}

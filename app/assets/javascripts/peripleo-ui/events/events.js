@@ -114,7 +114,7 @@ define(function() {
     
     
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    /* Control-related UI events       */
+    /* Search-panel-related UI events */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */    
 
     /** 
@@ -148,18 +148,34 @@ define(function() {
     HIDE_RESULTS : 'hideAllResults',
     
     /**
-     * The user hovers over a result in the list
+     * The user hovers over a result in the list.
      * 
      * @param the search result
      */
     MOUSE_OVER_RESULT : 'mouseOverResult',
     
     /**
-     * The user selected a result in the list
+     * The user selected a result in the list.
      * 
      * @param the result
      */
-    SELECT_RESULT : 'selectResult'
+    SELECT_RESULT : 'selectResult',
+    
+    
+    
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    /* Toolbar-related UI events      */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */   
+    
+    /**
+     * The user clicked the 'zoom in' (plus) button.
+     */
+    ZOOM_IN : 'zoomIn',
+
+    /**
+     * The user clicked the 'zoom out' (minus) button.
+     */    
+    ZOOM_OUT : 'zoomOut'
         
   };
     
