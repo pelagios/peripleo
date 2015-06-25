@@ -81,12 +81,13 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
             // appared as "top place" on the map. In this case, we want to keep the query phrase!
             if (isInCurrentResultList(selectedPlaces[0]) || !currentQueryPhrase) {
               label.addClass('no-query all');
-              label.html('Search at <span class="underline">' + selectedPlaces[0].title + 
+              label.html('Search at <span class="underline">' + Formatting.shortenPlacename(selectedPlaces[0].title) + 
                 '</span> <span class="totals all-count"></span>');
             } else {
               label.removeClass('no-query all');
-              label.html('Search  at ' + selectedPlaces[0].title  + ': <em class="query underline">' + currentQueryPhrase + 
-                '</em>  <span class="totals with-query-count"></span> · <span class="underline all">all</span>  <span class="totals all-count"></span>');
+              label.html('Search  at ' + Formatting.shortenPlacename(selectedPlaces[0].title)  + ': <em class="query underline">' + 
+                currentQueryPhrase + '</em>  <span class="totals with-query-count"></span> · <span class="underline all">all</span>  ' +
+                '<span class="totals all-count"></span>');
             }
 
             updateRelatedCount();

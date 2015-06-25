@@ -115,7 +115,7 @@ define(['common/formatting',
           ignoreNextViewUpdate = true;
           
           currentSearchState = SearchState.SUB_SEARCH;
-          footerLabel.html('Show results at ' + firstPlace.title);
+          footerLabel.html('Show results at ' + Formatting.shortenPlacename(firstPlace.title));
           footerTotals.html(' (' + Formatting.formatNumber(subsearch.total) + ')');
         },
         

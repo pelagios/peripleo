@@ -82,7 +82,14 @@ define(function() {
     },
     
     shortenPlacename: function(placename) {
-      return placename;
+      var splitCharacters = [',', ';', '/'],
+          splitIndices = jQuery.map(splitCharacters, function(c) { return placename.indexOf(c); }),
+          validSplitIndices = jQuery.grep(splitIndices, function(idx) { return idx > -1; }).sort();
+
+      if (validSplitIndices.length > 0) 
+        return placename.substring(0, validSplitIndices[0]);
+      else
+        return placename;
     },
     
     createMeter: function(label, tooltip, percentage) {
