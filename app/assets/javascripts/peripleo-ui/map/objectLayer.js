@@ -11,39 +11,44 @@ define(['peripleo-ui/events/events'], function(Events) {
         radius:5
       },
   
-      // TODO revise the way styles are created
       Styles = {
     
-        SMALL: (function() { return jQuery.extend({}, BASE_STYLE); })(),
+        POINT_RED: (function() { return jQuery.extend({}, BASE_STYLE); })(),
         
-        SMALL_GREY: (function() { 
+        POINT_GREY: (function() { 
           var style = jQuery.extend({}, BASE_STYLE);
           style.color = '#959595';
           style.fillColor = '#aeaeae';
           return style;
         })(),
-      
-        LARGE: (function() { 
-          var style = jQuery.extend({}, BASE_STYLE);
-          style.radius = 9;
-          return style;
-        })(),
         
-        POLYGON: (function() { 
+        POLY_RED: (function() { 
           var style = jQuery.extend({}, BASE_STYLE);
           style.color = '#db473a';
           style.fillColor = '#db473a';
           style.fillOpacity = 0.12;
           style.weight = 0.75;
           return style;
-        })()
+        })(),
+        
+        POLY_GREY: (function() { 
+          var style = jQuery.extend({}, BASE_STYLE);
+          style.color = '#959595';
+          style.fillColor = '#aeaeae';
+          style.fillOpacity = 0.12;
+          style.weight = 0.75;
+          return style;
+        })()     
                 
       };
       
   var ObjectLayer = function(map, eventBroker) {
     
-        /** One feature group to hold all overlays **/   
-    var featureGroup = L.featureGroup().addTo(map),
+        /** Feature group for polygon overlays **/           
+    var shapeFeatures = L.featureGroup().addTo(map),
+    
+        /** Feature group for point overlays **/   
+        pointFeatures = L.featureGroup().addTo(map),
         
         /** Map[id -> (object, marker)] to support 'findById'-type queries **/
         objectIndex = {},
@@ -107,8 +112,10 @@ define(['peripleo-ui/events/events'], function(Events) {
         /** Updates the object layer with a new search response or view update **/
         update = function(objects, invalidateMarkers) {
           // Set all markers to 'out-of-filter'
-          if (invalidateMarkers)
-            featureGroup.setStyle(Styles.SMALL_GREY);
+          if (invalidateMarkers) {
+            pointFeatures.setStyle(Styles.POINT_GREY);
+            shapeFeatures.setStyle(Styles.POLY_GREY);
+          }
           
           jQuery.each(objects, function(idx, obj) {
             var id = obj.identifier,
@@ -124,7 +131,12 @@ define(['peripleo-ui/events/events'], function(Events) {
                 
               if (existingObjectTuple) {
                 jQuery.extend(existingObjectTuple._1, obj); // Object exists - just update the data
-                existingObjectTuple._2.setStyle(Styles.SMALL);
+                
+                if (existingObjectTuple._1.geometry.type === 'Point')
+                  existingObjectTuple._2.setStyle(Styles.POINT_RED);
+                else
+                  existingObjectTuple._2.setStyle(Styles.POLY_RED);
+
                 existingObjectTuple._2.bringToFront();
               } else {                  
                 if (existingMarkerTuple) { // There's a marker at that location already - add the object
@@ -134,14 +146,16 @@ define(['peripleo-ui/events/events'], function(Events) {
                   marker.bringToFront();
                 } else { // Create and add a new marker
                   type = obj.geometry.type;
-                  if (type === 'Point')
-                    marker = L.circleMarker([obj.geo_bounds.max_lat, obj.geo_bounds.max_lon], Styles.SMALL);
-                  else
-                    marker = L.geoJson(obj.geometry, Styles.POLYGON);
+                  if (type === 'Point') {
+                    marker = L.circleMarker([obj.geo_bounds.max_lat, obj.geo_bounds.max_lon], Styles.POINT_RED);
+                    marker.addTo(pointFeatures); 
+                  } else {
+                    marker = L.geoJson(obj.geometry, Styles.POLY_RED);
+                    marker.addTo(shapeFeatures); 
+                  }
           
                   marker.on('click', function(e) { selectByGeomHash(geomHash); });
                   markerIndex[geomHash] = { _1: marker, _2: [obj] };
-                  marker.addTo(featureGroup); 
                 }
 
                 objectIndex[id] = { _1: obj, _2: marker };
@@ -150,22 +164,51 @@ define(['peripleo-ui/events/events'], function(Events) {
           });
         },
         
+        /** Returns the current layer bounds, merging point and shape layer bounds **/
+        getLayerBounds = function() {
+          var pointBounds = pointFeatures.getBounds(),
+              pointBoundsValid = pointBounds.isValid(),
+              shapeBounds = shapeFeatures.getBounds(),
+              shapeBoundValid = shapeBounds.isValid(),
+              mergedBounds;
+              
+          if (pointBoundsValid && shapeBoundValid) {
+            mergedBounds = pointBounds;
+            mergedBounds.extend(shapeBounds);
+            return mergedBounds;
+          } else if (pointBoundsValid) {
+            return pointBounds;
+          } else if (shapeBoundValid) {
+            return shapeBounds;
+          } else {
+            // Doesn't matter, as long as we return invalid bounds
+            return pointBounds;
+          }
+        },
+        
         /** Helper method that resets map location and zoom to fit all current objects **/
         fitToObjects = function() {
+          var bounds;
+          
           if (!jQuery.isEmptyObject(markerIndex)) {
-            map.fitBounds(featureGroup.getBounds(), {
-              animate: true,
-              paddingTopLeft: [380, 20],
-              paddingBottomRight: [20, 20],
-              maxZoom: 9
-            });
+            bounds = getLayerBounds();
+            
+            if (bounds.isValid()) {
+              map.fitBounds(bounds, {
+                animate: true,
+                paddingTopLeft: [380, 20],
+                paddingBottomRight: [20, 20],
+                maxZoom: 9
+              });
+            }
           }
         },
         
         /** Clears all ojbects from the map **/
         clear = function() {
           clearSelection();
-          featureGroup.clearLayers();          
+          pointFeatures.clearLayers();          
+          shapeFeatures.clearLayers();
           objectIndex = {};
           markerIndex = {};
         },

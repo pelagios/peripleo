@@ -81,6 +81,10 @@ define(function() {
       }
     },
     
+    shortenPlacename: function(placename) {
+      return placename;
+    },
+    
     createMeter: function(label, tooltip, percentage) {
       var row = jQuery(METER_TEMPLATE),
           bar = row.find('.bar');
