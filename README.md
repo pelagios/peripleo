@@ -4,7 +4,7 @@ Peripleo (Greek for "to sail", "to swim around") is a search & browsing engine f
 
 ## Background - the Pelagios Initiative
 
-Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://pelagios.org/api-v3/pages/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73) to the [personal Flickr photostream](http://pelagios.org/api-v3/pages/datasets/b05e18236ee96084897c9dfe6c78891c9e71fef527b9c9b2d1b3c45a926bb5ea), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
+Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://pelagios.org/peripleo/pages/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73) to the [personal Flickr photostream](http://pelagios.org/peripleo/pages/datasets/b05e18236ee96084897c9dfe6c78891c9e71fef527b9c9b2d1b3c45a926bb5ea), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
 
 ## Peripleo
 
@@ -18,10 +18,8 @@ The __Peripleo API__ provides machine access to our data. The 'mental model' beh
 * __Places__ to which these items are related, e.g. places mentioned in a text or the findspot of an artefact
 * __Datasets__ which are collections of items, e.g. a particular museum collection or data corpus published by an institution
 
-Datasets as well as items can be __hierarchical__. E.g. the [Pelagios 3 dataset](http://pelagios.org/peripleo/pages/datasets/2a10228dff4c608b91a953efff8dafb3f5c433035b3f31e687eec0297d799824)
-is sub-divided into a corpus of [Greek](http://pelagios.org/peripleo/pages/datasets/48ea51486cb33aae9e08501825a67fa0ba5770c5732742039e13a91ee75d5620)
-and [Latin literary texts](http://pelagios.org/peripleo/pages/datasets/49d46d26fbde0f17cd09f16ff5561d930fd02775160c7ad1cba652ebbf3b2db8).
-Likewise, an item such as Herodotus' _The Histories_ can be subdivided into individual _Books_.
+Datasets as well as items can be __hierarchical__. E.g. the Pelagios 3 dataset is sub-divided into a corpus of 
+Greek and Latin literary texts). Likewise, an item such as Herodotus' _The Histories_ can be subdivided into individual _Books_.
 
 ## Response Format
 
