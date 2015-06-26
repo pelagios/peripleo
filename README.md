@@ -152,9 +152,9 @@ The API provides 'REST-style' access to entity metadata via the following URL pa
 * [/peripleo/datasets/{id}/items](http://pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/items?prettyprint=true) - list all items contained in this dataset
 * [/peripleo/datasets/{id}/places](http://pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/places?prettyprint=true) - list all places related to the items in this dataset *)
 * [/peripleo/datasets/{id}/time](http://pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/time?prettyprint=true) - get the 'temporal profile' of the dataset **)
-* [/peripleo/items/{id}](http://pelagios.org/peripleo/items/b55078c511daf64167c6b51237369e72827ec17c9c05625b03cd3b9f2f5e72ad?prettyprint=true) - get the item with the specified ID
-* [/peripleo/items/{id}/items](http://pelagios.org/peripleo/items/b55078c511daf64167c6b51237369e72827ec17c9c05625b03cd3b9f2f5e72ad/items?prettyPrint=true) - list sub-items to this item
-* [/peripleo/items/{id}/places](http://pelagios.org/peripleo/items/b55078c511daf64167c6b51237369e72827ec17c9c05625b03cd3b9f2f5e72ad/places?prettyprint=true) - list all places related to this item
+* [/peripleo/items/{id}](http://pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f?prettyprint=true) - get the item with the specified ID
+* [/peripleo/items/{id}/items](http://pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/items?prettyPrint=true) - list sub-items to this item
+* [/peripleo/items/{id}/places](http://pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/places?prettyprint=true) - list all places related to this item
 * [/peripleo/places/{uri}](http://pelagios.org/peripleo/places/http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025?prettyprint=true) - get information about the place with the (URL-escaped!) URI
 
 *) Append `verbose=false` as query parameter to receive a less verbose response. This response will have additional performance benefits and load faster than
