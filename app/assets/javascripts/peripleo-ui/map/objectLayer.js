@@ -31,6 +31,15 @@ define(['peripleo-ui/events/events'], function(Events) {
           return style;
         })(),
         
+        POLY_EMPHASIS: (function() { 
+          var style = jQuery.extend({}, BASE_STYLE);
+          style.color = '#C28A29';
+          style.fillColor = '#C28A29';
+          style.fillOpacity = 0.12;
+          style.weight = 0.75;
+          return style;
+        })(),
+        
         POLY_GREY: (function() { 
           var style = jQuery.extend({}, BASE_STYLE);
           style.color = '#959595';
@@ -246,7 +255,7 @@ define(['peripleo-ui/events/events'], function(Events) {
 
               // TODO turn this into a clean solution!
               
-              temporaryEmphasis = L.geoJson(object.geometry, Styles.POLY_RED);
+              temporaryEmphasis = L.geoJson(object.geometry, Styles.POLY_EMPHASIS);
               temporaryEmphasis.addTo(map);
               
             }
