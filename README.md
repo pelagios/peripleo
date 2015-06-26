@@ -138,7 +138,7 @@ Restrict the results to a specific time interval. Both parameters take an intege
 numbers for BC years.) If you are interested in one specific year only, use the same value for `from` and `to`. 
 Note: items in Pelagios that are __not dated will not appear in the results__. Examples:
 
-[http://pelagios.org/peripleo/search?query=coin&from=-600&to=-500](http://pelagios.org/peripleo/search?query=coin&from=-600&to=-500&prettyprint=true)
+[http://pelagios.org/peripleo/search?query=coin&from=-600&to=-500&types=item](http://pelagios.org/peripleo/search?query=coin&from=-600&to=-500&types=item&prettyprint=true)
 
 [http://pelagios.org/peripleo/search?from=2014&to=2014](http://pelagios.org/peripleo/search?from=2014&to=2014&prettyprint=true)
 
