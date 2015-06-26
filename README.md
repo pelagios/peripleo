@@ -102,9 +102,9 @@ Restrict the results to `place`, `dataset` or `item`. Allows multiple values, as
 
 [http://pelagios.org/peripleo/search?query=bronze&types=place](http://pelagios.org/peripleo/search?query=bronze&types=place&prettyprint=true)
 
-#### dataset
+#### datasets
 
-Restrict results to one specific dataset. E.g. find everything for 'mausoleum' in the [Following Hadrian](http://pelagios.org/peripleo/pages/datasets/ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2)
+Restrict results to one or more specific datasets. (Separate multiple dataset IDs by comma.) E.g. find everything for 'mausoleum' in the [Following Hadrian](http://pelagios.org/peripleo/pages/datasets/ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2)
 photo collection:
 
 [http://pelagios.org/peripleo/search?query=mausoleum&dataset=ca222503...](http://pelagios.org/peripleo/search?query=mausoleum&dataset=ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2&prettyprint=true)
