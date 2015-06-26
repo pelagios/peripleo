@@ -148,9 +148,9 @@ Note: items in Pelagios that are __not dated will not appear in the results__. E
 The API provides 'REST-style' access to entity metadata via the following URL paths:
 
 * [/peripleo/datasets](http://pelagios.org/peripleo/datasets?prettyprint=true) - list all datasets
-* [/peripleo/datasets/{id}](http://pelagios.org/peripleo/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947?prettyprint=true) - get the dataset with the specified ID
-* [/peripleo/datasets/{id}/items](http://pelagios.org/peripleo/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/items?prettyprint=true) - list all items contained in this dataset
-* [/peripleo/datasets/{id}/places](http://pelagios.org/peripleo/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/places?prettyprint=true) - list all places related to the items in this dataset *)
+* [/peripleo/datasets/{id}](http://pelagios.org/peripleo/datasets/821b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73?prettyprint=true) - get the dataset with the specified ID
+* [/peripleo/datasets/{id}/items](http://pelagios.org/peripleo/datasets/821b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/items?prettyprint=true) - list all items contained in this dataset
+* [/peripleo/datasets/{id}/places](http://pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/places?prettyprint=true) - list all places related to the items in this dataset *)
 * [/peripleo/datasets/{id}/time](http://pelagios.org/peripleo/datasets/867fa38bcdbeb4aad94f4362d56329066b0c5914a58a011f6f223003eb4cf947/time?prettyprint=true) - get the 'temporal profile' of the dataset **)
 * [/peripleo/items/{id}](http://pelagios.org/peripleo/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa?prettyprint=true) - get the item with the specified ID
 * [/peripleo/items/{id}/items](http://pelagios.org/peripleo/items/1e664de13efffa06f4448046fcc246bf91c79e42766da820d17451f7ffb7f3aa/items?prettyPrint=true) - list sub-items to this item
