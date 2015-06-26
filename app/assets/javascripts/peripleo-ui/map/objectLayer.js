@@ -246,12 +246,8 @@ define(['peripleo-ui/events/events'], function(Events) {
 
               // TODO turn this into a clean solution!
               
-              // console.log('temporary overlay');
-              temporaryEmphasis = L.geoJson(object.geometry, Styles.POLYGON);
+              temporaryEmphasis = L.geoJson(object.geometry, Styles.POLY_RED);
               temporaryEmphasis.addTo(map);
-              // markerIndex[geomHash] = temporaryEmphasis;
-              
-              // 
               
             }
           } else { // No object or object without geometry- de-emphasize
