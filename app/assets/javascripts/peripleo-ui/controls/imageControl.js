@@ -224,14 +224,19 @@ define(['peripleo-ui/events/events'], function(Events) {
     container.append(caption);
     
     container.on('mouseenter', 'img', function(e) {
-      var object = currentImages[e.target.src].obj;
-      eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, object);
+      var obj = currentImages[e.target.src].obj;
+      eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, obj);
     });
     
     container.on('mouseleave', 'img', function(e) {
       eventBroker.fireEvent(Events.MOUSE_OVER_RESULT);
     });
-
+    
+    container.on('click', 'img', function(e) {
+      var obj = currentImages[e.target.src].obj;
+      eventBroker.fireEvent(Events.SELECT_RESULT, [ obj ]);
+    });
+    
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       var objects = response.top_places.concat(response.items);
       if (busy) {
