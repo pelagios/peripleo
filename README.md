@@ -4,7 +4,7 @@ Peripleo (Greek for "to sail", "to swim around") is a search & browsing engine f
 
 ## Background - the Pelagios Initiative
 
-Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://pelagios.org/peripleo/pages/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73) to the [personal Flickr photostream](http://pelagios.org/peripleo/pages/datasets/b05e18236ee96084897c9dfe6c78891c9e71fef527b9c9b2d1b3c45a926bb5ea), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
+Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://pelagios.org/peripleo/pages/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73) to the [personal Flickr photostream](http://pelagios.org/peripleo/pages/datasets/ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
 
 ## Peripleo
 
@@ -18,8 +18,8 @@ The __Peripleo API__ provides machine access to our data. The 'mental model' beh
 * __Places__ to which these items are related, e.g. places mentioned in a text or the findspot of an artefact
 * __Datasets__ which are collections of items, e.g. a particular museum collection or data corpus published by an institution
 
-Datasets as well as items can be __hierarchical__. E.g. the Pelagios 3 dataset is sub-divided into a corpus of 
-Greek and Latin literary texts). Likewise, an item such as Herodotus' _The Histories_ can be subdivided into individual _Books_.
+Datasets as well as items can be __hierarchical__. (E.g. the Pelagios 3 dataset is sub-divided into a corpus of 
+Greek and Latin literary texts. Likewise, an item such as Herodotus' _The Histories_ can be subdivided into individual _Books_.)
 
 ## Response Format
 
@@ -69,18 +69,20 @@ record looks like this:
     "end" : 130
   },
   "geo_bounds" : {
-    "minLon" : 23.7195,
-    "maxLon" : 44.0,
-    "minLat" : 37.5197,
-    "maxLat" : 45.5
+    "min_lon" : 23.7195,
+    "max_lon" : 44.0,
+    "min_lat" : 37.5197,
+    "max_lat" : 45.5
   }
 }
 ```
 
 The `identifier`, `title` and `object_type` labels are always present. Depending on the object, the record can also 
-include a short textual `description`, the bounds of the object in space and time (`geo_bounds` and `temporal_bounds`,
-respectively), and lists of URLs to `images` and `thumbnails`. You can retrieve more information about an 
-object (such as all places related to it, or information about sub-items) through __REST-style access__ (see below), using the object's `identifier` as a key.
+include a short textual `description`, the bounds of the object in space and time (`geo_bounds` and `temporal_bounds`, respectively) and a lists of URLs to `depictions` (images).
+
+In case the result represents and item (rather than a place), the record can also include a `homepage` URL for the item, and the `dataset_path`, i.e. the hierarchy of datasets the item is in. You can retrieve more information about an object (such as all places related to it, or information about sub-items) through __REST-style access__ (see below), using the object's `identifier` as a key.
+
+In case the result reprents a place, the record will include a list of variant `names` and, potentially, a list of `matches` - additional identifier URIs, under the same place is registered in other gazetteers.
 
 The base URL for search is http://pelagios.org/peripleo/search, followed by any of these 
 the filter parameters:
