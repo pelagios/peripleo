@@ -115,7 +115,7 @@ object JSONWrites {
   )(t => (t._1, t._2))
       
       
-  /** TODO this (optionally) inlines a place with an index request - optimize with a Writes[(Gazetteer, IndexedPlace)] **/
+  /** TODO this (optionally) inlines a place with an index request - clean up with a Writes[(Gazetteer, IndexedPlaceNetwork)] **/
   implicit def gazetteerReferenceWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (
     (JsPath \ "identifier").write[String] ~
     (JsPath \ "title").write[String] ~
