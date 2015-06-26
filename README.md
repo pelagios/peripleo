@@ -80,16 +80,15 @@ record looks like this:
 The `identifier`, `title` and `object_type` labels are always present. Depending on the object, the record can also 
 include a short textual `description`, the bounds of the object in space and time (`geo_bounds` and `temporal_bounds`, respectively) and a lists of URLs to `depictions` (images).
 
-In case the result represents and item (rather than a place), the record can also include a `homepage` URL for the item, and the `dataset_path`, i.e. the hierarchy of datasets the item is in. You can retrieve more information about an object (such as all places related to it, or information about sub-items) through __REST-style access__ (see below), using the object's `identifier` as a key.
+In case the result represents and item (rather than a place), the record can also include a `homepage` URL for the item, and the `dataset_path`, i.e. the hierarchy of datasets the item is in. In case the result reprents a place, the record will include a list of variant `names` and, potentially, a list of `matches` - additional identifier URIs, under the same place is registered in other gazetteers.
 
-In case the result reprents a place, the record will include a list of variant `names` and, potentially, a list of `matches` - additional identifier URIs, under the same place is registered in other gazetteers.
+You can retrieve more information about a record (such as all places related to an item, or information about sub-items) through __REST-style access__ (see below), using the record's `identifier` as a key.
 
-The base URL for search is http://pelagios.org/peripleo/search, followed by any of these 
-the filter parameters:
+The base URL for search is http://pelagios.org/peripleo/search, followed by any of these the filter parameters:
 
 #### query 
 
-A keyword query. Per default, only exact matches are returned. Supports AND and OR operators, and trailing asterisk for prefix queries. If you want to run a fuzzy search (which will also match similar - but not necessarily identical - terms), append a '~' to your query term. Examples:
+A keyword query. Per default, only exact matches are returned. Supports logical AND and OR operators, and trailing asterisk for prefix queries. (Note that logical operators need to be uppercase!) If you want to run a fuzzy search, which will also match similar - but not necessarily identical - terms, append a '~' to your query term. Examples:
 
 [http://pelagios.org/peripleo/search?query=gold+AND+coin](http://pelagios.org/peripleo/search?query=gold+AND+coin&prettyprint=true)
 
@@ -97,11 +96,11 @@ A keyword query. Per default, only exact matches are returned. Supports AND and 
 
 [http://pelagios.org/peripleo/search?query=bvrdigala~](http://pelagios.org/peripleo/search?query=bvrdigala~&prettyprint=true)
 
-#### type
+#### types
 
-Restrict the results to `place`, `dataset` or `item`. Examples:
+Restrict the results to `place`, `dataset` or `item`. Allows multiple values, as comma-separated list. Examples:
 
-[http://pelagios.org/peripleo/search?query=bronze&type=place](http://pelagios.org/peripleo/search?query=bronze&type=place&prettyprint=true)
+[http://pelagios.org/peripleo/search?query=bronze&types=place](http://pelagios.org/peripleo/search?query=bronze&types=place&prettyprint=true)
 
 #### dataset
 
