@@ -142,7 +142,7 @@ define(['peripleo-ui/events/events'], function(Events) {
             loadToWorkArea(obj.src, function(image) {
               var clippedImage = clip(image, width, THUMB_HEIGHT);
               
-              currentImages[obj.src] = { offset: offset, width: width, img: clippedImage };
+              currentImages[obj.src] = { obj: obj.obj, offset: offset, width: width, img: clippedImage };
             
               clippedImage.css('left', parseInt(clippedImage.css('left')) + offset);
               thumbnailContainer.append(clippedImage);
@@ -222,6 +222,15 @@ define(['peripleo-ui/events/events'], function(Events) {
     container.hide();
     container.append(thumbnailContainer);
     container.append(caption);
+    
+    container.on('mouseenter', 'img', function(e) {
+      var object = currentImages[e.target.src].obj;
+      eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, object);
+    });
+    
+    container.on('mouseleave', 'img', function(e) {
+      eventBroker.fireEvent(Events.MOUSE_OVER_RESULT);
+    });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       var objects = response.top_places.concat(response.items);
