@@ -3,10 +3,15 @@ package index
 import index.objects.IndexedObjectTypes
 import models.geo.BoundingBox
 import com.vividsolutions.jts.geom.Coordinate
+  
+object DateFilterMode extends Enumeration {
+      
+  val INTERSECTS, CONTAINS = Value
+  
+}
 
 /** A wrapper around a full complement of search arguments **/
 case class SearchParameters(
-    
   /** Keyword/ phrase query **/
   query:             Option[String],
   
@@ -34,6 +39,9 @@ case class SearchParameters(
   /** Date filter (end year) **/
   to:                Option[Int],
   
+  /** Date range filtering mode - match intersecting vs. contained ranges **/
+  dateFilterMode:     DateFilterMode.Value,
+  
   /** Restriction to specific place **/  
   places:            Seq[String],
   
@@ -52,9 +60,9 @@ case class SearchParameters(
   /** Pagination offset (i.e. number of items discarded **/
   offset:            Int) {
     
-    /** Query is valid if at least one param is set **/
-    def isValid: Boolean =
-      Seq(query, from, to, bbox, coord, radius).filter(_.isDefined).size > 0 ||
-      Seq(places, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, excludeGazetteers).filter(_.size > 0).size > 0
+  /** Query is valid if at least one param is set **/
+  def isValid: Boolean =
+    Seq(query, from, to, bbox, coord, radius).filter(_.isDefined).size > 0 ||
+    Seq(places, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, excludeGazetteers).filter(_.size > 0).size > 0
 
 }

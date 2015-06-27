@@ -13,6 +13,7 @@ import play.api.db.slick._
 import play.api.mvc.{ Accepting, AnyContent, BodyParsers, Controller, RequestHeader, SimpleResult }
 import play.api.libs.json.{ Json, JsValue }
 import scala.util.{ Try, Success, Failure }
+import index.DateFilterMode
 
 /** Controller base class.
   *
@@ -31,6 +32,7 @@ abstract class AbstractController extends Controller {
   protected val KEY_EXCLUDE_GAZETTEERS = "exclude_gazetteers"
   protected val KEY_FROM = "from"
   protected val KEY_TO = "to"
+  protected val KEY_DATE_FILTER_MODE = "date_filter"
   protected val KEY_PLACES = "places"
   protected val KEY_BBOX = "bbox"
   protected val KEY_LON = "lon"
@@ -55,6 +57,9 @@ abstract class AbstractController extends Controller {
   private val HEADER_USERAGENT = "User-Agent"
   private val HEADER_REFERER = "Referer"
   private val HEADER_ACCEPT = "Accept"
+  
+  private val CONTAINS = "contains"
+  private val INTERSECTS = "intersects"
   
   
   /** Helper to grab a parameter value from the query string **/
@@ -100,6 +105,13 @@ abstract class AbstractController extends Controller {
       val toYear =
         getQueryParam(KEY_TO, request).map(_.toInt)
         
+      val dateFilterMode =
+        getQueryParam(KEY_DATE_FILTER_MODE, request)
+          .map(_.toLowerCase match {
+            case CONTAINS => DateFilterMode.CONTAINS
+            case INTERSECTS => DateFilterMode.INTERSECTS
+          }).getOrElse(DateFilterMode.INTERSECTS)
+        
       val places =
         getQueryParam(KEY_PLACES, request)
           .map(_.split(",").toSeq.map(uri => Index.normalizeURI(uri.trim)))
@@ -128,7 +140,7 @@ abstract class AbstractController extends Controller {
     
       val params = 
         SearchParameters(query, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, 
-          excludeGazetteers, fromYear, toYear, places, bbox, coord, radius, limit, offset)
+          excludeGazetteers, fromYear, toYear, dateFilterMode, places, bbox, coord, radius, limit, offset)
           
       if (params.isValid)
         Success(params)

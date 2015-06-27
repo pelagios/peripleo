@@ -4,6 +4,7 @@ import com.spatial4j.core.shape.Rectangle
 import com.spatial4j.core.distance.DistanceUtils
 import com.vividsolutions.jts.geom.Coordinate
 import index._
+import index.DateFilterMode._
 import index.annotations.AnnotationReader
 import index.places.IndexedPlaceNetwork
 import java.util.{ Calendar, GregorianCalendar }
@@ -34,7 +35,7 @@ trait ObjectReader extends AnnotationReader {
   private val PREVIEW_SNIPPET_SEPARATOR = " ... "
   
   /** Helper function that adds time query condition if defined **/
-  private def addTimeFilter(query: BooleanQuery, from: Option[Int], to: Option[Int]) = {
+  private def addTimeFilter(query: BooleanQuery, from: Option[Int], to: Option[Int], dateFilterMode: DateFilterMode.Value) = {
     if (from.isDefined || to.isDefined) {
       // Open intervals are allowed
       val start = from match {
@@ -53,7 +54,13 @@ trait ObjectReader extends AnnotationReader {
         else
           Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
 
-      query.add(Index.temporalStrategy.makeQuery(new SpatialArgs(SpatialOperation.Intersects, dateRange)), BooleanClause.Occur.MUST)
+      dateFilterMode match {
+        case DateFilterMode.INTERSECTS =>
+          query.add(Index.temporalStrategy.makeQuery(new SpatialArgs(SpatialOperation.Intersects, dateRange)), BooleanClause.Occur.MUST)
+      
+        case DateFilterMode.CONTAINS =>
+          query.add(Index.temporalStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, dateRange)), BooleanClause.Occur.MUST)        
+      }
     }
   }
   
@@ -116,7 +123,7 @@ trait ObjectReader extends AnnotationReader {
         else
           None
           
-      addTimeFilter(baseSearchQuery, params.from, params.to)
+      addTimeFilter(baseSearchQuery, params.from, params.to, params.dateFilterMode)
 
       (baseSearchQuery, timeHistogramFilter)
     }
@@ -126,7 +133,7 @@ trait ObjectReader extends AnnotationReader {
       if (includeHeatmap) {
         val h = baseQuery.clone()
       
-        addTimeFilter(h, params.from, params.to)
+        addTimeFilter(h, params.from, params.to, params.dateFilterMode)
       
         if (params.query.isDefined) { 
           val fields = Seq(IndexFields.TITLE, IndexFields.DESCRIPTION, IndexFields.PLACE_NAME).toArray   
