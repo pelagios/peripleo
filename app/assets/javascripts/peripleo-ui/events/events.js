@@ -43,6 +43,13 @@ define(function() {
      */
     API_VIEW_UPDATE : 'viewUpdate',    
     
+    /**
+     * The API returned the next search result page
+     * 
+     * @param search result
+     */
+    API_NEXT_PAGE  : 'nextPage',
+    
     
     
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */

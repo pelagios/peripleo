@@ -5,17 +5,22 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
 
   var ResultList = function(container, eventBroker) {
     
-    var element = jQuery('<div id="search-results"><ul></ul></div>'),
+    var element = jQuery(
+          '<div id="search-results">' +
+          '  <ul></ul>' +
+          '  <div id="wait-for-next"></div>' +
+          '</div>'),
 
         /** DOM element shorthands **/       
-        list = element.find('ul'),
+        list = element.find('ul'),        
+        waitForNextIndicator = element.find('#wait-for-next'),
           
         /** Most recent search results **/
         currentSearchResults = [],
         
         /** Most recent subsearch results **/
         currentSubsearchResults = [],
-        
+                
         /**
          * Helper that generates the appropriate icon span for a result.
          * 
@@ -86,6 +91,16 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         scrollTop = function() {
           element.scrollTop(0);   
         },
+        
+        /** If scrolled to bottom, we load the next result page if needed **/ 
+       onScroll = function() {
+          var scrollPos = element.scrollTop() + element.innerHeight(),
+              scrollBottom = element[0].scrollHeight;
+              
+          if (scrollPos >= scrollBottom)
+            console.log('bottom!');
+        },
+
 
         /** Hides the result list **/
         hide = function() {
@@ -106,6 +121,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
             element.velocity('slideDown', { duration: SLIDE_DURATION, delay: opt_delay, complete: scrollTop });
         };
 
+    element.scroll(onScroll);
     element.hide();    
     container.append(element);
 
