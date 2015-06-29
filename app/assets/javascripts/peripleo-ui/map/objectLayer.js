@@ -337,6 +337,7 @@ define(['peripleo-ui/events/events'], function(Events) {
     });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
+      /*
       var  hasTimeIntervalChanged = 
         (response.diff) ? response.diff.hasOwnProperty('from') || response.diff.hasOwnProperty('to') : false;
       
@@ -348,6 +349,13 @@ define(['peripleo-ui/events/events'], function(Events) {
           
         update(response.top_places, hasTimeIntervalChanged);
       }
+      */
+      
+      // TODO clean up
+      
+      // Trial IxD policy: we don't add top places, unless there's currently a search query
+      if (response.params && response.params.query)
+        update(response.top_places);
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 

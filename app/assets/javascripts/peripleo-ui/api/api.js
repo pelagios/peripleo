@@ -190,10 +190,13 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
         
         /** Fires a search request against the API to accomodate a view update **/
         makeViewUpdateRequest = function() {     
+          var params = jQuery.extend({}, searchParams);
+          
           busy = true;
           
           // View updates ignore the state, and are always forced to 'search'
           jQuery.getJSON(buildFirstPageQueryURL(undefined, SearchState.SEARCH), function(response) {
+            response.params = params;
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
         },
