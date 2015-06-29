@@ -184,6 +184,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       currentSearchResults = response.items;
+      currentSearchResultsTotal = response.total;
       
       // TODO how to update control contents? 
       // - Don't update?
