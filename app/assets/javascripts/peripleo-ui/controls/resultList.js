@@ -19,9 +19,11 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           
         /** Most recent search results **/
         currentSearchResults = [],
+        currentSearchResultsTotal,
         
         /** Most recent subsearch results **/
         currentSubsearchResults = [],
+        currentSubsearchResultsTotal,
         
         /** Current search state **/
         currentSearchState = SearchState.SEARCH,
@@ -105,16 +107,21 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         /** If scrolled to bottom, we load the next result page if needed **/ 
        onScroll = function() {
           var scrollPos = element.scrollTop() + element.innerHeight(),
-              scrollBottom = element[0].scrollHeight;
+              scrollBottom = element[0].scrollHeight,
+              loadedResults;
               
           // TODO visual wait indication
           
-          // TODO check if there are really new results to load
           if (scrollPos >= scrollBottom) {
-            if (currentSearchState === SearchState.SEARCH)
-              eventBroker.fireEvent(Events.LOAD_NEXT_PAGE, currentSearchResults.length);
-            else
-              eventBroker.fireEvent(Events.LOAD_NEXT_PAGE, currentSubsearchResults.length);
+            if (currentSearchState === SearchState.SEARCH) {
+              loadedResults = currentSearchResults.length;
+              if (currentSearchResultsTotal > loadedResults)
+                eventBroker.fireEvent(Events.LOAD_NEXT_PAGE, loadedResults);
+            } else {
+              loadedResults = currentSubsearchResults.length;
+              if (currentSubsearchResultsTotal > loadedResults)
+                eventBroker.fireEvent(Events.LOAD_NEXT_PAGE, loadedResults);
+            }
           }
         },
         
@@ -154,6 +161,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     // Initial response
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, function(response) {
       currentSearchResults = response.items;
+      currentSearchResultsTotal = response.total;
     });
     
     // View updates - like GMaps, we close when user resumes map browsing
@@ -179,6 +187,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) {
       currentSearchResults = response.items;
+      currentSearchResultsTotal = response.total;
       
       // TODO update control contents
       // - If there's a query phrase -> open
@@ -189,6 +198,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     // Sub-search
     eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
       currentSubsearchResults = response.items;
+      currentSearchResultsTotal = response.total;
       show(currentSubsearchResults, OPEN_DELAY); // Show immediately      
     });
     
