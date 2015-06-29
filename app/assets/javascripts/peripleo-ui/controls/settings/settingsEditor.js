@@ -17,13 +17,13 @@ define(['peripleo-ui/events/events'], function(Events) {
 
           '     <li class="baselayer" data-name="dare">' +
           '       <div class="map-thumb-container"><img class="map-thumb" src="http://pelagios.org/tilesets/imperium/7/68/47.png"></div>' +
-          '       <h2>Digital Atlas of the Roman Empire Basemap</h2>' +
+          '       <h2>Ancient Places and Roads</h2>' +
           '       <p>Roman Empire base map by the <a href="http://dare.ht.lu.se/" target="_blank">Digital Atlas of the Roman Empire</a>, Lund University, Sweden.</p>' +
           '     </li>' +
           
           '     <li class="baselayer" data-name="osm">' +
           '       <div class="map-thumb-container"><img class="map-thumb" src="http://a.tile.openstreetmap.org/7/68/47.png"></div>' +
-          '       <h2>OpenStreetMap</h2>' +
+          '       <h2>Modern Places and Roads</h2>' +
           '       <p>Modern places and roads via <a href="http://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.</p>' +
           '     </li>' +
           
