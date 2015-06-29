@@ -15,7 +15,8 @@ define(['peripleo-ui/events/events'], function(Events) {
           
         btnZoomIn = btnZoom.find('#toolbar-zoom-in'),
         btnZoomOut = btnZoom.find('#toolbar-zoom-out'); 
-    
+        
+    btnSettings.click(function() { eventBroker.fireEvent(Events.EDIT_MAP_SETTINGS); });
     btnZoomIn.click(function() { eventBroker.fireEvent(Events.ZOOM_IN); });
     btnZoomOut.click(function() { eventBroker.fireEvent(Events.ZOOM_OUT); });
     

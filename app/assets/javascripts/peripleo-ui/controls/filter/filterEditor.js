@@ -6,7 +6,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     
     var element = jQuery(
           '<div class="clicktrap">' +
-          '  <div id="filter-editor">' +
+          '  <div class="modal-editor" id="filter-editor">' +
           '   <span class="close icon">&#xf057;</span>' +
           '   <div class="buttons">' +
           '     <span class="btn select-all"><span class="icon">&#xf046;</span> <span class="label">Select all</span></span>' +

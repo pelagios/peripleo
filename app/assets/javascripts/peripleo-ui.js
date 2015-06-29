@@ -1,4 +1,5 @@
 require(['peripleo-ui/api/api',
+         'peripleo-ui/controls/settings/settingsEditor',
          'peripleo-ui/controls/resultList',
          'peripleo-ui/controls/searchPanel',
          'peripleo-ui/controls/toolbar', 
@@ -6,7 +7,7 @@ require(['peripleo-ui/api/api',
          'peripleo-ui/events/eventBroker',
          'peripleo-ui/events/lifecycleWatcher',
          'peripleo-ui/map/map', 
-         'peripleo-ui/urlBar'], function(API, ResultList, SearchPanel, Toolbar, Events, EventBroker, LifeCycleWatcher, Map, URLBar) {
+         'peripleo-ui/urlBar'], function(API, SettingsEditor, ResultList, SearchPanel, Toolbar, Events, EventBroker, LifeCycleWatcher, Map, URLBar) {
   
   jQuery(document).ready(function() {  
         /** DOM element shorthands **/
@@ -23,6 +24,7 @@ require(['peripleo-ui/api/api',
         toolbar = new Toolbar(toolbarDIV, eventBroker),
         searchPanel = new SearchPanel(controlsDIV, eventBroker),
         resultList = new ResultList(controlsDIV, eventBroker),
+        settingsEditor = new SettingsEditor(eventBroker),
         
         parseBBox = function(bboxStr) {
           var values = bboxStr.split(',');

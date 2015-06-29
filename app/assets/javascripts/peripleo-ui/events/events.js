@@ -180,6 +180,11 @@ define(function() {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     /* Toolbar-related UI events      */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */   
+
+    /**
+     * The user clicked the map settings button
+     */
+    EDIT_MAP_SETTINGS : 'editMapSettings',
     
     /**
      * The user clicked the 'zoom in' (plus) button.
@@ -189,7 +194,15 @@ define(function() {
     /**
      * The user clicked the 'zoom out' (minus) button.
      */    
-    ZOOM_OUT : 'zoomOut'
+    ZOOM_OUT : 'zoomOut',
+    
+    
+    
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+    /* Settings-related UI events     */
+    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */   
+        
+    CHANGE_LAYER : 'changeLayer'
         
   };
     

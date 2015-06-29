@@ -4,35 +4,33 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
   var Map = function(div, eventBroker) {  
     var Layers = {
       
-          DARE : L.tileLayer('http://pelagios.org/tilesets/imperium//{z}/{x}/{y}.png', {
+          dare : L.tileLayer('http://pelagios.org/tilesets/imperium/{z}/{x}/{y}.png', {
                    attribution: 'Tiles: <a href="http://imperium.ahlfeldt.se/">DARE 2014</a>',
                    minZoom:3,
                    maxZoom:11
                  }), 
                  
-          AWMC : L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
+          awmc : L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
                    attribution: 'Tiles &copy; <a href="http://mapbox.com/" target="_blank">MapBox</a> | ' +
                      'Data &copy; <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> and contributors, CC-BY-SA | '+
                      'Tiles and Data &copy; 2013 <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
                      '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC 3.0</a>'
+                 }),
+                 
+          osm  : L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	                 attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
                  })
                  
         },    
         
-        /** Base Layer dictionary **/
-        baseLayers = 
-          { 'Bing Satellite': Layers.BingSatellite, 
-            'Bing Road': Layers.BingRoad,
-            'OpenStreetMap': Layers.OSM,
-            'Empty Base Map (<a href="http://awmc.unc.edu/wordpress/tiles/map-tile-information" target="_blank">AWMC</a>)': Layers.AWMC, 
-            'Roman Empire Base Map (<a href="http://imperium.ahlfeldt.se/" target="_blank">DARE</a>)': Layers.DARE },
+        currentLayer = Layers.awmc,
         
         /** Map **/    
         map = new L.Map(div, {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
           zoomControl: false,
-          layers: [ Layers.AWMC ]
+          layers: [ currentLayer ]
         }),
                 
         objectLayer = new ObjectLayer(map, eventBroker),
@@ -59,6 +57,12 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
             return false;
             
           return true;
+        },
+        
+        changeLayer = function(name) {
+          map.removeLayer(currentLayer);
+          currentLayer = Layers[name];
+          map.addLayer(currentLayer);
         };
     
     /** Request an updated heatmap on every moveend **/
@@ -77,6 +81,7 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
         map.fitBounds([[b.south, b.west], [b.north, b.east]]);
     });
     
+    eventBroker.addHandler(Events.CHANGE_LAYER, changeLayer);
     eventBroker.addHandler(Events.ZOOM_IN, function() { map.zoomIn(); });  
     eventBroker.addHandler(Events.ZOOM_OUT, function() { map.zoomOut(); });
     
