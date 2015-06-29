@@ -30,6 +30,18 @@ html, body, #map {
   pointer-events:all;
 }
 
+.tool {
+  margin-bottom:6px; 
+  text-align:center;
+  font-size:15px;
+  .box-shadow(0, 2px, 6px, 0, rgba(0,0,0,0.3));
+  color:#9f9f9f;
+  cursor:pointer;
+  .rounded-corners(2px);
+  .no-select();
+  overflow:hidden;
+}
+
 /** Drop shadow for SVG circle markers **/
 .leaflet-clickable {
   filter: "progid:DXImageTransform.Microsoft.Dropshadow(OffX=12, OffY=12, Color='#444')";

@@ -35,6 +35,7 @@ define(['common/formatting',
           '      </div>' +
           '    </form>' +
           '  </div>' +
+          '  <div id="button-explore" class="tool" title="Explore this area">&#xe800;</div>' +
           '  <div id="filterpanel"></div>' +
           '  <div id="selected-place" class="selection-info"></div>' +
           '  <div id="image-control"></div>' +
