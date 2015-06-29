@@ -24,9 +24,15 @@ define(['peripleo-ui/events/events'], function(Events) {
           '     <li class="baselayer" data-name="osm">' +
           '       <div class="map-thumb-container"><img class="map-thumb" src="http://a.tile.openstreetmap.org/7/68/47.png"></div>' +
           '       <h2>OpenStreetMap</h2>' +
-          '       <p>Modern places and roads via OpenStreetMap.</p>' +
+          '       <p>Modern places and roads via <a href="http://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.</p>' +
           '     </li>' +
-                    
+          
+          '     <li class="baselayer" data-name="satellite">' +
+          '       <div class="map-thumb-container"><img class="map-thumb" src="http://api.tiles.mapbox.com/v4/mapbox.satellite/7/68/47.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q"></div>' +
+          '       <h2>Satellite</h2>' +
+          '       <p>Aerial imagery via <a href="https://www.mapbox.com/" target="_blank">Mapbox</a>.</p>' +
+          '     </li>' +
+          
           '   </ul>' +
           '  </div>' +
           '</div>'
