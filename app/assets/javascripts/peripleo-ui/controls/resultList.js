@@ -10,7 +10,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     var element = jQuery(
           '<div id="search-results">' +
           '  <ul></ul>' +
-          '  <div id="wait-for-next"></div>' +
+          '  <div id="wait-for-next"><img src="/peripleo/static/images/wait-circle.gif"></div>' +
           '</div>'),
 
         /** DOM element shorthands **/       
@@ -90,14 +90,23 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         }
                 
         renderList = function(results, append) {
-          var rows = jQuery.map(results, function(result) {
-            return renderResult(result);
-          });
+          var moreAvailable = (currentSearchState === SearchState.SEARCH) ? 
+                currentSearchResults.length < currentSearchResultsTotal :
+                currentSubsearchResults.length < currentSubsearchResultsTotal,
+          
+              rows = jQuery.map(results, function(result) {
+                return renderResult(result);
+              });
           
           if (!append)
             list.empty();
             
           list.append(rows);      
+          
+          if (moreAvailable)
+            waitForNextIndicator.show();
+          else
+            waitForNextIndicator.hide();
         },
         
         scrollTop = function() {
@@ -109,8 +118,6 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           var scrollPos = element.scrollTop() + element.innerHeight(),
               scrollBottom = element[0].scrollHeight,
               loadedResults;
-              
-          // TODO visual wait indication
           
           if (scrollPos >= scrollBottom) {
             if (currentSearchState === SearchState.SEARCH) {
@@ -146,16 +153,24 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         
         /** API delivered the next page of search results **/
         onNextPage = function(response) {
-          if (currentSearchState === SearchState.SEARCH)
+          var moreAvailable = false;
+          
+          if (currentSearchState === SearchState.SEARCH) {
             currentSearchResults = currentSearchResults.concat(response.items);
-          else
+            if (currentSearchResults.length < response.total)
+              moreAvailable = true;
+          } else {
             currentSubsearchResults = currentSubsearchResults.concat(response.items);
+            if (currentSubsearchResults.length < response.total)
+              moreAvailable = true;
+          }
             
-          renderList(response.items, true);
+          renderList(response.items, true, moreAvailable);
         };
 
     element.scroll(onScroll);
     element.hide();    
+    waitForNextIndicator.hide();
     container.append(element);
 
     // Initial response
