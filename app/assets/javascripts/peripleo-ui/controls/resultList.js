@@ -1,7 +1,9 @@
 /** The result list **/
 define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, Events) {
 
-  var SLIDE_DURATION = 180, OPEN_DELAY = 380;
+  var SLIDE_DURATION = 180, OPEN_DELAY = 380,
+  
+      SearchState = { SEARCH : 1, SUB_SEARCH : 2 };
 
   var ResultList = function(container, eventBroker) {
     
@@ -20,6 +22,9 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         
         /** Most recent subsearch results **/
         currentSubsearchResults = [],
+        
+        /** Current search state **/
+        currentSearchState = SearchState.SEARCH,
                 
         /**
          * Helper that generates the appropriate icon span for a result.
@@ -36,7 +41,8 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         /** Creates the HTML for a single search result entry **/
         renderResult = function(result) {
           var icon = getIcon(result),
-              html = '<li><h3>' + icon + result.title + '</h3>';
+              html = '<li><h3>' + icon + result.title + '</h3>',
+              element;
 
           if (result.temporal_bounds) {
             html += '<p class="temp-bounds">';
@@ -69,22 +75,26 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
                     ' <span data-id="' + result.dataset_path[0].id + '">' + result.dataset_path[0].title + '</span>' +
                     '</p>';
           
-          return jQuery(html + '</li>');
-        }
-                
-        rebuildList = function(results) {
-          var rows = jQuery.map(results, function(result) {
-            var li = renderResult(result);
-            li.mouseenter(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, result); });
-            li.mouseleave(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT); });
-            li.click(function() {
-              hide();                
-              eventBroker.fireEvent(Events.SELECT_RESULT, [ result ]);
-            });
-            return li;
+          // Add event handlers
+          element = jQuery(html + '</li>');
+          element.mouseenter(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT, result); });
+          element.mouseleave(function() { eventBroker.fireEvent(Events.MOUSE_OVER_RESULT); });
+          element.click(function() {
+            hide();                
+            eventBroker.fireEvent(Events.SELECT_RESULT, [ result ]);
           });
           
-          list.empty();
+          return element;
+        }
+                
+        renderList = function(results, append) {
+          var rows = jQuery.map(results, function(result) {
+            return renderResult(result);
+          });
+          
+          if (!append)
+            list.empty();
+            
           list.append(rows);      
         },
         
@@ -97,11 +107,17 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           var scrollPos = element.scrollTop() + element.innerHeight(),
               scrollBottom = element[0].scrollHeight;
               
-          if (scrollPos >= scrollBottom)
-            console.log('bottom!');
+          // TODO visual wait indication
+          
+          // TODO check if there are really new results to load
+          if (scrollPos >= scrollBottom) {
+            if (currentSearchState === SearchState.SEARCH)
+              eventBroker.fireEvent(Events.LOAD_NEXT_PAGE, currentSearchResults.length);
+            else
+              eventBroker.fireEvent(Events.LOAD_NEXT_PAGE, currentSubsearchResults.length);
+          }
         },
-
-
+        
         /** Hides the result list **/
         hide = function() {
           if (element.is(':visible'))
@@ -114,11 +130,21 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
          * The function will open the panel automatically if it is not yet open. 
          */
         show = function(results, opt_delay) {
-          rebuildList(results); 
+          renderList(results); 
           if (element.is(':visible'))
             scrollTop();
           else
             element.velocity('slideDown', { duration: SLIDE_DURATION, delay: opt_delay, complete: scrollTop });
+        },
+        
+        /** API delivered the next page of search results **/
+        onNextPage = function(response) {
+          if (currentSearchState === SearchState.SEARCH)
+            currentSearchResults = currentSearchResults.concat(response.items);
+          else
+            currentSubsearchResults = currentSubsearchResults.concat(response.items);
+            
+          renderList(response.items, true);
         };
 
     element.scroll(onScroll);
@@ -166,12 +192,23 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
       show(currentSubsearchResults, OPEN_DELAY); // Show immediately      
     });
     
+    // Next page of search results available
+    eventBroker.addHandler(Events.API_NEXT_PAGE, onNextPage);
+    
     // (De)selection via map
     eventBroker.addHandler(Events.SELECT_MARKER, hide);
 
     // Manual open/close events
-    eventBroker.addHandler(Events.SHOW_ALL_RESULTS, function() { show(currentSearchResults); }); 
-    eventBroker.addHandler(Events.SHOW_SUBSEARCH_RESULTS, function() { show(currentSubsearchResults); });
+    eventBroker.addHandler(Events.SHOW_ALL_RESULTS, function() { 
+      currentSearchState = SearchState.SEARCH;
+      show(currentSearchResults); 
+    }); 
+    
+    eventBroker.addHandler(Events.SHOW_SUBSEARCH_RESULTS, function() { 
+      currentSearchState = SearchState.SUB_SEARCH;
+      show(currentSubsearchResults); 
+    });
+    
     eventBroker.addHandler(Events.HIDE_RESULTS, hide); 
   };
   

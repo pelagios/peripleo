@@ -60,23 +60,35 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
         
         /** The last search parameter change **/
         lastDiff = false,
-
-        /** Builds the URL query string **/
-        buildQueryURL = function(params, searchState) {
-          var url = '/peripleo/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT + '&facets=true&top_places=';
+        
+        /** Builds the query URL for a new search **/
+        buildFirstPageQueryURL = function(opt_params, opt_searchState) {
+          var params = (opt_params) ? opt_params : searchParams,
+              searchState = (opt_searchState) ? opt_searchState : currentSearchState,
+              
+              // Initial searches include facets and top places
+              url = buildBaseQueryURL(params, searchState, includeTimeHistogram) + '&facets=true&top_places=';
           
-          if (!params)
-            params = searchParams;
-            
-          if (!searchState)
-            searchState = currentSearchState;
-                    
           if (params.query)
             url += NUM_TOP_PLACES_WITH_QUERY;
           else 
             url += NUM_TOP_PLACES_WITHOUT_QUERY;
-                    
-          if (includeTimeHistogram) 
+            
+          return url;
+        },
+        
+        /** Builds the query URL for subsequent search pages **/
+        buildNextPageQueryURL = function(offset) {
+          var url = buildBaseQueryURL(searchParams, currentSearchState, false);
+          url += '&offset=' + offset;
+          return url;
+        },
+
+        /** Builds the URL query string **/
+        buildBaseQueryURL = function(params, searchState, withTimeHistogram) {
+          var url = '/peripleo/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT;
+    
+          if (withTimeHistogram) 
             url += '&time_histogram=true';
           
           if (params.query)
@@ -135,7 +147,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
         initialLoad = function() {
           busy = true;
           
-          jQuery.getJSON(buildQueryURL(), function(response) {
+          jQuery.getJSON(buildFirstPageQueryURL(), function(response) {
             eventBroker.fireEvent(Events.API_INITIAL_RESPONSE, response);
           }).always(handlePending);          
         },
@@ -148,7 +160,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
 
           busy = true;
           
-          jQuery.getJSON(buildQueryURL(), function(response) {    
+          jQuery.getJSON(buildFirstPageQueryURL(), function(response) {    
             response.params = params;  
             response.diff = diff;      
             
@@ -170,12 +182,18 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
             makeSearchRequest();
         },
         
+        loadNextPage = function(offset) {
+          jQuery.getJSON(buildNextPageQueryURL(offset), function(response) {
+            eventBroker.fireEvent(Events.API_NEXT_PAGE, response);
+          });
+        },
+        
         /** Fires a search request against the API to accomodate a view update **/
         makeViewUpdateRequest = function() {     
           busy = true;
           
           // View updates ignore the state, and are always forced to 'search'
-          jQuery.getJSON(buildQueryURL(undefined, SearchState.SEARCH), function(response) {
+          jQuery.getJSON(buildFirstPageQueryURL(undefined, SearchState.SEARCH), function(response) {
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
         },
@@ -220,7 +238,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params, searchParams)); // Merge current state with params          
           
           // One-time searches ignore the state, and are always forced to 'sub-search'
-          jQuery.getJSON(buildQueryURL(mergedParams, SearchState.SUB_SEARCH), function(response) { 
+          jQuery.getJSON(buildFirstPageQueryURL(mergedParams, SearchState.SUB_SEARCH), function(response) { 
             response.params = mergedParams;
             delete response.params.callback; // Clean up the params object, i.e. remove the callback fn reference
             params.callback(response);
@@ -250,6 +268,8 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
       searchParams.bbox = bounds;
       updateView();
     });
+    
+    eventBroker.addHandler(Events.LOAD_NEXT_PAGE, loadNextPage);
     
     eventBroker.addHandler(Events.ONE_TIME_SEARCH, makeOneTimeSearchRequest);
     

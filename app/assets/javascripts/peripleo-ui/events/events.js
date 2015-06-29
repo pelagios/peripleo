@@ -168,6 +168,13 @@ define(function() {
      */
     SELECT_RESULT : 'selectResult',
     
+    /**
+     * The user scrolled to the bottom of the results list - load next batch
+     * 
+     * @param offset
+     */
+    LOAD_NEXT_PAGE : 'loadNextPage',
+    
     
     
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
