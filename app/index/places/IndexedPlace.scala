@@ -3,6 +3,7 @@ package index.places
 import com.vividsolutions.jts.io.WKTWriter
 import com.vividsolutions.jts.geom.{ Coordinate, Geometry }
 import index.IndexFields
+import java.util.{ Calendar, Date }
 import org.geotools.geojson.geom.GeometryJSON
 import org.pelagios.api.PlainLiteral
 import org.pelagios.api.gazetteer.PlaceCategory
@@ -100,7 +101,11 @@ class IndexedPlace(json: String) {
 
 object IndexedPlace { 
    
-  /** JSON Writes **/
+  private def getYear(date: Date): Int = {
+    val calendar = Calendar.getInstance()
+    calendar.setTime(date)
+    calendar.get(Calendar.YEAR)
+  }
   
   private implicit val plainLiteralWrites: Writes[PlainLiteral] = (
     (JsPath \ "chars").write[String] ~
@@ -125,7 +130,11 @@ object IndexedPlace {
       p.category.map(_.toString),
       p.names,
       { if (p.depictions.size == 0) None else Some(p.depictions) },
-      p.temporal.map(t => Json.obj("from" -> t.start, "to" -> t.end.getOrElse(t.start).toInt)),
+      p.temporal.map(period => {
+        val startYear = getYear(period.start)
+        val endYear = period.end.map(getYear(_)).getOrElse(startYear)
+        Json.obj("from" -> startYear, "to" -> endYear)
+      }),
       p.locations.headOption.map(location => Json.parse(location.geoJSON)),
       p.closeMatches.map(Index.normalizeURI(_)),
       p.exactMatches.map(Index.normalizeURI(_))))

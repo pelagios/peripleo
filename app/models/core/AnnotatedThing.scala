@@ -5,7 +5,6 @@ import models.geo.Hull
 import play.api.Play.current
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
-import play.api.Logger
 
 /** AnnotatedThing model entity **/
 case class AnnotatedThing(
