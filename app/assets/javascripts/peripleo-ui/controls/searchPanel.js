@@ -51,6 +51,7 @@ define(['common/formatting',
         resultsButton = searchForm.find('#button-listall'),
         resultsLabel = resultsButton.find('.label'),
         listAllTotals = resultsButton.find('.total'),
+        exploreButton = element.find('#button-explore'),
         
         filterPanelContainer = element.find('#filterPanel'),
         selectedPlaceContainer = element.find('#selected-place'),
@@ -187,6 +188,11 @@ define(['common/formatting',
     subsearchIndicator.hide();
     resultsButton.click(onClickResultsButton);    
     resultsButton.hide();
+    
+    exploreButton.click(function() {
+      // TODO implement
+      exploreButton.toggleClass('enabled');
+    });
         
     // Append panel to the DOM
     container.append(element);

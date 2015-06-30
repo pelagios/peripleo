@@ -5,7 +5,7 @@ define(['peripleo-ui/events/events'], function(Events) {
           jQuery('<div class="tool button icon" id="toolbar-help">&#xf128;</div>'),
     
         btnSettings =
-          jQuery('<div class="tool button icon" id="toolbar-settings">&#xf013;</div>'),
+          jQuery('<div class="tool button icon" id="toolbar-settings">&#xf0ad;</div>'),
         
         btnZoom = jQuery(
           '<div class="tool" id="toolbar-zoom">' +
