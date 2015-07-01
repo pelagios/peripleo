@@ -60,12 +60,11 @@ define(['peripleo-ui/events/events'], function(Events) {
         },
         
         onStartExploration = function() {
-          // Remember current selection, so we can restore later
           objectBeforeExploration = currentObject;
         },
         
         onStopExploration = function() {
-          // TODO restore selection
+          show(objectBeforeExploration);
           objectBeforeExploration = false;
         };
 
