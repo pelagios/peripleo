@@ -4,11 +4,11 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
       /** A throttle for allowing max. one query every QUERY_DELAY_MS milliseconds **/
   var QUERY_DELAY_MS = 100,
   
-      /** Number of top places to fetch when there is no query phrase **/
-      NUM_TOP_PLACES_WITHOUT_QUERY = 20,
+      /** Number of top places to fetch on every request **/
+      TOP_PLACES_MIN = 20,
       
-      /** Number of top places to fetch when there is a query phrase **/
-      NUM_TOP_PLACES_WITH_QUERY = 600,
+      /** Number of top places to fetch on 'large' requests, i.e. when there's a query phrase or while exploring **/
+      TOP_PLACES_MAX = 600,
       
       /** Number of search results to fetch **/
       SEARCH_RESULT_LIMIT = 20,
@@ -48,6 +48,9 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
         /** Flag indicating whether we're currently in 'serch' or 'subsearch' state **/
         currentSearchState = SearchState.SEARCH,
         
+        /** Flat indicating whether we're currently in exploration mode **/
+        explorationMode = false,
+        
         /** Flag indicating whether time histogram should be included **/
         includeTimeHistogram = false,
         
@@ -66,13 +69,15 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           var params = (opt_params) ? opt_params : searchParams,
               searchState = (opt_searchState) ? opt_searchState : currentSearchState,
               
-              // Initial searches include facets and top places
-              url = buildBaseQueryURL(params, searchState, includeTimeHistogram) + '&facets=true&top_places=';
-          
-          if (params.query)
-            url += NUM_TOP_PLACES_WITH_QUERY;
-          else 
-            url += NUM_TOP_PLACES_WITHOUT_QUERY;
+              // Unlike subsequent 'next page' requests, the first request include facets
+              url = buildBaseQueryURL(params, searchState, includeTimeHistogram) + '&facets=true';
+              
+          // Fetch top places if in exploration mode
+          if (params.query || explorationMode)
+            url += '&top_places=' + TOP_PLACES_MAX;
+          else
+            // Note: in this case we only need the top places for the thumbnails
+            url += '&top_places=' + TOP_PLACES_MIN; 
             
           return url;
         },
@@ -91,7 +96,8 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           if (withTimeHistogram) 
             url += '&time_histogram=true';
           
-          if (params.query)
+          // Query ignored while in exploration mode
+          if (params.query && !explorationMode)
             url += '&query=' + params.query;
             
           if (params.object_types)
@@ -162,7 +168,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           
           jQuery.getJSON(buildFirstPageQueryURL(), function(response) {    
             response.params = params;  
-            response.diff = diff;      
+            response.diff = diff;   
             
             if (state === SearchState.SEARCH) {
               eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
@@ -224,7 +230,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           currentSearchState = SearchState.SEARCH;
           searchParams.places = false;
         },
-        
+        Epigraphic
         /**
          * Fires a one-time search request. The one-time search uses the current global
          * search parameter settings, plus a set of changes. The request is fired to the API
@@ -273,12 +279,20 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
     });
     
     eventBroker.addHandler(Events.LOAD_NEXT_PAGE, loadNextPage);
-    
     eventBroker.addHandler(Events.ONE_TIME_SEARCH, makeOneTimeSearchRequest);
-    
     eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, toStateSubSearch);
     eventBroker.addHandler(Events.TO_STATE_SEARCH, toStateSearch);
     
+    eventBroker.addHandler(Events.START_EXPLORATION, function() {
+      explorationMode = true;
+      search();
+    });
+    
+    eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
+      explorationMode = false;
+      search();
+    });
+        
     // If the filter panel is closed, we don't request the time histogram (it's expensive!)
     eventBroker.addHandler(Events.SHOW_FILTERS, function() {
       includeTimeHistogram = true;

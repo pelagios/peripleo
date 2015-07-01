@@ -77,6 +77,9 @@ define(['peripleo-ui/events/events'], function(Events) {
         /** Flag indicating whether the UI is in subsearch state **/
         isStateSubsearch = false,
         
+        /** Flag indicating whether the UI is in exploration mode **/
+        explorationMode = false,
+        
         /** 
          * Creates a string representation of a GeoJSON geometry to be used as a
          * key in the marker index. (The only requirements are that the representation
@@ -335,6 +338,14 @@ define(['peripleo-ui/events/events'], function(Events) {
     eventBroker.addHandler(Events.TO_STATE_SEARCH, function() {
       isStateSubsearch = false;
     });
+    
+    eventBroker.addHandler(Events.START_EXPLORATION, function() {
+      explorationMode = true;
+    });
+    
+    eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
+      explorationMode = false;
+    });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       /*
@@ -352,18 +363,22 @@ define(['peripleo-ui/events/events'], function(Events) {
       */
       
       // TODO clean up
+
       
-      // Trial IxD policy: we don't add top places, unless there's currently a search query
-      if (response.params && response.params.query)
+      // Trial IxD policy: we don't add top places, unless there's currently a search query or we're in exploration mode
+      if (response.params && (response.params.query || explorationMode))
         update(response.top_places);
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
+      
+      // TODO clean up
+      
       // 'IxD policy': if the user submitted a new query phrase (or cleared the current one), we want
       // to clear the map; in case of a new query phrase, we also want to fit the view area to the results
       if (response.diff.hasOwnProperty('query')) {
-        clear();
-        if (response.diff.query)
+        clear(); // TODO we don't want to clear the current selection, come what may!
+        if (response.diff.query && !explorationMode)
           setTimeout(fitToObjects, 1);      
       }     
     });        

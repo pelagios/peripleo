@@ -108,6 +108,16 @@ define(function() {
     TO_STATE_SEARCH : 'toStateSearch',
     
     /**
+     * The users switched to exploration mode
+     */
+    START_EXPLORATION : 'startExploration',
+    
+    /**
+     * The user left the exploration mode
+     */
+    STOP_EXPLORATION : 'stopExploration',
+    
+    /**
      * Requests a one-time search from the API. The result will not trigger the global
      * event pool; the search request will always be fired immediately (i.e. not affected
      * by caching or delay policies); and the response will be passed back to a callback
@@ -117,12 +127,6 @@ define(function() {
      * plus a callback function
      */   
     ONE_TIME_SEARCH : 'oneTimeSearch',
-    
-    
-    
-    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-    /* Search-panel-related UI events */
-    /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */    
 
     /** 
      * The users has opened the filters panel

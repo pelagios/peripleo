@@ -190,8 +190,16 @@ define(['common/formatting',
     resultsButton.hide();
     
     exploreButton.click(function() {
-      // TODO implement
+      var enabled = exploreButton.hasClass('enabled');
+      
       exploreButton.toggleClass('enabled');
+      
+      if (enabled)
+        eventBroker.fireEvent(Events.STOP_EXPLORATION);
+      else
+        eventBroker.fireEvent(Events.START_EXPLORATION);
+        
+      return false;
     });
         
     // Append panel to the DOM

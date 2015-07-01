@@ -1,11 +1,17 @@
 /** Common code for SelectedPlace and SelectedItem boxes **/
-define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, Events) {
+define(['peripleo-ui/events/events'], function(Events) {
     
   var SLIDE_DURATION = 180;
   
   var SelectionInfo = function(container, eventBroker, fill, clearContent) {
     
     var currentObject = false,
+    
+        /** 
+         * We remember the selection when the user switches
+         * to exploration mode, so we can restore later.
+         */
+        objectBeforeExploration = false,
     
         slideDown = function() {
           container.velocity('slideDown', { duration: SLIDE_DURATION });
@@ -51,8 +57,20 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
               slideDown();
             }
           }  
+        },
+        
+        onStartExploration = function() {
+          // Remember current selection, so we can restore later
+          objectBeforeExploration = currentObject;
+        },
+        
+        onStopExploration = function() {
+          // TODO restore selection
+          objectBeforeExploration = false;
         };
 
+    eventBroker.addHandler(Events.START_EXPLORATION, onStartExploration);
+    eventBroker.addHandler(Events.STOP_EXPLORATION, onStopExploration);
 
     this.show = show;
     this.hide = hide;
