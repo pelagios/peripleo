@@ -2,6 +2,8 @@
 define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Events, ObjectLayer) {
   
   var Map = function(div, eventBroker) {  
+        
+        /** Map layers **/
     var Layers = {
       
           dare : L.tileLayer('http://pelagios.org/tilesets/imperium/{z}/{x}/{y}.png', {
@@ -27,14 +29,18 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
                  
         },    
         
-        currentLayer = Layers.awmc,
+        /** Default "closeup" zoom levels per layer **/
+        closeupZoom = { dare: 11, awmc: 12, osm: 15, satellite: 17 },
+        
+        /** To keep track of current layer **/
+        currentLayer = { name: 'awmc', layer: Layers.awmc },
         
         /** Map **/    
         map = new L.Map(div, {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
           zoomControl: false,
-          layers: [ currentLayer ]
+          layers: [ currentLayer.layer ]
         }),
                 
         objectLayer = new ObjectLayer(map, eventBroker),
@@ -64,9 +70,9 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
         },
         
         changeLayer = function(name) {
-          map.removeLayer(currentLayer);
-          currentLayer = Layers[name];
-          map.addLayer(currentLayer);
+          map.removeLayer(currentLayer.layer);
+          currentLayer = { name: name, layer: Layers[name] };
+          map.addLayer(currentLayer.layer);
         };
     
     /** Request an updated heatmap on every moveend **/
@@ -77,6 +83,14 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
       eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
+    });
+    
+    objectLayer.on('highlight', function(bounds) {
+      var center = bounds.getCenter();
+      if (!map.getBounds().contains(center))
+        map.panTo(latlng);
+          
+      map.fitBounds(bounds, { maxZoom: closeupZoom[currentLayer.name] });
     });
     
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {

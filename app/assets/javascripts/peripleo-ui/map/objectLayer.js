@@ -1,4 +1,4 @@
-define(['peripleo-ui/events/events'], function(Events) {
+define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Events) {
   
   var TOUCH_DISTANCE_THRESHOLD = 18,
   
@@ -52,9 +52,11 @@ define(['peripleo-ui/events/events'], function(Events) {
       };
       
   var ObjectLayer = function(map, eventBroker) {
-    
+         
+    var self = this,
+        
         /** Feature group for polygon overlays **/           
-    var shapeFeatures = L.featureGroup().addTo(map),
+        shapeFeatures = L.featureGroup().addTo(map),
     
         /** Feature group for point overlays **/   
         pointFeatures = L.featureGroup().addTo(map),
@@ -386,18 +388,23 @@ define(['peripleo-ui/events/events'], function(Events) {
     eventBroker.addHandler(Events.MOUSE_OVER_RESULT, emphasiseObject);
     
     eventBroker.addHandler(Events.SELECT_RESULT, function(result) {
-      var marker = emphasiseObject(result[0]),
-          latlng;
-          
+      var marker = emphasiseObject(result[0]);
       if (marker) {
         currentSelection = { _1: marker , _2: [ result ] };
-        latlng = marker.getBounds().getCenter();
-        
+        self.fireEvent('highlight', marker.getBounds());
+        /*
         if (!map.getBounds().contains(latlng))
           map.panTo(latlng);
+          
+        map.fitBounds(marker.getBounds(), { maxZoom: map);
+        */
       }
     });
+    
+    HasEvents.apply(this);
   };
+  
+  ObjectLayer.prototype = Object.create(HasEvents.prototype);
   
   return ObjectLayer;
   
