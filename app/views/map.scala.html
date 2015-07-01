@@ -18,18 +18,6 @@
     @helper.requireJs(core = routes.Assets.at("javascripts/require.js").url, module = routes.Assets.at("javascripts/peripleo-ui").url)
   </head>
   <body>
-    <svg height="0" xmlns="http://www.w3.org/2000/svg">
-      <filter id="drop-shadow" y="-50%" x="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="0.9"/>
-        <feOffset dx="0.5" dy="0.5" result="offsetblur"/>
-        <feFlood flood-color="rgba(0,0,0,0.4)"/>
-        <feComposite in2="offsetblur" operator="in"/>
-        <feMerge>
-          <feMergeNode/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    </svg>
     <div id="map"></div>
     <div id="toolbar"></div>
     <div id="controls"></div>
