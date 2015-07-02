@@ -169,6 +169,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           jQuery.getJSON(buildFirstPageQueryURL(), function(response) {    
             response.params = params;  
             response.diff = diff;   
+            response.exploration_mode = explorationMode;
             
             if (state === SearchState.SEARCH) {
               eventBroker.fireEvent(Events.API_SEARCH_RESPONSE, response);
@@ -203,6 +204,8 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           // View updates ignore the state, and are always forced to 'search'
           jQuery.getJSON(buildFirstPageQueryURL(undefined, SearchState.SEARCH), function(response) {
             response.params = params;
+            response.exploration_mode = explorationMode;
+            
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
         },

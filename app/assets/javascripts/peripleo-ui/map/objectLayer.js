@@ -76,8 +76,8 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
         /** Flag indicating whether the UI is in subsearch state **/
         isStateSubsearch = false,
         
-        /** Flag indicating whether the UI is in exploration mode **/
-        isExplorationMode = false,
+        /** Flag indicating whether the user has stopped exploration mode **/
+        stoppedExplorationMode = false,
         
         /** 
          * Creates a string representation of a GeoJSON geometry to be used as a
@@ -370,41 +370,29 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       // IxD policy: we only show markers if there's a query or we're in exploration mode
-      if (response.params.query || isExplorationMode)
+      if (response.params.query || response.exploration_mode)
         update(response.top_places);
       else
         clearMap();
     });
         
-        
-        
-        
-        
-        
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
-      
-      // TODO clean up
-      
-      // 'IxD policy': if the user submitted a new query phrase (or cleared the current one), we want
-      // to clear the map; in case of a new query phrase, we also want to fit the view area to the results
+      // IxD policy: if the user changed the query phrase, or cleared the old one, we clear the map.
+      // If there is a new query phrase, we also fit the map to the results - UNLESS we're in, or
+      // just returned from exploration mode.
       if (response.diff.hasOwnProperty('query')) {
-        clearMap(); // TODO we don't want to clear the current selection, come what may!
-        if (response.diff.query && !isExplorationMode)
-          setTimeout(fitToObjects, 1);      
-      }     
+        clearMap();
+
+        if (response.diff.query && !response.exploration_mode) {
+          
+          if (stoppedExplorationMode)
+            stoppedExplorationMode = false;
+          else
+            setTimeout(fitToObjects, 1);
+        }
+      }
     });        
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-        
     eventBroker.addHandler(Events.MOUSE_OVER_RESULT, emphasiseObject);
     eventBroker.addHandler(Events.SELECT_RESULT, selectObjects);
     
@@ -415,11 +403,8 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
     eventBroker.addHandler(Events.TO_STATE_SEARCH, function() {
       isStateSubsearch = false;
     });
-    eventBroker.addHandler(Events.START_EXPLORATION, function() {
-      isExplorationMode = true;
-    });
     eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
-      isExplorationMode = false;
+      stoppedExplorationMode = true;
     });
     
     HasEvents.apply(this);
