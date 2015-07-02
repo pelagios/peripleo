@@ -384,7 +384,6 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
         clearMap();
 
         if (response.diff.query && !response.exploration_mode) {
-          
           if (stoppedExplorationMode)
             stoppedExplorationMode = false;
           else
