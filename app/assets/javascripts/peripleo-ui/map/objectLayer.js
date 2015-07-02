@@ -67,20 +67,17 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
         /** Map[geometryHash -> (marker, Array<object>)] to support 'findByGeometryHash'-type queries **/
         markerIndex = {},
         
-        /** A tuple (marker, Array<object>) **/        
+        /** An object { marker: CircleMarker, pin: Marker, objects: Array<object> } **/        
         currentSelection = false,
         
-        /** The map pin highlighting the currently emphasised marker **/
+        /** A pin marker for temporary emphasis - e.g. while the mouse hovers over a search result in the list **/
         emphasisPin = false,
-        
-        /** TODO is this a good solution? **/
-        temporaryEmphasis = false,
         
         /** Flag indicating whether the UI is in subsearch state **/
         isStateSubsearch = false,
         
         /** Flag indicating whether the UI is in exploration mode **/
-        explorationMode = false,
+        isExplorationMode = false,
         
         /** 
          * Creates a string representation of a GeoJSON geometry to be used as a
@@ -123,14 +120,202 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
           }
         },
         
-        /** Updates the object layer with a new search response or view update **/
-        update = function(objects, invalidateMarkers) {
-          // Set all markers to 'out-of-filter'
-          if (invalidateMarkers) {
-            pointFeatures.setStyle(Styles.POINT_GREY);
-            shapeFeatures.setStyle(Styles.POLY_GREY);
+        /** Returns the current layer bounds, merging point and shape layer bounds **/
+        getLayerBounds = function() {
+          var pointBounds = pointFeatures.getBounds(),
+              pointBoundsValid = pointBounds.isValid(),
+              shapeBounds = shapeFeatures.getBounds(),
+              shapeBoundValid = shapeBounds.isValid(),
+              mergedBounds;
+              
+          if (pointBoundsValid && shapeBoundValid) {
+            mergedBounds = pointBounds;
+            mergedBounds.extend(shapeBounds);
+            return mergedBounds;
+          } else if (pointBoundsValid) {
+            return pointBounds;
+          } else if (shapeBoundValid) {
+            return shapeBounds;
+          } else {
+            // Doesn't matter, as long as we return invalid bounds
+            return pointBounds;
           }
+        },
+        
+        /** Helper method that resets map location and zoom to fit all current objects **/
+        fitToObjects = function() {
+          var bounds;
           
+          if (!jQuery.isEmptyObject(markerIndex)) {
+            bounds = getLayerBounds();
+            
+            if (bounds.isValid()) {
+              map.fitBounds(bounds, {
+                animate: true,
+                paddingTopLeft: [380, 20],
+                paddingBottomRight: [20, 20],
+                maxZoom: 9
+              });
+            }
+          }
+        },   
+        
+        /** Shorthand for removing select & emphasis markers **/
+        deselect = function() {
+          if (currentSelection)
+            map.removeLayer(currentSelection.pin);
+          
+          if (emphasisPin)
+            map.removeLayer(emphasisPin);
+        },
+        
+        /** Selects the marker with the specified geometry hash **/
+        selectByGeomHash = function(geomHash) {  
+          var tuple = markerIndex[geomHash],
+              marker, center, pin;
+
+          deselect();
+          
+          if (tuple) {
+            marker = tuple._1;  
+            center = marker.getBounds().getCenter();
+            pin = L.marker(center).addTo(map);
+            
+            currentSelection = { marker: marker, pin: pin, objects: tuple._2 };
+            
+            eventBroker.fireEvent(Events.SELECT_MARKER, tuple._2);
+          } else {
+            clearSelection();
+          }
+        },  
+        
+        /** 
+         * Programmatically selects a (set of) object(s)
+         * 
+         * TODO support multi-select
+         * 
+         */
+        selectObjects = function(objects) {
+          var tuple = (objects) ? markerIndex[createGeometryHash(objects[0].geometry)] : false,
+              marker, center, pin;
+          
+          deselect();
+          
+          if (tuple) {
+            marker = tuple._1;  
+            center = marker.getBounds().getCenter();
+            pin = L.marker(center).addTo(map);
+            
+            currentSelection = { marker: marker, pin: pin, objects: tuple._2 };
+
+            self.fireEvent('highlight', marker.getBounds());
+          }
+        },
+        
+        /**
+         * Selects the marker nearest the given latlng. This is primarily a
+         * means to support touch devices, where touch events will usually miss 
+         * the markers because they are too small for properly hitting them.
+         */
+        selectNearest = function(latlng, maxDistance) {
+          var xy = map.latLngToContainerPoint(latlng),
+              nearest = { distSq: 9007199254740992 }, // Distance to nearest initialied with Integer.MAX
+              nearestXY, distPx;
+              
+          jQuery.each(markerIndex, function(geomHash, tuple) {
+            var markerLatLng = tuple._1.getBounds().getCenter(),
+                distSq = 
+                  Math.pow(latlng.lat - markerLatLng.lat, 2) + 
+                  Math.pow(latlng.lng - markerLatLng.lng, 2);  
+                   
+            if (distSq < nearest.distSq)
+              nearest = { geomHash: geomHash, latlng: markerLatLng, distSq: distSq };
+          });
+          
+          if (nearest.geomHash) {
+            nearestXY = map.latLngToContainerPoint(nearest.latlng);
+            distPx = 
+              Math.sqrt(
+                Math.pow((xy.x - nearestXY.x), 2) + 
+                Math.pow((xy.y - nearestXY.y), 2));
+          
+            if (distPx < maxDistance)
+              selectByGeomHash(nearest.geomHash);
+            else
+              clearSelection();
+          } else {
+            clearSelection();
+          }
+        },
+        
+        /** Helper that finds the marker for the specified object and emphasizes it **/
+        emphasiseObject = function(object) {
+          var tuple, center;
+          
+          // TODO should we also check if the emphasis is on the current selection (and change marker color, etc.?)
+          
+          if (object && object.geometry) {
+            tuple = markerIndex[createGeometryHash(object.geometry)];
+            
+            if (tuple) {
+              // Object is already on the map - just add marker
+              center = tuple._1.getBounds().getCenter();
+              emphasisPin = L.marker(center).addTo(map);
+              
+              // TODO If it's a polygon -> change style!
+              
+            } else {
+              // Object not yet on map - add it temporarily
+              emphasisPin = L.geoJson(object.geometry, Styles.POLY_EMPHASIS).addTo(map);
+            }
+          } else if (emphasisPin) {
+             // No object or object without geometry - remove emphasis
+             map.removeLayer(emphasisPin);
+          }
+        },
+        
+        /** Clears all objects from the map, except the selection **/
+        clearMap = function() {  
+          var selectedGeometry, selectedMarker;
+             
+          pointFeatures.clearLayers();          
+          shapeFeatures.clearLayers();
+          objectIndex = {};
+          markerIndex = {};
+          
+          // Retain selection if any
+          if (currentSelection) {
+            // Add selection to map
+            selectedGeometry = currentSelection.objects[0].geometry;
+            selectedMarker = currentSelection.marker;
+            
+            if (selectedGeometry.type === 'Point')
+              selectedMarker.addTo(pointFeatures);
+            else
+              selectedMarker.addTo(shapeFeatures);
+              
+            // Add selection to object index
+            jQuery.each(currentSelection.objects, function(idx, obj) {
+              objectIndex[obj.identifier] = { _1: obj, _2: selectedMarker };
+            });
+            
+            // Add selection to marker index
+            markerIndex[createGeometryHash(selectedGeometry)] = 
+              { _1: selectedMarker, _2: currentSelection.objects };
+          }
+        },
+        
+        /** Clears the current selection **/
+        clearSelection = function() {
+          if (currentSelection) {
+            map.removeLayer(currentSelection.pin);
+            currentSelection = false;
+            eventBroker.fireEvent(Events.SELECT_MARKER, false);
+          }
+        },
+        
+        /** Updates the object layer with a new search response or view update **/
+        update = function(objects) {
           jQuery.each(objects, function(idx, obj) {
             var id = obj.identifier,
                 existingObjectTuple = objectIndex[id],
@@ -176,201 +361,25 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
               }
             }
           });
-        },
-        
-        /** Returns the current layer bounds, merging point and shape layer bounds **/
-        getLayerBounds = function() {
-          var pointBounds = pointFeatures.getBounds(),
-              pointBoundsValid = pointBounds.isValid(),
-              shapeBounds = shapeFeatures.getBounds(),
-              shapeBoundValid = shapeBounds.isValid(),
-              mergedBounds;
-              
-          if (pointBoundsValid && shapeBoundValid) {
-            mergedBounds = pointBounds;
-            mergedBounds.extend(shapeBounds);
-            return mergedBounds;
-          } else if (pointBoundsValid) {
-            return pointBounds;
-          } else if (shapeBoundValid) {
-            return shapeBounds;
-          } else {
-            // Doesn't matter, as long as we return invalid bounds
-            return pointBounds;
-          }
-        },
-        
-        /** Helper method that resets map location and zoom to fit all current objects **/
-        fitToObjects = function() {
-          var bounds;
-          
-          if (!jQuery.isEmptyObject(markerIndex)) {
-            bounds = getLayerBounds();
-            
-            if (bounds.isValid()) {
-              map.fitBounds(bounds, {
-                animate: true,
-                paddingTopLeft: [380, 20],
-                paddingBottomRight: [20, 20],
-                maxZoom: 9
-              });
-            }
-          }
-        },
-        
-        /** Clears all ojbects from the map **/
-        clear = function() {
-          clearSelection();
-          pointFeatures.clearLayers();          
-          shapeFeatures.clearLayers();
-          objectIndex = {};
-          markerIndex = {};
-        },
-        
-        /** Function that emphasises the marker passed to it **/
-        emphasiseMarker = function(marker) {  
-          var markerToHighlight = (marker) ? marker : (currentSelection) ? currentSelection._1 : false,
-              latlon;
-                  
-          if (emphasisPin) {
-            map.removeLayer(emphasisPin);
-            emphasisPin = false;
-          }
-          
-          if (markerToHighlight) {
-            latlon = markerToHighlight.getBounds().getCenter();
-            emphasisPin = L.marker(latlon).addTo(map);
-          }   
-        },
-        
-        /**
-         * Helper that finds the marker for the specified object and emphasizes it.
-         * 
-         * Returns the marker that was emphasized, if any.
-         */
-        emphasiseObject = function(object) {
-          var tuple, geomHash;
-          if (object && object.geometry) {
-            geomHash = createGeometryHash(object.geometry);
-            tuple = markerIndex[geomHash];
-            if (tuple) {
-              emphasiseMarker(tuple._1);
-              return tuple._1;
-            } else {
-
-              // TODO turn this into a clean solution!
-              
-              temporaryEmphasis = L.geoJson(object.geometry, Styles.POLY_EMPHASIS);
-              temporaryEmphasis.addTo(map);
-              
-            }
-          } else { // No object or object without geometry- de-emphasize
-            emphasiseMarker();
-            
-            // TODO hack
-            if (temporaryEmphasis) {
-              map.removeLayer(temporaryEmphasis);
-            }
-          }
-        },
-        
-        /** Selects (and emphasises) the marker with the specified geometry hash **/
-        selectByGeomHash = function(geomHash) {    
-          currentSelection = markerIndex[geomHash]; // (marker, Array<object>)
-          if (currentSelection) {
-            emphasiseMarker(currentSelection._1); 
-            eventBroker.fireEvent(Events.SELECT_MARKER, currentSelection._2);
-          }
-        },
-        
-        /** Clears the current selection & emphasis **/
-        clearSelection = function() {
-          if (currentSelection) {
-            currentSelection = false;
-            emphasiseMarker();
-            eventBroker.fireEvent(Events.SELECT_MARKER, false);
-          }
-        },
-        
-        /**
-         * Selects the marker nearest the given latlng. This is primarily a
-         * means to support touch devices, where touch events will usually miss 
-         * the markers because they are too small for properly hitting them.
-         */
-        selectNearest = function(latlng, maxDistance) {
-          var xy = map.latLngToContainerPoint(latlng),
-              nearest = { distSq: 9007199254740992 }, // Distance to nearest initialied with Integer.MAX
-              nearestXY, distPx;
-              
-          jQuery.each(markerIndex, function(geomHash, tuple) {
-            var markerLatLng = tuple._1.getBounds().getCenter(),
-                distSq = 
-                  Math.pow(latlng.lat - markerLatLng.lat, 2) + 
-                  Math.pow(latlng.lng - markerLatLng.lng, 2);  
-                   
-            if (distSq < nearest.distSq)
-              nearest = { geomHash: geomHash, latlng: markerLatLng, distSq: distSq };
-          });
-          
-          if (nearest.geomHash) {
-            nearestXY = map.latLngToContainerPoint(nearest.latlng);
-            distPx = 
-              Math.sqrt(
-                Math.pow((xy.x - nearestXY.x), 2) + 
-                Math.pow((xy.y - nearestXY.y), 2));
-          
-            if (distPx < maxDistance)
-              selectByGeomHash(nearest.geomHash);
-            else
-              clearSelection();
-          } else {
-            clearSelection();
-          }
         };
-     
-    // TODO use click->select nearest only on touch devices?
+
+
     map.on('click', function(e) { 
       selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); 
     });
-    
-    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, function() {
-      isStateSubsearch = true;
-    });
-    
-    eventBroker.addHandler(Events.TO_STATE_SEARCH, function() {
-      isStateSubsearch = false;
-    });
-    
-    eventBroker.addHandler(Events.START_EXPLORATION, function() {
-      explorationMode = true;
-    });
-    
-    eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
-      explorationMode = false;
-    });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
-      /*
-      var  hasTimeIntervalChanged = 
-        (response.diff) ? response.diff.hasOwnProperty('from') || response.diff.hasOwnProperty('to') : false;
-      
-      // 'IxD policy': if the time interval changed, we want to grey-out all markers that are
-      // not top places in this response
-      if (!isStateSubsearch) {
-        if (!hasTimeIntervalChanged)
-          clear();
-          
-        update(response.top_places, hasTimeIntervalChanged);
-      }
-      */
-      
-      // TODO clean up
-
-      
-      // Trial IxD policy: we don't add top places, unless there's currently a search query or we're in exploration mode
-      if (response.params && (response.params.query || explorationMode))
+      // IxD policy: we only show markers if there's a query or we're in exploration mode
+      if (response.params.query || isExplorationMode)
         update(response.top_places);
+      else
+        clearMap();
     });
+        
+        
+        
+        
+        
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
       
@@ -379,26 +388,38 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
       // 'IxD policy': if the user submitted a new query phrase (or cleared the current one), we want
       // to clear the map; in case of a new query phrase, we also want to fit the view area to the results
       if (response.diff.hasOwnProperty('query')) {
-        clear(); // TODO we don't want to clear the current selection, come what may!
-        if (response.diff.query && !explorationMode)
+        clearMap(); // TODO we don't want to clear the current selection, come what may!
+        if (response.diff.query && !isExplorationMode)
           setTimeout(fitToObjects, 1);      
       }     
     });        
 
-    eventBroker.addHandler(Events.MOUSE_OVER_RESULT, emphasiseObject);
     
-    eventBroker.addHandler(Events.SELECT_RESULT, function(result) {
-      var marker = emphasiseObject(result[0]);
-      if (marker) {
-        currentSelection = { _1: marker , _2: [ result ] };
-        self.fireEvent('highlight', marker.getBounds());
-        /*
-        if (!map.getBounds().contains(latlng))
-          map.panTo(latlng);
-          
-        map.fitBounds(marker.getBounds(), { maxZoom: map);
-        */
-      }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+        
+    eventBroker.addHandler(Events.MOUSE_OVER_RESULT, emphasiseObject);
+    eventBroker.addHandler(Events.SELECT_RESULT, selectObjects);
+    
+    // Track state changes
+    eventBroker.addHandler(Events.TO_STATE_SUB_SEARCH, function() {
+      isStateSubsearch = true;
+    });
+    eventBroker.addHandler(Events.TO_STATE_SEARCH, function() {
+      isStateSubsearch = false;
+    });
+    eventBroker.addHandler(Events.START_EXPLORATION, function() {
+      isExplorationMode = true;
+    });
+    eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
+      isExplorationMode = false;
     });
     
     HasEvents.apply(this);
