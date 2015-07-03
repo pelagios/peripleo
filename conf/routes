@@ -25,8 +25,6 @@ GET     /peripleo/annotations/:id                  controllers.AnnotationControl
 
 GET     /peripleo/places                           controllers.PlaceController.listPlaces(gazetteer: String, bbox: Option[String], limit: Option[Int], offset: Option[Int])
 GET     /peripleo/places/:uri                      controllers.PlaceController.getPlace(uri: String)
-GET     /peripleo/places/:uri/network              controllers.PlaceController.getNetwork(uri: String)
-GET     /peripleo/places/:uri/occurrences          controllers.PlaceController.listOccurrences(uri: String, includeCloseMatches: Boolean ?= true)
 
 GET     /peripleo/search                           controllers.SearchController.search
 GET     /peripleo/autocomplete                     controllers.SearchController.autoComplete(q: String)

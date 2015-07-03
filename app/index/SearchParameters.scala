@@ -66,3 +66,27 @@ case class SearchParameters(
     Seq(places, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, excludeGazetteers).filter(_.size > 0).size > 0
 
 }
+
+object SearchParameters {
+  
+  /** Helper: parameters for fetching all data for a specific place **/
+  def forPlace(uri: String, limit: Int, offset: Int) =
+    SearchParameters(
+      None,
+      Seq.empty[IndexedObjectTypes.Value],
+      Seq.empty[IndexedObjectTypes.Value],
+      Seq.empty[String],
+      Seq.empty[String],
+      Seq.empty[String],
+      Seq.empty[String],
+      None,
+      None,
+      DateFilterMode.INTERSECTS,
+      Seq(uri),
+      None,
+      None,
+      None,
+      limit,
+      offset)
+  
+}

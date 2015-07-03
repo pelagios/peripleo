@@ -286,8 +286,7 @@ object JSONWrites {
     (JsPath \ "place_category").writeNullable[String] ~
     (JsPath \ "geo_bounds").writeNullable[BoundingBox] ~
     (JsPath \ "temporal_bounds").writeNullable[JsValue] ~
-    (JsPath \ "geometry").writeNullable[Geometry] ~ 
-    (JsPath \ "graph").write[JsValue]
+    (JsPath \ "geometry").writeNullable[Geometry]
   )(network =>
       (network.seedURI,
        network.title,
@@ -298,12 +297,22 @@ object JSONWrites {
        network.places.flatMap(_.category).headOption.map(_.toString),
        network.geoBounds,
        None, // TODO temporal bounds
-       network.geometry,
-       Json.obj("edges" -> Json.toJson(network.edges), "nodes" -> Json.toJson(network.nodes))))  
+       network.geometry
+    ))
        
   implicit val topPlaceWrites: Writes[(IndexedPlaceNetwork, Int)] = (
     (JsPath).write[IndexedPlaceNetwork] ~
     (JsPath \ "result_count").write[Int]
   )(t => (t._1, t._2))
-       
+
+  implicit val placeDetailsWrites: Writes[(IndexedPlaceNetwork, Seq[(String, String, Int)])] = (
+    (JsPath).write[IndexedPlaceNetwork] ~  
+    (JsPath \ "network").write[JsValue] ~
+    (JsPath \ "referenced_in").write[Seq[JsValue]]
+  )(t => 
+     (t._1,
+      Json.obj("edges" -> Json.toJson(t._1.edges), "nodes" -> Json.toJson(t._1.nodes)),
+      t._2.map { case (title, id, count) => 
+        Json.obj("title" -> title, "identifier" -> id, "count" -> count) }))
+  
 }

@@ -11,9 +11,15 @@ import play.api.db.slick._
 import play.api.libs.json.Json
 import models.geo.Gazetteers
 import play.api.Logger
+import index.SearchParameters
 
 object PlaceController extends AbstractController {
+  
+  private val SOURCE_DATASET = "source_dataset"
 
+  /**
+   * TODO revise!
+   */
   def listPlaces(gazetteerName:String, bbox: Option[String], limit: Option[Int], offset: Option[Int]) = loggingAction { implicit session => 
     // Map BBox coordinates
     val bboxTupled = bbox.flatMap(str => {
@@ -34,39 +40,33 @@ object PlaceController extends AbstractController {
     }
   } 
 
-  def getPlace(uri: String) = loggingAction { implicit session =>
-    val place = Global.index.findPlaceByURI(uri)
-    if (place.isDefined)
-      jsonOk(Json.toJson(place.get.asJson), session.request)
-    else
-      NotFound(Json.parse("{ \"message\": \"Not found\" }"))
-  }
-  
-  def getNetwork(uri: String) = loggingAction { implicit session =>
-    Logger("PlaceController.getNetwork")
-    val network = Global.index.findNetworkByPlaceURI(uri)
-    if(network.isDefined) {
-      jsonOk(Json.toJson(network), session.request)
+  /** Detail information about a place.
+    *
+    * Includes the cross-gazetteer network graph, and an overview of the data linked
+    * to the place.
+    */
+  def getPlace(uri: String, datasetLimit: Int = 10) = loggingAction { implicit session =>
+    val placeNetwork = Global.index.findNetworkByPlaceURI(uri)
+    if (placeNetwork.isDefined) {
+      val params = SearchParameters.forPlace(uri, 1, 0)
+      val (_, facetTree, _, _, _) = Global.index.search(
+        params, 
+        true,  // facets
+        false, // snippets
+        false, // time histogram
+        0,     // top places
+        false) // heatmap
+        
+      val sourceFacetValues = facetTree.get.getTopChildren(SOURCE_DATASET, datasetLimit)
+      val topDatasets = sourceFacetValues.map { case (labelAndId, count) => {
+        val split = labelAndId.split('#')
+        (split(0), split(1), count)
+      }}
+ 
+      jsonOk(Json.toJson((placeNetwork.get, topDatasets)), session.request)
     } else {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
     }
   }
-  
-  def listOccurrences(uri: String, includeCloseMatches: Boolean) = loggingAction { implicit request =>
-    val place = Global.index.findPlaceByURI(Index.normalizeURI(uri))
-    if (place.isDefined) {
-      val occurrences = 
-        if (includeCloseMatches) {
-          val places = Global.index.findNetworkByPlaceURI(uri).get.places.map(_.uri)
-          Associations.findOccurrences(places.toSet) 
-        } else {
-          Associations.findOccurrences(place.get.uri)      
-        }
-      implicit val verbose = false
-      jsonOk(Json.toJson(place.get.asJson), request.request)
-    } else {
-      NotFound(Json.parse("{ \"message\": \"Not found\" }"))
-    }
-  }
-  
+   
 }

@@ -76,7 +76,7 @@
     
     <script type="text/javascript">
       (function() {
-        $.getJSON('@routes.PlaceController.getNetwork(place.uri)', function(data) {
+        $.getJSON('@* routes.PlaceController.getNetwork(place.uri) *@', function(data) {
           new window.PlaceNetwork('network', data.graph.nodes, data.graph.edges);
         });
         
@@ -85,7 +85,7 @@
           var map = new window.PlaceMap('map', centroid);   
         } 
         
-        $.getJSON('@routes.PlaceController.listOccurrences(place.uri, true)', function(data) {
+        $.getJSON('@* routes.PlaceController.listOccurrences(place.uri, true) *@', function(data) {
           var h2 = $('.references h2'),
               table = $('.references tbody'),
               references = 0;

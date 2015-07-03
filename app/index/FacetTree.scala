@@ -20,4 +20,3 @@ class FacetTree(facetCounts: Facets) {
       result.labelValues.toSeq.map(lv => (lv.label, lv.value.intValue))).getOrElse(Seq.empty[(String, Int)])
 
 }
-
