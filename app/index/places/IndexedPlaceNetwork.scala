@@ -160,12 +160,15 @@ object IndexedPlaceNetwork {
       
     // Description
     if (place.description.isDefined) {
-      if (doc.get(IndexFields.DESCRIPTION) == null)
+      val descriptionField = if (doc.get(IndexFields.DESCRIPTION) == null)
         // If there is no stored description, store (and index) this one 
-        doc.add(new TextField(IndexFields.DESCRIPTION, place.description.get, Field.Store.YES))
+        new TextField(IndexFields.DESCRIPTION, place.description.get, Field.Store.YES)
       else
         // Otherwise, just index (but don't store)
-        doc.add(new TextField(IndexFields.DESCRIPTION, place.description.get, Field.Store.NO)) 
+        new TextField(IndexFields.DESCRIPTION, place.description.get, Field.Store.NO)
+      
+      descriptionField.setBoost(0.4f)
+      doc.add(descriptionField)
     }
     
     // Index all names
