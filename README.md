@@ -100,7 +100,7 @@ A keyword query. Per default, only exact matches are returned. Supports logical 
 
 Restrict the results to `place`, `dataset` or `item`. Allows multiple values, as comma-separated list. Examples:
 
-[http://pelagios.org/peripleo/search?query=bronze&types=place](http://pelagios.org/peripleo/search?query=bronze&types=place&prettyprint=true)
+[http://pelagios.org/peripleo/search?query=coin&types=place](http://pelagios.org/peripleo/search?query=coin&types=place&prettyprint=true)
 
 #### datasets
 
