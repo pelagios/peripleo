@@ -18,7 +18,9 @@ import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader
 import org.apache.lucene.search._
 import org.apache.lucene.search.highlight.{ Highlighter, SimpleHTMLFormatter, SimpleFragmenter, TokenSources, QueryScorer }
-import org.apache.lucene.queries.function.ValueSource
+import org.apache.lucene.queries.CustomScoreQuery
+import org.apache.lucene.queries.function.{ FunctionQuery, ValueSource }
+import org.apache.lucene.queries.function.valuesource.LongFieldSource
 import org.apache.lucene.queryparser.classic.{ MultiFieldQueryParser, QueryParser }
 import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import org.apache.lucene.spatial.prefix.tree.NumberRangePrefixTree.UnitNRShape
@@ -125,7 +127,8 @@ trait ObjectReader extends AnnotationReader {
           
       addTimeFilter(baseSearchQuery, params.from, params.to, params.dateFilterMode)
 
-      (baseSearchQuery, timeHistogramFilter)
+      val boostQuery = new FunctionQuery(new LongFieldSource(IndexFields.BOOST))
+      (new CustomScoreQuery(baseSearchQuery, boostQuery), timeHistogramFilter)
     }
     
     // Finalize the heatmap filter (we don't search item fulltext, but want the time filter)
@@ -272,7 +275,7 @@ trait ObjectReader extends AnnotationReader {
     (q, valuesource)
   }
   
-  private def executeStandardQuery(query: BooleanQuery, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, 
+  private def executeStandardQuery(query: Query, places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, 
       taxonomyReader: DirectoryTaxonomyReader, valueSource: Option[ValueSource], includeFacets: Boolean): (TopDocs, Option[Facets]) = {
     
     val (docCollector, facetsCollector) = { 
@@ -280,7 +283,7 @@ trait ObjectReader extends AnnotationReader {
         if (valueSource.isDefined) {
           // We're using sorting as defined in the value source
           val sort = new Sort(valueSource.get.getSortField(true)).rewrite(searcher)
-          TopFieldCollector.create(sort, offset + limit, true, false, false)  
+          TopFieldCollector.create(sort, offset + limit, true, false, false) 
         } else {
           TopScoreDocCollector.create(offset + limit)
         }
@@ -305,11 +308,19 @@ trait ObjectReader extends AnnotationReader {
     (topDocs, facets)
   }
 
-  private def executeSearch(query: BooleanQuery, phrase: Option[String], places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
+  private def executeSearch(query: Query, phrase: Option[String], places: Seq[String], limit: Int, offset: Int, searcher: IndexSearcher, taxonomyReader: DirectoryTaxonomyReader,
       valueSource: Option[ValueSource], includeFacets: Boolean, includeSnippets: Boolean, snippetSearcher: IndexSearcher): (Page[(IndexedObject, Option[String])], Option[FacetTree]) = {
     
     val (topDocs, facets) =
-      executeStandardQuery(query, places, limit, offset, searcher, taxonomyReader, valueSource, includeFacets)
+      executeStandardQuery(
+        query, 
+        places, 
+        limit, 
+        offset, 
+        searcher,
+        taxonomyReader, 
+        { if (phrase.isDefined) None else valueSource }, // No spatial ranking in case of search query 
+        includeFacets)
     
     val total = topDocs.totalHits
 

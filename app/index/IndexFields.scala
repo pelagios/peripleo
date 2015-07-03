@@ -5,6 +5,8 @@ import org.apache.lucene.document.{ FieldType, TextField }
 object IndexFields {
   
   /** General fields **/
+  
+  val BOOST = "boost"
 
   val ID = "id"
         

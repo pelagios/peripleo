@@ -7,7 +7,7 @@ import index.IndexFields
 import index.places.{ IndexedPlace, IndexedPlaceNetwork }
 import models.core.{ AnnotatedThing, Dataset, Image }
 import models.geo.BoundingBox
-import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField, IntField }
+import org.apache.lucene.document.{ Document, Field, NumericDocValuesField, StringField, StoredField, TextField, IntField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
@@ -56,6 +56,7 @@ object IndexedObject {
   
   def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], images: Seq[Image], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
+    doc.add(new NumericDocValuesField(IndexFields.BOOST, 1L)) // Standard boost
     
     // ID, title, description, homepage
     doc.add(new StringField(IndexFields.ID, thing.id, Field.Store.YES))
@@ -117,6 +118,7 @@ object IndexedObject {
   
   def toDoc(dataset: Dataset): Document = {
     val doc = new Document()
+    doc.add(new NumericDocValuesField(IndexFields.BOOST, 1L)) // Standard boost
     
     // ID, publisher, parent dataset ID, title, description, homepage, type = Dataset
     doc.add(new StringField(IndexFields.ID, dataset.id, Field.Store.YES))

@@ -6,7 +6,7 @@ import index.{ Index, IndexFields }
 import index.objects.IndexedObjectTypes
 import java.io.StringWriter
 import models.geo.BoundingBox
-import org.apache.lucene.document.{ Document, Field, StringField, StoredField, TextField }
+import org.apache.lucene.document.{ Document, Field, NumericDocValuesField, StringField, StoredField, TextField }
 import org.apache.lucene.facet.FacetField
 import org.apache.lucene.spatial.prefix.RecursivePrefixTreeStrategy
 import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
@@ -113,6 +113,7 @@ object IndexedPlaceNetwork {
     val joinedDoc = new Document() 
     joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))
     joinedDoc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString))
+    joinedDoc.add(new NumericDocValuesField(IndexFields.BOOST, 4L)) // Places get boosted over other items
     
     places.foreach(addPlaceToDoc(_, joinedDoc))
     
@@ -151,13 +152,17 @@ object IndexedPlaceNetwork {
     doc.add(new StringField(IndexFields.ID, Index.normalizeURI(place.uri), Field.Store.YES))
 
     // Title
-    if (doc.get(IndexFields.TITLE) == null)
-      // If the network is still be empty, its title is null. In this case, store the place title as network title
-      doc.add(new TextField(IndexFields.TITLE, place.label, Field.Store.YES))
-    else
-      // Otherwise just index the place title, but don't store
-      doc.add(new TextField(IndexFields.TITLE, place.label, Field.Store.NO))
-      
+    val titleField = 
+      if (doc.get(IndexFields.TITLE) == null)
+        // If the network is still be empty, its title is null. In this case, store the place title as network title
+        new TextField(IndexFields.TITLE, place.label, Field.Store.YES)
+      else
+        // Otherwise just index the place title, but don't store
+        new TextField(IndexFields.TITLE, place.label, Field.Store.NO)  
+    
+    titleField.setBoost(1.5f) // Hits on title field should be weighted up slightly
+    doc.add(titleField)
+        
     // Description
     if (place.description.isDefined) {
       val descriptionField = if (doc.get(IndexFields.DESCRIPTION) == null)
@@ -167,7 +172,7 @@ object IndexedPlaceNetwork {
         // Otherwise, just index (but don't store)
         new TextField(IndexFields.DESCRIPTION, place.description.get, Field.Store.NO)
       
-      descriptionField.setBoost(0.4f)
+      descriptionField.setBoost(0.4f) // Hits on description field should be weighted down slightly
       doc.add(descriptionField)
     }
     
