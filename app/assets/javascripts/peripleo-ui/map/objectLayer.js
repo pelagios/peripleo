@@ -2,13 +2,19 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
   
   var TOUCH_DISTANCE_THRESHOLD = 18,
   
+      SIZE_LARGE = 8,
+      
+      SIZE_MEDIUM = 4,
+      
+      SIZE_SMALL = 3,
+  
       BASE_STYLE = {
         color: '#a64a40',
         opacity: 1,
         fillColor: '#e75444',
         fillOpacity: 1,
         weight:1.5,
-        radius:5
+        radius: SIZE_MEDIUM
       },
   
       Styles = {
@@ -316,7 +322,21 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
         
         /** Updates the object layer with a new search response or view update **/
         update = function(objects) {
-          jQuery.each(objects, function(idx, obj) {
+          var maxCount = objects[0].result_count, // Results come sorted by count
+              upperLimit = Math.round(0.8 * maxCount), // Upper 20% will be big
+     
+              setSize = function(marker, resultCount) {
+                if (upperLimit > 1) {
+                  if (resultCount > upperLimit)
+                    marker.setRadius(SIZE_LARGE);
+                  else if (resultCount < 2)
+                    marker.setRadius(SIZE_SMALL);
+                }
+              };
+             
+          console.log(maxCount, upperLimit);
+          
+          jQuery.each(objects.reverse(), function(idx, obj) {
             var id = obj.identifier,
                 existingObjectTuple = objectIndex[id],
 
@@ -332,9 +352,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                 jQuery.extend(existingObjectTuple._1, obj); // Object exists - just update the data
                 
                 if (existingObjectTuple._1.geometry.type === 'Point')
-                  existingObjectTuple._2.setStyle(Styles.POINT_RED);
-                else
-                  existingObjectTuple._2.setStyle(Styles.POLY_RED);
+                  setSize(existingObjectTuple._2, obj.result_count);
 
                 existingObjectTuple._2.bringToFront();
               } else {                  
@@ -348,6 +366,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                   if (type === 'Point') {
                     marker = L.circleMarker([obj.geo_bounds.max_lat, obj.geo_bounds.max_lon], Styles.POINT_RED);
                     marker.addTo(pointFeatures); 
+                    setSize(marker, obj.result_count);
                   } else {
                     marker = L.geoJson(obj.geometry, Styles.POLY_RED);
                     marker.addTo(shapeFeatures); 
