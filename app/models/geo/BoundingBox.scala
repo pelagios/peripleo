@@ -1,6 +1,6 @@
 package models.geo
 
-import index.places.IndexedPlace
+import index.places.IndexedPlaceNetwork
 import com.vividsolutions.jts.geom.{ Envelope, Geometry }
 import play.api.db.slick.Config.driver.simple._
 import play.api.Logger
@@ -58,7 +58,7 @@ object BoundingBox {
   }
   
   /** Helper function to get the bounds of a list of places **/
-  def fromPlaces(places: Seq[IndexedPlace]): Option[BoundingBox] =
+  def fromPlaces(places: Seq[IndexedPlaceNetwork]): Option[BoundingBox] =
     fromGeometries(places.flatMap(_.geometry))
     
   /** Helper function to parse a comma-separated string representation **/

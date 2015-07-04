@@ -1,7 +1,8 @@
 package index.annotations
 
-import com.vividsolutions.jts.geom.Geometry
+// import com.vividsolutions.jts.geom.Geometry
 import index.{ Index, IndexFields }
+import index.places.IndexedPlaceNetwork
 import java.util.UUID
 import models.core.{ Annotation, AnnotatedThing }
 import org.apache.lucene.document.{ Document, Field, IntField, StringField, TextField }
@@ -25,7 +26,7 @@ class IndexedAnnotation(private val doc: Document) {
 
 object IndexedAnnotation {
 
-  def toDoc(rootParent: AnnotatedThing, parent: AnnotatedThing, annotation: Annotation, geometry: Geometry,
+  def toDoc(rootParent: AnnotatedThing, parent: AnnotatedThing, annotation: Annotation, place: IndexedPlaceNetwork,
       fulltextPrefix: Option[String], fulltextSuffix: Option[String]): Document = {
     
     val doc = new Document()
@@ -60,10 +61,10 @@ object IndexedAnnotation {
     
     // Place & geometry
     doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(annotation.gazetteerURI), Field.Store.NO)) 
-    doc.add(new FacetField(IndexFields.PLACE_URI, Index.normalizeURI(annotation.gazetteerURI)))
+    doc.add(new FacetField(IndexFields.PLACE_URI, place.seedURI))
     
     // Bounding box to enable efficient best-fit queries
-    val b = geometry.getEnvelopeInternal()
+    val b = place.geometry.get.getEnvelopeInternal()
     Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.getMinX, b.getMaxX, b.getMinY, b.getMaxY)).foreach(doc.add(_))
     
     doc

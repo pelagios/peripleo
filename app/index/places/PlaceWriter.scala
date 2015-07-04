@@ -63,7 +63,16 @@ trait PlaceWriter extends PlaceReader {
         val indexedMatchesOut = matches.filter(_._2.isDefined).map(_._2.get)
 
         // Next, we query our index for places which list our new places as their closeMatch
+        
+        // TODO: should these ever be more than one? If they share a match, they should be connected.
+        
         val indexedMatchesIn = findNetworkByCloseMatch(normalizedUri)
+        
+        // TODO trying to get to the bottom of the Q above...
+        if (indexedMatchesIn.size > 1) {
+          Logger.warn("Disconnected networks sharing the same match URI!")
+          indexedMatchesIn.foreach(network => Logger.warn(network.seedURI))
+        }
         
         val indexedMatches = (indexedMatchesOut ++ indexedMatchesIn)
         
@@ -93,7 +102,9 @@ trait PlaceWriter extends PlaceReader {
     // Add the place and write updated network to index
     val updatedNetwork = IndexedPlaceNetwork.join(place, affectedNetworks)
     
-    indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, updatedNetwork.doc))
+    indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, updatedNetwork.doc))    
+    
+    // TODO update annotated things with new joined network UUID!
   }
   
   def applyPatch(file: File, config: PatchConfig) = {
@@ -112,12 +123,12 @@ trait PlaceWriter extends PlaceReader {
             // Update all places in network
             Logger.info("Propagating patch to " + (affectedNetwork.get.places.size - 1) + " network members")
             val patchedPlaces = affectedNetwork.get.places.map(_.patch(patch, config))
-            IndexedPlaceNetwork.join(patchedPlaces)
+            IndexedPlaceNetwork.join(patchedPlaces, affectedNetwork.map(_.seedURI)) // Just make sure the seed URI stays unchanged
           } else {
             // Update only the one place in the network with matching URI
             val unaffectedPlaces = affectedNetwork.get.places.filter(_.uri != patch.uri)
             val patchedPlace = affectedNetwork.flatMap(_.getPlace(patch.uri)).get
-            IndexedPlaceNetwork.join(unaffectedPlaces :+ patchedPlace)
+            IndexedPlaceNetwork.join(unaffectedPlaces :+ patchedPlace, affectedNetwork.map(_.seedURI))
           }
 
         Logger.info("Persisting patched place network")
@@ -162,6 +173,8 @@ trait PlaceWriter extends PlaceReader {
           networksAfterRemoval.foreach(network => placeWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, network.doc)))
       }
     })      
+    
+    // TODO update annotated things with new network UUIDs!
       
     if (total > offset + batchSize)
       deleteGazetteerRecordBatch(gazetteer, searcher, offset + batchSize, batchSize)

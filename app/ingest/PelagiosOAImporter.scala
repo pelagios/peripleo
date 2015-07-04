@@ -1,7 +1,7 @@
 package ingest
 
 import global.Global
-import index.places.IndexedPlace
+import index.places.IndexedPlaceNetwork
 import java.util.{ Calendar, Date, UUID }
 import java.io.FileInputStream
 import models.Associations
@@ -36,30 +36,29 @@ object PelagiosOAImporter extends AbstractImporter {
     *
     * @returns a maps (indexedPlace -> number of times referenced)  
     */
-  private def resolvePlaces(annotations: Seq[OAnnotation]): Seq[(IndexedPlace, Int)] = { 
+  private def resolvePlaces(annotations: Seq[OAnnotation]): Seq[(IndexedPlaceNetwork, String, Int)] = { 
     // Resolve all gazetteer URIs that occur in the annotations against index
     val allReferencedPlaces = annotations.flatMap(_.places).distinct
       .map(uri => (uri, Global.index.findNetworkByPlaceURI(uri)))
       .filter(_._2.isDefined)
       .map(t => (t._1, t._2.get)).toMap
-    
+          
     // Ok - this is a little complicated. Background: every annotation can come with multiple gazetteer
     // URIs. These might point to the same place (e.g. one Pleiades URI, one equivalent GeoNames URI).
     // But that doesn't have to be the case! It's also valid for an annotation to point to multiple places.
     // We want to remove the duplicates, but keep the intentional multi-references.
     //
-    // This operation creates a list of place-networks in the index the annotations refer to, de-duplicates
-    // the list, and then keeps the place from the network that was referenced by the (first) URI in the 
-    // annotation. (Savvy?)
+    // This operation creates a list of place-networks in the index each annotation refers to, de-duplicates
+    // the list, and then keeps the first URI used by the annotations. (Savvy?)
     val referencedPlacesWithoutDuplicates = annotations.par.flatMap(_.places
-        .map(uri => (uri, allReferencedPlaces.get(uri)))        
-        .filter(_._2.isDefined)
-        .map(t => (t._1, t._2.get))
-        .groupBy(_._2.seedURI)
-        .map(_._2.head)
-        .map { case (originalURI, network) => network.getPlace(originalURI).get }).seq
+          .map(uri => (allReferencedPlaces.get(uri), uri))        
+          .filter(_._1.isDefined)
+          .map(t => (t._1.get, t._2))
+          .groupBy(_._1.seedURI)
+          .map(_._2.head)
+        ).seq
         
-    referencedPlacesWithoutDuplicates.groupBy(_.uri).map { case (uri, places) => (places.head, places.size) }.toSeq 
+    referencedPlacesWithoutDuplicates.groupBy(_._1.seedURI).map { case (seedURI, places) => (places.head._1, places.head._2, places.size) }.toSeq
   }
     
   

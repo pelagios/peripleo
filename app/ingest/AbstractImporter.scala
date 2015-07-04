@@ -2,7 +2,7 @@ package ingest
 
 import global.Global
 import index.Index
-import index.places.IndexedPlace
+import index.places.IndexedPlaceNetwork
 import java.math.BigInteger
 import java.security.MessageDigest
 import models.Associations
@@ -24,7 +24,7 @@ case class IngestRecord(
     annotationsWithText: Seq[(Annotation, Option[String], Option[String])],
     
     /** Places associated with the annotated thing, with place count **/
-    places: Seq[(IndexedPlace, Int)],
+    places: Seq[(IndexedPlaceNetwork, String, Int)],
 
     /** Fulltext connected to the thing, if any **/
     fulltext: Option[String],
@@ -40,7 +40,7 @@ abstract class AbstractImporter {
     
   private val UTF8 = "UTF-8"
     
-  private def computePlaceAdjacency(thingId: String, annotations: Seq[Annotation], places: Map[String, IndexedPlace]): Seq[PlaceAdjacency] = {
+  private def computePlaceAdjacency(thingId: String, annotations: Seq[Annotation], places: Map[String, IndexedPlaceNetwork]): Seq[PlaceAdjacency] = {
     // Pairs of adjacent annotations (i.e. those that follow in the list)
     val annotationAdjacencyPairs = annotations.sliding(2).toSeq
     
@@ -51,12 +51,12 @@ abstract class AbstractImporter {
         val place = places.get(placeURI)
         val nextPlace = places.get(nextPlaceURI)
         
-        if (place.isDefined && nextPlace.isDefined && place.map(_.uri) != nextPlace.map(_.uri)) {
+        if (place.isDefined && nextPlace.isDefined && place.map(_.seedURI) != nextPlace.map(_.seedURI)) {
           Some(PlaceAdjacency(
             None, 
             pairs.head.head.annotatedThing,
-            place.map(p => GazetteerReference(p.uri, p.label, p.geometryJson.map(Json.stringify(_)))).get,
-            nextPlace.map(p => GazetteerReference(p.uri, p.label, p.geometryJson.map(Json.stringify(_)))).get,
+            place.map(p => GazetteerReference(p.seedURI, p.title, p.geometryJson)).get,
+            nextPlace.map(p => GazetteerReference(p.seedURI, p.title, p.geometryJson)).get,
             pairs.size
           ))
         } else {
@@ -88,7 +88,7 @@ abstract class AbstractImporter {
     Annotations.insertAll(allAnnotations)
        
     // Lookup table for places by ID
-    val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._1.uri, p._1))).toMap
+    val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._1.seedURI, p._1))).toMap
     
     // Lookup table for things' parent IDs 
     val parentTable = ingestBatch.map(record => (record.thing.id, record.thing.isPartOf))
@@ -121,7 +121,7 @@ abstract class AbstractImporter {
           Some(childTexts.mkString(" "))
       }
       
-      (r.thing, r.places.map(_._1), r.images, collapsedFulltext)
+      (r.thing, r.places.map(t => (t._1, t._2)), r.images, collapsedFulltext)
     })
     
     val datasetHierarchy = dataset +: Datasets.getParentHierarchyWithDatasets(dataset)
@@ -138,11 +138,14 @@ abstract class AbstractImporter {
       val rootThing = allThings.find(_.id == getRoot(thing.id, parentTable)).getOrElse(thing)
       
       record.annotationsWithText.map { case (annotation, prefix, suffix) => {        
-        // Geometry is that of the gazetteer
-        val geom = placeLookup.get(Index.normalizeURI(annotation.gazetteerURI)).flatMap(_.geometry)
-        geom.map(g => (rootThing, thing, annotation, g, prefix, suffix))
+        // The annotation index is to support spatial vis, so we're not interested in annotations without geometry
+        val place = placeLookup.get(Index.normalizeURI(annotation.gazetteerURI))
+        if (place.flatMap(_.geometry).isDefined)
+          place.map(p => (rootThing, thing, annotation, p, prefix, suffix))
+        else
+          None
       }}
-    }).flatten // The annotation index is to support heatmaps, so we're not interested in annotation without geometry
+    }).flatten
     Logger.info("Indexing " + annotationsWithContext.size + " annotations")
     Global.index.addAnnotations(annotationsWithContext)
     

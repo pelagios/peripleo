@@ -2,7 +2,7 @@ package models.geo
 
 import com.vividsolutions.jts.geom.{ Geometry, GeometryCollection }
 import com.vividsolutions.jts.algorithm.{ ConvexHull => JTSConvexHull }
-import index.places.IndexedPlace
+import index.places.IndexedPlaceNetwork
 import java.io.StringWriter
 import org.geotools.geojson.geom.GeometryJSON
 import org.geotools.geometry.jts.{ JTS, JTSFactoryFinder }
@@ -51,7 +51,7 @@ object Hull {
       }
     }
     
-  def fromPlaces(places: Seq[IndexedPlace]): Option[Hull] =
+  def fromPlaces(places: Seq[IndexedPlaceNetwork]): Option[Hull] =
     compute(places.flatMap(_.geometry))
   
 }

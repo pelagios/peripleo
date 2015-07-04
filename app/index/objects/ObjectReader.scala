@@ -3,6 +3,7 @@ package index.objects
 import com.spatial4j.core.shape.Rectangle
 import com.spatial4j.core.distance.DistanceUtils
 import com.vividsolutions.jts.geom.Coordinate
+import global.Global
 import index._
 import index.DateFilterMode._
 import index.annotations.AnnotationReader
@@ -63,6 +64,13 @@ trait ObjectReader extends AnnotationReader {
         case DateFilterMode.CONTAINS =>
           query.add(Index.temporalStrategy.makeQuery(new SpatialArgs(SpatialOperation.IsWithin, dateRange)), BooleanClause.Occur.MUST)        
       }
+    }
+  }
+  
+  private def expandPlaceFilter(uri: String): Seq[String] = {
+    Global.index.findPlaceByAnyURI(uri) match {
+      case Some(place) => place.seedURI +: place.alternativeURIs
+      case None => Seq(uri)
     }
   }
   
@@ -253,8 +261,19 @@ trait ObjectReader extends AnnotationReader {
     }
     
     // Places filter
-    places.foreach(uri =>
-      q.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.MUST))
+    if (places.size == 1) {
+      val alternatives = expandPlaceFilter(places.head)
+      if (alternatives.size == 1) {
+        q.add(new TermQuery(new Term(IndexFields.PLACE_URI, alternatives.head)), BooleanClause.Occur.MUST)
+      } else {
+        val placeQuery = new BooleanQuery()
+        alternatives.foreach(uri => 
+          placeQuery.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.SHOULD))
+        q.add(placeQuery, BooleanClause.Occur.MUST)
+      }
+    } else if (places.size > 1) {
+      // TODO
+    }
       
     // Spatial filter
     val valuesource = {

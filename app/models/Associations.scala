@@ -1,7 +1,7 @@
 package models
 
 import global.Global
-import index.places.IndexedPlace
+import index.places.IndexedPlaceNetwork
 import models.core._
 import models.geo.GazetteerReference
 import play.api.db.slick.Config.driver.simple._
@@ -152,12 +152,12 @@ object Associations {
     placesToThings.ddl.create
   }
   
-  def insert(ingestBatch: Seq[(AnnotatedThing, Seq[(IndexedPlace, Int)])])(implicit s: Session) = {
+  def insert(ingestBatch: Seq[(AnnotatedThing, Seq[(IndexedPlaceNetwork, String, Int)])])(implicit s: Session) = {
     // Insert place-to-thing associations
     val placeToThingAssociations = ingestBatch.flatMap { case (thing, places) =>
-      places.map { case (place, count) =>
+      places.map { case (place, uri, count) =>
         PlaceToThing(None, thing.dataset, thing.id, thing.temporalBoundsStart, thing.temporalBoundsEnd, 
-          GazetteerReference(place.uri, place.label, place.geometryJson.map(Json.stringify(_))), count) }
+          GazetteerReference(uri, place.title, place.geometryJson), count) }
     } 
     placesToThings.insertAll(placeToThingAssociations:_*)
     

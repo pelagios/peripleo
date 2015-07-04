@@ -13,6 +13,7 @@ import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import org.geotools.geojson.geom.GeometryJSON
 import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
+import java.util.UUID
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
@@ -27,9 +28,9 @@ case class NetworkEdge(source: Int, target: Int, isInnerEdge: Boolean)
   * @author Rainer Simon <rainer.simon@ait.ac.at>
   */
 class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
-   
+  
   /** The first place URI added to the network **/
-  val seedURI: String = doc.get(IndexFields.ID)
+  lazy val seedURI: String = doc.get(IndexFields.SEED_URI)
   
   lazy val names: Seq[String] = doc.getValues(IndexFields.PLACE_NAME).toSeq.distinct 
   
@@ -52,6 +53,12 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   
   lazy val geometry: Option[Geometry] = Option(doc.get(IndexFields.GEOMETRY)).map(geoJson => new GeometryJSON().read(geoJson.trim))
   
+  lazy val geometryJson: Option[String] = geometry.map(geom => {
+    val geoJson = new StringWriter()
+    new GeometryJSON().write(geom, geoJson)
+    geoJson.toString
+  })
+    
   /** Network nodes and edges **/
   lazy val (nodes, edges) = {
     val links = places.flatMap(p => Seq.fill(p.matches.size)(p.uri).zip(p.matches))   
@@ -109,8 +116,15 @@ object IndexedPlaceNetwork {
       placesWithGeometry.headOption.flatMap(_.geometry)
   }
 
-  def join(places: Seq[IndexedPlace]) = {
+  def join(places: Seq[IndexedPlace], seedUri: Option[String] = None) = {
     val joinedDoc = new Document() 
+    
+    // If Seed URI isn't externally defined, we just use the URI of the first place
+    seedUri match {
+      case Some(uri) => joinedDoc.add(new StringField(IndexFields.SEED_URI, uri, Field.Store.YES))
+      case None => joinedDoc.add(new StringField(IndexFields.SEED_URI, places.head.uri, Field.Store.YES))
+    }
+    
     joinedDoc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString, Field.Store.YES))
     joinedDoc.add(new FacetField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.PLACE.toString))
     joinedDoc.add(new NumericDocValuesField(IndexFields.BOOST, 4L)) // Places get boosted over other items
@@ -141,11 +155,13 @@ object IndexedPlaceNetwork {
   
   /** Merges the place into the network **/
   def join(place: IndexedPlace, network: IndexedPlaceNetwork): IndexedPlaceNetwork =
-    join(network.places :+ place)
+    join(network.places :+ place, Some(network.seedURI))
     
   /** Merges the place and the networks into one network **/
-  def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork =
-    join(networks.flatMap(_.places) :+ place)
+  def join(place: IndexedPlace, networks: Seq[IndexedPlaceNetwork]): IndexedPlaceNetwork = {
+    val seedUri = if (networks.size > 0) networks.head.seedURI else place.uri
+    join(networks.flatMap(_.places) :+ place, Some(seedUri))
+  }
       
   private[places] def addPlaceToDoc(place: IndexedPlace, doc: Document): Document = {
     // Place URI

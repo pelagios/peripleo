@@ -4,9 +4,12 @@ import org.apache.lucene.document.{ FieldType, TextField }
 
 object IndexFields {
   
-  /** General fields **/
-  
+  /** Fields for internal use **/
+
   val BOOST = "boost"
+  
+  
+  /** General fields **/
 
   val ID = "id"
         
@@ -46,7 +49,9 @@ object IndexFields {
   
     
   /** Place-specific fields **/
-
+  
+  val SEED_URI = "seed_uri"
+  
   val PLACE_NAME = "name"
     
   val PLACE_MATCH = "match"

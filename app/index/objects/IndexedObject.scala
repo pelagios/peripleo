@@ -4,7 +4,7 @@ import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.vividsolutions.jts.geom.Geometry
 import index.Index
 import index.IndexFields
-import index.places.{ IndexedPlace, IndexedPlaceNetwork }
+import index.places.IndexedPlaceNetwork
 import models.core.{ AnnotatedThing, Dataset, Image }
 import models.geo.BoundingBox
 import org.apache.lucene.document.{ Document, Field, NumericDocValuesField, StringField, StoredField, TextField, IntField }
@@ -54,7 +54,7 @@ object IndexedObject {
   
   private val DATASET_NAME_SEPARATOR = "#"
   
-  def toDoc(thing: AnnotatedThing, places: Seq[IndexedPlace], images: Seq[Image], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
+  def toDoc(thing: AnnotatedThing, places: Seq[(IndexedPlaceNetwork, String)], images: Seq[Image], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
     doc.add(new NumericDocValuesField(IndexFields.BOOST, 1L)) // Standard boost
     
@@ -97,15 +97,15 @@ object IndexedObject {
     // Fulltext
     fulltext.map(text => doc.add(new TextField(IndexFields.ITEM_FULLTEXT, text, Field.Store.YES)))
     
-    // Place URIs
-    places.foreach(place => doc.add(new StringField(IndexFields.PLACE_URI, place.uri, Field.Store.NO)))
+    // Original place URIs from the annotations
+    places.foreach { case (network, uri) => doc.add(new StringField(IndexFields.PLACE_URI, uri, Field.Store.NO)) }
     
-    // Detailed geometry as spatially indexed features
-    val geometries = places.filter(_.geometry.isDefined).map(_.geometry.get)
+    // Detailed geometry (from network) as spatially indexed features
+    val geometries = places.filter(_._1.geometry.isDefined).map(_._1.geometry.get)
     geometries.foreach(geom => Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geom)).foreach(doc.add(_)))
     
     // Bounding box to enable efficient best-fit queries
-    val bbox = BoundingBox.fromPlaces(places)
+    val bbox = BoundingBox.fromGeometries(geometries)
     bbox.map(b => 
       Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
         .foreach(doc.add(_)))

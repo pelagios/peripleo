@@ -82,6 +82,7 @@ trait PlaceReader extends IndexBase {
     }
   }
 
+  // TODO is the result size ever > 1? Shouldn't be! 
   def findNetworkByCloseMatch(uri: String): Seq[IndexedPlaceNetwork] = {
     val q = new TermQuery(new Term(IndexFields.PLACE_MATCH, Index.normalizeURI(uri)))
     
@@ -97,4 +98,20 @@ trait PlaceReader extends IndexBase {
     }
   }
   
+  def findPlaceByAnyURI(uri: String): Option[IndexedPlaceNetwork] = {
+    val q = new BooleanQuery()
+    q.add(new TermQuery(new Term(IndexFields.ID, uri)), BooleanClause.Occur.SHOULD)
+    q.add(new TermQuery(new Term(IndexFields.PLACE_MATCH, uri)), BooleanClause.Occur.SHOULD)
+    
+    val searcherAndTaxonomy = placeSearcherManager.acquire()
+    val searcher = searcherAndTaxonomy.searcher
+    try {
+      val topDocs = searcher.search(q, 1)
+    
+      topDocs.scoreDocs.map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).headOption
+    } finally {
+      placeSearcherManager.release(searcherAndTaxonomy)
+    }
+  }
+    
 }

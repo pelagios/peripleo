@@ -1,7 +1,7 @@
 package ingest
 
 import global.Global
-import index.places.IndexedPlace
+import index.places.IndexedPlaceNetwork
 import java.util.UUID
 import java.util.regex.Pattern
 import models.Associations
@@ -21,15 +21,17 @@ object CSVImporter extends AbstractImporter {
   private def unesc(text: String) =
     text.replace("\\;", ";")
   
-  private def resolvePlaces(uris: Seq[String]): Seq[(IndexedPlace, Int)] = {
+    
+  /** Returns a tuple (PlaceNetwork, URI used in annotations, number of annotations) **/
+  private def resolvePlaces(uris: Seq[String]): Seq[(IndexedPlaceNetwork, String, Int)] = {
     val allReferencedPlaces = uris.distinct
-      .map(uri => (uri, Global.index.findPlaceByURI(uri)))
+      .map(uri => (uri, Global.index.findNetworkByPlaceURI(uri)))
       .filter(_._2.isDefined)
       .map(t => (t._1, t._2.get)).toMap
     
-    uris.flatMap(uri => allReferencedPlaces.get(uri))
-      .groupBy(_.uri)
-      .map(t => (t._2.head, t._2.size))
+    uris.flatMap(uri => allReferencedPlaces.get(uri).map(network => (network, uri)))
+      .groupBy(_._1.seedURI)
+      .map(t => (t._2.head._1, t._2.head._2, t._2.size))
       .toSeq
   }
 
@@ -113,8 +115,8 @@ object CSVImporter extends AbstractImporter {
       // Usually, only one list will be non-empty - but we add them, just in case
       val rootPlaces = resolvePlaces(rootAnnotationsWithText.map(_._1.gazetteerURI))
       val partPlaces = resolvePlaces(partIngestBatch.flatMap(_.annotationsWithText).map(_._1.gazetteerURI))
-      val allPlaces = (rootPlaces ++ partPlaces).groupBy(_._1).foldLeft(Seq.empty[(IndexedPlace, Int)]){ case (result, (place, list)) =>
-        result :+ (place, list.map(_._2).sum) }
+      val allPlaces = (rootPlaces ++ partPlaces).groupBy(_._1.seedURI).foldLeft(Seq.empty[(IndexedPlaceNetwork, String, Int)]){ case (result, (uri, list)) =>
+        result :+ (list.head._1, list.head._2, list.map(_._3).sum) }
       
       val rootThing = AnnotatedThing(rootThingId, dataset.id, rootTitle, None, None, None, date, date, Hull.fromPlaces(allPlaces.map(_._1)))
       
