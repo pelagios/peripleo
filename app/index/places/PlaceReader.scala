@@ -99,9 +99,11 @@ trait PlaceReader extends IndexBase {
   }
   
   def findPlaceByAnyURI(uri: String): Option[IndexedPlaceNetwork] = {
+    val normalizedURI = Index.normalizeURI(uri)
+    
     val q = new BooleanQuery()
-    q.add(new TermQuery(new Term(IndexFields.ID, uri)), BooleanClause.Occur.SHOULD)
-    q.add(new TermQuery(new Term(IndexFields.PLACE_MATCH, uri)), BooleanClause.Occur.SHOULD)
+    q.add(new TermQuery(new Term(IndexFields.ID, normalizedURI)), BooleanClause.Occur.SHOULD)
+    q.add(new TermQuery(new Term(IndexFields.PLACE_MATCH, normalizedURI)), BooleanClause.Occur.SHOULD)
     
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     val searcher = searcherAndTaxonomy.searcher

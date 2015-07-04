@@ -1,6 +1,7 @@
 package ingest
 
 import global.Global
+import index.Index
 import index.places.IndexedPlaceNetwork
 import java.util.{ Calendar, Date, UUID }
 import java.io.FileInputStream
@@ -79,12 +80,6 @@ object PelagiosOAImporter extends AbstractImporter {
     Logger.info("Import of " + filename + " complete")
   }
   
-  private def getYear(date: Date): Int = {
-    val calendar = Calendar.getInstance()
-    calendar.setTime(date)
-    calendar.get(Calendar.YEAR)
-  }
-  
   private def importBatch(annotatedThings: Iterable[OAThing], dataset: Dataset)(implicit s: Session) = {
     // Flatten the things, so that we have a list of all things in the hierarchy tree. Then, for
     // each thing, get all annotations and resolve the places referenced by them
@@ -100,9 +95,9 @@ object PelagiosOAImporter extends AbstractImporter {
     val ingestBatch = preparedForIngest.map { case (oaThing, oaRootThing, places) => { 
       val thingId = sha256(oaThing.uri)
       
-      val tempBoundsStart = oaThing.temporal.map(period => getYear(period.start))
+      val tempBoundsStart = oaThing.temporal.map(period => period.startYear)
       val tempBoundsEnd = if (tempBoundsStart.isDefined) {
-        val periodEnd = oaThing.temporal.flatMap(_.end.map(getYear(_)))
+        val periodEnd = oaThing.temporal.flatMap(_.endYear)
         if (periodEnd.isDefined)
           periodEnd
         else

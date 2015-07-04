@@ -88,7 +88,7 @@ abstract class AbstractImporter {
     Annotations.insertAll(allAnnotations)
        
     // Lookup table for places by ID
-    val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._1.seedURI, p._1))).toMap
+    val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._2, p._1))).toMap
     
     // Lookup table for things' parent IDs 
     val parentTable = ingestBatch.map(record => (record.thing.id, record.thing.isPartOf))
@@ -139,7 +139,7 @@ abstract class AbstractImporter {
       
       record.annotationsWithText.map { case (annotation, prefix, suffix) => {        
         // The annotation index is to support spatial vis, so we're not interested in annotations without geometry
-        val place = placeLookup.get(Index.normalizeURI(annotation.gazetteerURI))
+        val place = placeLookup.get(annotation.gazetteerURI)
         if (place.flatMap(_.geometry).isDefined)
           place.map(p => (rootThing, thing, annotation, p, prefix, suffix))
         else
