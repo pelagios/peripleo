@@ -39,7 +39,7 @@ object PelagiosOAImporter extends AbstractImporter {
   private def resolvePlaces(annotations: Seq[OAnnotation]): Seq[(IndexedPlaceNetwork, String, Int)] = { 
     // Resolve all gazetteer URIs that occur in the annotations against index
     val allReferencedPlaces = annotations.flatMap(_.places).distinct
-      .map(uri => (uri, Global.index.findNetworkByPlaceURI(uri)))
+      .map(uri => (uri, Global.index.findPlaceByAnyURI(uri)))
       .filter(_._2.isDefined)
       .map(t => (t._1, t._2.get)).toMap
           

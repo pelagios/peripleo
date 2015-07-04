@@ -25,7 +25,7 @@ object CSVImporter extends AbstractImporter {
   /** Returns a tuple (PlaceNetwork, URI used in annotations, number of annotations) **/
   private def resolvePlaces(uris: Seq[String]): Seq[(IndexedPlaceNetwork, String, Int)] = {
     val allReferencedPlaces = uris.distinct
-      .map(uri => (uri, Global.index.findNetworkByPlaceURI(uri)))
+      .map(uri => (uri, Global.index.findPlaceByAnyURI(uri)))
       .filter(_._2.isDefined)
       .map(t => (t._1, t._2.get)).toMap
     
