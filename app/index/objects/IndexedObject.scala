@@ -98,7 +98,7 @@ object IndexedObject {
     fulltext.map(text => doc.add(new TextField(IndexFields.ITEM_FULLTEXT, text, Field.Store.YES)))
     
     // Original place URIs from the annotations
-    places.foreach { case (network, uri) => doc.add(new StringField(IndexFields.PLACE_URI, uri, Field.Store.NO)) }
+    places.foreach { case (network, uri) => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(uri), Field.Store.NO)) }
     
     // Detailed geometry (from network) as spatially indexed features
     val geometries = places.filter(_._1.geometry.isDefined).map(_._1.geometry.get)
