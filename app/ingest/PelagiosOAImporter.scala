@@ -11,13 +11,18 @@ import models.geo.Hull
 import org.pelagios.Scalagios
 import org.pelagios.api.annotation.{ AnnotatedThing => OAThing, Annotation => OAnnotation }
 import play.api.Logger
+import play.api.Play
 import play.api.db.slick._
 import play.api.libs.Files.TemporaryFile
 
 object PelagiosOAImporter extends AbstractImporter {
   
   /** The maximum number of AnnotatedThings to ingest in one batch **/
-  private val BATCH_SIZE = 30000
+  private val BATCH_SIZE = {
+    val batchsize = Play.current.configuration.getString("peripleo.ingest.batchsize").getOrElse("30000").trim().toInt
+    Logger.info("Open Annotation import batch size set to " + batchsize)
+    batchsize
+  }
   
   /** Given a thing, this function returns a list of all things below it in the hierarchy **/
   private def flattenThingHierarchy(thing: OAThing): Seq[OAThing] =

@@ -66,15 +66,19 @@ logger.application=DEBUG
 # Set to true if the application should add the "Access-Control-Allow-Origin" -> "*" header
 # for CORS support. Note that this needs to be set to false, if CORS is enabled through
 # a proxy setting
-api.enable.cors=false
+peripleo.enable.cors=false
 
 # Gazetteers 
-api.gazetteer.names="Pleiades, DARE"
-api.gazetteer.files="pleiades-201207-migrated.ttl.gz, dare-2015-0422.ttl.gz"
+peripleo.gazetteer.names="Pleiades, DARE"
+peripleo.gazetteer.files="pleiades-201207-migrated.ttl.gz, dare-2015-0422.ttl.gz"
 
 # A comma-separated list of gazetteer patch files
-# recogito.gazetteer.patches="pelagios_geojson.ttl"
+# peripleo.gazetteer.patches="pelagios_geojson.ttl"
 
 # Date (day of month) and time for conducting monthly access log archivals
-api.log.archival.day=1
-api.log.archival.time="13:23"
+peripleo.log.archival.day=1
+peripleo.log.archival.time="13:23"
+
+# Number of records to ingest in one batch - defaults to 30000
+# Set lower on lower-end machines
+# peripleo.ingest.batchsize=10000

@@ -51,7 +51,7 @@ abstract class AbstractController extends Controller {
   private val PLACE = "place"
   private val DATASET = "dataset"
   
-  private val CORS_ENABLED = Play.current.configuration.getBoolean("api.enable.cors").getOrElse(false)
+  private val CORS_ENABLED = Play.current.configuration.getBoolean("peripleo.enable.cors").getOrElse(false)
   private val PRETTY_PRINT = "prettyprint"
   private val CALLBACK = "callback"
   private val HEADER_USERAGENT = "User-Agent"

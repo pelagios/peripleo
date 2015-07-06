@@ -33,7 +33,7 @@ object Global extends GlobalSettings {
       def getPropertyAsList(name: String): Seq[String] = 
         Play.current.configuration.getString(name).map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
       
-      val gazetteers = getPropertyAsList("api.gazetteer.names").zip(getPropertyAsList("api.gazetteer.files"))
+      val gazetteers = getPropertyAsList("peripleo.gazetteer.names").zip(getPropertyAsList("peripleo.gazetteer.files"))
       
       // Helper function to insert a single dump file into the index (returning number of total places, distinct places and URI prefixes)
       def insertDumpfile(sourceGazetteer: String, file: File): (Int, Int, Seq[String]) = {
@@ -70,7 +70,7 @@ object Global extends GlobalSettings {
         }}
        
         // Apply gazetteer patches
-        val patches = Play.current.configuration.getString("recogito.gazetteer.patches")
+        val patches = Play.current.configuration.getString("peripleo.gazetteer.patches")
           .map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
        
         // Patching strategy is to REPLACE geometries, but APPEND names

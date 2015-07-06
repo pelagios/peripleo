@@ -22,17 +22,17 @@ object AccessLogArchiver {
   private val SEPARATOR = ";"
         
   private lazy val LOG_ARCHIVE_DIR = {
-    val dir = new File(Play.current.configuration.getString("api.log.archival.folder").getOrElse("logs"))
+    val dir = new File(Play.current.configuration.getString("peripleo.log.archival.folder").getOrElse("logs"))
     if (!dir.exists)
       dir.mkdirs()
     dir
   }
   
   private lazy val ARCHIVAL_DAY = 
-    Play.current.configuration.getString("api.log.archival.day").getOrElse("1").trim().toInt
+    Play.current.configuration.getString("peripleo.log.archival.day").getOrElse("1").trim().toInt
     
   private lazy val ARCHIVAL_TIME = {
-    val time = Play.current.configuration.getString("api.log.archival.time").getOrElse("2:00").split(":")
+    val time = Play.current.configuration.getString("peripleo.log.archival.time").getOrElse("2:00").split(":")
     if (time.size != 2)
       throw new IllegalArgumentException("Configuration contains invalid log archival time setting")
     time
