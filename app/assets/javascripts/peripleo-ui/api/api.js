@@ -51,6 +51,9 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
         /** Flat indicating whether we're currently in exploration mode **/
         explorationMode = false,
         
+        /** Caches the query before exploration mode, in case user returns without changed query **/
+        queryBeforeExplorationMode = false,
+        
         /** Flag indicating whether time histogram should be included **/
         includeTimeHistogram = false,
         
@@ -72,7 +75,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
               // Unlike subsequent 'next page' requests, the first request include facets
               url = buildBaseQueryURL(params, searchState, includeTimeHistogram) + '&facets=true';
               
-          // Fetch top places if in exploration mode
+          // Fetch top places if there's a query or we're in exploration mode
           if (params.query || explorationMode)
             url += '&top_places=' + TOP_PLACES_MAX;
           else
@@ -96,8 +99,7 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
           if (withTimeHistogram) 
             url += '&time_histogram=true';
           
-          // Query ignored while in exploration mode
-          if (params.query && !explorationMode)
+          if (params.query)
             url += '&query=' + params.query;
             
           if (params.object_types)
@@ -269,8 +271,8 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
       jQuery.extend(searchParams, diffNormalized); // Update search params
       lastDiff = diffNormalized; // Store as last diff
     
-      // SPECIAL: if the user added a query phrase, ignore geo-bounds
-      if (diff.query)
+      // SPECIAL: if the user added a query and we're not exploring, ignore geo-bounds
+      if (diff.query && !explorationMode)
         searchParams.bbox = false;
       
       search();
@@ -287,11 +289,18 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
     eventBroker.addHandler(Events.TO_STATE_SEARCH, toStateSearch);
     
     eventBroker.addHandler(Events.START_EXPLORATION, function() {
+      queryBeforeExplorationMode = searchParams.query;
+      searchParams.query = false;
       explorationMode = true;
       search();
     });
     
     eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
+      // If the user didn't define a new query in exploration, we restore
+      if (!searchParams.query)
+        searchParams.query = queryBeforeExplorationMode;
+      
+      queryBeforeExplorationMode = false;
       explorationMode = false;
       search();
     });

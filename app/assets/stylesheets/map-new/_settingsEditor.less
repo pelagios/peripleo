@@ -1,5 +1,6 @@
 #settings-editor {
-
+  overflow:hidden;
+  
   ul, h2, p {
     padding:0;
     margin:0;
@@ -10,8 +11,9 @@
     margin-top:10px;
   }
   
-  li {
-    padding:10px 20px;
+  li { padding:10px 20px; }
+  
+  li.baselayer {
     cursor:pointer;
     min-height:66px;
     
@@ -33,9 +35,9 @@
       line-height:22px;
       margin:0;
       padding:0;
-    }    
+    }   
     
-    p {
+    p { 
       font-size:13px;
       color:#999;
       line-height:15px;
@@ -50,6 +52,31 @@
   
   } /* li */
   
-  li:hover { background-color:#fafafa; }
+  li.baselayer:hover { background-color:#fafafa; }
+  
+  #heatmap-settings {
+    position:absolute;
+    bottom:0;
+    width:100%;
+    border-top:1px solid #e6e6e6;
+    background-color:#fafafa;
+    padding:10px 4px;
+    font-size:15px;
+    color:#5a5a5a;
+    .no-select();
+    
+    em {
+      font-style:normal;
+      color:#929292;
+      padding-left:2px;
+    }
+    
+    .activate-heatmap {
+      width:17px;
+      display:inline-block;
+      cursor:pointer;
+    }
+    
+  }
 
 }

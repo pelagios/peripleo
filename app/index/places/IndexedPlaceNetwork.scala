@@ -214,12 +214,7 @@ object IndexedPlaceNetwork {
     // Temporal bounds
     place.temporalBoundsStart.map(start => {
       val end = place.temporalBoundsEnd.getOrElse(start)
-      val dateRange =
-        if (start > end) // Minimal safety precaution... 
-          Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")
-        else
-          Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
-          
+      val dateRange = Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
       Index.temporalStrategy.createIndexableFields(dateRange).foreach(doc.add(_))
     })
       

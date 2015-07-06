@@ -6,8 +6,8 @@ define(['peripleo-ui/events/events'], function(Events) {
           '<div class="clicktrap">' +
           '  <div class="modal-editor" id="settings-editor">' +
           '   <span class="close icon">&#xf057;</span>' +
-          '   <ul id="baselayers">' + 
           
+          '   <ul id="baselayers">' + 
           '     <li class="baselayer" data-name="awmc">' +
           '       <div class="map-thumb-container"><img class="map-thumb" src="http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/7/68/47.png"></div>' +
           '       <h2>Empty Basemap</h2>' +
@@ -32,13 +32,21 @@ define(['peripleo-ui/events/events'], function(Events) {
           '       <h2>Satellite</h2>' +
           '       <p>Aerial imagery via <a href="https://www.mapbox.com/" target="_blank">Mapbox</a>.</p>' +
           '     </li>' +
-          
           '   </ul>' +
+          
+          '   <ul id="heatmap-settings">' +
+          '     <li class="shapelayer">' +
+          '       <span class="icon activate-heatmap">&#xf096;</span>' +
+          '       <span class="label">Show distribution of search results as heatmap <em>(experimental)</em></span>' +
+          '     </li>',
+          '   </ul>' +
+          
           '  </div>' +
           '</div>'
         ),
         
         btnClose = element.find('.close'),
+        btnActivateHeatmap = element.find('.activate-heatmap'),
         
         show = function() {
           element.show();  
@@ -53,13 +61,23 @@ define(['peripleo-ui/events/events'], function(Events) {
             
     btnClose.click(close); 
     
-    element.on('click', 'li', function(e) {
+    element.on('click', 'li.baselayer', function(e) {
       var target = jQuery(e.target),
           li = target.closest('li'),
           layerName = li.data('name');
           
       eventBroker.fireEvent(Events.CHANGE_LAYER, layerName);
       close();
+    });
+    
+    btnActivateHeatmap.click(function() {
+      var isEnabled = btnActivateHeatmap.hasClass('enabled');
+      if (isEnabled) {
+        btnActivateHeatmap.html('&#xf096;');
+      } else {
+        btnActivateHeatmap.html('&#xf046;');
+      }
+      btnActivateHeatmap.toggleClass('enabled');
     });
     
     eventBroker.addHandler(Events.EDIT_MAP_SETTINGS, show);

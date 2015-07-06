@@ -85,12 +85,7 @@ object IndexedObject {
     thing.temporalBoundsEnd.map(end => doc.add(new IntField(IndexFields.DATE_TO, end, Field.Store.YES)))
     thing.temporalBoundsStart.map(start => {
       val end = thing.temporalBoundsEnd.getOrElse(start)
-      val dateRange =
-        if (start > end) // Minimal safety precaution... 
-          Index.dateRangeTree.parseShape("[" + end + " TO " + start + "]")
-        else
-          Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
-          
+      val dateRange = Index.dateRangeTree.parseShape("[" + start + " TO " + end + "]")
       Index.temporalStrategy.createIndexableFields(dateRange).foreach(doc.add(_))
     })
     
