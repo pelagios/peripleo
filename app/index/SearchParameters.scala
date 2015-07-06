@@ -59,11 +59,32 @@ case class SearchParameters(
   
   /** Pagination offset (i.e. number of items discarded **/
   offset:            Int) {
+  
+  private var _error: Option[String] = None 
+  
+  lazy val error = { 
+    if (_error.isEmpty)
+      isValid
+      
+    _error
+  }
     
   /** Query is valid if at least one param is set **/
-  def isValid: Boolean =
-    Seq(query, from, to, bbox, coord, radius).filter(_.isDefined).size > 0 ||
-    Seq(places, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, excludeGazetteers).filter(_.size > 0).size > 0
+  def isValid: Boolean = {
+    val requiresOneOf = 
+      Seq(query, from, to, bbox, coord).map(_.isDefined) ++
+      Seq(places, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, excludeGazetteers).map(_.size > 0)
+      
+    if (requiresOneOf.forall(isTrue => isTrue)) {
+      _error = Some("at least one of the following parameters is required: query, from, to, bbox, coord, places, objectTypes, datasets, gazetteers")
+      false
+    } else if (from.isDefined && to.isDefined && from.get > to.get) {
+      _error = Some("from parameter must be less than to parameter") 
+      false
+    } else {
+      true
+    }
+  }
 
 }
 

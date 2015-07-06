@@ -145,7 +145,7 @@ abstract class AbstractController extends Controller {
       if (params.isValid)
         Success(params)
       else 
-        Failure(new RuntimeException("Invalid query"))
+        Failure(new RuntimeException("Invalid query: " + params.error.get))
     } catch {
       // TODO extend error handling, so we can give detailes on which parameter was wrong
       case t: Throwable => Failure(new RuntimeException("Invalid query parameters"))

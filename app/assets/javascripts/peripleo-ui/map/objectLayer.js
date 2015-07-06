@@ -333,8 +333,6 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                     marker.setRadius(SIZE_SMALL);
                 }
               };
-             
-          console.log(maxCount, upperLimit);
           
           jQuery.each(objects.reverse(), function(idx, obj) {
             var id = obj.identifier,
@@ -388,26 +386,24 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
     });
 
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
-      // IxD policy: we only show markers if there's a query or we're in exploration mode
+      // IxD policy: we only show markers if there's a query or if we're in exploration mode
       if (response.params.query || response.exploration_mode)
         update(response.top_places);
-      else
-        clearMap();
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
-      // IxD policy: if the user changed the query phrase, or cleared the old one, we clear the map.
-      // If there is a new query phrase, we also fit the map to the results - UNLESS we're in, or
-      // just returned from exploration mode.
-      if (response.diff.hasOwnProperty('query')) {
-        clearMap();
+      // Always clear on search response, but leave drawing up to API_VIEW_UPDATE method
+      clearMap();
 
-        if (response.diff.query && !response.exploration_mode) {
-          if (stoppedExplorationMode)
-            stoppedExplorationMode = false;
-          else
-            setTimeout(fitToObjects, 1);
-        }
+      // IxD policy: if there's a new query phrase, we want to map to re-fit automatically, 
+      // unless: (i) we're in exploration mode, or (ii) we just left exploration mode.
+      // Also, we place the fit at the end of the execution loop, so it happens after
+      // the API_VIEW_UPDATE handler, which does the drawing.
+      if (response.diff.query && !response.exploration_mode) {
+        if (stoppedExplorationMode)
+          stoppedExplorationMode = false;
+        else
+          setTimeout(fitToObjects, 1);
       }
     });        
 
