@@ -380,7 +380,6 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
           });
         };
 
-
     map.on('click', function(e) { 
       selectNearest(e.latlng, TOUCH_DISTANCE_THRESHOLD); 
     });
@@ -388,7 +387,8 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
       // IxD policy: we only show markers if there's a query or if we're in exploration mode
       if (response.params.query || response.exploration_mode)
-        update(response.top_places);
+        if (response.top_places.length > 0)
+          update(response.top_places);
     });
         
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, function(response) { 
