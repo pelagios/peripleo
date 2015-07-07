@@ -182,9 +182,14 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     // View updates - like GMaps, we close when user resumes map browsing
     eventBroker.addHandler(Events.VIEW_CHANGED, hide);
     
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {
-      currentSearchResults = response.items;
-      currentSearchResultsTotal = response.total;
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) { 
+      if (response.params.places) {
+        currentSubsearchResults = response.items;
+        currentSubsearchResultsTotal = response.total;
+      } else {
+        currentSearchResults = response.items;
+        currentSearchResultsTotal = response.total;
+      }
       
       // TODO how to update control contents? 
       // - Don't update?
