@@ -101,12 +101,6 @@ class IndexedPlace(json: String) {
 
 object IndexedPlace { 
    
-  private def getYear(date: Date): Int = {
-    val calendar = Calendar.getInstance()
-    calendar.setTime(date)
-    calendar.get(Calendar.YEAR)
-  }
-  
   private implicit val plainLiteralWrites: Writes[PlainLiteral] = (
     (JsPath \ "chars").write[String] ~
     (JsPath \ "lang").writeNullable[String]
@@ -131,8 +125,8 @@ object IndexedPlace {
       p.names,
       { if (p.depictions.size == 0) None else Some(p.depictions) },
       p.temporal.map(period => {
-        val startYear = getYear(period.start)
-        val endYear = period.end.map(getYear(_)).getOrElse(startYear)
+        val startYear = period.startYear
+        val endYear = period.endYear.getOrElse(startYear)
         Json.obj("from" -> startYear, "to" -> endYear)
       }),
       p.locations.headOption.map(location => Json.parse(location.geoJSON)),

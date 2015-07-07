@@ -92,9 +92,17 @@ object PelagiosOAImporter extends AbstractImporter {
       val flattendHierarchy = rootThing +: flattenThingHierarchy(rootThing)
       flattendHierarchy.map(thing => {
         val annotations = getAnnotationsRecursive(thing) 
-        (thing, rootThing, resolvePlaces(annotations))
+        val places = resolvePlaces(annotations)
+        if (places.size > 0) {
+          Some((thing, rootThing, places))
+        } else {
+          Logger.warn("Discarding item with 0 resolvable places:")
+          Logger.warn(thing.title)
+          annotations.foreach(a => Logger.warn(a.places.mkString(", ")))
+          None
+        }
       })      
-    }).toSeq
+    }).toSeq.flatten
     
     // Ingest
     val ingestBatch = preparedForIngest.map { case (oaThing, oaRootThing, places) => { 
