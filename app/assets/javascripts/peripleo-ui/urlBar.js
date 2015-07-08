@@ -13,6 +13,37 @@ define(['peripleo-ui/events/events'], function(Events) {
           
         updatePending = false,
         
+        /** Helper function to parse a bbox string **/
+        parseBBox = function(bboxStr) {
+          var values = bboxStr.split(',');
+          return { north: parseFloat(values[3]), east: parseFloat(values[1]), 
+                   south: parseFloat(values[2]), west: parseFloat(values[0]) };
+        },
+        
+        parseURLHash = function(hash) {
+          var keysValArray = (hash.indexOf('#') === 0) ? hash.substring(1).split('&') : false,
+              keyValObject = {};
+              
+          if (keysValArray) {
+            jQuery.each(keysValArray, function(idx, keyVal) {
+              var asArray = keyVal.split('=');     
+              if (asArray[0] === 'bbox') // Special handling for bbox string
+                keyValObject[asArray[0]] = parseBBox(asArray[1]);
+              else
+                keyValObject[asArray[0]] = asArray[1];
+            });
+            
+            // Number parsing for timespan
+            if (keyValObject.from)
+              keyValObject.from = parseInt(keyValObject.from);
+
+            if (keyValObject.to)
+              keyValObject.to = parseInt(keyValObject.to);
+              
+            return keyValObject;
+          }
+        },
+        
         /** Updates a particular segment field with the value from the diff, if any **/
         setParam = function(name, diff) {
           if (diff.hasOwnProperty(name)) {
@@ -102,6 +133,8 @@ define(['peripleo-ui/events/events'], function(Events) {
       delete segments.ex;
       updateNow();
     });
+    
+    this.parseURLHash = parseURLHash;
   };
   
   return URLBar;
