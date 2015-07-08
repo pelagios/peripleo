@@ -67,7 +67,10 @@ abstract class AbstractImporter {
   
   private def getRoot(thingId: String, parentTable: Map[String, String]): String = 
     parentTable.get(thingId) match {
-      case Some(parentId) => getRoot(parentId, parentTable)
+      case Some(parentId) => {
+        Logger.debug("Recursive search for parent thing: " + parentId)
+        getRoot(parentId, parentTable)
+      }
       case None => thingId
     }
   
@@ -87,6 +90,9 @@ abstract class AbstractImporter {
     val allAnnotations = ingestBatch.flatMap(_.annotationsWithText.map(_._1))
     Annotations.insertAll(allAnnotations)
        
+    // Lookup table for things by ID
+    val thingLookup = allThings.map(t => (t.id, t)).toMap
+    
     // Lookup table for places by ID
     val placeLookup = ingestBatch.flatMap(record => record.places.map(p => (p._2, p._1))).toMap
     
@@ -130,12 +136,17 @@ abstract class AbstractImporter {
     Global.index.updateDatasets(affectedDatasets)
     
     // Update annotation index
+    
+    // TODO this flatMap block is extremely resource intensive... basically breaks my poor new notebook
+    // TODO find a way to make this more efficient/less memory intensive
+    
+    Logger.info("Preparing annotations for indexing")
     val annotationsWithContext = ingestBatch.flatMap(record => {
       // Temporal bounds of the annotation are those of their annotated thing
       val thing = record.thing
       
       // Title and description are that of the root thing
-      val rootThing = allThings.find(_.id == getRoot(thing.id, parentTable)).getOrElse(thing)
+      val rootThing = thingLookup.get(getRoot(thing.id, parentTable)).getOrElse(thing)
       
       record.annotationsWithText.map { case (annotation, prefix, suffix) => {        
         // The annotation index is to support spatial vis, so we're not interested in annotations without geometry
