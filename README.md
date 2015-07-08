@@ -8,7 +8,7 @@ Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __
 
 ## Peripleo
 
-... coming soon ...
+An overview of Peripleo & what you can do with it is available at the [Pelagios project blog](http://pelagios-project.blogspot.co.uk/2015/07/peripleo-sneak-preview.html).
 
 ## Peripleo API
 
