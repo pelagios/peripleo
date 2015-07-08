@@ -93,10 +93,10 @@ object PelagiosOAImporter extends AbstractImporter {
       flattendHierarchy.map(thing => {
         val annotations = getAnnotationsRecursive(thing) 
         val places = resolvePlaces(annotations)
-        if (places.size > 0) {
+        if (places.flatMap(_._1.geometry).size > 0) {
           Some((thing, rootThing, places))
         } else {
-          Logger.warn("Discarding item with 0 resolvable places:")
+          Logger.warn("Discarding item with 0 resolvable geometries:")
           Logger.warn(thing.title)
           annotations.foreach(a => Logger.warn(a.places.mkString(", ")))
           None
