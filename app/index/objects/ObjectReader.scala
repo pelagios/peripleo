@@ -287,6 +287,13 @@ trait ObjectReader extends AnnotationReader {
         // TODO create & return distance value source
         None
       } else {
+        // Just make sure only things with geometry show up
+        val r = Index.spatialCtx.makeRectangle(-180, 180, -90, 90)
+        q.add(Index.bboxStrategy.makeQuery(new SpatialArgs(SpatialOperation.BBoxWithin, r)), BooleanClause.Occur.MUST)
+
+        // TODO should be slightly more performant with FieldValueQuery - but no luck...
+        // TODO q.add(new FieldValueQuery(Index.bboxStrategy.getFieldName), BooleanClause.Occur.MUST)
+
         None       
       }
     } 
