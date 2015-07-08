@@ -21,26 +21,25 @@ define(['peripleo-ui/events/events'], function(Events) {
         },
         
         parseURLHash = function(hash) {
-          var keysValArray = (hash.indexOf('#') === 0) ? hash.substring(1).split('&') : false,
-              keyValObject = {};
+          var keysVals = (hash.indexOf('#') === 0) ? hash.substring(1).split('&') : false;
               
-          if (keysValArray) {
-            jQuery.each(keysValArray, function(idx, keyVal) {
+          if (keysVals) {
+            jQuery.each(keysVals, function(idx, keyVal) {
               var asArray = keyVal.split('=');     
               if (asArray[0] === 'bbox') // Special handling for bbox string
-                keyValObject[asArray[0]] = parseBBox(asArray[1]);
+                segments.bbox = parseBBox(asArray[1]);
               else
-                keyValObject[asArray[0]] = asArray[1];
+                segments[asArray[0]] = asArray[1];
             });
             
             // Number parsing for timespan
-            if (keyValObject.from)
-              keyValObject.from = parseInt(keyValObject.from);
+            if (segments.from)
+              segments.from = parseInt(segments.from);
 
-            if (keyValObject.to)
-              keyValObject.to = parseInt(keyValObject.to);
+            if (segments.to)
+              segments.to = parseInt(segments.to);
               
-            return keyValObject;
+            return segments;
           }
         },
         
@@ -49,11 +48,12 @@ define(['peripleo-ui/events/events'], function(Events) {
           if (diff.hasOwnProperty(name)) {
             if (diff[name])
               segments[name] = diff[name];
-            else // diff[name] = false -> remove this segment field
+            else
               delete segments[name];
           }          
         },
         
+        /** Updates the URL field - NOW! **/
         updateNow = function() {
           var segment = jQuery.map(segments, function(val, key) {
             return key + '=' + val;
