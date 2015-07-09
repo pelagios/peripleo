@@ -27,13 +27,27 @@ require(['peripleo-ui/api/api',
         settingsEditor = new SettingsEditor(eventBroker),
         
         /** resolve the URL bar **/
-        initialSettings = urlBar.parseURLHash(window.location.hash);
+        initialSettings = urlBar.parseURLHash(window.location.hash),
         
-    // Fire 'load' event with initial settings
-    if (initialSettings)
+        /** Is there an initially selected place? Fetch it now! **/       
+        fetchInitiallySelectedPlace = function(encodedURL) {
+          jQuery.getJSON('/peripleo/places/' + encodedURL, function(response) {
+            eventBroker.fireEvent(Events.SELECT_RESULT, [ response ]);
+          });
+        };
+        
+    if (initialSettings) {
+      // Set up UI with initial settings
       eventBroker.fireEvent(Events.LOAD, initialSettings);
-    else 
+      
+      if (initialSettings.places)
+        fetchInitiallySelectedPlace(initialSettings.places);
+
+    } else {
+      // Just start with a plain canvas
       eventBroker.fireEvent(Events.LOAD, { bbox: map.getBounds() });
+    }
+    
   });
   
 });
