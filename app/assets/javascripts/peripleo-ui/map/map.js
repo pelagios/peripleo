@@ -70,9 +70,12 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
         },
         
         changeLayer = function(name) {
-          map.removeLayer(currentLayer.layer);
-          currentLayer = { name: name, layer: Layers[name] };
-          map.addLayer(currentLayer.layer);
+          var layerToShow = Layers[name];
+          if (layerToShow) {
+            map.removeLayer(currentLayer.layer);
+            currentLayer = { name: name, layer: layerToShow };
+            map.addLayer(currentLayer.layer);
+          }
         },
         
         zoomTo = function(bounds) {
@@ -97,8 +100,12 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
     
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
       var b = (initialSettings.bbox) ? initialSettings.bbox : getBounds();
+      
       if (!boundsEqual(b, getBounds()))
         map.fitBounds([[b.south, b.west], [b.north, b.east]]);
+        
+      if (initialSettings.layer)
+        changeLayer(initialSettings.layer);  
     });
     
     eventBroker.addHandler(Events.CHANGE_LAYER, changeLayer);
