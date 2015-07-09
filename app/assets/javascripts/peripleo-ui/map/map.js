@@ -73,6 +73,14 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
           map.removeLayer(currentLayer.layer);
           currentLayer = { name: name, layer: Layers[name] };
           map.addLayer(currentLayer.layer);
+        },
+        
+        zoomTo = function(bounds) {
+          var center = bounds.getCenter();
+          if (!map.getBounds().contains(center))
+            map.panTo(center);
+          
+          map.fitBounds(bounds, { maxZoom: closeupZoom[currentLayer.name] });
         };
     
     /** Request an updated heatmap on every moveend **/
@@ -85,16 +93,10 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
       eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
     });
     
-    objectLayer.on('highlight', function(bounds) {
-      var center = bounds.getCenter();
-      if (!map.getBounds().contains(center))
-        map.panTo(latlng);
-          
-      map.fitBounds(bounds, { maxZoom: closeupZoom[currentLayer.name] });
-    });
+    objectLayer.on('highlight', zoomTo);
     
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
-      var b = initialSettings.bbox
+      var b = (initialSettings.bbox) ? initialSettings.bbox : getBounds();
       if (!boundsEqual(b, getBounds()))
         map.fitBounds([[b.south, b.west], [b.north, b.east]]);
     });
@@ -105,6 +107,12 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
     
     this.getBounds = getBounds;
     
+    this.zoomTo = function(bbox) {
+      var bounds = 
+        L.latLngBounds([[ bbox.min_lat, bbox.min_lon ], 
+                        [ bbox.max_lat, bbox.max_lon ]]);
+      zoomTo(bounds);
+    };
   };
   
   return Map;

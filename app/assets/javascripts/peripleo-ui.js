@@ -33,6 +33,7 @@ require(['peripleo-ui/api/api',
         fetchInitiallySelectedPlace = function(encodedURL) {
           jQuery.getJSON('/peripleo/places/' + encodedURL, function(response) {
             eventBroker.fireEvent(Events.SELECT_RESULT, [ response ]);
+            map.zoomTo(response.geo_bounds);
           });
         };
         

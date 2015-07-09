@@ -215,6 +215,11 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             currentSelection = { marker: marker, pin: pin, objects: tuple._2 };
 
             self.fireEvent('highlight', marker.getBounds());
+          } else {
+            
+            // TODO create a marker and select
+            console.log('object not on map');
+            
           }
         },
         
