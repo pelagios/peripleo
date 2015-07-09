@@ -206,7 +206,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
               marker, center, pin;
           
           deselect();
-          
+                    
           if (tuple) {
             marker = tuple._1;  
             center = marker.getBounds().getCenter();
@@ -215,11 +215,10 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             currentSelection = { marker: marker, pin: pin, objects: tuple._2 };
 
             self.fireEvent('highlight', marker.getBounds());
-          } else {
-            
-            // TODO create a marker and select
-            console.log('object not on map');
-            
+          } else {            
+            // This recursion saves a lot of LoC - but is it dangerous...?
+            update(objects);
+            selectObjects(objects);
           }
         },
         
@@ -336,6 +335,8 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                     marker.setRadius(SIZE_LARGE);
                   else if (resultCount < 2)
                     marker.setRadius(SIZE_SMALL);
+                } else {
+                  marker.setRadius(SIZE_LARGE);
                 }
               };
           
