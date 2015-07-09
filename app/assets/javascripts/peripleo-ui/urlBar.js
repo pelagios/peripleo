@@ -21,15 +21,19 @@ define(['peripleo-ui/events/events'], function(Events) {
         },
         
         parseURLHash = function(hash) {
-          var keysVals = (hash.indexOf('#') === 0) ? hash.substring(1).split('&') : false;
+          var keysVals = (hash.indexOf('#') === 0) ? hash.substring(1).split('&') : false,
+              bbox;
               
           if (keysVals) {
             jQuery.each(keysVals, function(idx, keyVal) {
-              var asArray = keyVal.split('=');     
-              if (asArray[0] === 'bbox') // Special handling for bbox string
-                segments.bbox = parseBBox(asArray[1]);
-              else
-                segments[asArray[0]] = asArray[1];
+              var asArray = keyVal.split('='),
+                  key = asArray[0],
+                  value = asArray[1];
+                       
+              if (key === 'bbox') // Parse bbox
+                bbox = parseBBox(value);
+              
+              segments[key] = value;
             });
             
             // Number parsing for timespan
@@ -39,13 +43,19 @@ define(['peripleo-ui/events/events'], function(Events) {
             if (segments.to)
               segments.to = parseInt(segments.to);
               
-            return segments;
+            var settings = jQuery.extend({}, segments);
+            if (bbox)
+              settings.bbox = bbox;
+            return settings;
           }
         },
         
         /** Updates a particular segment field with the value from the diff, if any **/
         setParam = function(name, diff) {
           if (diff.hasOwnProperty(name)) {
+            
+            // TODO this gets called three times on startup - investigate
+            
             if (diff[name])
               segments[name] = diff[name];
             else

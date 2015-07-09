@@ -165,6 +165,11 @@ define(['common/formatting',
       }
     });
 
+    eventBroker.addHandler(Events.LOAD, function(initialSettings) {
+      if (initialSettings.f && initialSettings.f.toLowerCase() === 'open')
+        togglePanel();
+    });
+
     // Refresh on initial load
     eventBroker.addHandler(Events.API_INITIAL_RESPONSE, refresh);
     
