@@ -26,29 +26,32 @@ require(['peripleo-ui/api/api',
         resultList = new ResultList(controlsDIV, eventBroker),
         settingsEditor = new SettingsEditor(eventBroker),
         
-        /** resolve the URL bar **/
+        /** Resolve the URL bar **/
         initialSettings = urlBar.parseURLHash(window.location.hash),
         
         /** Is there an initially selected place? Fetch it now! **/       
-        fetchInitiallySelectedPlace = function(encodedURL) {
+        fetchInitiallySelectedPlace = function(encodedURL, zoomTo) {
           jQuery.getJSON('/peripleo/places/' + encodedURL, function(response) {
             eventBroker.fireEvent(Events.SELECT_RESULT, [ response ]);
-            map.zoomTo(response.geo_bounds);
+            if (zoomTo)
+              map.zoomTo(response.geo_bounds);
           });
-        };
+        },
         
-    if (initialSettings) {
-      // Set up UI with initial settings
-      eventBroker.fireEvent(Events.LOAD, initialSettings);
-      
-      if (initialSettings.places)
-        fetchInitiallySelectedPlace(initialSettings.places);
-
-    } else {
-      // Just start with a plain canvas
-      eventBroker.fireEvent(Events.LOAD, { bbox: map.getBounds() });
-    }
+        /** Initializes map center and zoom **/
+        initializeMap = function(at) {
+          map.setView([ at.lat, at.lng ], at.zoom);
+        };
+            
+    if (initialSettings.at)
+      initializeMap(initialSettings.at);
+              
+    eventBroker.fireEvent(Events.LOAD, initialSettings);
     
+    if (initialSettings.places)
+      fetchInitiallySelectedPlace(initialSettings.places, !initialSettings.hasOwnProperty('at'));
+
+    delete initialSettings.at;
   });
   
 });

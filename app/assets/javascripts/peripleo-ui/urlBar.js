@@ -14,15 +14,14 @@ define(['peripleo-ui/events/events'], function(Events) {
         updatePending = false,
         
         /** Helper function to parse a bbox string **/
-        parseBBox = function(bboxStr) {
-          var values = bboxStr.split(',');
-          return { north: parseFloat(values[3]), east: parseFloat(values[1]), 
-                   south: parseFloat(values[2]), west: parseFloat(values[0]) };
+        parseAt = function(atStr) {
+          var values = atStr.split(',');
+          return { lat: parseFloat(values[0]), lng: parseFloat(values[1]), zoom: parseFloat(values[2]) }; 
         },
         
         parseURLHash = function(hash) {
           var keysVals = (hash.indexOf('#') === 0) ? hash.substring(1).split('&') : false,
-              bbox;
+              at;
               
           if (keysVals) {
             jQuery.each(keysVals, function(idx, keyVal) {
@@ -30,8 +29,8 @@ define(['peripleo-ui/events/events'], function(Events) {
                   key = asArray[0],
                   value = asArray[1];
                        
-              if (key === 'bbox') // Parse bbox
-                bbox = parseBBox(value);
+              if (key === 'at') // Parse bbox
+                at = parseAt(value);
               
               segments[key] = value;
             });
@@ -44,9 +43,11 @@ define(['peripleo-ui/events/events'], function(Events) {
               segments.to = parseInt(segments.to);
               
             var settings = jQuery.extend({}, segments);
-            if (bbox)
-              settings.bbox = bbox;
+            if (at)
+              settings.at = at;
             return settings;
+          } else {
+            return {};
           }
         },
         

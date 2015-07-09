@@ -107,8 +107,7 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
     eventBroker.addHandler(Events.ZOOM_IN, function() { map.zoomIn(); });  
     eventBroker.addHandler(Events.ZOOM_OUT, function() { map.zoomOut(); });
     
-    this.getBounds = getBounds;
-    
+    this.setView = function(center, zoom) { map.setView(center, zoom); };
     this.zoomTo = function(bbox) {
       var bounds = 
         L.latLngBounds([[ bbox.min_lat, bbox.min_lon ], 
