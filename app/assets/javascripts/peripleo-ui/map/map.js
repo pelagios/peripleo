@@ -52,7 +52,7 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
               s = (b.getSouth() < -90) ? -90 : b.getSouth(),
               n = (b.getNorth() > 90) ? 90 : b.getNorth();
               
-          return { north: n, east: e, south: s, west: w };
+          return { north: n, east: e, south: s, west: w, zoom: map.getZoom() };
         },
         
         /** JavaScript equality is by reference - we need to compare values **/
@@ -86,11 +86,6 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
           map.fitBounds(bounds, { maxZoom: closeupZoom[currentLayer.name] });
         };
     
-    /** Request an updated heatmap on every moveend **/
-    map.on('moveend', function() {
-      eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
-    });
-    
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
       eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
@@ -100,10 +95,10 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
     
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
       var b = (initialSettings.bbox) ? initialSettings.bbox : getBounds();
-      
+            
       if (!boundsEqual(b, getBounds()))
         map.fitBounds([[b.south, b.west], [b.north, b.east]]);
-        
+      
       if (initialSettings.layer)
         changeLayer(initialSettings.layer);  
     });

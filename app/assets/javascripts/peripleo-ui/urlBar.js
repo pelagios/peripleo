@@ -92,9 +92,10 @@ define(['peripleo-ui/events/events'], function(Events) {
         };
     
     eventBroker.addHandler(Events.VIEW_CHANGED, function(bounds) {
-      segments.bbox = 
-        bounds.west.toFixed(9) + ',' + bounds.east.toFixed(9) + ',' +
-        bounds.south.toFixed(9) + ',' + bounds.north.toFixed(9);
+      var lat = (bounds.south + bounds.north) / 2,
+          lon = (bounds.east + bounds.west) / 2; 
+      
+      segments.at = lat.toFixed(8) + ',' + lon.toFixed(8) + ',' + bounds.zoom;
       updateURLField()
     });
     
