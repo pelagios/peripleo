@@ -116,11 +116,10 @@ define(['peripleo-ui/events/events'], function(Events) {
     eventBroker.addHandler(Events.SELECTION, function(selectedItems) {
       // TODO multi-select?
       var selection = (selectedItems) ? selectedItems[0] : false;
-      if (selection) {
-        segments.selected = encodeURIComponent(selection.identifier);
-      } else {
-        delete segments.selected;
-      }
+      if (selection)
+        segments.places = encodeURIComponent(selection.identifier);
+      else
+        delete segments.places;
       updateNow();
     });
     
