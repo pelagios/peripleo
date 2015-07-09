@@ -96,7 +96,7 @@ define(['peripleo-ui/events/events'], function(Events) {
       var lat = (bounds.south + bounds.north) / 2,
           lon = (bounds.east + bounds.west) / 2; 
       
-      segments.at = lat.toFixed(8) + ',' + lon.toFixed(8) + ',' + bounds.zoom;
+      segments.at = lat + ',' + lon + ',' + bounds.zoom;
       updateURLField()
     });
     

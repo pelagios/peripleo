@@ -216,9 +216,9 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
 
             self.fireEvent('highlight', marker.getBounds());
           } else {            
-            // This recursion saves a lot of LoC - but is it dangerous...?
-            update(objects);
-            selectObjects(objects);
+            
+            // TODO create marker and select
+          
           }
         },
         
@@ -335,8 +335,6 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                     marker.setRadius(SIZE_LARGE);
                   else if (resultCount < 2)
                     marker.setRadius(SIZE_SMALL);
-                } else {
-                  marker.setRadius(SIZE_LARGE);
                 }
               };
           
