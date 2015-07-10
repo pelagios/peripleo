@@ -202,23 +202,29 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
          * 
          */
         selectObjects = function(objects) {
-          var tuple = (objects) ? markerIndex[createGeometryHash(objects[0].geometry)] : false,
-              marker, center, pin;
+          var geomHash, tuple, marker, center, pin;
           
           deselect();
-                    
-          if (tuple) {
-            marker = tuple._1;  
+    
+          if (objects) {      
+            geomHash = createGeometryHash(objects[0].geometry);
+            tuple = markerIndex[geomHash];
+                                        
+            if (tuple) {
+              marker = tuple._1; 
+              objects = tuple._2;
+            } else {
+              // Object isn't on the map yet - create                        
+              marker = createMarker(objects[0], geomHash, SIZE_LARGE);
+              objectIndex[objects[0].identifier] = { _1: objects[0], _2: marker };
+            }
+          
             center = marker.getBounds().getCenter();
             pin = L.marker(center).addTo(map);
             
-            currentSelection = { marker: marker, pin: pin, objects: tuple._2 };
+            currentSelection = { marker: marker, pin: pin, objects: objects };
 
             self.fireEvent('highlight', marker.getBounds());
-          } else {            
-            
-            // TODO create marker and select
-          
           }
         },
         
@@ -323,18 +329,45 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             eventBroker.fireEvent(Events.SELECT_MARKER, false);
           }
         },
+                
+        /** 
+         * Helper to create a marker.
+         * 
+         * Used either as part of the update method, or when creating a selection
+         * on a place that doesn't have a marker yet.
+         */
+        createMarker = function(obj, geomHash, radius) {
+          var type = obj.geometry.type,
+              marker;
+
+          if (type === 'Point') {
+            marker = L.circleMarker([obj.geo_bounds.max_lat, obj.geo_bounds.max_lon], Styles.POINT_RED);
+            marker.addTo(pointFeatures); 
+            marker.setRadius(radius);
+          } else {
+            marker = L.geoJson(obj.geometry, Styles.POLY_RED);
+            marker.addTo(shapeFeatures); 
+          }
+          
+          marker.on('click', function(e) { selectByGeomHash(geomHash); });
+          markerIndex[geomHash] = { _1: marker, _2: [obj] };
+          
+          return marker;
+        },
         
         /** Updates the object layer with a new search response or view update **/
         update = function(objects) {
           var maxCount = objects[0].result_count, // Results come sorted by count
               upperLimit = Math.round(0.8 * maxCount), // Upper 20% will be big
      
-              setSize = function(marker, resultCount) {
+              size = function(resultCount) {
                 if (upperLimit > 1) {
                   if (resultCount > upperLimit)
-                    marker.setRadius(SIZE_LARGE);
+                    return SIZE_LARGE;
                   else if (resultCount < 2)
-                    marker.setRadius(SIZE_SMALL);
+                    return SIZE_SMALL;
+                  else
+                    return SIZE_MEDIUM;
                 }
               };
           
@@ -354,7 +387,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                 jQuery.extend(existingObjectTuple._1, obj); // Object exists - just update the data
                 
                 if (existingObjectTuple._1.geometry.type === 'Point')
-                  setSize(existingObjectTuple._2, obj.result_count);
+                  existingObjectTuple._2.setRadius(size(obj.result_count));
 
                 existingObjectTuple._2.bringToFront();
               } else {                  
@@ -364,18 +397,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                   marker.setStyle(Styles.SMALL);
                   marker.bringToFront();
                 } else { // Create and add a new marker
-                  type = obj.geometry.type;
-                  if (type === 'Point') {
-                    marker = L.circleMarker([obj.geo_bounds.max_lat, obj.geo_bounds.max_lon], Styles.POINT_RED);
-                    marker.addTo(pointFeatures); 
-                    setSize(marker, obj.result_count);
-                  } else {
-                    marker = L.geoJson(obj.geometry, Styles.POLY_RED);
-                    marker.addTo(shapeFeatures); 
-                  }
-          
-                  marker.on('click', function(e) { selectByGeomHash(geomHash); });
-                  markerIndex[geomHash] = { _1: marker, _2: [obj] };
+                  marker = createMarker(obj, geomHash, size(obj.result_count));
                 }
 
                 objectIndex[id] = { _1: obj, _2: marker };
