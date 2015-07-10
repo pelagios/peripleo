@@ -11,7 +11,7 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
           '<div id="time-histogram">' +
           '  <canvas width="320" height="40"></canvas>' +
           '  <span class="axislabel from"></span>' +
-          '  <span class="axislabel zero">0 AD</span>' +
+          '  <span class="axislabel zero">1 AD</span>' +
           '  <span class="axislabel to"></span>' +
           
           '  <div class="selection"></div>' +
