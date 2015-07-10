@@ -1,13 +1,13 @@
-require(['peripleo-ui/api/api',
-         'peripleo-ui/controls/settings/settingsEditor',
+require(['peripleo-ui/controls/settings/settingsEditor',
          'peripleo-ui/controls/resultList',
          'peripleo-ui/controls/searchPanel',
          'peripleo-ui/controls/toolbar', 
          'peripleo-ui/events/events',
          'peripleo-ui/events/eventBroker',
          'peripleo-ui/events/lifecycleWatcher',
-         'peripleo-ui/map/map', 
-         'peripleo-ui/urlBar'], function(API, SettingsEditor, ResultList, SearchPanel, Toolbar, Events, EventBroker, LifeCycleWatcher, Map, URLBar) {
+         'peripleo-ui/map/map',
+         'peripleo-ui/api', 
+         'peripleo-ui/urlBar'], function(SettingsEditor, ResultList, SearchPanel, Toolbar, Events, EventBroker, LifeCycleWatcher, Map, API, URLBar) {
   
   jQuery(document).ready(function() {  
         /** DOM element shorthands **/

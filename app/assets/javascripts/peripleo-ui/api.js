@@ -1,5 +1,5 @@
 /** A wrapper around the API functions required by the map search UI **/
-define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], function(FilterParser, Events) {
+define(['peripleo-ui/events/events'], function(Events) {
   
       /** A throttle for allowing max. one query every QUERY_DELAY_MS milliseconds **/
   var QUERY_DELAY_MS = 100,
@@ -248,9 +248,15 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
          * @param the changes to the current global search parameters, and the callback function
          */        
         makeOneTimeSearchRequest = function(params) {
-          var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
-          jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params, searchParams)); // Merge current state with params          
-          
+          // var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
+          var mergedParams = jQuery.extend(searchParams, params);
+          /** TODO merge facet filter changes, if any **/
+
+          // jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params, searchParams)); // Merge current state with params          
+    
+          /** TODO merge facet filter changes, if any **/
+
+      
           // One-time searches ignore the state, and are always forced to 'sub-search'
           jQuery.getJSON(buildFirstPageQueryURL(mergedParams, SearchState.SUB_SEARCH), function(response) { 
             response.params = mergedParams;
@@ -266,11 +272,21 @@ define(['peripleo-ui/api/apiFilterParser', 'peripleo-ui/events/events'], functio
     });
     
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {     
-      var diffNormalized = FilterParser.parseFacetFilter(diff, searchParams);
+      
+      
+      /** TODO merge facet filter changes, if any **/
+      
+      // var diffNormalized = FilterParser.parseFacetFilter(diff, searchParams);
+
+      /** TODO merge facet filter changes, if any **/
+      
+      
        
-      jQuery.extend(searchParams, diffNormalized); // Update search params
-      lastDiff = diffNormalized; // Store as last diff
-    
+      // jQuery.extend(searchParams, diffNormalized); // Update search params
+      jQuery.extend(searchParams, diff);
+      // lastDiff = diffNormalized; // Store as last diff
+      lastDiff = diff;
+      
       // SPECIAL: if the user added a query and we're not exploring, ignore geo-bounds
       if (diff.query && !explorationMode)
         searchParams.bbox = false;

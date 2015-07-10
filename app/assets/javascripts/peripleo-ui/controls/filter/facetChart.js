@@ -1,5 +1,5 @@
 /** One 'facet dimension chart' block **/
-define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, Events) {
+define(['common/formatting', 'peripleo-ui/events/events', 'peripleo-ui/controls/filter/facetFilterParser'], function(Formatting, Events, FacetFilterParser) {
   
   var FacetChart = function(parent, title, dimension, eventBroker) {
     var header = jQuery(
@@ -16,8 +16,8 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
         btnRefine = header.find('.btn.refine'),
         btnClear = header.find('.btn.clear'),
         
-        /** Flag indicating whether this chart currently has a filter set **/
-        isFilterSet = false,
+        /** Current filter settings for this chart **/
+        currentFilters = false,
           
         list = jQuery(
           '<ul class="chart ' + dimension + '"></ul>'),
@@ -42,42 +42,61 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           });
         },
         
+        /** Helper that removes 'falsy' properties from an object **/
+        pruneEmpty = function(obj) {
+          var copy = jQuery.extend({}, obj);
+          
+          for (var k in copy) {
+            if (!copy[k])
+              delete copy[k];
+          }
+          
+          if (jQuery.isEmptyObject(copy))
+            return false;
+          else
+            return copy;
+        },
+                
         /** Monitor if the user set or removed a filter on this dimension **/
-        onSearchChanged = function(change) {
-          if (change.hasOwnProperty('facetFilter')) {
-            if (change.facetFilter && change.facetFilter.dimension === dimension) {
-              if (change.facetFilter.values) {
-                isFilterSet = true;
-                btnSetFilter.hide();
-                btnRefine.show();
-                btnClear.show();
-              } else {
-                isFilterSet = false;
-                btnSetFilter.show();
-                btnRefine.hide();
-                btnClear.hide();
-              }
+        onSettingsChanged = function(settings) {
+          if (settings.dimension === dimension) {
+            if (settings.filters) {
+              currentFilters = pruneEmpty(settings.filters);
+              btnSetFilter.hide();
+              btnRefine.show();
+              btnClear.show();
+            } else {
+              onClear();
             }
           }
+        },
+        
+        onClear = function() {
+          currentFilters = false;
+          btnRefine.hide();
+          btnClear.hide();
+          btnSetFilter.show();
+          eventBroker.fireEvent(Events.SEARCH_CHANGED, FacetFilterParser.parse(dimension));
         };
     
     btnRefine.hide();
     btnClear.hide();
     
     btnSetFilter.add(btnRefine).click(function() {
-      eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, { dimension: dimension, facets: facets });
+      eventBroker.fireEvent(Events.EDIT_FILTER_SETTINGS, { dimension: dimension, facets: facets, currentFilters: currentFilters });
       return false;
     });    
     
     btnClear.click(function() {
-      eventBroker.fireEvent(Events.SEARCH_CHANGED, { facetFilter: { dimension: dimension } });
+      onClear();
+      eventBroker.fireEvent(Events.CLEAR_FILTER_SETTINGS, { dimension: dimension });
       return false;
     });
     
     parent.append(header);
     parent.append(list);
-    
-    eventBroker.addHandler(Events.SEARCH_CHANGED, onSearchChanged);
+
+    eventBroker.addHandler(Events.FILTER_SETTINGS_CHANGED, onSettingsChanged);
     
     this.update = update;
   };

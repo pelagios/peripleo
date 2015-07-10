@@ -96,6 +96,11 @@ define(function() {
     SEARCH_CHANGED : 'searchChanged',
     
     /**
+     * The user changed any of the filter paramters. This is essentially a 'sub-event' to SEARCH_CHANGED.
+     */
+    FILTER_SETTINGS_CHANGED: 'filtersChanged',
+    
+    /**
      * The users switched to sub-search state (i.e. a search restricted by place URI(s), but not map viewport).
      *  
      * @param subsearch
@@ -142,6 +147,11 @@ define(function() {
      * The user clicked the 'Set Filter' button
      */
     EDIT_FILTER_SETTINGS : 'editFilterSettings',
+    
+    /**
+     * The user clicked the 'Clear Filter' button
+     */
+    CLEAR_FILTER_SETTINGS : 'clearFilterSettings',
     
     /** 
      * Event for showing all results in the list box.

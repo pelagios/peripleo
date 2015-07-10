@@ -1,4 +1,4 @@
-define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, Events) {
+define(['common/formatting', 'peripleo-ui/events/events', 'peripleo-ui/controls/filter/facetFilterParser'], function(Formatting, Events, FacetFilterParser) {
   
   var OPACITY_UNSELECTED = 0.4;
 
@@ -137,19 +137,21 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           // see selected categories AND others not in the list (inclusive)? Or
           // restrict to ONLY the selected ones (exclusive)?
           var inclusiveFiltering = isOtherSet(),
-              filterValues;
+              facets, searchParams;
           
           if (inclusiveFiltering)
-            filterValues = getUnselectedValues(); // Inclusive: supress unselected items 
+            facets = getUnselectedValues(); // Inclusive: supress unselected items 
           else
-            filterValues = getSelectedValues(); // Exclusive: show only selected items
+            facets = getSelectedValues(); // Exclusive: show only selected items
             
           // Sanitize 0-length filter value array to 'false'
-          if (filterValues.length === 0)
-            filterValues = false;
+          if (facets.length === 0)
+            facets = false;
           
-          eventBroker.fireEvent(Events.SEARCH_CHANGED, 
-            { facetFilter:  { dimension: dimension, values: filterValues, inclusive: inclusiveFiltering } });
+          searchParams = FacetFilterParser.parse(dimension, facets, inclusiveFiltering);
+                    
+          eventBroker.fireEvent(Events.FILTER_SETTINGS_CHANGED, { dimension: dimension, filters: searchParams }); 
+          eventBroker.fireEvent(Events.SEARCH_CHANGED, searchParams);
             
           element.hide();
         };
@@ -164,7 +166,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     list.on('click', '.other', toggleOther);
     
     eventBroker.addHandler(Events.EDIT_FILTER_SETTINGS, createList);
-    
+  
   };
   
   return FilterEditor;
