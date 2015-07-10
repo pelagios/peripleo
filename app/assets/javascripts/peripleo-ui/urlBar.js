@@ -50,20 +50,7 @@ define(['peripleo-ui/events/events'], function(Events) {
             return {};
           }
         },
-        
-        /** Updates a particular segment field with the value from the diff, if any **/
-        setParam = function(name, diff) {
-          if (diff.hasOwnProperty(name)) {
-            
-            // TODO this gets called three times on startup - investigate
-            
-            if (diff[name])
-              segments[name] = diff[name];
-            else
-              delete segments[name];
-          }          
-        },
-        
+                
         /** Updates the URL field - NOW! **/
         updateNow = function() {
           var segment = jQuery.map(segments, function(val, key) {
@@ -101,10 +88,13 @@ define(['peripleo-ui/events/events'], function(Events) {
     });
     
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {
-      setParam('query', diff);
-      setParam('from', diff);
-      setParam('to', diff);
-      updateURLField();
+      for (param in diff) {     
+        if (diff[param])
+          segments[param] = diff[param];
+        else
+          delete segments[param];
+      }
+      updateNow();
     });
     
     eventBroker.addHandler(Events.CHANGE_LAYER, function(layer) {

@@ -366,9 +366,9 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                     return SIZE_LARGE;
                   else if (resultCount < 2)
                     return SIZE_SMALL;
-                  else
-                    return SIZE_MEDIUM;
                 }
+                
+                return SIZE_MEDIUM;
               };
           
           jQuery.each(objects.reverse(), function(idx, obj) {
