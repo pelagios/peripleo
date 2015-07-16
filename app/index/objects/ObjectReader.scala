@@ -28,6 +28,7 @@ import org.apache.lucene.spatial.prefix.tree.NumberRangePrefixTree.UnitNRShape
 import org.apache.lucene.spatial.query.{ SpatialArgs, SpatialOperation }
 import play.api.db.slick._
 import scala.collection.JavaConverters._
+import play.api.Logger
 
 trait ObjectReader extends AnnotationReader {
   
@@ -98,7 +99,7 @@ trait ObjectReader extends AnnotationReader {
 
     
     val rectangle = params.bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
-    
+        
     // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
     val (baseQuery, valueSource) = prepareBaseQuery(
       params.objectTypes, params.excludeObjectTypes, params.datasets, params.excludeDatasets,
@@ -272,7 +273,11 @@ trait ObjectReader extends AnnotationReader {
         q.add(placeQuery, BooleanClause.Occur.MUST)
       }
     } else if (places.size > 1) {
-      // TODO
+      val alternatives = places.flatMap(p => expandPlaceFilter(p))
+      val placeQuery = new BooleanQuery()
+      alternatives.foreach(uri => 
+        placeQuery.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.SHOULD))
+      q.add(placeQuery, BooleanClause.Occur.MUST)  
     }
       
     // Spatial filter
