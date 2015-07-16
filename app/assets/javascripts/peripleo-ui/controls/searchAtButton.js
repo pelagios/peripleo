@@ -34,11 +34,14 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           var allCount = label.find('.all-count'),
               withQueryCount = label.find('.with-query-count'),
               hasQuery = (withQueryCount.length > 0),
-              suffix = (hasQuery) ? '' : ' results';
+              suffix = (hasQuery) ? '' : ' results',
+              firstSelectedPlace = (selectedPlaces && selectedPlaces.length > 0) ? selectedPlaces[0].identifier : false;
+              
+          // TODO handle multiselection!
               
           // We always need total related results
           eventBroker.fireEvent(Events.ONE_TIME_SEARCH, { 
-            places: jQuery.map(selectedPlaces, function(p) { return p.identifier }),               
+            places: [ firstSelectedPlace ],               
             query: false,
             callback: function(response) {
               count = response.total;
@@ -49,7 +52,7 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           // If there's a query, we also need total results with query
           if (hasQuery) {
             eventBroker.fireEvent(Events.ONE_TIME_SEARCH, { 
-              places: jQuery.map(selectedPlaces, function(p) { return p.identifier }),               
+              places: [ firstSelectedPlace ],               
               query: currentQueryPhrase,
               callback: function(response) {
                 count = response.total;
@@ -64,14 +67,10 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
           selectedPlaces = jQuery.grep(selection, function(obj) {
             return obj.object_type === 'Place';
           });
-          
+
           if (selectedPlaces.length > 0) {
             
-            
-            
             // TODO support multiple selected places, not just one
-            
-            
             
             // Explanation: if the selected place is part of the search results list, it is because
             // the user has searched for the place by name, e.g. "Roma". If we go into a subsearch now,

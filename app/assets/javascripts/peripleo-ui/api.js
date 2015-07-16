@@ -235,7 +235,7 @@ define(['peripleo-ui/events/events'], function(Events) {
           currentSearchState = SearchState.SEARCH;
           searchParams.places = false;
         },
-        Epigraphic
+        
         /**
          * Fires a one-time search request. The one-time search uses the current global
          * search parameter settings, plus a set of changes. The request is fired to the API
@@ -248,15 +248,8 @@ define(['peripleo-ui/events/events'], function(Events) {
          * @param the changes to the current global search parameters, and the callback function
          */        
         makeOneTimeSearchRequest = function(params) {
-          // var mergedParams = jQuery.extend({}, searchParams); // Clone current query state
           var mergedParams = jQuery.extend(searchParams, params);
-          /** TODO merge facet filter changes, if any **/
 
-          // jQuery.extend(mergedParams, FilterParser.parseFacetFilter(params, searchParams)); // Merge current state with params          
-    
-          /** TODO merge facet filter changes, if any **/
-
-      
           // One-time searches ignore the state, and are always forced to 'sub-search'
           jQuery.getJSON(buildFirstPageQueryURL(mergedParams, SearchState.SUB_SEARCH), function(response) { 
             response.params = mergedParams;
