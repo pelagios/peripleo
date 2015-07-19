@@ -200,14 +200,12 @@ define(['peripleo-ui/events/events'], function(Events) {
         /** Fires a search request against the API to accomodate a view update **/
         makeViewUpdateRequest = function() {     
           var params = jQuery.extend({}, searchParams);
-          
           busy = true;
           
           // View updates ignore the state, and are always forced to 'search'
           jQuery.getJSON(buildFirstPageQueryURL(undefined, SearchState.SEARCH), function(response) {
             response.params = params;
             response.exploration_mode = explorationMode;
-            
             eventBroker.fireEvent(Events.API_VIEW_UPDATE, response);
           }).always(handlePending);
         },
@@ -248,7 +246,7 @@ define(['peripleo-ui/events/events'], function(Events) {
          * @param the changes to the current global search parameters, and the callback function
          */        
         makeOneTimeSearchRequest = function(params) {
-          var mergedParams = jQuery.extend(searchParams, params);
+          var mergedParams = jQuery.extend({}, searchParams, params);
 
           // One-time searches ignore the state, and are always forced to 'sub-search'
           jQuery.getJSON(buildFirstPageQueryURL(mergedParams, SearchState.SUB_SEARCH), function(response) { 

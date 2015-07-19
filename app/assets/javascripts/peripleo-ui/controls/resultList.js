@@ -183,13 +183,9 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     eventBroker.addHandler(Events.VIEW_CHANGED, hide);
     
     eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) { 
-      if (response.params.places) {
-        currentSubsearchResults = response.items;
-        currentSubsearchResultsTotal = response.total;
-      } else {
-        currentSearchResults = response.items;
-        currentSearchResultsTotal = response.total;
-      }
+      // Note: view updates deliver ALL search results, even while in subsearch mode
+      currentSearchResults = response.items;
+      currentSearchResultsTotal = response.total;
       
       // TODO how to update control contents? 
       // - Don't update?
@@ -218,9 +214,11 @@ define(['common/formatting', 'peripleo-ui/events/events'], function(Formatting, 
     
     // Sub-search
     eventBroker.addHandler(Events.API_SUB_SEARCH_RESPONSE, function(response) {
+      currentSearchState = SearchState.SUB_SEARCH;
       currentSubsearchResults = response.items;
-      currentSearchResultsTotal = response.total;
-      show(currentSubsearchResults, OPEN_DELAY); // Show immediately      
+      currentSubsearchResultsTotal = response.total;
+      
+      show(currentSubsearchResults, OPEN_DELAY); // Show immediately     
     });
     
     // Next page of search results available
