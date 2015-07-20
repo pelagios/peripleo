@@ -168,6 +168,9 @@ define(['common/formatting',
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
       if (initialSettings.f && initialSettings.f.toLowerCase() === 'open')
         togglePanel();
+      
+      if (initialSettings.from && initialSettings.to)
+        timeHistogram.setSelection(initialSettings.from, initialSettings.to);
     });
 
     // Refresh on initial load

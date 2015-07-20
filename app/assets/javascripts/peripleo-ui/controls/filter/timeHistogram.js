@@ -188,6 +188,21 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
           toHandleLabel.hide();
         },
         
+        setSelection = function(from, to) {
+          selectionRange = { from: from, to: to };
+                
+          selectionNewFromX = Math.max(0, yearToX(from));
+          selectionNewToX = Math.min(yearToX(to), canvasWidth + 2);
+          if (selectionNewFromX > selectionNewToX)
+            selectionNewFromX = selectionNewToX;
+
+          selectionBounds.css('left', selectionNewFromX + canvasOffset);
+          fromHandle.css('left', selectionNewFromX + canvasOffset - handleWidth);
+              
+          selectionBounds.css('width', selectionNewToX - selectionNewFromX - 1);
+          toHandle.css('left', selectionNewToX + canvasOffset);
+        },
+        
         update = function(response) {
           if (!ignoreUpdates) {
             var values = response.time_histogram; 
@@ -217,7 +232,7 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
               // Redraw
               ctx.clearRect(0, 0, canvasWidth, ctx.canvas.height);
               
-              // Zero AD marker
+              // 1 AD marker
               jQuery.each(values, function(idx, value) {
                 var barHeight = Math.round(Math.sqrt(value.val / maxValue) * height);   
                 ctx.strokeStyle = BAR_STROKE;
@@ -232,7 +247,11 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
               // Reset labels & selection      
               histogramRange.from = minYear;
               histogramRange.to = maxYear;
+
+
+              setSelection(currentSelection.from, currentSelection.to);
             
+              /*
               selectionNewFromX = Math.max(0, yearToX(currentSelection.from));
               selectionNewToX = Math.min(yearToX(currentSelection.to), canvasWidth + 2);
               if (selectionNewFromX > selectionNewToX)
@@ -243,6 +262,11 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
               
               selectionBounds.css('width', selectionNewToX - selectionNewFromX - 1);
               toHandle.css('left', selectionNewToX + canvasOffset);
+              */
+
+
+
+
             
               // We don't want to handle to many updates - introduce a wait
               ignoreUpdates = true;
@@ -264,8 +288,8 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
     Draggable.makeXDraggable(toHandle, onDragHandle, onStopHandle);
     Draggable.makeXDraggable(selectionBounds, onDragBounds, onStopBounds, canvas);
 
-    this.update = update;
-    
+    this.setSelection = setSelection;
+    this.update = update
   };
   
   return TimeHistogram;
