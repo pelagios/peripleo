@@ -1,7 +1,7 @@
 /** One 'facet dimension chart' block **/
 define(['common/formatting',
         'peripleo-ui/controls/filter/facetChart',
-        'peripleo-ui/controls/filter/facetFilterParser'
+        'peripleo-ui/controls/filter/facetFilterParser',
         'peripleo-ui/controls/filter/filterEditor',
         'peripleo-ui/controls/filter/timeHistogram',
         'peripleo-ui/events/events'

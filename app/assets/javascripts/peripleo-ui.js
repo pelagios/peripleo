@@ -38,6 +38,11 @@ require(['peripleo-ui/controls/settings/settingsEditor',
           });
         },
         
+        /** Is there an initial query phrase? Fetch the results now **/
+        runInitialQuery = function(query) {
+          eventBroker.fireEvent(Events.SEARCH_CHANGED, { query: query });
+        },
+        
         /** Initializes map center and zoom **/
         initializeMap = function(at) {
           map.setView([ at.lat, at.lng ], at.zoom);
@@ -45,12 +50,15 @@ require(['peripleo-ui/controls/settings/settingsEditor',
             
     if (initialSettings.at)
       initializeMap(initialSettings.at);
-              
-    eventBroker.fireEvent(Events.LOAD, initialSettings);
+
+    if (initialSettings.query)
+      runInitialQuery(initialSettings.query);
     
     if (initialSettings.places)
       fetchInitiallySelectedPlace(initialSettings.places, !initialSettings.hasOwnProperty('at'));
-
+              
+    eventBroker.fireEvent(Events.LOAD, initialSettings);
+    
     delete initialSettings.at;
   });
   
