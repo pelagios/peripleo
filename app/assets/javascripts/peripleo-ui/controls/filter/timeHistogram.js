@@ -248,25 +248,7 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
               histogramRange.from = minYear;
               histogramRange.to = maxYear;
 
-
               setSelection(currentSelection.from, currentSelection.to);
-            
-              /*
-              selectionNewFromX = Math.max(0, yearToX(currentSelection.from));
-              selectionNewToX = Math.min(yearToX(currentSelection.to), canvasWidth + 2);
-              if (selectionNewFromX > selectionNewToX)
-                selectionNewFromX = selectionNewToX;
-
-              selectionBounds.css('left', selectionNewFromX + canvasOffset);
-              fromHandle.css('left', selectionNewFromX + canvasOffset - handleWidth);
-              
-              selectionBounds.css('width', selectionNewToX - selectionNewFromX - 1);
-              toHandle.css('left', selectionNewToX + canvasOffset);
-              */
-
-
-
-
             
               // We don't want to handle to many updates - introduce a wait
               ignoreUpdates = true;
