@@ -1,10 +1,11 @@
 /** One 'facet dimension chart' block **/
 define(['common/formatting',
         'peripleo-ui/controls/filter/facetChart',
+        'peripleo-ui/controls/filter/facetFilterParser'
         'peripleo-ui/controls/filter/filterEditor',
         'peripleo-ui/controls/filter/timeHistogram',
         'peripleo-ui/events/events'
-        ], function(Formatting, FacetChart, FilterEditor, TimeHistogram, Events) {
+        ], function(Formatting, FacetChart, FacetFilterParser, FilterEditor, TimeHistogram, Events) {
           
   var SLIDE_DURATION = 180,
   
@@ -166,6 +167,8 @@ define(['common/formatting',
     });
 
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
+     FacetFilterParser.parseSearchParams(initialSettings);
+  
       if (initialSettings.f && initialSettings.f.toLowerCase() === 'open')
         togglePanel();
       

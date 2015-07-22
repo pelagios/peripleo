@@ -12,7 +12,7 @@ define([], function() {
             return false;
         },
   
-      parseFn = {
+      toSearchParamsFn = {
     
         /** Source dataset **/
         source_dataset: function(values, inclusive, currentFilters) {
@@ -52,13 +52,16 @@ define([], function() {
         }
         
       };
-      
   
   return {
 
-    parse : function(dimension, values, inclusive, currentFilters) {
+    toSearchParams : function(dimension, values, inclusive, currentFilters) {
       var current = (currentFilters) ? currentFilters : {};
-      return parseFn[dimension](values, inclusive, current);
+      return toSearchParamsFn[dimension](values, inclusive, current);
+    },
+    
+    parseSearchParams : function(params) {
+      
     }
 
   };

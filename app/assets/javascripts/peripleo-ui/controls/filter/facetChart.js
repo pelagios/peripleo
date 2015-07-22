@@ -76,7 +76,7 @@ define(['common/formatting', 'peripleo-ui/events/events', 'peripleo-ui/controls/
           btnRefine.hide();
           btnClear.hide();
           btnSetFilter.show();
-          eventBroker.fireEvent(Events.SEARCH_CHANGED, FacetFilterParser.parse(dimension));
+          eventBroker.fireEvent(Events.SEARCH_CHANGED, FacetFilterParser.toSearchParams(dimension));
         };
     
     btnRefine.hide();
