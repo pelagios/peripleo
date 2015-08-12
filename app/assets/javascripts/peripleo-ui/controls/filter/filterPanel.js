@@ -167,13 +167,19 @@ define(['common/formatting',
     });
 
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
-     FacetFilterParser.parseSearchParams(initialSettings);
-  
+      var filters = FacetFilterParser.parseSearchParams(initialSettings);
+      
       if (initialSettings.f && initialSettings.f.toLowerCase() === 'open')
         togglePanel();
       
       if (initialSettings.from && initialSettings.to)
         timeHistogram.setSelection(initialSettings.from, initialSettings.to);
+        
+      if (filters && filters.length > 0) {
+        jQuery.each(filters, function(idx, filter) {
+          eventBroker.fireEvent(Events.FILTER_SETTINGS_CHANGED, filter); 
+        });
+      }
     });
 
     // Refresh on initial load

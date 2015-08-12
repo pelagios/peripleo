@@ -149,7 +149,7 @@ define(['common/formatting', 'peripleo-ui/events/events', 'peripleo-ui/controls/
             facets = false;
           
           searchParams = FacetFilterParser.toSearchParams(dimension, facets, inclusiveFiltering);
-                    
+
           eventBroker.fireEvent(Events.FILTER_SETTINGS_CHANGED, { dimension: dimension, filters: searchParams }); 
           eventBroker.fireEvent(Events.SEARCH_CHANGED, searchParams);
             

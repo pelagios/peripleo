@@ -2,15 +2,15 @@ define([], function() {
 
       /** Helper to properly concatenate two strings, which may both be 'false' **/
   var merge = function(currentFilterString, newFilterString) {
-          if (currentFilterString && newFilterString)
-            return currentFilterString + ',' + newFilterString;
-          else if (currentFilterString)
-            return currentFilterString;
-          else if (newFilterString)
-            return newFilterString
-          else
-            return false;
-        },
+        if (currentFilterString && newFilterString)
+          return currentFilterString + ',' + newFilterString;
+        else if (currentFilterString)
+          return currentFilterString;
+        else if (newFilterString)
+          return newFilterString
+        else
+          return false;
+      },
   
       toSearchParamsFn = {
     
@@ -61,7 +61,35 @@ define([], function() {
     },
     
     parseSearchParams : function(params) {
+      var filters = [],
+          hasTypeFilter = params.object_types || params.exclude_object_types,
+          hasSourceFilter = params.datasets || params.exclude_datasets || params.gazetteers || params.exclude_gazetteers;
       
+      // Type facet
+      if (hasTypeFilter) {
+        filters.push({ 
+          dimension: 'type', 
+          filters: {
+            object_types: params.object_types,
+            exclude_object_types:  params.exclude_object_types
+          } 
+        });        
+      }
+      
+      // Source facet
+      if (hasSourceFilter) {
+        filters.push({ 
+          dimension: 'source_dataset', 
+          filters: { 
+            datasets: params.datasets,
+            exclude_datasets: params.exclude_datasets,
+            gazetteers: params.gazetteers,
+            exclude_gazetteers: params.exclude_gazetteers
+          }
+        }); 
+      }
+      
+      return filters;
     }
 
   };
