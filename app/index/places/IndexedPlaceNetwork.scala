@@ -94,8 +94,7 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
 object IndexedPlaceNetwork {
   
   private def getPreferredGeometry(places: Seq[IndexedPlace]): Option[Geometry] = {
-    val priorityList = Seq("DARE", "Pleiades") // TODO needs to be made configurable through application.conf
-    
+    val priorityList = Seq("DARE", "iDAI", "Pleiades") // TODO needs to be made configurable through application.conf
     val placesWithGeometry = places.filter(_.geometry.isDefined)
     
     val topPriority = priorityList.foldLeft(Seq.empty[IndexedPlace])((result, gazetteer) => {
