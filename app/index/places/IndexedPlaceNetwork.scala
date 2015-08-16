@@ -93,26 +93,44 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
 
 object IndexedPlaceNetwork {
   
+  private val POINT = "Point"
+  
+  // TODO change policy:
+  // 1. get all places with polygon geometry
+  // One or more? Check priorities and pick, or just pick first one
+  // None? Check priorities as before
+  
   private def getPreferredGeometry(places: Seq[IndexedPlace]): Option[Geometry] = {
-    val priorityList = Seq("DARE", "iDAI", "Pleiades") // TODO needs to be made configurable through application.conf
+
+    // Returns the 1st place that comes from the highest-priority gazetteer, or the first list entry
+    // if there's no place from a priority gazetteer
+    def getPriorityPlace(priorityGazetteers: Seq[String], places: Seq[IndexedPlace]): Option[IndexedPlace] = {
+      val topPriority = priorityGazetteers.foldLeft(Seq.empty[IndexedPlace])((result, gazetteer) => {
+        if (result.isEmpty) {
+          val firstPlaceForGazetteer = places.filter(_.sourceGazetteer.equalsIgnoreCase(gazetteer)).headOption
+          Seq(firstPlaceForGazetteer).flatten
+        } else {
+          // We got a top priority geometry - no more checks needed
+          result 
+        }
+      }).headOption  
+      
+      if (topPriority.isDefined)
+        topPriority
+      else
+        places.headOption
+    }
+
+    val priorityGazetteers =  Seq("DARE", "iDAI", "Pleiades") // TODO needs to be made configurable through application.conf
+      
     val placesWithGeometry = places.filter(_.geometry.isDefined)
-    
-    val topPriority = priorityList.foldLeft(Seq.empty[IndexedPlace])((result, gazetteer) => {
-      if (result.isEmpty) {
-        val firstPlaceForGazetteer = placesWithGeometry.filter(_.sourceGazetteer.equalsIgnoreCase(gazetteer)).headOption
-        Seq(firstPlaceForGazetteer).flatten
-      } else {
-        // We got a top priority geometry - no more checks needed
-        result 
-      }
-    }).headOption
-    
-    if (topPriority.isDefined)
-      // We got a priority geometry!
-      topPriority.flatMap(_.geometry)
+    val placesWithPolygonGeometry = placesWithGeometry.filter(_.geometry.get.getGeometryType != POINT)
+
+    val topPlaceWithPolygonGeom = getPriorityPlace(priorityGazetteers, placesWithPolygonGeometry)   
+    if (topPlaceWithPolygonGeom.isDefined)
+      topPlaceWithPolygonGeom.flatMap(_.geometry)
     else
-      // No priority geom - just use first available
-      placesWithGeometry.headOption.flatMap(_.geometry)
+      getPriorityPlace(priorityGazetteers, placesWithGeometry).flatMap(_.geometry)
   }
 
   def join(places: Seq[IndexedPlace], seedUri: Option[String] = None) = {
