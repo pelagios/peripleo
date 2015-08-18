@@ -51,6 +51,9 @@ define(function() {
       } else if (uri.indexOf('http://chgis.hmdc.harvard.edu/placename/') === 0) {
         prefix = 'chgis';
         gazId = uri.substr(44);
+      } else if (uri.indexOf('http://www.trismegistos.org/place/') === 0) {
+        prefix = 'trismegistos';
+        gazId = uri.substr(34);
       } else {
         // Bit of a hack...
         prefix = 'http';
