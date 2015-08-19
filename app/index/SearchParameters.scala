@@ -33,6 +33,12 @@ case class SearchParameters(
   /** Inverse gazetteer filter that excludes specific gazetteers **/
   excludeGazetteers: Seq[String],
   
+  /** Language filter **/
+  languages: Seq[String], 
+  
+  /** Inverse language filter **/
+  excludeLanguages: Seq[String],
+  
   /** Date filter (start year) **/
   from:              Option[Int],
   
@@ -96,6 +102,8 @@ object SearchParameters {
       None,
       Seq.empty[IndexedObjectTypes.Value],
       Seq.empty[IndexedObjectTypes.Value],
+      Seq.empty[String],
+      Seq.empty[String],
       Seq.empty[String],
       Seq.empty[String],
       Seq.empty[String],

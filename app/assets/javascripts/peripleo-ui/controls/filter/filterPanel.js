@@ -23,6 +23,7 @@ define(['common/formatting',
           '  <div class="section histogram"></div>' +
           '  <div class="section facet type"></div>' +
           '  <div class="section facet source"></div>' +
+          '  <div class="section facet lang"></div>' +
           '</div>'),
         
         /** Footer (remains visible when panel slides in) **/
@@ -37,6 +38,7 @@ define(['common/formatting',
         histogramSection = body.find('.section.histogram'),
         typeFacetSection = body.find('.section.facet.type'),
         sourceFacetSection = body.find('.section.facet.source'),
+        languageFacetSection = body.find('.section.facet.lang'),
         footerLabel = footer.find('.label'),
         footerTotals = footer.find('.total'),
         buttonListAll = footer.find('.list-all'),
@@ -46,6 +48,7 @@ define(['common/formatting',
         timeHistogram,
         typeFacetChart,
         sourceFacetChart,
+        langFacetChart,
         
         /** The current search state defines if the footer shows total or related results **/
         currentSearchState = SearchState.SEARCH,
@@ -86,11 +89,15 @@ define(['common/formatting',
         /** Refreshes the charts **/
         refresh = function(response) { 
           var facets = response.facets, 
+          
               typeDimension = jQuery.grep(facets, function(facet) { return facet.dimension === 'type'; }),
               typeFacets = (typeDimension.length > 0) ? typeDimension[0].top_children : [],
           
               sourceDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'source_dataset'; });
               sourceFacets = (sourceDim.length > 0) ? sourceDim[0].top_children : [];
+              
+              langDim = jQuery.grep(facets, function(facet) { return facet.dimension === 'lang'; });
+              langFacets = (langDim.length > 0) ? langDim[0].top_children : [];
            
           currentTotals = response.total;
           footerTotals.html('(' + Formatting.formatNumber(currentTotals) + ')');
@@ -98,6 +105,7 @@ define(['common/formatting',
           timeHistogram.update(response);
           typeFacetChart.update(typeFacets);
           sourceFacetChart.update(sourceFacets);
+          langFacetChart.update(langFacets);
         },
         
         /** Switch panel to 'search' state **/
@@ -148,6 +156,7 @@ define(['common/formatting',
     timeHistogram = new TimeHistogram(histogramSection, eventBroker);
     typeFacetChart = new FacetChart(typeFacetSection, 'Type', 'type', eventBroker);
     sourceFacetChart = new FacetChart(sourceFacetSection, 'Source', 'source_dataset', eventBroker);
+    langFacetChart = new FacetChart(languageFacetSection, 'Language', 'lang', eventBroker);
     
     buttonToggleFilters.click(togglePanel);
     buttonListAll.click(function() { 

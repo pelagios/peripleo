@@ -11,6 +11,23 @@ define([], function() {
         else
           return false;
       },
+      
+      translateFacet = function(values, inclusive, currentFilters, includeKey, excludeKey) {
+        var filter = {},
+            filterVal = (values) ? values.join(',') : false;
+          
+        if (inclusive) {
+          // In this case, we need to merge with the current filters!
+          filter[includeKey] = false;
+          filter[excludeKey] = merge(currentFilters[excludeKey], filterVal);
+        } else {
+          // In this case, we just replace the current filter
+          filter[includeKey] = filterVal;
+          filter[excludeKey] = false;
+        }
+        
+        return filter;
+      },
   
       toSearchParamsFn = {
     
@@ -49,6 +66,11 @@ define([], function() {
             return { object_types: false, exclude_object_types: merge(currentFilters.exclude_object_types, typeFilter) };
           else // In this case, we just replace the current filter
             return { object_types: typeFilter, exclude_object_types: false };
+        },
+        
+        /** Language **/
+        lang: function(values, inclusive, currentFilters) {
+          return translateFacet(values, inclusive, currentFilters, 'lang', 'exclude_lang');
         }
         
       };

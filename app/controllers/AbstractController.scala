@@ -30,6 +30,8 @@ abstract class AbstractController extends Controller {
   protected val KEY_EXCLUDE_DATASETS = "exclude_datasets"
   protected val KEY_GAZETTEERS = "gazetteers"
   protected val KEY_EXCLUDE_GAZETTEERS = "exclude_gazetteers"
+  protected val KEY_LANGUAGES = "lang"
+  protected val KEY_EXCLUDE_LANGUAGES = "exclude_lang"
   protected val KEY_FROM = "from"
   protected val KEY_TO = "to"
   protected val KEY_DATE_FILTER_MODE = "date_filter"
@@ -98,6 +100,10 @@ abstract class AbstractController extends Controller {
       val gazetteers = getQueryParamList(KEY_GAZETTEERS, request)
         
       val excludeGazetteers = getQueryParamList(KEY_EXCLUDE_GAZETTEERS, request)
+      
+      val languages = getQueryParamList(KEY_LANGUAGES, request)
+      
+      val excludeLanguages = getQueryParamList(KEY_EXCLUDE_LANGUAGES, request)
         
       val fromYear =
         getQueryParam(KEY_FROM, request).map(_.toInt)
@@ -140,7 +146,8 @@ abstract class AbstractController extends Controller {
     
       val params = 
         SearchParameters(query, objectTypes, excludeObjectTypes, datasets, excludeDatasets, gazetteers, 
-          excludeGazetteers, fromYear, toYear, dateFilterMode, places, bbox, coord, radius, limit, offset)
+          excludeGazetteers, languages, excludeLanguages, fromYear, toYear, dateFilterMode, places, bbox, 
+          coord, radius, limit, offset)
           
       if (params.isValid)
         Success(params)

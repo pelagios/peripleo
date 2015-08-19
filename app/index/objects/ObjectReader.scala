@@ -103,7 +103,8 @@ trait ObjectReader extends AnnotationReader {
     // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
     val (baseQuery, valueSource) = prepareBaseQuery(
       params.objectTypes, params.excludeObjectTypes, params.datasets, params.excludeDatasets,
-      params.gazetteers, params.excludeGazetteers, params.places, rectangle, params.coord, params.radius)
+      params.gazetteers, params.excludeGazetteers, params.languages, params.excludeLanguages, 
+      params.places, rectangle, params.coord, params.radius)
       
     // Finalize search query and time histogram filter
     val (searchQuery, timeHistogramFilter) = {
@@ -218,6 +219,8 @@ trait ObjectReader extends AnnotationReader {
       excludeDatasets:    Seq[String],
       gazetteers:         Seq[String],
       excludeGazetteers:  Seq[String],
+      languages:          Seq[String],
+      excludeLanguages:   Seq[String],
       places:             Seq[String], 
       bbox:               Option[Rectangle],
       coord:              Option[Coordinate], 
@@ -259,6 +262,13 @@ trait ObjectReader extends AnnotationReader {
       
       allExcludeIDs.foreach(id =>
         q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.MUST_NOT))
+    }
+    
+    // Language filter -- TODO DRY with types and languages
+    if (languages.size > 0) {
+      
+    } else if (excludeLanguages.size > 0) {
+      
     }
     
     // Places filter

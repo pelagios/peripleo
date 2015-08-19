@@ -148,11 +148,13 @@ object Index {
   
   /** Object index facets **/
   private[index] val facetsConfig = new FacetsConfig()
+  
   facetsConfig.setHierarchical(IndexFields.OBJECT_TYPE, false)
   facetsConfig.setHierarchical(IndexFields.SOURCE_DATASET, true)
-  facetsConfig.setMultiValued(IndexFields.SOURCE_DATASET, true) 
-  facetsConfig.setMultiValued(IndexFields.PLACE_URI, true)
   
+  facetsConfig.setMultiValued(IndexFields.SOURCE_DATASET, true) 
+  facetsConfig.setMultiValued(IndexFields.LANGUAGE, true)
+  facetsConfig.setMultiValued(IndexFields.PLACE_URI, true)
   
   def open(indexDir: String): Index = {
     val fs = FileSystems.getDefault()

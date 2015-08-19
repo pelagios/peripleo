@@ -211,9 +211,12 @@ object IndexedPlaceNetwork {
       doc.add(descriptionField)
     }
     
-    // Index all names and languages
+    // Index all names and languages (languages are additionally indexed as facet)
     place.names.map(_.chars).foreach(name => doc.add(new TextField(IndexFields.PLACE_NAME, name, Field.Store.YES)))
-    place.names.flatMap(_.lang).distinct.foreach(lang => doc.add(new TextField(IndexFields.LANGUAGE, lang, Field.Store.YES)))
+    
+    val languages = place.names.flatMap(_.lang).distinct
+    languages.foreach(lang => doc.add(new TextField(IndexFields.LANGUAGE, lang, Field.Store.YES)))
+    languages.foreach(lang => doc.add(new FacetField(IndexFields.LANGUAGE, lang)))
     
     // Depictions
     place.depictions.foreach(depiction => doc.add(new StringField(IndexFields.DEPICTION, depiction, Field.Store.YES)))
