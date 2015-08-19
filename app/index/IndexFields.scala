@@ -26,6 +26,8 @@ object IndexFields {
   val HOMEPAGE = "homepage"
   
   val DEPICTION = "depiction" 
+  
+  val LANGUAGE = "lang"
     
   val IS_PART_OF = "is_part_of"
 

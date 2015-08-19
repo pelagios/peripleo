@@ -31,8 +31,10 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   
   /** The first place URI added to the network **/
   lazy val seedURI: String = doc.get(IndexFields.SEED_URI)
-  
+    
   lazy val names: Seq[String] = doc.getValues(IndexFields.PLACE_NAME).toSeq.distinct 
+  
+  lazy val languages: Seq[String] = doc.getValues(IndexFields.LANGUAGE).toSeq
   
   /** The other place URIs in the network **/ 
   lazy val alternativeURIs: Seq[String] = doc.getValues(IndexFields.ID).toSeq.diff(Seq(seedURI))
@@ -209,8 +211,9 @@ object IndexedPlaceNetwork {
       doc.add(descriptionField)
     }
     
-    // Index all names
-    place.names.foreach(literal => doc.add(new TextField(IndexFields.PLACE_NAME, literal.chars, Field.Store.YES)))
+    // Index all names and languages
+    place.names.map(_.chars).foreach(name => doc.add(new TextField(IndexFields.PLACE_NAME, name, Field.Store.YES)))
+    place.names.flatMap(_.lang).distinct.foreach(lang => doc.add(new TextField(IndexFields.LANGUAGE, lang, Field.Store.YES)))
     
     // Depictions
     place.depictions.foreach(depiction => doc.add(new StringField(IndexFields.DEPICTION, depiction, Field.Store.YES)))
