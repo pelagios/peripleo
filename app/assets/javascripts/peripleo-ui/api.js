@@ -57,6 +57,9 @@ define(['peripleo-ui/events/events'], function(Events) {
         /** Flag indicating whether time histogram should be included **/
         includeTimeHistogram = false,
         
+        /** Flag indicating whether 2D facet heatmap should be included **/
+        includeHeatmap = false,
+        
         /** Indicates whether we're currenly waiting for an API response **/
         busy = false,
 
@@ -98,6 +101,9 @@ define(['peripleo-ui/events/events'], function(Events) {
     
           if (withTimeHistogram) 
             url += '&time_histogram=true';
+            
+          if (includeHeatmap)
+            url += '&heatmap=true';
           
           if (params.query)
             url += '&query=' + params.query;
@@ -325,6 +331,10 @@ define(['peripleo-ui/events/events'], function(Events) {
     
     eventBroker.addHandler(Events.HIDE_FILTERS, function() {
       includeTimeHistogram = false;
+    });
+    
+    eventBroker.addHandler(Events.TOGGLE_HEATMAP, function(params) {
+      includeHeatmap = params.enabled;
     });
 
   };

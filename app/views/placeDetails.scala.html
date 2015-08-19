@@ -47,6 +47,10 @@
         <div id="map"></div>
         <div id="network"></div>
       </div> <!-- .row -->
+      
+      <div class="row" style="font-size:14px">
+        <a target="_blank" href="@controllers.pages.routes.LandingPageController.map#places=@java.net.URLEncoder.encode(place.uri)">Open in Peripleo</a>
+      </div>
 
       <div class="row">      
         <h2>@place.label in Other Gazetteers</h2>  
@@ -59,7 +63,7 @@
         </div>
       </div> <!-- .row -->
       
-      <div class="row references">
+      <!-- div class="row references">
         <h2>References</h2>
         <table>
           <thead>
@@ -71,7 +75,9 @@
           </thead>
           <tbody></tbody>
         </table>
-      </div>
+      </div -->
+      
+
     </div> <!-- #content -->
     
     <script type="text/javascript">
