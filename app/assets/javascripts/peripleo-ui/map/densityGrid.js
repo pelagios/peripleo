@@ -1,20 +1,12 @@
 /** Pelagios' 'Density Grid' layer for Leaflet **/
-define(function() {
+define(['peripleo-ui/events/events'], function(Events) {
   
-  var DensityGridLayer = function() {
+  var DensityGrid = function(map, eventBroker) {
     
-    var isHidden = false,
-    
-        _map,
-    
-        // TODO optimize!
-        render = function(canvasOverlay, params) {    
+    var render = function(canvasOverlay, params) {    
           if (!params.options.heatmap)
-            return;
+            return; 
             
-          if (isHidden)
-            return;
-
           var ctx = params.canvas.getContext('2d');
           ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
           ctx.fillStyle = '#5254a3';
@@ -54,15 +46,19 @@ define(function() {
           });
         },
         
-        canvasOverlay = L.canvasOverlay().drawing(render);
+        canvasOverlay = L.canvasOverlay().drawing(render).addTo(map);
 
-    /** Privileged methods **/        
-    this.addTo = function(map) {
-      _map = map;
-      canvasOverlay.addTo(map);
-      return this; // Just to mimick with Leaflet's API
-    };
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {       
+      if (response.heatmap) {
+        canvasOverlay.params({ heatmap: response.heatmap });
+        window.setTimeout(function() {
+          console.log('drawing heatmap');
+          canvasOverlay.redraw();
+        }, 250);
+      }
+    });
     
+    /*
     this.update = function(heatmap) {
       canvasOverlay.params({ heatmap: heatmap });
       window.setTimeout(function() {
@@ -82,9 +78,9 @@ define(function() {
         _map.addLayer(canvasOverlay);
         isHidden = false;
       }
-    }
+    }*/
   };
   
-  return DensityGridLayer;
+  return DensityGrid;
   
 });

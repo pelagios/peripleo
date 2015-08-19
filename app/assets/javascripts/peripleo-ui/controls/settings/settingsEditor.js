@@ -71,13 +71,14 @@ define(['peripleo-ui/events/events'], function(Events) {
     });
     
     btnActivateHeatmap.click(function() {
-      var isEnabled = btnActivateHeatmap.hasClass('enabled');
-      if (isEnabled) {
+      var wasEnabled = btnActivateHeatmap.hasClass('enabled');
+      if (wasEnabled) {
         btnActivateHeatmap.html('&#xf096;');
       } else {
         btnActivateHeatmap.html('&#xf046;');
       }
       btnActivateHeatmap.toggleClass('enabled');
+      eventBroker.fireEvent(Events.TOGGLE_HEATMAP, { enabled: !wasEnabled });
     });
     
     eventBroker.addHandler(Events.EDIT_MAP_SETTINGS, show);

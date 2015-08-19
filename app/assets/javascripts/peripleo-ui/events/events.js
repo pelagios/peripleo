@@ -215,8 +215,16 @@ define(function() {
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
     /* Settings-related UI events     */
     /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */   
-        
-    CHANGE_LAYER : 'changeLayer'
+    
+    /**
+     * The user changed the map base layer
+     */    
+    CHANGE_LAYER : 'changeLayer',
+    
+    /**
+     * The user en- or disabled heatmap mode
+     */
+    TOGGLE_HEATMAP : 'toggleHeatmap'
         
   };
     

@@ -1,5 +1,5 @@
 /** The base map **/
-define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Events, ObjectLayer) {
+define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer', 'peripleo-ui/map/densityGrid'], function(Events, ObjectLayer, DensityGrid) {
   
   var Map = function(div, eventBroker) {  
         
@@ -44,6 +44,8 @@ define(['peripleo-ui/events/events', 'peripleo-ui/map/objectLayer'], function(Ev
         }),
                 
         objectLayer = new ObjectLayer(map, eventBroker),
+        
+        densityGrid = new DensityGrid(map, eventBroker),
         
         getBounds = function() {
           var b = map.getBounds(),
