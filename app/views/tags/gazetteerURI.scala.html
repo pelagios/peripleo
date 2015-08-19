@@ -22,6 +22,9 @@
     case s if s.startsWith("http://www.maphistory.info") =>
       <span class={ cssClass + " maphistory"}>maphistory:{ s.substring(44) }</span>
       
+    case s if s.startsWith("http://www.trismegistos.org/place/") =>
+      <span class={ cssClass + " trismegistos"}>trismegistos:{ s.substring(34) }</span>
+      
     case s => 
       <span class={ cssClass }>{ s }</span>
   }

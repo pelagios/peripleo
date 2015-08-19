@@ -28,13 +28,17 @@ util.formatGazetteerURI = function(uri) {
   } else if (uri.indexOf('http://dare.ht.lu.se/places/') > -1) {
     return 'dare:' + uri.substr(28);
   } else if (uri.indexOf('http://gazetteer.dainst.org/place/') > -1) {
-	return 'dai:' + uri.substr(34);
+	  return 'dai:' + uri.substr(34);
   } else if (uri.indexOf('http://sws.geonames.org/') > -1) {
-	return 'geonames:' + uri.substr(24);
+	  return 'geonames:' + uri.substr(24);
   } else if (uri.indexOf('http://vici.org/vici') > -1) {
-	return 'vici:' + uri.substr(21); 
+	  return 'vici:' + uri.substr(21); 
+  } else if (uri.indexOf('http://www.trismegistos.org/place/') > -1) {
+    return 'trismegistos:' + uri.substr(34);
   } else if (uri.indexOf('http://data.pastplace.org') > -1) {
     return 'pastplace:' + uri.substr(35);
+  } else if (uri.indexOf('http://www.wikidata.org/entity') > -1) {
+    return 'wikidata:' + uri.substr(32);
   } else { 
     return uri;
   }

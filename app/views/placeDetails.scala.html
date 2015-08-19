@@ -76,8 +76,8 @@
     
     <script type="text/javascript">
       (function() {
-        $.getJSON('@* routes.PlaceController.getNetwork(place.uri) *@', function(data) {
-          new window.PlaceNetwork('network', data.graph.nodes, data.graph.edges);
+        $.getJSON('@routes.PlaceController.getPlace(place.uri)', function(data) {
+          new window.PlaceNetwork('network', data.network.nodes, data.network.edges);
         });
         
         @if(place.centroid.isDefined) {
