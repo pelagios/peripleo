@@ -5,6 +5,7 @@ import com.vividsolutions.jts.geom.Geometry
 import index.{ Index, IndexFields }
 import index.objects.IndexedObjectTypes
 import java.io.StringWriter
+import java.util.{ Locale, UUID }
 import models.geo.BoundingBox
 import org.apache.lucene.document.{ Document, Field, NumericDocValuesField, StringField, StoredField, TextField }
 import org.apache.lucene.facet.FacetField
@@ -13,7 +14,6 @@ import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import org.geotools.geojson.geom.GeometryJSON
 import play.api.libs.json.{ Json, JsObject }
 import play.api.Logger
-import java.util.UUID
 
 case class NetworkNode(uri: String, place: Option[IndexedPlace], isInnerNode: Boolean)
 
@@ -168,6 +168,13 @@ object IndexedPlaceNetwork {
         case _: Throwable => Logger.info("Cannot index geometry: " + geometry)
       }
     })
+    
+    // Add languages as facet - normalize to ISO3
+    val languages = places.flatMap(_.names.map(_.lang)).flatten.distinct
+      .map(iso => new Locale(iso).getISO3Language)
+      
+    languages.foreach(lang => joinedDoc.add(new TextField(IndexFields.LANGUAGE, lang, Field.Store.YES)))
+    languages.foreach(lang => joinedDoc.add(new FacetField(IndexFields.LANGUAGE, lang)))
 
     new IndexedPlaceNetwork(joinedDoc)
   }
@@ -211,12 +218,8 @@ object IndexedPlaceNetwork {
       doc.add(descriptionField)
     }
     
-    // Index all names and languages (languages are additionally indexed as facet)
+    // Index all names
     place.names.map(_.chars).foreach(name => doc.add(new TextField(IndexFields.PLACE_NAME, name, Field.Store.YES)))
-    
-    val languages = place.names.flatMap(_.lang).distinct
-    languages.foreach(lang => doc.add(new TextField(IndexFields.LANGUAGE, lang, Field.Store.YES)))
-    languages.foreach(lang => doc.add(new FacetField(IndexFields.LANGUAGE, lang)))
     
     // Depictions
     place.depictions.foreach(depiction => doc.add(new StringField(IndexFields.DEPICTION, depiction, Field.Store.YES)))
