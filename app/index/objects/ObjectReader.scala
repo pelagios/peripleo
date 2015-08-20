@@ -226,22 +226,28 @@ trait ObjectReader extends AnnotationReader {
       coord:              Option[Coordinate], 
       radius:             Option[Double])(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
     
+    // Helper that hold common functionality for "include/exclude facet"-type filters
+    def applyFacetFilter(includeValues: Seq[String], excludeValues: Seq[String], fieldName: String, q: BooleanQuery) = {
+      if (includeValues.size > 0) {
+        if (includeValues.size == 1) {
+          q.add(new TermQuery(new Term(fieldName, includeValues.head)), BooleanClause.Occur.MUST)
+        } else {
+          val subQuery = new BooleanQuery()
+          includeValues.foreach(filterValue =>
+            subQuery.add(new TermQuery(new Term(fieldName, filterValue)), BooleanClause.Occur.SHOULD))
+          q.add(subQuery, BooleanClause.Occur.MUST)
+        }
+      } else if (excludeValues.size > 0) {
+        excludeValues.foreach(filterValue =>
+          q.add(new TermQuery(new Term(fieldName, filterValue)), BooleanClause.Occur.MUST_NOT))
+      }
+    }
+    
     val q = new BooleanQuery()
       
-    // Object type filter
-    if (objectTypes.size > 0) {
-      if (objectTypes.size == 1) {
-        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectTypes.head.toString)), BooleanClause.Occur.MUST)
-      } else {
-        val typeQuery = new BooleanQuery()
-        objectTypes.foreach(objectType => 
-          q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.toString)), BooleanClause.Occur.SHOULD))
-        q.add(typeQuery, BooleanClause.Occur.MUST)
-      }
-    } else if (excludeObjectTypes.size > 0) {
-      excludeObjectTypes.foreach(objectType =>
-        q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, objectType.toString)), BooleanClause.Occur.MUST_NOT))
-    }
+    // Object type and language filters
+    applyFacetFilter(objectTypes.map(_.toString), excludeObjectTypes.map(_.toString), IndexFields.OBJECT_TYPE, q)
+    applyFacetFilter(languages, excludeLanguages, IndexFields.LANGUAGE, q)
     
     // Source (dataset/gazetteer) filter
     if (datasets.size > 0 || gazetteers.size > 0) {
@@ -262,13 +268,6 @@ trait ObjectReader extends AnnotationReader {
       
       allExcludeIDs.foreach(id =>
         q.add(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)), BooleanClause.Occur.MUST_NOT))
-    }
-    
-    // Language filter -- TODO DRY with types and languages
-    if (languages.size > 0) {
-      
-    } else if (excludeLanguages.size > 0) {
-      
     }
     
     // Places filter

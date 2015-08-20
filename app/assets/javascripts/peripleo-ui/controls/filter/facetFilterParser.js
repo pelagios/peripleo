@@ -84,21 +84,24 @@ define([], function() {
     
     parseSearchParams : function(params) {
       var filters = [],
-          hasTypeFilter = params.object_types || params.exclude_object_types,
-          hasSourceFilter = params.datasets || params.exclude_datasets || params.gazetteers || params.exclude_gazetteers;
+          hasSourceFilter = params.datasets || params.exclude_datasets || params.gazetteers || params.exclude_gazetteer,
+          
+          parseFilterArgs = function(dimension, key) {
+            var excludeKey = 'exclude_' + key,
+                filterArgs = {};
+                
+            if (params[key] || params[excludeKey]) {
+              filterArgs[key] = params[key];
+              filterArgs[excludeKey] = params[excludeKey];
+              filters.push({ dimension: dimension, filters: filterArgs });
+            }
+          };
       
-      // Type facet
-      if (hasTypeFilter) {
-        filters.push({ 
-          dimension: 'type', 
-          filters: {
-            object_types: params.object_types,
-            exclude_object_types:  params.exclude_object_types
-          } 
-        });        
-      }
+      // Type and language facet
+      parseFilterArgs('type', 'object_types');
+      parseFilterArgs('lang', 'lang');
       
-      // Source facet
+      // Source facet works slightly different
       if (hasSourceFilter) {
         filters.push({ 
           dimension: 'source_dataset', 

@@ -35,6 +35,10 @@ define(['peripleo-ui/events/events'], function(Events) {
           
           exclude_gazetteers: false,
           
+          lang: false,
+          
+          exclude_lang: false,
+          
           from: false,
           
           to: false,
@@ -105,6 +109,8 @@ define(['peripleo-ui/events/events'], function(Events) {
           if (includeHeatmap)
             url += '&heatmap=true';
           
+          // TODO this has grown... DRY. Express more concisely, based on fields of params dict directly!
+          
           if (params.query)
             url += '&query=' + params.query;
             
@@ -125,6 +131,12 @@ define(['peripleo-ui/events/events'], function(Events) {
             
           if (params.exclude_gazetteers)
             url += '&exclude_gazetteers=' + params.exclude_gazetteers;
+            
+          if (params.lang)
+            url += '&lang=' + params.lang;
+            
+          if (params.exclude_lang)
+            url += '&exclude_lang' + params.exclude_lang;
             
           if (params.from)
             url += '&from=' + params.from;
