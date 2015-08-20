@@ -42,7 +42,7 @@ object AccessLog {
   def insert(logRecord: AccessLogRecord)(implicit s: Session) = query.insert(logRecord)
   
   def listAll()(implicit s: Session): Seq[AccessLogRecord] =
-    query.list
+    query.sortBy(_.timestamp.desc).list
   
   def findAllBefore(timestamp: Long)(implicit s: Session): Seq[AccessLogRecord] =
     query.where(_.timestamp < new Timestamp(timestamp)).list

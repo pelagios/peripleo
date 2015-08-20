@@ -1,9 +1,21 @@
-@(analytics: AccessLogAnalytics)
+@(analytics: AccessLogAnalytics, mostRecent: Seq[AccessLogRecord])
 <html>
   <head>
     <title>Pelagios API » Admin » Access Analytics</title>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/admin/main.css")" />
+    <style>
+      table { 
+        border-collapse:collapse;
+        margin-bottom:20px; 
+      }
+      
+      td {
+        padding:2px;
+        white-space:nowrap;
+        border:1px solid #ccc;
+      }
+    </style>
   </head>
   
   <body>
@@ -21,8 +33,31 @@
         
         <tr>
           <td>Most frequent searches:</td>
-          <td>@analytics.searches.map(_._1).mkString(", ")</td>
+          <td>@analytics.searches.map(search => search._1 + " (" + search._2 + ")").mkString(", ")</td>
         </tr>
+      </table>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>IP</th>
+            <th>ms</th>
+            <th>Path</th>
+            <th>Referrer</th>
+            <th>User Agent</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for(r <- mostRecent) {
+          	<tr>
+          	  <td>@r.ip</td>
+          	  <td>@r.responseTime</td>
+          	  <td>@r.path</td>
+          	  <td>@r.referrer</td>
+          	  <td>@r.userAgent</td>
+          	</tr>
+          }
+        </tbody>
       </table>
     </div>    
   </body>
