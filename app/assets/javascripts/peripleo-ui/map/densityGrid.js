@@ -4,11 +4,12 @@ define(['peripleo-ui/events/events'], function(Events) {
   var DensityGrid = function(map, eventBroker) {
     
     var render = function(canvasOverlay, params) {    
+          var ctx = params.canvas.getContext('2d');
+          ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
+
           if (!params.options.heatmap)
             return; 
             
-          var ctx = params.canvas.getContext('2d');
-          ctx.clearRect(0, 0, params.canvas.width, params.canvas.height);
           ctx.fillStyle = '#5254a3';
           ctx.strokeStyle = '#5254a3';
           
@@ -46,39 +47,26 @@ define(['peripleo-ui/events/events'], function(Events) {
           });
         },
         
-        canvasOverlay = L.canvasOverlay().drawing(render).addTo(map);
+        canvasOverlay = L.canvasOverlay().drawing(render);
+ 
+    eventBroker.addHandler(Events.TOGGLE_HEATMAP, function(args) {
+      if (args.enabled) {
+        canvasOverlay.addTo(map);
+      } else {
+        canvasOverlay.params({ heatmap: false });
+        canvasOverlay.redraw();
+        map.removeLayer(canvasOverlay);
+      }
+    });
 
-    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) {       
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, function(response) { 
       if (response.heatmap) {
         canvasOverlay.params({ heatmap: response.heatmap });
         window.setTimeout(function() {
-          console.log('drawing heatmap');
           canvasOverlay.redraw();
-        }, 250);
+        }, 1);
       }
     });
-    
-    /*
-    this.update = function(heatmap) {
-      canvasOverlay.params({ heatmap: heatmap });
-      window.setTimeout(function() {
-        canvasOverlay.redraw();
-      }, 250);
-    };
-    
-    this.hide = function() {
-      if (!isHidden) {
-        _map.removeLayer(canvasOverlay);
-        isHidden = true;
-      }
-    };
-    
-    this.show = function() {
-      if (isHidden) {
-        _map.addLayer(canvasOverlay);
-        isHidden = false;
-      }
-    }*/
   };
   
   return DensityGrid;

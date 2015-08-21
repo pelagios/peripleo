@@ -281,16 +281,6 @@ define(['peripleo-ui/events/events'], function(Events) {
     });
     
     eventBroker.addHandler(Events.SEARCH_CHANGED, function(diff) {     
-      
-      
-      /** TODO merge facet filter changes, if any **/
-      
-      // var diffNormalized = FilterParser.parseFacetFilter(diff, searchParams);
-
-      /** TODO merge facet filter changes, if any **/
-      
-      
-       
       // jQuery.extend(searchParams, diffNormalized); // Update search params
       jQuery.extend(searchParams, diff);
       // lastDiff = diffNormalized; // Store as last diff
@@ -347,6 +337,7 @@ define(['peripleo-ui/events/events'], function(Events) {
     
     eventBroker.addHandler(Events.TOGGLE_HEATMAP, function(params) {
       includeHeatmap = params.enabled;
+      makeViewUpdateRequest();
     });
 
   };
