@@ -6,6 +6,7 @@ import play.api.db.slick._
 import play.api.mvc.Action
 import play.api.libs.json.{ Json, JsObject }
 import scala.util.{ Success, Failure }
+import java.util.Locale
 
 object SearchController extends AbstractController {
 
@@ -13,6 +14,22 @@ object SearchController extends AbstractController {
   private val KEY_FACETS = "facets"
   private val KEY_TIME_HISTOGRAM = "time_histogram"
   private val KEY_HEATMAP = "heatmap"
+  
+  private val LOCALE_EN = new Locale("en")
+        
+  private val facetFormatters = Map(
+    "lang" ->
+      { value: String => new Locale(value).getDisplayLanguage(LOCALE_EN) },
+    "source_dataset" -> 
+      { value: String =>
+        if (value.startsWith("gazetteer:"))
+          value.substring(10)
+        else if (value.contains("#"))
+          value.substring(0, value.indexOf('#'));
+        else
+          value
+      }
+  )
     
   /** API search method controller.
     * 
@@ -53,7 +70,7 @@ object SearchController extends AbstractController {
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)   
         
         val optionalComponents = Seq(
-              { facetTree.map(Json.toJson(_).as[JsObject]) },
+              { facetTree.map(tree => Json.toJson((tree, facetFormatters)).as[JsObject]) },
               { timeHistogram.map(Json.toJson(_).as[JsObject]) },
               { topPlaces.map(t => Json.obj("top_places" -> Json.toJson(t)).as[JsObject]) },
               { heatmap.map(h => Json.obj("heatmap" -> Json.toJson(h)).as[JsObject]) }).flatten

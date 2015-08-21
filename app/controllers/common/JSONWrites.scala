@@ -173,11 +173,20 @@ object JSONWrites {
       profile.maxValue,
       profile.histogram.map(t => (t._1.toString, t._2))))
   
-  implicit val facetTreeWrites: Writes[FacetTree] =
-    (JsPath \ "facets").write[Seq[JsValue]].contramap(tree => tree.dimensions().map(dimension => {
+  implicit val facetTreeWrites: Writes[(FacetTree, Map[String, String => String])] =
+    (JsPath \ "facets").write[Seq[JsValue]].contramap{ case(tree, formatters) => tree.dimensions().map(dimension => {
       val topChildren = tree.getTopChildren(dimension)
-        .map { case (label, count) => Json.obj("label" -> label, "count" -> count) }
-      Json.obj("dimension" -> dimension, "top_children" -> Json.toJson(topChildren)) }))   
+        .map { case (value, count) => 
+          val valueAndCount = 
+            Json.obj("value" -> value, "count" -> count)
+            
+          val formatter = formatters.get(dimension)
+          if (formatter.isDefined)
+            valueAndCount ++ Json.obj("label" -> formatter.get(value))
+          else
+            valueAndCount
+      }
+      Json.obj("dimension" -> dimension, "top_children" -> Json.toJson(topChildren)) })}   
       
   implicit val timeHistogramWrites: Writes[TimeHistogram] =
     (JsPath \ "time_histogram").write[Seq[JsValue]].contramap(_.values.map { case (year, value) => 

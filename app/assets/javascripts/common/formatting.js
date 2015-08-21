@@ -72,18 +72,6 @@ define(function() {
         return '<a target="_blank" href="' + url + '">' + urlWithoutProtocol + '</a>';
     },
     
-    formatFacetLabel: function(label) {
-      if (label.indexOf('gazetteer:') === 0) {
-        // Gazetteer label
-        return label.substring(10);
-      } else if (label.indexOf('#') > -1) {
-        // Dataset label
-        return label.substring(0, label.indexOf('#'));
-      } else {
-        return label;
-      }
-    },
-    
     shortenPlacename: function(placename) {
       var splitCharacters = [',', ';', '/'],
           splitIndices = jQuery.map(splitCharacters, function(c) { return placename.indexOf(c); }),

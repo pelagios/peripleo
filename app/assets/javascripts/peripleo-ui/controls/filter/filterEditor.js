@@ -116,13 +116,13 @@ define(['common/formatting', 'peripleo-ui/events/events', 'peripleo-ui/controls/
           list.addClass('chart large ' + dimension);
  
           jQuery.each(facets, function(idx, val) {
-            var label = Formatting.formatFacetLabel(val.label),
+            var label = (val.label) ? val.label : val.value,
                 tooltip = Formatting.formatNumber(val.count) + ' Results',
                 percentage = 100 * val.count / maxCount,
                 li = Formatting.createMeter(label, tooltip, percentage);
                
             li.addClass('selected');
-            li.attr('data-value', val.label);
+            li.attr('data-value', val.value);
             li.prepend('<span class="icon selection-toggle">&#xf046;</span>');
             li.click(function() { toggle(li); });
             list.append(li);

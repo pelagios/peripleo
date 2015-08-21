@@ -34,7 +34,7 @@ define(['common/formatting', 'peripleo-ui/events/events', 'peripleo-ui/controls/
           list.empty();
           
           jQuery.each(updatedFacets.slice(0, 5), function(idx, val) {
-            var label = Formatting.formatFacetLabel(val.label),
+            var label = (val.label) ? val.label : val.value,
                 tooltip = Formatting.formatNumber(val.count) + ' Results',
                 percentage = 100 * val.count / maxCount; 
                 
