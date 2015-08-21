@@ -29,17 +29,23 @@ define(['common/formatting', 'peripleo-ui/events/events', 'peripleo-ui/controls/
           
         update = function(updatedFacets) {
           var maxCount = (updatedFacets.length > 0) ? updatedFacets.slice().sort(sortFacetValues)[0].count : 0;
-              
-          facets = updatedFacets;
-          list.empty();
+
+          if (updatedFacets.length > 0) {   
+            parent.show();           
+            facets = updatedFacets;
+            list.empty();
           
-          jQuery.each(updatedFacets.slice(0, 5), function(idx, val) {
-            var label = (val.label) ? val.label : val.value,
-                tooltip = Formatting.formatNumber(val.count) + ' Results',
-                percentage = 100 * val.count / maxCount; 
+            jQuery.each(updatedFacets.slice(0, 5), function(idx, val) {
+              var label = (val.label) ? val.label : val.value,
+                  tooltip = Formatting.formatNumber(val.count) + ' Results',
+                  percentage = 100 * val.count / maxCount; 
                 
-            list.append(Formatting.createMeter(label, tooltip, percentage));
-          });
+              list.append(Formatting.createMeter(label, tooltip, percentage));
+            });
+          } else {
+            // No facet counts for this result - hide chart
+            parent.hide();
+          }
         },
         
         /** Helper that removes 'falsy' properties from an object **/
