@@ -18,7 +18,7 @@ object TimeHistogram {
       val paddedValues = vals.sortBy(_._1).foldLeft(Seq.empty[(Int, Int)]) { case (padded, (year, count)) => {
         padded.lastOption match {
           case Some(previous) => {
-            if (previous._1 == year - 1) // Nothing missing - no need to apd
+            if (previous._1 == year - 1) // Nothing missing - no need to append
               padded :+ (year, count) 
             else // Pad cells in between previous and this year
               padded ++ Seq.range(previous._1 + 1, year).map((_, 0)) :+ (year, count)
@@ -33,7 +33,7 @@ object TimeHistogram {
           paddedValues
         } else {
           val stepSize = Math.ceil(paddedValues.size.toDouble / maxBuckets).toInt
-          paddedValues.grouped(stepSize).map(values => (values.last._1, values.map(_._2).sum / values.size)).toSeq
+          paddedValues.grouped(stepSize).map(values => (values.head._1, values.map(_._2).sum / values.size)).toSeq
         }
         
       new TimeHistogram(resampledValues)
