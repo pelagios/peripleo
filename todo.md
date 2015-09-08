@@ -6,9 +6,6 @@
 * Preview thumbnails are currently not 'local search sensitive'. They definitely MUST
   be restricted to the place while in local search, possibly SHOULD be restricted to
   the selected place (at least at the time of selection, until next map pan).
-* API feature request: the /places/{uri} method should have an option for limiting the number
-  of datasets listed in the 'referenced_in' field. Presently, this limit is hard-wired to the
-  top 10 referencing datasets.
 * Re-implement proper display of text snippet previews (plus
   correct behavior of the JSON `snippet` field).
 * Revise hull computation (less smoothing, use original geometry
@@ -30,6 +27,7 @@
 * Wait spinners all over.
 * Clean up custom icons (roll everything into an icon font).
 * How to handle objects contained in René's gazetteer?
-* Something seems to be wrong with the computation of histogram boundaries.
-* When dropping a dataset, it seems only items are properly removed (but not annotations). 
+* Minor issue with histogram boundaries: the lower boundary is ok; the upper boundary should
+  be: bucket value (=bucket interval start time) plus bucket width.
+* When dropping a dataset, it seems only items are properly removed (but not annotations).
 * __BUG:__ orphaned selection marker.
