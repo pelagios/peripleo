@@ -45,7 +45,7 @@ object PlaceController extends AbstractController {
     * Includes the cross-gazetteer network graph, and an overview of the data linked
     * to the place.
     */
-  def getPlace(uri: String, datasetLimit: Int = 10) = loggingAction { implicit session =>
+  def getPlace(uri: String, datasetLimit: Int) = loggingAction { implicit session =>
     val placeNetwork = Global.index.findNetworkByPlaceURI(uri)
     if (placeNetwork.isDefined) {
       val params = SearchParameters.forPlace(uri, 1, 0)
