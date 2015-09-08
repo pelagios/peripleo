@@ -1,5 +1,14 @@
 # TODOs & Future Features
 
+* While in local search, the 'Show all results' hit is confusing. It
+  should better convey that this number relates to all results on the current map area,
+  e.g. something like 'Total results in map area:'.
+* Preview thumbnails are currently not 'local search sensitive'. They definitely MUST
+  be restricted to the place while in local search, possibly SHOULD be restricted to
+  the selected place (at least at the time of selection, until next map pan).
+* API feature request: the /places/{uri} method should have an option for limiting the number
+  of datasets listed in the 'referenced_in' field. Presently, this limit is hard-wired to the
+  top 10 referencing datasets.
 * Re-implement proper display of text snippet previews (plus
   correct behavior of the JSON `snippet` field).
 * Revise hull computation (less smoothing, use original geometry
