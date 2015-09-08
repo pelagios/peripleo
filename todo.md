@@ -30,4 +30,6 @@
 * Wait spinners all over.
 * Clean up custom icons (roll everything into an icon font).
 * How to handle objects contained in René's gazetteer?
+* Something seems to be wrong with the computation of histogram boundaries.
+* When dropping a dataset, it seems only items are properly removed (but not annotations). 
 * __BUG:__ orphaned selection marker.
