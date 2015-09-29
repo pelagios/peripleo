@@ -4,6 +4,8 @@ version := "0.0.1"
 
 play.Project.playScalaSettings
 
+resolvers += "Open Source Geospatial Foundation Repository" at "http://download.osgeo.org/webdav/geotools/"
+
 libraryDependencies ++= Seq(jdbc, cache)   
 
 libraryDependencies ++= Seq(
