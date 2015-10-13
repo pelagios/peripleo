@@ -17,6 +17,7 @@ import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
 import java.sql.Date
+import ingest.harvest.GazetteerImportWorker
 
 object Global extends GlobalSettings {
 
@@ -37,38 +38,11 @@ object Global extends GlobalSettings {
       val gazetteers = getPropertyAsList("peripleo.gazetteer.names").zip(getPropertyAsList("peripleo.gazetteer.files"))
       Logger.info("Loading gazetteers: " + gazetteers.map(_.toString).mkString(", "))
 
-      // Helper function to insert a single dump file into the index (returning number of total places, distinct places and URI prefixes)
-      def insertDumpfile(sourceGazetteer: String, file: File): (Int, Int, Seq[String]) = {
-        val (is, filename)  = if (file.getName.endsWith(".gz"))
-          (new GZIPInputStream(new FileInputStream(file)), file.getName.substring(0, file.getName.lastIndexOf('.')))
-        else
-          (new FileInputStream(file), file.getName)
-
-        idx.addPlaceStream(is, filename, sourceGazetteer)
-      }
-
       // Build the place index
-      DB.withSession { implicit session: Session =>
+      val worker = new GazetteerImportWorker()
         gazetteers.foreach { case (name, dump) => {
-          Logger.info("Loading gazetteer " + name  + ": " + dump)
-
-          val file = new File(GAZETTER_DATA_DIR, dump)
-          val (totalPlaces, distinctPlaces, uriPrefixes) =
-            if (file.isDirectory) {
-              file.listFiles.foldLeft((0, 0, Seq.empty[String])) { case ((totalPlaces, distinctPlaces, uriPrefixes), nextFile) => {
-                Logger.info("Loading partial gazetteer file: " + nextFile.getName)
-                val (newPlaces, newDistinctPlaces, prefixes) = insertDumpfile(name, nextFile)
-                Logger.info("Inserted " + (totalPlaces + newPlaces) + " places")
-                (totalPlaces + newPlaces, distinctPlaces + newDistinctPlaces, (uriPrefixes ++ prefixes).distinct)
-              }}
-            } else {
-              insertDumpfile(name, file)
-            }
-
-          idx.refresh()
-
-          // Insert gazetteer meta in to DB
-          Gazetteers.insert(Gazetteer(name, totalPlaces, new Date(new java.util.Date().getTime), ImportStatus.COMPLETE), uriPrefixes)
+          val path = new File(GAZETTER_DATA_DIR, dump).getAbsolutePath
+          worker.importDataDump(path, name)
         }}
 
         // Apply gazetteer patches
@@ -87,7 +61,7 @@ object Global extends GlobalSettings {
           idx.refresh()
           Logger.info("Done.")
         })
-      }
+
 
       // Rebuild the suggestion index
       idx.suggester.build()
