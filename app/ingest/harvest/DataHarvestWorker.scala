@@ -21,7 +21,7 @@ import org.pelagios.api.dataset.{ Dataset => VoIDDataset }
 import java.security.MessageDigest
 import java.math.BigInteger
 
-class HarvestWorker {
+class DataHarvestWorker {
   
   private val TMP_DIR = System.getProperty("java.io.tmpdir")
   

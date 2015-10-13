@@ -17,7 +17,7 @@ class DataHarvestActor(harvestId: UUID, voidURL: String, previous: Seq[Dataset])
   def receive = {
     
     case Start => {
-      new HarvestWorker().harvest(voidURL, previous)
+      new DataHarvestWorker().harvest(voidURL, previous)
       sender ! Stopped(true)
     }
     
@@ -25,7 +25,7 @@ class DataHarvestActor(harvestId: UUID, voidURL: String, previous: Seq[Dataset])
   
 }
 
-object Harvester {
+object DataHarvester {
   
   private val actors = new scala.collection.mutable.HashSet[ActorRef]
     

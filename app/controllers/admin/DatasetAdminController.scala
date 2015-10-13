@@ -8,7 +8,7 @@ import play.api.Logger
 import play.api.libs.json.Json
 import scala.io.Source
 import ingest._
-import ingest.harvest.Harvester
+import ingest.harvest.DataHarvester
 
 object DatasetAdminController extends BaseUploadController with Secured {
   
@@ -26,7 +26,7 @@ object DatasetAdminController extends BaseUploadController with Secured {
       val url = (json.get \ "url").as[String]
       Logger.info("Importing dataset from " + url)
       
-      Harvester.harvest(url)
+      DataHarvester.harvest(url)
       
       Ok(Json.parse("{ \"message\": \"New Dataset Created.\" }"))   
     } else {
@@ -42,7 +42,7 @@ object DatasetAdminController extends BaseUploadController with Secured {
     if (dataset.isDefined) {
       val uri = dataset.get.voidURI
       if (uri.isDefined) {
-        Harvester.harvest(uri.get, Datasets.findTopLevelByVoID(uri.get))
+        DataHarvester.harvest(uri.get, Datasets.findTopLevelByVoID(uri.get))
       }
     }
   
