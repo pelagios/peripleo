@@ -8,13 +8,18 @@ import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Play.current
 import scala.concurrent.duration._
 
-class GazetteerImportActor(dataDumpPath: String, gazetteerName: String) extends Actor {
+class GazetteerImportActor(path: String, gazetteerName: String, origFilename: Option[String] = None) extends Actor {
   
   def receive = {
     
     case Start => {
-      new GazetteerImportWorker().importGazetteer(dataDumpPath, gazetteerName)
+      new GazetteerImportWorker().importDataDump(path, gazetteerName, origFilename)
       sender ! Stopped(true)
+    }
+    
+    case QueryProgress => {
+      // TODO measure progress (somehow)
+      sender ! ReportProgress(0.5)
     }
     
   }
@@ -25,8 +30,8 @@ object GazetteerImporter {
   
   private val actors = new scala.collection.mutable.HashSet[ActorRef]
   
-  def importPlaces(dataDumpPath: String, gazetteerName: String) = {
-    val props = Props(classOf[GazetteerImportActor], dataDumpPath, gazetteerName)
+  def importDataDump(path: String, gazetteerName: String, origFilename: Option[String]) = {
+    val props = Props(classOf[GazetteerImportActor], path, gazetteerName, origFilename)
     val actor = Akka.system.actorOf(props) 
     actors.add(actor)
     

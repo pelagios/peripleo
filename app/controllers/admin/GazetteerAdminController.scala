@@ -10,6 +10,7 @@ import java.util.zip.GZIPInputStream
 import java.io.FileInputStream
 import java.sql.Date
 import models.ImportStatus
+import ingest.harvest.GazetteerImporter
 
 object GazetteerAdminController extends BaseUploadController with Secured {
   
@@ -43,22 +44,14 @@ object GazetteerAdminController extends BaseUploadController with Secured {
       Ok(Json.parse("{ \"message\": \"Not implemented yet.\" }"))   
     } else {
       processUpload("rdf", requestWithSession, { filepart => {
-        val now = new Date(new java.util.Date().getTime)
         val file = filepart.ref.file      // The file
-        val filename = filepart.filename  // The full filename, e.g. dump.ttl.gz
+        val filename = filepart.filename
+        val gazetteerName = filename.substring(0, filename.indexOf("."))
+
+        Logger.info("Importing gazetteer '" + gazetteerName + "' from " + filename)
         
-        Logger.info("Importing gazetteer dump from file: " + filepart.filename)
-        val (is, filenameUncompressed)  = if (filename.endsWith(".gz"))
-          (new GZIPInputStream(new FileInputStream(file)), filename.substring(0, filename.lastIndexOf('.')))
-        else
-          (new FileInputStream(file), filename)
-        
-        val gazetteerName = filenameUncompressed.substring(0, filenameUncompressed.lastIndexOf("."))
-        val (totalPlaces, _, prefixes) = Global.index.addPlaceStream(is, filenameUncompressed, gazetteerName)
-        Global.index.refresh()
-        Gazetteers.insert(Gazetteer(gazetteerName, totalPlaces, now, ImportStatus.COMPLETE), prefixes)
-        
-        Redirect(routes.GazetteerAdminController.index).flashing("success" -> { "Gazetteer imported." })      
+        GazetteerImporter.importDataDump(file.getAbsolutePath, gazetteerName, Some(filename))
+        Redirect(routes.GazetteerAdminController.index).flashing("success" -> { "Import in progress." })      
       }})
     }
   }

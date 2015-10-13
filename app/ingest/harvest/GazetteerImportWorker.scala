@@ -16,17 +16,23 @@ class GazetteerImportWorker {
     * 
     * Returns number of total places, distinct places and URI prefixes
     */
-  private def insertDumpfile(file: File, gazetteerName: String): (Int, Int, Seq[String]) = {
-    val (is, filename)  = 
-      if (file.getName.endsWith(".gz"))
-        (new GZIPInputStream(new FileInputStream(file)), file.getName.substring(0, file.getName.lastIndexOf('.')))
+  private def insertDumpfile(file: File, gazetteerName: String, origFilename: Option[String] = None): (Int, Int, Seq[String]) = {
+    val filename = 
+      if (origFilename.isDefined)
+        origFilename.get
       else
-        (new FileInputStream(file), file.getName)
+        file.getName
+      
+    val (is, uncompressedFilename) = 
+      if (filename.endsWith(".gz"))
+        (new GZIPInputStream(new FileInputStream(file)), filename.substring(0, filename.lastIndexOf('.')))
+      else
+        (new FileInputStream(file), filename)
 
-    Global.index.addPlaceStream(is, filename, gazetteerName)
+    Global.index.addPlaceStream(is, uncompressedFilename, gazetteerName)
   }
   
-  def importGazetteer(dataDumpPath: String, gazetteerName: String) = {
+  def importDataDump(dataDumpPath: String, gazetteerName: String, origFilename: Option[String] = None) = {
     Logger.info("Importing gazetteer " + gazetteerName  + " from " + dataDumpPath)
 
     val file = new File(dataDumpPath)
@@ -34,12 +40,12 @@ class GazetteerImportWorker {
       if (file.isDirectory) {
         file.listFiles.foldLeft((0, 0, Seq.empty[String])) { case ((totalPlaces, distinctPlaces, uriPrefixes), nextFile) => {
           Logger.info("Loading partial gazetteer file: " + nextFile.getName)
-          val (newPlaces, newDistinctPlaces, prefixes) = insertDumpfile(nextFile, gazetteerName)
+          val (newPlaces, newDistinctPlaces, prefixes) = insertDumpfile(nextFile, gazetteerName, origFilename)
           Logger.info("Inserted " + (totalPlaces + newPlaces) + " places")
           (totalPlaces + newPlaces, distinctPlaces + newDistinctPlaces, (uriPrefixes ++ prefixes).distinct)
         }}
       } else {
-        insertDumpfile(file, gazetteerName)
+        insertDumpfile(file, gazetteerName, origFilename)
       }
 
     Global.index.refresh()
