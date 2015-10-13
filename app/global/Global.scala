@@ -39,29 +39,28 @@ object Global extends GlobalSettings {
       Logger.info("Loading gazetteers: " + gazetteers.map(_.toString).mkString(", "))
 
       // Build the place index
-      val worker = new GazetteerImportWorker()
-        gazetteers.foreach { case (name, dump) => {
-          val path = new File(GAZETTER_DATA_DIR, dump).getAbsolutePath
-          worker.importDataDump(path, name)
-        }}
+      val worker = new GazetteerImportWorker(idx)
+      gazetteers.foreach { case (name, dump) => {
+        val path = new File(GAZETTER_DATA_DIR, dump).getAbsolutePath
+        worker.importDataDump(path, name)
+      }}
 
-        // Apply gazetteer patches
-        val patches = Play.current.configuration.getString("peripleo.gazetteer.patches")
-          .map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
+      // Apply gazetteer patches
+      val patches = Play.current.configuration.getString("peripleo.gazetteer.patches")
+        .map(_.split(",").toSeq).getOrElse(Seq.empty[String]).map(_.trim)
 
-        // Patching strategy is to REPLACE geometries, but APPEND names
-        val patchConfig = PatchConfig()
-          .geometry(PatchStrategy.REPLACE)
-          .names(PatchStrategy.APPEND)
-          .propagate(true) // Patches should propagate to linke places, too
+      // Patching strategy is to REPLACE geometries, but APPEND names
+      val patchConfig = PatchConfig()
+        .geometry(PatchStrategy.REPLACE)
+        .names(PatchStrategy.APPEND)
+        .propagate(true) // Patches should propagate to linke places, too
 
-        patches.foreach(patch => {
-          Logger.info("Applying gazetteer patch file " + patch)
-          idx.applyPatch(new File(GAZETTER_DATA_DIR, patch), patchConfig)
-          idx.refresh()
-          Logger.info("Done.")
-        })
-
+      patches.foreach(patch => {
+        Logger.info("Applying gazetteer patch file " + patch)
+        idx.applyPatch(new File(GAZETTER_DATA_DIR, patch), patchConfig)
+        idx.refresh()
+        Logger.info("Done.")
+      })
 
       // Rebuild the suggestion index
       idx.suggester.build()
@@ -112,13 +111,6 @@ object Global extends GlobalSettings {
         Logger.info("DB table 'adjacency_place' does not exist - creating")
         PlaceAdjacencys.create
       }
-
-      /*
-      if (MTable.getTables("master_heatmap").list.isEmpty) {
-        Logger.info("DB table 'master_heatmap' does not exist - creating")
-        MasterHeatmap.create
-      }
-      */
 
       if (MTable.getTables("access_log").list.isEmpty) {
         Logger.info("DB table 'access_log' does not exit - creating")

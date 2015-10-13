@@ -1,5 +1,6 @@
 package ingest.harvest
 
+import index.Index
 import java.io.{ File, FileInputStream }
 import java.sql.Date
 import java.util.zip.GZIPInputStream
@@ -10,7 +11,7 @@ import play.api.Logger
 import play.api.db.slick._
 import play.api.Play.current
 
-class GazetteerImportWorker {
+class GazetteerImportWorker(index: Index) {
   
   /** Helper fn to insert a single dump file into the index.
     * 
@@ -29,7 +30,7 @@ class GazetteerImportWorker {
       else
         (new FileInputStream(file), filename)
 
-    Global.index.addPlaceStream(is, uncompressedFilename, gazetteerName)
+    index.addPlaceStream(is, uncompressedFilename, gazetteerName)
   }
   
   def importDataDump(dataDumpPath: String, gazetteerName: String, origFilename: Option[String] = None) = {
@@ -48,7 +49,7 @@ class GazetteerImportWorker {
         insertDumpfile(file, gazetteerName, origFilename)
       }
 
-    Global.index.refresh()
+    index.refresh()
       
     // Insert gazetteer meta in to DB
     DB.withSession { implicit session: Session =>

@@ -7,13 +7,14 @@ import play.api.libs.concurrent.Akka
 import play.api.libs.concurrent.Execution.Implicits._
 import play.api.Play.current
 import scala.concurrent.duration._
+import global.Global
 
 class GazetteerImportActor(path: String, gazetteerName: String, origFilename: Option[String] = None) extends Actor {
   
   def receive = {
     
     case Start => {
-      new GazetteerImportWorker().importDataDump(path, gazetteerName, origFilename)
+      new GazetteerImportWorker(Global.index).importDataDump(path, gazetteerName, origFilename)
       sender ! Stopped(true)
     }
     
