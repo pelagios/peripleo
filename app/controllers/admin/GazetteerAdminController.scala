@@ -8,11 +8,13 @@ import global.Global
 import play.api.libs.json.Json
 import java.util.zip.GZIPInputStream
 import java.io.FileInputStream
+import java.sql.Date
+import models.ImportStatus
 
 object GazetteerAdminController extends BaseUploadController with Secured {
   
   def index = adminAction { username => implicit requestWithSession =>
-    Ok(views.html.admin.gazetteers(Gazetteers.listAll.map(_._1)))
+    Ok(views.html.admin.gazetteers(Gazetteers.listAll().map(_._1)))
   }
   
   def deleteGazetteer(name: String) = adminAction { username => implicit requestWithSession =>
@@ -41,6 +43,7 @@ object GazetteerAdminController extends BaseUploadController with Secured {
       Ok(Json.parse("{ \"message\": \"Not implemented yet.\" }"))   
     } else {
       processUpload("rdf", requestWithSession, { filepart => {
+        val now = new Date(new java.util.Date().getTime)
         val file = filepart.ref.file      // The file
         val filename = filepart.filename  // The full filename, e.g. dump.ttl.gz
         
@@ -53,7 +56,7 @@ object GazetteerAdminController extends BaseUploadController with Secured {
         val gazetteerName = filenameUncompressed.substring(0, filenameUncompressed.lastIndexOf("."))
         val (totalPlaces, _, prefixes) = Global.index.addPlaceStream(is, filenameUncompressed, gazetteerName)
         Global.index.refresh()
-        Gazetteers.insert(Gazetteer(gazetteerName, totalPlaces), prefixes)
+        Gazetteers.insert(Gazetteer(gazetteerName, totalPlaces, now, ImportStatus.COMPLETE), prefixes)
         
         Redirect(routes.GazetteerAdminController.index).flashing("success" -> { "Gazetteer imported." })      
       }})

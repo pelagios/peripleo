@@ -16,6 +16,7 @@ import play.api.Play.current
 import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
+import java.sql.Date
 
 object Global extends GlobalSettings {
 
@@ -67,7 +68,7 @@ object Global extends GlobalSettings {
           idx.refresh()
 
           // Insert gazetteer meta in to DB
-          Gazetteers.insert(Gazetteer(name, totalPlaces), uriPrefixes)
+          Gazetteers.insert(Gazetteer(name, totalPlaces, new Date(new java.util.Date().getTime), ImportStatus.COMPLETE), uriPrefixes)
         }}
 
         // Apply gazetteer patches

@@ -2,20 +2,23 @@ package controllers
 
 import controllers.common.JSONWrites._
 import global.Global
-import index.Index
+import index.{ Index, SearchParameters }
 import index.places.IndexedPlace
 import models.Associations
+import models.geo.Gazetteers
 import models.core.Dataset
 import play.api.mvc.Action
 import play.api.db.slick._
 import play.api.libs.json.Json
-import models.geo.Gazetteers
 import play.api.Logger
-import index.SearchParameters
 
 object PlaceController extends AbstractController {
   
   private val SOURCE_DATASET = "source_dataset"
+  
+  def listGazetteers(limit: Int, offset: Int) = loggingAction { implicit session =>
+    jsonOk(Json.toJson(Gazetteers.listAll(offset, limit)), session.request)
+  }
 
   /**
    * TODO revise!

@@ -1,10 +1,24 @@
 package models.geo
 
+import java.sql.Date
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
+import models.ImportStatus
 
 /** Gazetteer model entity **/
-case class Gazetteer(name: String, totalPlaces: Int)
+case class Gazetteer(
+    
+  name: String, 
+  
+  totalPlaces: Int,
+  
+  lastUpdate: Date,
+  
+  importStatus: ImportStatus.Value,
+  
+  importMessage: Option[String] = None
+  
+)
 
 /** Gazetteer DB table **/
 class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
@@ -13,7 +27,13 @@ class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
   
   def totalPlaces = column[Int]("total_places", O.NotNull)
   
-  def * = (name, totalPlaces) <> (Gazetteer.tupled, Gazetteer.unapply)
+  def lastUpdate = column[Date]("last_update", O.NotNull)
+  
+  def importStatus = column[ImportStatus.Value]("import_status", O.NotNull)
+  
+  def importMessage = column[String]("import_message", O.Nullable)
+  
+  def * = (name, totalPlaces, lastUpdate, importStatus, importMessage.?) <> (Gazetteer.tupled, Gazetteer.unapply)
   
 }
 
@@ -59,9 +79,9 @@ object Gazetteers {
   def countAll()(implicit s: Session): Int =
     Query(queryGazetteers.length).first
   
-  def listAll()(implicit s: Session): Seq[(Gazetteer, Seq[String])] = {
+  def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Seq[(Gazetteer, Seq[String])] = {
     val query = for {
-      gazetteer <- queryGazetteers   
+      gazetteer <- queryGazetteers.drop(offset).take(limit)   
       prefix <- queryGazetteerPrefixes if gazetteer.name === prefix.gazetteer
     } yield (gazetteer, prefix)
     
@@ -74,7 +94,7 @@ object Gazetteers {
   } 
     
   def numTotalPlaces()(implicit s: Session): Int =
-    queryGazetteers.map(_.totalPlaces).list.foldLeft(0)(_ + _)
+    queryGazetteers.map(_.totalPlaces).list.sum
    
   def findByName(name: String)(implicit s: Session): Option[Gazetteer] =
     queryGazetteers.where(_.name.toLowerCase === name.toLowerCase).firstOption

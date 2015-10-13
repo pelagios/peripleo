@@ -113,7 +113,32 @@ object JSONWrites {
     (JsPath \ "dataset").write[Dataset] ~
     (JsPath \ "num_referencing_items").write[Int]
   )(t => (t._1, t._2))
+  
+  implicit val gazetteerWrites: Writes[(Gazetteer, Seq[String])] = (
+    (JsPath \ "name").write[String] ~
+    (JsPath \ "total_places").write[Int] ~
+    (JsPath \ "last_update").write[Long] ~
+    (JsPath \ "url_prefixes").write[Seq[String]]
+  )(t => (
+      t._1.name,
+      t._1.totalPlaces,
+      t._1.lastUpdate.getTime,
+      t._2))
       
+  implicit val importStatusWrites: Writes[ImportProgress] = (
+    (JsPath \ "status").write[String] ~
+    (JsPath \ "total_progress").write[Double] ~
+    (JsPath \ "message").writeNullable[String]
+  )(p => (
+      p.status.toString(),
+      p.totalProgress,
+      p.message
+  ))
+      
+  implicit val gazetteerImportingWrites: Writes[((Gazetteer, Seq[String]), ImportProgress)] = (
+    (JsPath).write[(Gazetteer, Seq[String])] ~
+    (JsPath \ "import_progress").write[ImportProgress]
+  )(t => (t._1, t._2))
       
   /** TODO this (optionally) inlines a place with an index request - clean up with a Writes[(Gazetteer, IndexedPlaceNetwork)] **/
   implicit def gazetteerReferenceWrites(implicit verbose: Boolean = true): Writes[GazetteerReference] = (
