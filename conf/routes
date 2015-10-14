@@ -70,6 +70,7 @@ POST    /peripleo/admin/datasets/:id/harvests      controllers.admin.DatasetAdmi
 
 GET     /peripleo/admin/gazetteers                 controllers.admin.GazetteerAdminController.index
 POST    /peripleo/admin/gazetteers                 controllers.admin.GazetteerAdminController.uploadGazetteerDump
+GET     /peripleo/admin/gazetteers/:name           controllers.admin.GazetteerAdminController.queryStatus(name: String)
 DELETE  /peripleo/admin/gazetteers/:name           controllers.admin.GazetteerAdminController.deleteGazetteer(name: String)
 
 GET     /peripleo/admin/analytics                  controllers.admin.AnalyticsController.index
