@@ -169,15 +169,6 @@ abstract class AbstractImporter {
     Global.index.refresh()
   }
     
-  /** Shorthand **/
-  protected def getFormat(filename: String): RDFFormat = {
-    val format = Scalagios.guessFormatFromFilename(filename)
-    if (format.isDefined)
-      return format.get
-    else 
-      throw new IllegalArgumentException("Format could not be identified for file " + filename)
-  }
-  
   /** Utility method that produces a SHA256 hash from a string **/
   protected def sha256(str: String): String = {
     val md = MessageDigest.getInstance(SHA256).digest(str.getBytes(UTF8))

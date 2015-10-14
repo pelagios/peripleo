@@ -15,8 +15,7 @@ object VoIDImporter extends AbstractImporter {
   def readVoID(file: TemporaryFile, filename: String): Seq[VoIDDataset]= {
     Logger.info("Reading VoID file: " + filename)  
     val is = new FileInputStream(file.file)   
-    val format = getFormat(filename)  
-    val datasets = Scalagios.readVoID(is, format).toSeq
+    val datasets = Scalagios.readVoID(is, filename).toSeq
     is.close()
     datasets
   }

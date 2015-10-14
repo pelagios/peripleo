@@ -70,10 +70,8 @@ object PelagiosOAImporter extends AbstractImporter {
   
   def importPelagiosAnnotations(file: TemporaryFile, filename: String, dataset: Dataset)(implicit s: Session) = {
     Logger.info("Reading Pelagios annotations from RDF: " + filename) 
-    val format = getFormat(filename)
-    
     val is = new FileInputStream(file.file)
-    val annotatedThings = Scalagios.readAnnotations(is, format)
+    val annotatedThings = Scalagios.readAnnotations(is, filename)
     Logger.info("Importing " + annotatedThings.size + " annotated things with " + annotatedThings.flatMap(_.annotations).size + " annotations")
     
     annotatedThings.grouped(BATCH_SIZE).foreach(batch => {
