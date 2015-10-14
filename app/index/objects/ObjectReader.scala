@@ -247,7 +247,7 @@ trait ObjectReader extends AnnotationReader {
     val q = new BooleanQuery()
     
     if (onlyWithImages)
-      q.add(new PrefixQuery(new Term(IndexFields.DEPICTION, "http://")), BooleanClause.Occur.MUST)
+      q.add(new PrefixQuery(new Term(IndexFields.DEPICTION, "http")), BooleanClause.Occur.MUST)
       
     // Object type and language filters
     applyFacetFilter(objectTypes.map(_.toString), excludeObjectTypes.map(_.toString), IndexFields.OBJECT_TYPE, q)
