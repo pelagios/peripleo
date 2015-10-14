@@ -94,7 +94,7 @@ trait ObjectReader extends AnnotationReader {
     * @param includeHeatmap set to true to include result heatmap (2d spatial facets) in the results
     */
   def search(params: SearchParameters, includeFacets: Boolean, includeSnippets: Boolean,
-      includeTimeHistogram: Boolean, includeTopPlaces: Int, includeHeatmap: Boolean)(implicit s: Session): 
+      includeTimeHistogram: Boolean, includeTopPlaces: Int, includeHeatmap: Boolean, onlyWithImages: Boolean)(implicit s: Session): 
       (Page[(IndexedObject, Option[String])], Option[FacetTree], Option[TimeHistogram], Option[Seq[(IndexedPlaceNetwork, Int)]], Option[Heatmap]) = {
 
     
@@ -104,7 +104,7 @@ trait ObjectReader extends AnnotationReader {
     val (baseQuery, valueSource) = prepareBaseQuery(
       params.objectTypes, params.excludeObjectTypes, params.datasets, params.excludeDatasets,
       params.gazetteers, params.excludeGazetteers, params.languages, params.excludeLanguages, 
-      params.places, rectangle, params.coord, params.radius)
+      params.places, rectangle, params.coord, params.radius, onlyWithImages)
       
     // Finalize search query and time histogram filter
     val (searchQuery, timeHistogramFilter) = {
@@ -224,7 +224,8 @@ trait ObjectReader extends AnnotationReader {
       places:             Seq[String], 
       bbox:               Option[Rectangle],
       coord:              Option[Coordinate], 
-      radius:             Option[Double])(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
+      radius:             Option[Double],
+      onlyWithImages:     Boolean)(implicit s: Session): (BooleanQuery, Option[ValueSource]) = {
     
     // Helper that hold common functionality for "include/exclude facet"-type filters
     def applyFacetFilter(includeValues: Seq[String], excludeValues: Seq[String], fieldName: String, q: BooleanQuery) = {
@@ -244,6 +245,9 @@ trait ObjectReader extends AnnotationReader {
     }
     
     val q = new BooleanQuery()
+    
+    if (onlyWithImages)
+      q.add(new PrefixQuery(new Term(IndexFields.DEPICTION, "http://")), BooleanClause.Occur.MUST)
       
     // Object type and language filters
     applyFacetFilter(objectTypes.map(_.toString), excludeObjectTypes.map(_.toString), IndexFields.OBJECT_TYPE, q)

@@ -14,6 +14,7 @@ object SearchController extends AbstractController {
   private val KEY_FACETS = "facets"
   private val KEY_TIME_HISTOGRAM = "time_histogram"
   private val KEY_HEATMAP = "heatmap"
+  private val KEY_HAS_IMAGES = "has_images"
   
   private val LOCALE_EN = new Locale("en")
         
@@ -58,13 +59,17 @@ object SearchController extends AbstractController {
         val includeTimeHistogram = getQueryParam(KEY_TIME_HISTOGRAM, session.request).map(_.toBoolean).getOrElse(false)
         val includeHeatmap = getQueryParam(KEY_HEATMAP, session.request).map(_.toBoolean).getOrElse(false)
         
+        // Only include results with images?
+        val onlyWithImages = getQueryParam(KEY_HAS_IMAGES, session.request).map(_.toBoolean).getOrElse(false)
+        
         val (results, facetTree, timeHistogram, topPlaces, heatmap) = 
           Global.index.search(params,
             includeFacets, 
             true, // We always want preview snippets
             includeTimeHistogram,
             includeTopPlaces,
-            includeHeatmap)
+            includeHeatmap,
+            onlyWithImages)
        
         // Compile the JSON response from the various optional components
         implicit val verbose = getQueryParam("verbose", session.request).map(_.toBoolean).getOrElse(false)   

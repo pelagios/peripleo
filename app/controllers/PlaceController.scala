@@ -58,7 +58,8 @@ object PlaceController extends AbstractController {
         false, // snippets
         false, // time histogram
         0,     // top places
-        false) // heatmap
+        false, // heatmap
+        false) // Only with images
         
       val sourceFacetValues = facetTree.get.getTopChildren(SOURCE_DATASET, datasetLimit)
       val topDatasets = sourceFacetValues.map { case (labelAndId, count) => {
