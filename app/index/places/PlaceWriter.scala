@@ -38,8 +38,13 @@ trait PlaceWriter extends PlaceReader {
         distinctNewPlaces += 1
     }
     
-    Scalagios.streamPlaces(is, filename, placeHandler, true)
-    (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
+    val format = Scalagios.guessFormatFromFilename(filename)
+    if (format.isDefined) {
+      Scalagios.readPlacesFromStream(is, format.get, placeHandler, true)
+      (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
+    } else {
+      throw new RuntimeException("Could not determine format for file " + filename)
+    }
   }
   
   private def addPlace(place: Place, sourceGazetteer: String, uriPrefixes: Set[String], indexWriter: IndexWriter, taxonomyWriter: TaxonomyWriter): Boolean = {

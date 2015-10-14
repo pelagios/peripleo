@@ -13,6 +13,7 @@ import org.pelagios.Scalagios
 import play.api.db.slick._
 import play.api.libs.json.Json
 import play.api.Logger
+import org.openrdf.rio.RDFFormat
 
 /** One 'ingest record' **/
 case class IngestRecord(
@@ -168,12 +169,13 @@ abstract class AbstractImporter {
     Global.index.refresh()
   }
     
-  /** Utility method that returns the RDF format corresponding to a particular file extension **/
-  protected def getFormat(filename: String): String = filename match {
-    case f if f.endsWith("rdf") => Scalagios.RDFXML
-    case f if f.endsWith("ttl") => Scalagios.TURTLE
-    case f if f.endsWith("n3") => Scalagios.N3
-    case _ => throw new IllegalArgumentException("Format not supported")
+  /** Shorthand **/
+  protected def getFormat(filename: String): RDFFormat = {
+    val format = Scalagios.guessFormatFromFilename(filename)
+    if (format.isDefined)
+      return format.get
+    else 
+      throw new IllegalArgumentException("Format could not be identified for file " + filename)
   }
   
   /** Utility method that produces a SHA256 hash from a string **/
