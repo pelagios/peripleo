@@ -13,7 +13,7 @@ import scala.collection.mutable.Set
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.facet.taxonomy.TaxonomyWriter
 
-/** TODO Horrible hack - we generally need a better indexing framework, but this will have to do for now **/
+/** TODO Horrible hack - we generally need a better indexing framework, but this will have to do for now *
 trait ImportFuture {
   
   def progress(callback: Long => Unit): Unit
@@ -25,9 +25,11 @@ trait ImportFuture {
   def run(): Unit
   
 }
+*/
 
 trait PlaceWriter extends PlaceReader {
   
+  /*
   def addPlaces(places: Iterator[Place], sourceGazetteer: String): (Int, Seq[String]) =  { 
     val uriPrefixes = Set.empty[String]
     val distinctNewPlaces = places.foldLeft(0)((distinctNewPlaces, place) => {
@@ -113,6 +115,7 @@ trait PlaceWriter extends PlaceReader {
   
   def addPlaceStreamAsync(is: InputStream, filename: String, sourceGazetteer: String): PlaceStreamImporter = 
     new PlaceStreamImporter(is, filename, sourceGazetteer)
+  */
   
   def addPlace(place: Place, sourceGazetteer: String, uriPrefixes: Set[String]): Boolean = {
       val normalizedUri = Index.normalizeURI(place.uri)

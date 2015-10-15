@@ -4,6 +4,8 @@ import play.api.db.slick.Config.driver.simple._
 
 object ImportStatus extends Enumeration {
   
+  val PENDING = Value("PENDING")
+  
   val DOWNLOADING = Value("DOWNLOADING")
   
   val IMPORTING = Value("IMPORTING")

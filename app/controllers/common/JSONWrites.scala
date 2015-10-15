@@ -116,7 +116,7 @@ object JSONWrites {
   
   implicit val gazetteerWrites: Writes[(Gazetteer, Seq[String])] = (
     (JsPath \ "name").write[String] ~
-    (JsPath \ "total_places").write[Int] ~
+    (JsPath \ "total_places").write[Long] ~
     (JsPath \ "last_update").write[Long] ~
     (JsPath \ "url_prefixes").write[Seq[String]]
   )(t => (

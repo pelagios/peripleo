@@ -17,7 +17,7 @@ import play.api.{ Application, GlobalSettings, Logger }
 import play.api.db.slick._
 import scala.slick.jdbc.meta.MTable
 import java.sql.Date
-import ingest.harvest.GazetteerImportWorker
+import ingest.harvest.GazetteerImporter
 
 object Global extends GlobalSettings {
 
@@ -39,10 +39,11 @@ object Global extends GlobalSettings {
       Logger.info("Loading gazetteers: " + gazetteers.map(_.toString).mkString(", "))
 
       // Build the place index
-      val worker = new GazetteerImportWorker(idx)
+      val importer = new GazetteerImporter(idx)
+      
       gazetteers.foreach { case (name, dump) => {
         val path = new File(GAZETTER_DATA_DIR, dump).getAbsolutePath
-        worker.importDataDump(path, name)
+        importer.importDataFile(path, name)
       }}
 
       // Apply gazetteer patches

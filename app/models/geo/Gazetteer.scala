@@ -1,6 +1,6 @@
 package models.geo
 
-import java.sql.Date
+import java.sql.Timestamp
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 import models.ImportStatus
@@ -10,13 +10,15 @@ case class Gazetteer(
     
   name: String, 
   
-  totalPlaces: Int,
+  totalPlaces: Long,
   
-  lastUpdate: Date,
+  lastUpdate: Timestamp,
   
   importStatus: ImportStatus.Value,
   
-  importMessage: Option[String] = None
+  importProgress: Option[Double],
+  
+  importMessage: Option[String]
   
 )
 
@@ -25,15 +27,18 @@ class Gazetteers(tag: SlickTag) extends Table[Gazetteer](tag, "gazetteers") {
   
   def name = column[String]("name", O.PrimaryKey)
   
-  def totalPlaces = column[Int]("total_places", O.NotNull)
+  def totalPlaces = column[Long]("total_places", O.NotNull)
   
-  def lastUpdate = column[Date]("last_update", O.NotNull)
+  def lastUpdate = column[Timestamp]("last_update", O.NotNull)
   
   def importStatus = column[ImportStatus.Value]("import_status", O.NotNull)
   
+  def importProgress = column[Double]("import_progress", O.Nullable)
+  
   def importMessage = column[String]("import_message", O.Nullable)
   
-  def * = (name, totalPlaces, lastUpdate, importStatus, importMessage.?) <> (Gazetteer.tupled, Gazetteer.unapply)
+  def * = (name, totalPlaces, lastUpdate, importStatus, importProgress.?, 
+    importMessage.?) <> (Gazetteer.tupled, Gazetteer.unapply)
   
 }
 
@@ -69,13 +74,32 @@ object Gazetteers {
     queryGazetteerPrefixes.ddl.create
   }
   
-  def insert(gazetteer: Gazetteer, uriPrefixes: Seq[String])(implicit s: Session) = { 
+  def insert(gazetteer: Gazetteer)(implicit s: Session) =
     queryGazetteers.insert(gazetteer)
+  
     
-    val prefixes = uriPrefixes.map(URIPrefix(None, gazetteer.name, _))
-    queryGazetteerPrefixes.insertAll(prefixes:_*)
+  def setURIPrefixes(gazetteerName: String, prefixes: Seq[String])(implicit s: Session) = {
+    val uriPrefixes = prefixes.map(URIPrefix(None, gazetteerName, _))
+    queryGazetteerPrefixes.insertAll(uriPrefixes:_*)
   }
   
+  def setLastUpdate(gazetteerName: String, date: Timestamp)(implicit s: Session) = 
+    queryGazetteers.where(_.name === gazetteerName).map(_.lastUpdate).update(date)
+  
+  def setImportStatus(gazetteerName: String, status: ImportStatus.Value,
+      progress: Option[Double] = None, message: Option[String] = None,
+      totalPlaces: Option[Long] = None)(implicit s: Session) = {
+    
+    val q = queryGazetteers.where(_.name === gazetteerName)
+    if (totalPlaces.isDefined) {
+      q.map(g => (g.totalPlaces, g.importStatus, g.importProgress.?, g.importMessage.?))
+       .update((totalPlaces.get, status, progress, message))
+    } else {
+      q.map(g => (g.importStatus, g.importProgress.?, g.importMessage.?))
+      .update((status, progress, message))
+    }
+  }
+    
   def countAll()(implicit s: Session): Int =
     Query(queryGazetteers.length).first
   
@@ -93,7 +117,7 @@ object Gazetteers {
     queryGazetteers.where(_.name === name).delete
   } 
     
-  def numTotalPlaces()(implicit s: Session): Int =
+  def numTotalPlaces()(implicit s: Session): Long =
     queryGazetteers.map(_.totalPlaces).list.sum
    
   def findByName(name: String)(implicit s: Session): Option[Gazetteer] =

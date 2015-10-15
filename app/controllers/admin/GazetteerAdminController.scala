@@ -50,14 +50,15 @@ object GazetteerAdminController extends BaseUploadController with Secured {
 
         Logger.info("Importing gazetteer '" + gazetteerName + "' from " + filename)
         
-        GazetteerImporter.importDataDump(file.getAbsolutePath, gazetteerName, Some(filename))
+        val importer = new GazetteerImporter(Global.index)
+        importer.importDataFile(file.getAbsolutePath, gazetteerName, Some(filename))
         Redirect(routes.GazetteerAdminController.index).flashing("success" -> { "Import in progress." })      
       }})
     }
   }
   
   def queryStatus(gazetteerName: String) = adminAction { username => implicit requestWithSession =>
-    val progress = GazetteerImporter.getProgress(gazetteerName)
+    val progress = 0 // GazetteerImporter.getProgress(gazetteerName)
     Logger.info("Progress: " + (progress * 100) + "%")
     Ok(Json.parse("{ \"progress\": " + progress + " }"))
   }
