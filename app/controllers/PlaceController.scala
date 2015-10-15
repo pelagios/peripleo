@@ -20,6 +20,13 @@ object PlaceController extends AbstractController {
     jsonOk(Json.toJson(Gazetteers.listAll(offset, limit)), session.request)
   }
 
+  def getGazetteer(gazetteerName: String) = loggingAction { implicit session =>
+    Gazetteers.findByNameWithPrefixes(gazetteerName) match {
+      case Some(tuple) => jsonOk(Json.toJson(tuple), session.request)
+      case _ => NotFound(Json.parse("{ \"message\": \"Gazetteer not found.\" }"))
+    }
+  }
+  
   /**
    * TODO revise!
    */

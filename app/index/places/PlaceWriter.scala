@@ -13,12 +13,27 @@ import scala.collection.mutable.Set
 import org.apache.lucene.search.IndexSearcher
 import org.apache.lucene.facet.taxonomy.TaxonomyWriter
 
+/** TODO Horrible hack - we generally need a better indexing framework, but this will have to do for now *
+trait ImportFuture {
+  
+  def progress(callback: Long => Unit): Unit
+  
+  def success(callback: (Int, Int, Seq[String]) => Unit): Unit
+  
+  def error(callback: String => Unit): Unit
+  
+  def run(): Unit
+  
+}
+*/
+
 trait PlaceWriter extends PlaceReader {
   
+  /*
   def addPlaces(places: Iterator[Place], sourceGazetteer: String): (Int, Seq[String]) =  { 
     val uriPrefixes = Set.empty[String]
     val distinctNewPlaces = places.foldLeft(0)((distinctNewPlaces, place) => {
-      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter, taxonomyWriter)
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes)
       if (isDistinct)
         distinctNewPlaces + 1 
       else
@@ -27,27 +42,82 @@ trait PlaceWriter extends PlaceReader {
     (distinctNewPlaces, uriPrefixes.toSeq)
   }
   
-  def addPlaceStream(is: InputStream, filename: String, sourceGazetteer: String): (Int, Int, Seq[String]) = {    
-    val uriPrefixes = Set.empty[String]
-    var totalPlaces = 0
-    var distinctNewPlaces = 0
-    def placeHandler(place: Place): Unit = {
-      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes, placeWriter, taxonomyWriter)
-      totalPlaces += 1
+  /** TODO Horrible hack - we generally need a better indexing framework, but this will have to do for now **/
+  class PlaceStreamImporter(is: InputStream, filename: String, sourceGazetteer: String) extends ImportFuture  {
+    
+    private var lastProgressTime = System.currentTimeMillis
+    
+    private val uriPrefixes = Set.empty[String]
+    private var placesProcessed = 0
+    private var distinctPlacesProcessed = 0
+    
+    private var successCallback: Option[(Int, Int, Seq[String]) => Unit] = None
+    private var errorCallback: Option[String => Unit] = None
+    private var progressCallback: Option[Long => Unit] = None
+    
+    private def handleOne(place: Place) = {
+      val now = System.currentTimeMillis
+      
+      if (progressCallback.isDefined) {
+        if ((now - lastProgressTime) > 5000) 
+          progressCallback.get(placesProcessed)
+      }
+        
+      val isDistinct = addPlace(place, sourceGazetteer, uriPrefixes)
+      placesProcessed += 1
       if (isDistinct)
-        distinctNewPlaces += 1
+        distinctPlacesProcessed += 1
     }
     
-    val format = Scalagios.guessFormatFromFilename(filename)
-    if (format.isDefined) {
-      Scalagios.readPlacesFromStream(is, format.get, placeHandler, true)
-      (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
-    } else {
-      throw new RuntimeException("Could not determine format for file " + filename)
+    def run() {
+      val format = Scalagios.guessFormatFromFilename(filename)
+      if (format.isDefined) {
+        Scalagios.readPlacesFromStream(is, format.get, handleOne, true)
+        if (successCallback.isDefined)
+          successCallback.get(placesProcessed, distinctPlacesProcessed, uriPrefixes.toSeq)
+      } else {
+        if (errorCallback.isDefined)
+          errorCallback.get("Could not determine format for file " + filename)
+      }
     }
+    
+    def success(callback: (Int, Int, Seq[String]) => Unit) =
+      successCallback = Some(callback)
+      
+    def error(callback: String => Unit) =
+      errorCallback = Some(callback)
+    
+    def progress(callback: Long => Unit) =
+      progressCallback = Some(callback)
+      
   }
   
-  private def addPlace(place: Place, sourceGazetteer: String, uriPrefixes: Set[String], indexWriter: IndexWriter, taxonomyWriter: TaxonomyWriter): Boolean = {
+  def addPlaceStream(is: InputStream, filename: String, sourceGazetteer: String): (Int, Int, Seq[String]) = {   
+    val handler = new PlaceStreamImporter(is, filename, sourceGazetteer)
+    
+    var totalPlaces = 0
+    var distinctNewPlaces = 0
+    var uriPrefixes = Seq.empty[String]
+    
+    handler.success((placesProcessed, distinctPlacesProcessed, prefixes) => {
+      totalPlaces = placesProcessed
+      distinctNewPlaces = distinctPlacesProcessed
+      uriPrefixes = prefixes.toSeq
+    }) 
+    
+    handler.error(message => throw new RuntimeException(message))
+    
+    // Blocking execution
+    handler.run()
+    
+    (totalPlaces, distinctNewPlaces, uriPrefixes.toSeq)
+  }
+  
+  def addPlaceStreamAsync(is: InputStream, filename: String, sourceGazetteer: String): PlaceStreamImporter = 
+    new PlaceStreamImporter(is, filename, sourceGazetteer)
+  */
+  
+  def addPlace(place: Place, sourceGazetteer: String, uriPrefixes: Set[String]): Boolean = {
       val normalizedUri = Index.normalizeURI(place.uri)
       
       // Enforce uniqueness
@@ -92,22 +162,22 @@ trait PlaceWriter extends PlaceReader {
         val allMatches = indexedMatches ++ indirectlyConnectedPlaces
 
         // Update the index
-        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allMatches.distinct, indexWriter, taxonomyWriter);
+        updateIndex(IndexedPlace.toIndexedPlace(place, sourceGazetteer), allMatches.distinct)
         
         // If this place didn't have any closeMatches at all, it's a new distinct contribution
         allMatches.size == 0
       }      
   }
   
-  private def updateIndex(place: IndexedPlace, affectedNetworks: Seq[IndexedPlaceNetwork], indexWriter: IndexWriter, taxonomyWriter: TaxonomyWriter) = {
+  private def updateIndex(place: IndexedPlace, affectedNetworks: Seq[IndexedPlaceNetwork]) = {
     // Delete affected networks from index
     affectedNetworks.foreach(network => 
-      indexWriter.deleteDocuments(new TermQuery(new Term(IndexFields.ID, network.seedURI))))
+      placeWriter.deleteDocuments(new TermQuery(new Term(IndexFields.ID, network.seedURI))))
 
     // Add the place and write updated network to index
     val updatedNetwork = IndexedPlaceNetwork.join(place, affectedNetworks)
     
-    indexWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, updatedNetwork.doc))    
+    placeWriter.addDocument(Index.facetsConfig.build(taxonomyWriter, updatedNetwork.doc))    
     
     // TODO update annotated things with new joined network UUID!
   }

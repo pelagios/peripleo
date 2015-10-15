@@ -1,16 +1,15 @@
 package controllers.admin
 
+import java.io.File
+import global.Global
+import ingest.harvest.GazetteerImporter
 import models.geo.{ Gazetteers, Gazetteer }
 import play.api.db.slick._
 import play.api.mvc.Controller
 import play.api.Logger
-import global.Global
+import play.api.libs.Files
 import play.api.libs.json.Json
-import java.util.zip.GZIPInputStream
-import java.io.FileInputStream
-import java.sql.Date
-import models.ImportStatus
-import ingest.harvest.GazetteerImporter
+import play.api.libs.concurrent.Execution.Implicits._
 
 object GazetteerAdminController extends BaseUploadController with Secured {
   
@@ -44,13 +43,24 @@ object GazetteerAdminController extends BaseUploadController with Secured {
       Ok(Json.parse("{ \"message\": \"Not implemented yet.\" }"))   
     } else {
       processUpload("rdf", requestWithSession, { filepart => {
-        val file = filepart.ref.file      // The file
+        // Original name of the uploaded file
         val filename = filepart.filename
-        val gazetteerName = filename.substring(0, filename.indexOf("."))
-
-        Logger.info("Importing gazetteer '" + gazetteerName + "' from " + filename)
+        val gazetteerName = filename.substring(0, filename.indexOf("."))        
         
-        GazetteerImporter.importDataDump(file.getAbsolutePath, gazetteerName, Some(filename))
+        // Play apparently removes the file after first read... But ingest will 
+        // need to read the file twice (once to count the places, second to import 
+        // them) so we create a copy here  
+        val tempFile = filepart.ref.file
+        val copy = new File(tempFile.getAbsolutePath + "_cp")
+        Files.copyFile(tempFile, copy, true, true)
+        
+        val importer = new GazetteerImporter(Global.index)
+        val future = importer.importDataFileAsync(copy.getAbsolutePath, gazetteerName, Some(filename))
+        future.onComplete(_ => {
+          Logger.info("Deleting file " + copy.getAbsolutePath)
+          copy.delete() 
+        })
+        
         Redirect(routes.GazetteerAdminController.index).flashing("success" -> { "Import in progress." })      
       }})
     }
