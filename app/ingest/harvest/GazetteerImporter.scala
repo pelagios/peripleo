@@ -124,8 +124,11 @@ class GazetteerImporter(index: Index) {
       // Step 3: import - update status in DB at regular intervals
       val (placesIngested, distinctNewPlaces, uriPrefixes) =
         ingestDump(file, gazetteerName, origFilename, totalPlacesInDump)
-    
-      // Step 4: update gazetteer record in DB
+        
+      // Step 4: refresh index readers
+      index.refresh()
+      
+      // Step 5: update gazetteer record in DB
       updateImportStatus(gazetteerName, ImportStatus.COMPLETE, Some(1.0), None, Some(placesIngested))
       setURIPrefixes(gazetteerName, uriPrefixes)
     } catch {
@@ -138,8 +141,8 @@ class GazetteerImporter(index: Index) {
       
   }
   
-  def importDataFileAsync(path: String, gazetteerName: String, origFilename: Option[String] = None) = Future {
-    importDataFile(path, gazetteerName, origFilename)     
+  def importDataFileAsync(path: String, gazetteerName: String, origFilename: Option[String]): Future[Unit] = Future {
+    importDataFile(path, gazetteerName, origFilename)
   } 
   
 }

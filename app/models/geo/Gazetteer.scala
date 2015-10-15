@@ -4,6 +4,7 @@ import java.sql.Timestamp
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.{ Tag => SlickTag }
 import models.ImportStatus
+import play.api.Logger
 
 /** Gazetteer model entity **/
 case class Gazetteer(
@@ -105,7 +106,7 @@ object Gazetteers {
   
   def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Seq[(Gazetteer, Seq[String])] = {
     val query = for {
-      (g, p) <- queryGazetteers.drop(offset).take(limit) outerJoin queryGazetteerPrefixes on (_.name === _.gazetteer)   
+      (g, p) <- queryGazetteers.drop(offset).take(limit) leftJoin queryGazetteerPrefixes on (_.name === _.gazetteer)   
     } yield (g, p.prefix.?)
     
     query.list.groupBy(_._1).mapValues(_.flatMap(_._2)).toSeq  
@@ -124,12 +125,12 @@ object Gazetteers {
     
   def findByNameWithPrefixes(name: String)(implicit s: Session): Option[(Gazetteer, Seq[String])] = {
     val query = for {
-      (g, p) <- queryGazetteers.where(_.name.toLowerCase === name.toLowerCase) outerJoin queryGazetteerPrefixes on (_.name === _.gazetteer)   
+      (g, p) <- queryGazetteers where (_.name.toLowerCase === name.toLowerCase) leftJoin queryGazetteerPrefixes on (_.name === _.gazetteer)   
     } yield (g, p.prefix.?)
-    
+
     val result = query.list
     if (result.size > 0)
-      Some((result.head._1, result.flatMap(_._2)))
+      Some(result.head._1, result.flatMap(_._2))
     else
       None
   }
