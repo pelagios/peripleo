@@ -105,11 +105,10 @@ object Gazetteers {
   
   def listAll(offset: Int = 0, limit: Int = Int.MaxValue)(implicit s: Session): Seq[(Gazetteer, Seq[String])] = {
     val query = for {
-      gazetteer <- queryGazetteers.drop(offset).take(limit)   
-      prefix <- queryGazetteerPrefixes if gazetteer.name === prefix.gazetteer
-    } yield (gazetteer, prefix)
+      (g, p) <- queryGazetteers.drop(offset).take(limit) outerJoin queryGazetteerPrefixes on (_.name === _.gazetteer)   
+    } yield (g, p.prefix.?)
     
-    query.list.groupBy(_._1).mapValues(_.map(_._2.prefix)).toSeq  
+    query.list.groupBy(_._1).mapValues(_.flatMap(_._2)).toSeq  
   }
   
   def delete(name: String)(implicit s: Session)= {
@@ -122,6 +121,18 @@ object Gazetteers {
    
   def findByName(name: String)(implicit s: Session): Option[Gazetteer] =
     queryGazetteers.where(_.name.toLowerCase === name.toLowerCase).firstOption
+    
+  def findByNameWithPrefixes(name: String)(implicit s: Session): Option[(Gazetteer, Seq[String])] = {
+    val query = for {
+      (g, p) <- queryGazetteers.where(_.name.toLowerCase === name.toLowerCase) outerJoin queryGazetteerPrefixes on (_.name === _.gazetteer)   
+    } yield (g, p.prefix.?)
+    
+    val result = query.list
+    if (result.size > 0)
+      Some((result.head._1, result.flatMap(_._2)))
+    else
+      None
+  }
   
   def findByURI(uri: String)(implicit s: Session): Option[Gazetteer] = {
     val prefix = queryGazetteerPrefixes.list.find(p => uri.startsWith(p.prefix))

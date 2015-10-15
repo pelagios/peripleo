@@ -56,11 +56,5 @@ object GazetteerAdminController extends BaseUploadController with Secured {
       }})
     }
   }
-  
-  def queryStatus(gazetteerName: String) = adminAction { username => implicit requestWithSession =>
-    val progress = 0 // GazetteerImporter.getProgress(gazetteerName)
-    Logger.info("Progress: " + (progress * 100) + "%")
-    Ok(Json.parse("{ \"progress\": " + progress + " }"))
-  }
 
 }
