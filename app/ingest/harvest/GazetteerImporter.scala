@@ -75,7 +75,7 @@ class GazetteerImporter(index: Index) {
     var distinctNewPlaces = 0
     
     // Time when last status update was written to DB
-    var lastStatusUpdateTime = 0
+    var lastStatusUpdateTime = 0l
     
     def placeHandler(place: Place): Unit = {
       // Add place
@@ -92,6 +92,7 @@ class GazetteerImporter(index: Index) {
           
         val progress = placesIngested.toDouble / totalPlacesInDump
         updateImportStatus(gazetteerName, ImportStatus.IMPORTING, Some(progress), None, Some(placesIngested))
+        lastStatusUpdateTime = System.currentTimeMillis
       }
     }
     
