@@ -1,4 +1,4 @@
-@(gazetteers: Seq[models.geo.Gazetteer])(implicit flash: Flash, s: play.api.db.slick.Config.driver.simple.Session)
+@()
 <html>
   <head>
     <title>Pelagios API » Admin » Gazetteers</title>
@@ -6,28 +6,114 @@
     <script type="text/javascript" src="@routes.Assets.at("javascripts/admin-utils.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/admin/main.css")" />
     <script type="text/javascript">
-      function deleteGazetteer(name) {
-        $.ajax({
-          type: 'DELETE',
-          url: '@controllers.admin.routes.GazetteerAdminController.index/' + name,
-          success: function(result) { location.href = '@controllers.admin.routes.GazetteerAdminController.index'; },
-          error: function(result) { console.log(result); }
-        });
-      }
+      jQuery(document).ready(function() {
+
+        var BASE_URL = '@controllers.routes.PlaceController.listGazetteers(Int.MaxValue, 0)',
+
+            meterTemplate = '<div class="meter"><div class="bar"></div></div>',
+
+            tableBody = jQuery('.list tbody'),
+
+            gazetteers = {},
+
+            deleteGazetteer = function(gazetteer) {
+              jQuery.ajax({
+                type: 'DELETE',
+                url: '@controllers.admin.routes.GazetteerAdminController.index/' + gazetteer.name,
+                success: function(result) {
+                  location.href = '@controllers.admin.routes.GazetteerAdminController.index';
+                },
+                error: function(result) {
+                  console.log(result);
+                }
+              });
+            },
+
+            createStatusField = function(gazetteer) {
+              var meter;
+
+              if (gazetteer.import_status === 'IMPORT_COMPLETE') {
+                return 'OK'; // TODO replace with green checkmark icon
+              } else if (gazetteer.import_status === 'IMPORT_FAILED') {
+                return 'FAILED'; // TODO replace with red X icon
+              } else if (gazetteer.import_status === 'PENDING') {
+                return 'PENDING'; // TODO replace with wait spinner
+              } else if (gazetteer.import_status === 'DOWNLOADING') {
+                return 'DOWNLOADING'; // TODO replace with empty bar and message
+              } else if (gazetteer.import_status === 'IMPORTING') {
+                meter = jQuery(meterTemplate);
+                meter.find('.bar').css('width', gazetteer.import_progress * 100 + '%');
+                return meter;
+              } else {
+                // Just in case we have others in the future
+                return gazetteer.import_status;
+              }
+            },
+
+            addGazetteer = function(gazetteer) {
+              var row = jQuery(
+                    '<tr class="' + gazetteer.name + '">' +
+                      '<td>' + gazetteer.name + '</td>' +
+                      '<td class="total-places">' + gazetteer.total_places + '</td>' +
+                      '<td>' + new Date(gazetteer.last_update) + '</td>' +
+                      '<td class="status"></td>' +
+                      '<td class="right">' +
+                        '<button class="button small" title="Re-Harvest Gazetteer">' +
+                          '<span class="icon">&#xf01e;</span>' +
+                        '</button>' +
+                        '<button class="button small red delete" title="Drop Gazetteer">' +
+                           '<span class="icon">&#xf05e;</span>' +
+                        '</button>' +
+                      '</td>' +
+                    '</tr>');
+
+              row.find('.status').html(createStatusField(gazetteer));
+              row.find('.button.delete').click(function() { deleteGazetteer(gazetteer); });
+              tableBody.append(row);
+
+              gazetteers[gazetteer.name] = gazetteer;
+            },
+
+            updateRow = function(currentState, newState) {
+              var row = jQuery('tr.' + currentState.name);
+
+              if (currentState.total_places !== newState.total_places) {
+                row.find('.total-places').html(newState.total_places);
+              }
+
+              if (currentState.import_status !== newState.import_status) {
+                row.find('.status').html(createStatusField(newState));
+              } else if (currentState.import_progress !== newState.import_progress) {
+                // Status is the same, but progress may have changed
+                row.find('.status .bar').css('width', newState.import_progress * 100);
+              }
+
+              gazetteers[currentState.name] = newState;
+            },
+
+            refresh = function() {
+              jQuery.getJSON(BASE_URL, function(data) {
+                jQuery.each(data, function(idx, gazetteer) {
+                  var currentState = gazetteers[gazetteer.name];
+                  if (currentState) {
+                    updateRow(currentState, gazetteer);
+                  } else {
+                    // This gazetteer is not in the list - add it
+                    addGazetteer(gazetteer);
+                  }
+                });
+              });
+            };
+
+        util.enableUploads();
+        refresh();
+        setInterval(refresh, 3000);
+      });
     </script>
   </head>
-  
+
   <body>
-    <div id="content">    
-      @flash.get("error").map { message =>
-        <h2>Something's wrong with your uploaded file.</h2>
-        <div class="error">@Html(message)</div>
-      }
-      
-      @flash.get("success").map { message =>
-        <div class="success">@message</div>
-      }
-      
+    <div id="content">
       <div id="admin-actions">
         <h4>Import Gazetteer</h4>
         <ul>
@@ -35,41 +121,23 @@
           <li><a href="#" onclick="return false;" class="register-url">Fetch RDF from URL</a></li>
         </ul>
       </div>
-    
+
       @helper.form(action = controllers.admin.routes.GazetteerAdminController.uploadGazetteerDump(), 'enctype -> "multipart/form-data") {
         <input type="file" id="upload-dump" name="rdf">
       }
-      
+
       <table class="list">
         <thead>
           <tr>
             <th>Name</th>
             <th>Total Places</th>
+            <th>Last Update</th>
+            <th>Import Status</th>
             <th></th> <!-- Actions -->
           </tr>
         </thead>
-        <tbody>
-          @for(gazetteer <- gazetteers) {
-          	<tr>
-              <td>@gazetteer.name</a></td>
-              <td>@gazetteer.totalPlaces</td>
-              <td class="right">
-                <button class="button small" title="Re-Harvest Gazetteer"><span class="icon">&#xf01e;</span></button>
-                <button class="button small red" onclick="deleteGazetteer('@gazetteer.name');" title="Drop Gazetteer"><span class="icon">&#xf05e;</span></button>
-                
-		        @*helper.form(action = controllers.admin.routes.DatasetAdminController.uploadAnnotations(dataset.id), 'enctype -> "multipart/form-data") {
-                  <input type="file" id="import-annotations" name="annotations">
-                }*@
-              </td>
-            </tr>
-          }
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
-    <script>
-      (function() {
-        util.enableUploads();
-      })();
-    </script>
   </body>
 </html>

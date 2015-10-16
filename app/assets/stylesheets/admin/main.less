@@ -7,20 +7,20 @@ input[type=file] {
 
 #content {
   padding:20px 30px;
- 
+
   .error {
     background-color: #f2dede;
-    color: #a94442;  
+    color: #a94442;
     padding:15px;
     border-left:3px solid #a94442;
-    
+
     p {
       padding:8px 0 0 0;
       margin:0;
     }
-    
+
   }
-  
+
   .success {
     background-color: #dff0d8;
     color: #3c763d;
@@ -33,13 +33,13 @@ input[type=file] {
     padding:20px;
     background-color:#fcf8f2;
     border-left:3px solid #f0ad4e;
-    
+
     h4 {
       font-size:18px;
       display:inline;
       color:#f0ad4e;
     }
-    
+
     ul {
       position:relative;
       bottom:1px;
@@ -55,7 +55,7 @@ input[type=file] {
       text-indent:0;
       color:#f0ad4e;
     }
-    
+
     li a {
       color:#f0ad4e;
       font-size:13px;
@@ -66,28 +66,43 @@ input[type=file] {
       content:'\f0fe';
       padding:0 10px 0 5px;
     }
-    
+
     button {
       margin-right:20px;
     }
-    
+
   } /** #admin-actions **/
-  
+
   table.list {
     width:100%;
-  
+
     td {
 
       form { display:none; }
-    
+
     } /** td **/
 
     .icon.plus { cursor: pointer; }
-    
+
     .icon.plus:after { content:'\f196'; }
 
     .icon.plus.less:after { content: '\f147'; }
-  
+
+    .meter {
+      width:180px;
+      white-space:nowrap;
+
+      .bar {
+        .rounded-corners(3px);
+        .gradient(#ff9c00, #c67900);
+        display:inline-block;
+        height:10px;
+        background-color:#2a4c77;
+      }
+
+    } /* .meter */
+
+
   } /** table.list **/
 
 }

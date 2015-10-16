@@ -14,7 +14,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 object GazetteerAdminController extends BaseUploadController with Secured {
   
   def index = adminAction { username => implicit requestWithSession =>
-    Ok(views.html.admin.gazetteers(Gazetteers.listAll().map(_._1)))
+    Ok(views.html.admin.gazetteers())
   }
   
   def deleteGazetteer(name: String) = adminAction { username => implicit requestWithSession =>
