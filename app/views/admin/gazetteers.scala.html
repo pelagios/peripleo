@@ -3,6 +3,8 @@
   <head>
     <title>Pelagios API » Admin » Gazetteers</title>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/jquery-1.9.0.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/numeral.min.js")"></script>
+    <script type="text/javascript" src="@routes.Assets.at("javascripts/lib/moment.min.js")"></script>
     <script type="text/javascript" src="@routes.Assets.at("javascripts/admin-utils.js")"></script>
     <link rel="stylesheet" href="@routes.Assets.at("stylesheets/admin/main.css")" />
     <script type="text/javascript">
@@ -10,7 +12,7 @@
 
         var BASE_URL = '@controllers.routes.PlaceController.listGazetteers(Int.MaxValue, 0)',
 
-            meterTemplate = '<div class="meter"><div class="bar"></div></div>',
+            meterTemplate = '<div class="meter"><div class="bar"></div><span class="label"/></div>',
 
             tableBody = jQuery('.list tbody'),
 
@@ -30,19 +32,21 @@
             },
 
             createStatusField = function(gazetteer) {
-              var meter;
+              var progress = Math.round(gazetteer.import_progress * 100) + '%',
+                  meter;
 
               if (gazetteer.import_status === 'IMPORT_COMPLETE') {
-                return 'OK'; // TODO replace with green checkmark icon
+                return '<span class="status ok" title="Import completed"/>';
               } else if (gazetteer.import_status === 'IMPORT_FAILED') {
-                return 'FAILED'; // TODO replace with red X icon
+                return '<span class="status failed" title="Import failed"/>';
               } else if (gazetteer.import_status === 'PENDING') {
-                return 'PENDING'; // TODO replace with wait spinner
+                return '<span class="status pending" title="Preparing ingest..."/>';
               } else if (gazetteer.import_status === 'DOWNLOADING') {
                 return 'DOWNLOADING'; // TODO replace with empty bar and message
               } else if (gazetteer.import_status === 'IMPORTING') {
                 meter = jQuery(meterTemplate);
-                meter.find('.bar').css('width', gazetteer.import_progress * 100 + '%');
+                meter.find('.bar').css('width', progress);
+                meter.find('.label').html(progress);
                 return meter;
               } else {
                 // Just in case we have others in the future
@@ -54,8 +58,10 @@
               var row = jQuery(
                     '<tr class="' + gazetteer.name + '">' +
                       '<td>' + gazetteer.name + '</td>' +
-                      '<td class="total-places">' + gazetteer.total_places + '</td>' +
-                      '<td>' + new Date(gazetteer.last_update) + '</td>' +
+                      '<td class="total-places center">' +
+                        numeral(gazetteer.total_places).format('0,0') +
+                      '</td>' +
+                      '<td>' + moment(new Date(gazetteer.last_update)).format('lll') + '</td>' +
                       '<td class="status"></td>' +
                       '<td class="right">' +
                         '<button class="button small" title="Re-Harvest Gazetteer">' +
@@ -78,7 +84,8 @@
               var row = jQuery('tr.' + currentState.name);
 
               if (currentState.total_places !== newState.total_places) {
-                row.find('.total-places').html(newState.total_places);
+                row.find('.total-places')
+                   .html(numeral(newState.total_places).format('0,0'));
               }
 
               if (currentState.import_status !== newState.import_status) {
@@ -130,7 +137,7 @@
         <thead>
           <tr>
             <th>Name</th>
-            <th>Total Places</th>
+            <th class="center">Total Places</th>
             <th>Last Update</th>
             <th>Import Status</th>
             <th></th> <!-- Actions -->

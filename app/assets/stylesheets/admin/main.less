@@ -82,26 +82,65 @@ input[type=file] {
 
     } /** td **/
 
+    td.center, th.center {
+      text-align:center;
+    }
+
     .icon.plus { cursor: pointer; }
 
     .icon.plus:after { content:'\f196'; }
 
     .icon.plus.less:after { content: '\f147'; }
 
+    span.status:after {
+      font-family: "Font Awesome";
+      width:16px;
+      text-align:center;
+    }
+
+    span.status.ok:after {
+      content:'\f00c';
+      color:#01a109;
+    }
+
+    span.status.failed:after {
+      content:'\f00d';
+      color:#c90d0d;
+    }
+
+    span.status.pending:after {
+      content:url('/peripleo/static/images/wait-anim-fb.gif');
+      height:16px;
+    }
+
     .meter {
       width:180px;
       white-space:nowrap;
+      position:relative;
+      .rounded-corners(3px);
+      .gradient(#ccc, #eee);
 
       .bar {
         .rounded-corners(3px);
-        .gradient(#ff9c00, #c67900);
+        .gradient(#83c783, #008a00);
         display:inline-block;
         height:10px;
         background-color:#2a4c77;
       }
 
+      .label {
+        position:absolute;
+        width:50px;
+        text-align:center;
+        right:-50px;
+        margin-top:-3px;
+      }
+
     } /* .meter */
 
+    button {
+      margin:0 2px;
+    }
 
   } /** table.list **/
 
