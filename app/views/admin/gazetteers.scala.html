@@ -81,7 +81,8 @@
             },
 
             updateRow = function(currentState, newState) {
-              var row = jQuery('tr.' + currentState.name);
+              var row = jQuery('tr.' + currentState.name),
+                  progress = Math.round(newState.import_progress * 100) + '%';
 
               if (currentState.total_places !== newState.total_places) {
                 row.find('.total-places')
@@ -92,7 +93,8 @@
                 row.find('.status').html(createStatusField(newState));
               } else if (currentState.import_progress !== newState.import_progress) {
                 // Status is the same, but progress may have changed
-                row.find('.status .bar').css('width', newState.import_progress * 100);
+                row.find('.status .bar').css('width', progress);
+                row.find('.label').html(progress);
               }
 
               gazetteers[currentState.name] = newState;
