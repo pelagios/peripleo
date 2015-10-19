@@ -1,34 +1,34 @@
 define(function() {
-  
-  var METER_TEMPLATE = 
+
+  var METER_TEMPLATE =
     '<li>' +
     '  <div class="meter"><div class="bar"></div><div class="label"></div></div>' +
     '</li>';
-  
+
   var Formatting = {
-    
+
     /** Runs numeral.js over all elements with CSS class 'number'.
-     * 
+     *
      * If no DOM element is provided, the function will run over the entire page.
      */
     formatNumbers: function(opt_parent) {
-      var elements = (opt_parent) ? $(opt_parent).find('.number') : $('.number');	
+      var elements = (opt_parent) ? $(opt_parent).find('.number') : $('.number');
       $.each(elements, function(idx, el) {
         var formatted = numeral($(el).text()).format('0,0');
         $(el).html(formatted);
       });
     },
-    
+
     /** Formats a single number on demand **/
     formatNumber: function(n) {
       return numeral(n).format('0,0');
     },
-    
+
     /** Helper to format an integer year for screen display **/
-    formatYear: function(year) { 
-      if (year < 0) return -year + ' BC'; else return year + ' AD'; 
+    formatYear: function(year) {
+      if (year < 0) return -year + ' BC'; else return year + ' AD';
     },
-    
+
     /** Creates a 'shortcode label' from a gazetteer URI **/
     formatGazetteerURI: function(uri) {
       var prefix, gazId;
@@ -54,48 +54,51 @@ define(function() {
       } else if (uri.indexOf('http://www.trismegistos.org/place/') === 0) {
         prefix = 'trismegistos';
         gazId = uri.substr(34);
+      } else if (uri.indexOf('http://nomisma.org/') === 0) {
+        prefix = 'nomisma';
+        gazId = uri.substr(22);
       } else {
         // Bit of a hack...
         prefix = 'http';
         gazId = uri.substr(5);
       }
- 
-      return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + gazId + '</a>'; 
+
+      return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + gazId + '</a>';
     },
-    
+
     /** Creates a nice & short representation for a source URL **/
     formatSourceURL: function(url) {
       var urlWithoutProtocol = (url.indexOf('http') === 0) ? url.substring(url.indexOf(':') + 3) : url;
-      if (urlWithoutProtocol.indexOf('/') > 0) 
+      if (urlWithoutProtocol.indexOf('/') > 0)
         return '<a target="_blank" href="' + url + '">' + urlWithoutProtocol.substring(0, urlWithoutProtocol.indexOf('/')) + '</a>';
       else
         return '<a target="_blank" href="' + url + '">' + urlWithoutProtocol + '</a>';
     },
-    
+
     shortenPlacename: function(placename) {
       var splitCharacters = [',', ';', '/'],
           splitIndices = jQuery.map(splitCharacters, function(c) { return placename.indexOf(c); }),
           validSplitIndices = jQuery.grep(splitIndices, function(idx) { return idx > -1; }).sort();
 
-      if (validSplitIndices.length > 0) 
+      if (validSplitIndices.length > 0)
         return placename.substring(0, validSplitIndices[0]);
       else
         return placename;
     },
-    
+
     createMeter: function(label, tooltip, percentage) {
       var row = jQuery(METER_TEMPLATE),
           bar = row.find('.bar');
-            
+
       bar.css('width', percentage + '%');
       bar.attr('title', tooltip);
       row.find('.label').html(label);
-      
+
       return row;
     }
-    
+
   };
-  
+
   return Formatting;
-  
+
 });
