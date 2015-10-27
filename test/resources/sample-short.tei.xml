@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader>
+    <fileDesc>
+      <titleStmt>
+        <title>Krieg gegen Terror Bush erwartet von Nato-Verbündeten Unterstützung</title>
+      </titleStmt>
+      <publicationStmt>
+        <p>Not for re-distribution. Crawled on <date when="2014-09-09T13:03:57Z">2014-09-09T13:03:57Z</date><link target="http://172.20.30.62:12060/repository/record/USER.http%3A%2F%2Fwww%5C.faz%5C.net%2Faktuell%2Fpolitik%2Fkrieg-gegen-terror-bush-erwartet-von-nato-verbuendeten-unterstuetzung-181502%5C.html"/></p>
+      </publicationStmt>
+      <sourceDesc>
+        <p>Orginal publication date <pubdate when="2002-11-19T23:00:00Z"/><link target="http://www.faz.net/aktuell/politik/krieg-gegen-terror-bush-erwartet-von-nato-verbuendeten-unterstuetzung-181502.html"/></p>
+      </sourceDesc>
+    </fileDesc>
+  </teiHeader>
+  <text>
+    <body>
+      <p>In this way, the Persians say (and not as the Greeks), was how Io came to
+        <placeName ref="http://pleiades.stoa.org/places/766">Egypt</placeName>, and this,
+        according to them, was the first wrong that was done. Next, according to their
+        story, some Greeks (they cannot say who) landed at
+        <placeName ref="http://pleiades.stoa.org/places/678437">Tyre</placeName> in
+        <placeName ref="http://pleiades.stoa.org/places/678334">Phoenicia</placeName> and carried
+        off the king's daughter Europa.</p>
+    </body>
+  </text>
+</TEI>
