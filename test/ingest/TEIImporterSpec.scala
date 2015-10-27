@@ -15,7 +15,7 @@ import play.api.db.slick._
 @RunWith(classOf[JUnitRunner])
 class TEIImporterTest extends Specification  {
   
-  val TEST_FILE = "test/resources/sample.tei.xml"
+  val TEST_FILE = "test/resources/sample-short.tei.xml"
 
   "TEIImporter.importTEI" should {
     
