@@ -29,7 +29,7 @@ class TEIImporterTest extends Specification  {
             now, now, None, None, None, None, None, None, None, None)   
        
         DB.withSession { implicit session: Session =>
-          TEImporter.importTEI(Source.fromFile(TEST_FILE, "UTF-8"), dataset)
+          TEIImporter.importTEI(Source.fromFile(TEST_FILE, "UTF-8"), dataset)
         }
       
         (1) must equalTo (1)

@@ -14,6 +14,7 @@ object DatasetAdminController extends BaseUploadController with Secured {
   
   private val UTF8 = "UTF-8"
   private val CSV = "csv"
+  private val TEIXML = "tei.xml"
   private val TMP_DIR = System.getProperty("java.io.tmpdir")
   
   def index = adminAction { username => implicit requestWithSession =>
@@ -91,6 +92,8 @@ object DatasetAdminController extends BaseUploadController with Secured {
       if (dataset.isDefined) {
         if (filepart.filename.endsWith(CSV))
           CSVImporter.importRecogitoCSV(Source.fromFile(filepart.ref.file, UTF8), dataset.get)
+        else if (filepart.filename.endsWith(TEIXML)) 
+          TEIImporter.importTEI(Source.fromFile(filepart.ref.file, UTF8), dataset.get)
         else
           PelagiosOAImporter.importPelagiosAnnotations(filepart.ref, filepart.filename, dataset.get)
         Redirect(routes.DatasetAdminController.index).flashing("success" ->

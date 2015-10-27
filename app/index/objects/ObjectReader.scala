@@ -296,7 +296,7 @@ trait ObjectReader extends AnnotationReader {
     // Spatial filter
     val valuesource = {
       if (bbox.isDefined) {
-        q.add(Index.bboxStrategy.makeQuery(new SpatialArgs(SpatialOperation.BBoxWithin, bbox.get)), BooleanClause.Occur.MUST)
+        q.add(Index.bboxStrategy.makeQuery(new SpatialArgs(SpatialOperation.BBoxIntersects, bbox.get)), BooleanClause.Occur.MUST)
         Some(Index.bboxStrategy.makeOverlapRatioValueSource(bbox.get, 0.5))
       } else if (coord.isDefined) {
         val circle = Index.spatialCtx.makeCircle(coord.get.x, coord.get.y, DistanceUtils.dist2Degrees(radius.getOrElse(10), DistanceUtils.EARTH_MEAN_RADIUS_KM))

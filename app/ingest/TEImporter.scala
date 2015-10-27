@@ -8,7 +8,7 @@ import play.api.db.slick._
 import scala.io.Source
 import scala.xml.{ XML, Node, NodeSeq, Text }
 
-object TEImporter extends AbstractImporter {
+object TEIImporter extends AbstractImporter {
   
   /** Helper to clean up text extracted from XML **/
   private def trim(str: String): String = {
