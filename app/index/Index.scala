@@ -28,9 +28,9 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   
   private val objectIndex = FSDirectory.open(objectIndexDir)
   
-  private val taxonomyIndex = FSDirectory.open(taxonomyDir)
-  
   private val annotationIndex = FSDirectory.open(annotationDir)
+  
+  private val taxonomyIndex = FSDirectory.open(taxonomyDir)
   
   
   /** Index searcher managers **/  
@@ -55,11 +55,11 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
   protected lazy val objectWriter: IndexWriter =
     new IndexWriter(objectIndex, new IndexWriterConfig(analyzer))
   
-  protected lazy val taxonomyWriter: TaxonomyWriter = 
-    new DirectoryTaxonomyWriter(taxonomyIndex)
-  
   protected lazy val annotationWriter: IndexWriter = 
     new IndexWriter(annotationIndex, new IndexWriterConfig(analyzer))
+  
+  protected lazy val taxonomyWriter: TaxonomyWriter = 
+    new DirectoryTaxonomyWriter(taxonomyIndex)
   
   
   /** Returns the number of objects in the object index **/

@@ -46,9 +46,10 @@ trait ObjectWriter extends IndexBase {
   
   /** Removes the dataset (and all items inside it) from the index **/
   def dropDataset(id: String) = {
-    // Delete annotated things for this dataset
-    objectWriter.deleteDocuments(new Term(IndexFields.SOURCE_DATASET, id))
-      
+    // Delete things and annotations for this dataset
+    annotationWriter.deleteDocuments(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)))
+    objectWriter.deleteDocuments(new TermQuery(new Term(IndexFields.SOURCE_DATASET, id)))
+          
     // Delete the dataset
     val q = new BooleanQuery()
     q.add(new TermQuery(new Term(IndexFields.OBJECT_TYPE, IndexedObjectTypes.DATASET.toString)), BooleanClause.Occur.MUST)

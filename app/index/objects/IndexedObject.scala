@@ -96,17 +96,19 @@ object IndexedObject {
     places.foreach { case (network, uri) => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(uri), Field.Store.NO)) }
     
     // Detailed geometry (from network) as spatially indexed features
-    val geometries = places.filter(_._1.geometry.isDefined).map(_._1.geometry.get)
-    geometries.foreach(geom => Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geom)).foreach(doc.add(_)))
+    // val geometries = places.flatMap(_._1.geometry)
+    // geometries.foreach(geom => Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geom)).foreach(doc.add(_)))
+    
+    // Hull
+    thing.hull.map(hull => {
+      doc.add(new StoredField(IndexFields.GEOMETRY, hull.toString))
+      Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(hull.geometry)).foreach(doc.add(_))
+    })
     
     // Bounding box to enable efficient best-fit queries
-    val bbox = BoundingBox.fromGeometries(geometries)
-    bbox.map(b => 
+    thing.hull.map(_.bounds).map(b => 
       Index.bboxStrategy.createIndexableFields(Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
         .foreach(doc.add(_)))
-    
-    // Convex hull
-    thing.hull.map(cv => doc.add(new StoredField(IndexFields.GEOMETRY, cv.toString)))
     
     doc   
   }
