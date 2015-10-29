@@ -1,7 +1,8 @@
 package index.objects
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
-import com.vividsolutions.jts.geom.{ Geometry, GeometryCollection, GeometryFactory }
+import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 import index.Index
 import index.IndexFields
 import index.places.IndexedPlaceNetwork
@@ -14,6 +15,7 @@ import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.db.slick._
 import org.geotools.geojson.geom.GeometryJSON
 import play.api.Logger
+import org.geotools.geometry.jts.JTS
 
 case class IndexedObject(private val doc: Document) {
 
@@ -50,11 +52,11 @@ case class IndexedObject(private val doc: Document) {
 
 object IndexedObject {
   
-  private val geomFactory = new GeometryFactory()
-  
   private val DATASET_PATH_SEPARATOR = Character.toString(7.asInstanceOf[Char]) // Beep character
   
   private val DATASET_NAME_SEPARATOR = "#"
+  
+  private val POLYGON_SIMPLIFICATION_TOLERANCE = 3.0
   
   def toDoc(thing: AnnotatedThing, places: Seq[(IndexedPlaceNetwork, String)], images: Seq[Image], fulltext: Option[String], datasetHierarchy: Seq[Dataset]): Document = {
     val doc = new Document()
@@ -97,16 +99,14 @@ object IndexedObject {
     // Original place URIs from the annotations
     places.foreach { case (network, uri) => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(uri), Field.Store.NO)) }
     
-    // Detailed geometry (from network) as spatially indexed features
-    val geometries = places.flatMap(_._1.geometry)
-    if (geometries.size > 0) {
-      val union = new GeometryCollection(places.flatMap(_._1.geometry).toArray, geomFactory).union
-      Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(union)).foreach(doc.add(_))
-    }
-    
     // Hull
-    thing.hull.map(hull =>
-      doc.add(new StoredField(IndexFields.GEOMETRY, hull.toString)))
+    thing.hull.map(hull => {
+      doc.add(new StoredField(IndexFields.GEOMETRY, hull.toString))
+      
+      // For indexing, we simplify the hull since this yields better performance
+      val simplified = TopologyPreservingSimplifier.simplify(hull.geometry, POLYGON_SIMPLIFICATION_TOLERANCE)   
+      Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(simplified)).foreach(doc.add(_))
+    })
     
     // Bounding box to enable efficient best-fit queries
     thing.hull.map(_.bounds).map(b => 

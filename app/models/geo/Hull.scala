@@ -1,6 +1,6 @@
 package models.geo
 
-import com.vividsolutions.jts.geom.{ Geometry, GeometryCollection }
+import com.vividsolutions.jts.geom.{ Geometry, GeometryCollection, GeometryFactory }
 import com.vividsolutions.jts.algorithm.{ ConvexHull => JTSConvexHull }
 import index.places.IndexedPlaceNetwork
 import java.io.StringWriter
@@ -75,12 +75,14 @@ private object ConcaveHull {
   
   private val THRESHOLD = 2.0
   
+  private val SMOOTHING = 0.5 
+  
+  private val factory = new GeometryFactory
+  
   def compute(geometries: Seq[Geometry]): Option[Hull] = {
     if (geometries.size > 0) {
-      val factory = JTSFactoryFinder.getGeometryFactory()
-      val geomCollection = new GeometryCollection(geometries.toArray, factory)
-      val concaveHull = new org.opensphere.geometry.algorithm.ConcaveHull(geomCollection, THRESHOLD) 
-      Some(Hull(JTS.smooth(concaveHull.getConcaveHull(), 0.25)))
+      val union = new GeometryCollection(geometries.toArray, factory).buffer(0)
+      Some(Hull(JTS.smooth(union, SMOOTHING)))
     } else {
       None
     }
