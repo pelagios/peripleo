@@ -1,7 +1,7 @@
 package index.objects
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
-import com.vividsolutions.jts.geom.Geometry
+import com.vividsolutions.jts.geom.{ Geometry, GeometryCollection, GeometryFactory }
 import index.Index
 import index.IndexFields
 import index.places.IndexedPlaceNetwork
@@ -50,6 +50,8 @@ case class IndexedObject(private val doc: Document) {
 
 object IndexedObject {
   
+  private val geomFactory = new GeometryFactory()
+  
   private val DATASET_PATH_SEPARATOR = Character.toString(7.asInstanceOf[Char]) // Beep character
   
   private val DATASET_NAME_SEPARATOR = "#"
@@ -96,14 +98,15 @@ object IndexedObject {
     places.foreach { case (network, uri) => doc.add(new StringField(IndexFields.PLACE_URI, Index.normalizeURI(uri), Field.Store.NO)) }
     
     // Detailed geometry (from network) as spatially indexed features
-    // val geometries = places.flatMap(_._1.geometry)
-    // geometries.foreach(geom => Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(geom)).foreach(doc.add(_)))
+    val geometries = places.flatMap(_._1.geometry)
+    if (geometries.size > 0) {
+      val union = new GeometryCollection(places.flatMap(_._1.geometry).toArray, geomFactory).union
+      Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(union)).foreach(doc.add(_))
+    }
     
     // Hull
-    thing.hull.map(hull => {
-      doc.add(new StoredField(IndexFields.GEOMETRY, hull.toString))
-      Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(hull.geometry)).foreach(doc.add(_))
-    })
+    thing.hull.map(hull =>
+      doc.add(new StoredField(IndexFields.GEOMETRY, hull.toString)))
     
     // Bounding box to enable efficient best-fit queries
     thing.hull.map(_.bounds).map(b => 
