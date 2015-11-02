@@ -2,7 +2,6 @@ package index.objects
 
 import com.spatial4j.core.context.jts.JtsSpatialContext
 import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 import index.Index
 import index.IndexFields
 import index.places.IndexedPlaceNetwork
@@ -102,10 +101,7 @@ object IndexedObject {
     // Hull
     thing.hull.map(hull => {
       doc.add(new StoredField(IndexFields.GEOMETRY, hull.toString))
-      
-      // For indexing, we simplify the hull since this yields better performance
-      val simplified = TopologyPreservingSimplifier.simplify(hull.geometry, POLYGON_SIMPLIFICATION_TOLERANCE)   
-      Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(simplified)).foreach(doc.add(_))
+      Index.rptStrategy.createIndexableFields(Index.spatialCtx.makeShape(hull.geometry)).foreach(doc.add(_))
     })
     
     // Bounding box to enable efficient best-fit queries
@@ -148,6 +144,8 @@ object IndexedObjectTypes extends Enumeration {
   val ANNOTATED_THING = Value("Item")
   
   val PLACE = Value("Place")
+  
+  val ANNOTATION = Value("Annotation")
 
 }
 

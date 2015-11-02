@@ -126,6 +126,8 @@ object DatasetAdminController extends BaseUploadController with Secured {
         TEIImporter.importTEI(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
       else if (entry.getName.endsWith(CSV))
         CSVImporter.importRecogitoCSV(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
+      else // Temporary hack! Everything un-identified is treated as TEI
+        TEIImporter.importTEI(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
     })
   }
   

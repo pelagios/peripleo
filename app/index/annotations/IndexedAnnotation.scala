@@ -2,6 +2,7 @@ package index.annotations
 
 // import com.vividsolutions.jts.geom.Geometry
 import index.{ Index, IndexFields }
+import index.objects.IndexedObjectTypes
 import index.places.IndexedPlaceNetwork
 import java.util.UUID
 import models.core.{ Annotation, AnnotatedThing }
@@ -33,6 +34,7 @@ object IndexedAnnotation {
     
     // UUID, containing dataset & annotated thing
     doc.add(new StringField(IndexFields.ID, annotation.uuid.toString, Field.Store.YES))
+    doc.add(new StringField(IndexFields.OBJECT_TYPE, IndexedObjectTypes.ANNOTATION.toString, Field.Store.NO))
     doc.add(new StringField(IndexFields.SOURCE_DATASET, annotation.dataset, Field.Store.YES))
     doc.add(new StringField(IndexFields.ANNOTATION_THING, annotation.annotatedThing, Field.Store.YES))
     

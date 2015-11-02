@@ -128,6 +128,8 @@ trait ObjectReader extends AnnotationReader {
         baseSearchQuery.add(parser.parse(params.query.get), BooleanClause.Occur.MUST)  
       }
       
+      // If the search 
+      
       // ...but we only want to restrict the SEARCH by time interval - the histogram should count all the facets
       val timeHistogramFilter = 
         if (includeTimeHistogram)
@@ -249,9 +251,17 @@ trait ObjectReader extends AnnotationReader {
     if (onlyWithImages)
       q.add(new PrefixQuery(new Term(IndexFields.DEPICTION, "http")), BooleanClause.Occur.MUST)
       
-    // Object type and language filters
-    applyFacetFilter(objectTypes.map(_.toString), excludeObjectTypes.map(_.toString), IndexFields.OBJECT_TYPE, q)
+    // Language filter
     applyFacetFilter(languages, excludeLanguages, IndexFields.LANGUAGE, q)
+    
+    // Object type filter - note: if filter is set to specific type, we still want to include annotations
+    val correctedObjectTypes = 
+      if (objectTypes.size > 0)
+        objectTypes :+ IndexedObjectTypes.ANNOTATION
+      else
+        objectTypes
+        
+    applyFacetFilter(correctedObjectTypes.map(_.toString), excludeObjectTypes.map(_.toString), IndexFields.OBJECT_TYPE, q)
     
     // Source (dataset/gazetteer) filter
     if (datasets.size > 0 || gazetteers.size > 0) {

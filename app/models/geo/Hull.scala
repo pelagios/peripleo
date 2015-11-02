@@ -10,6 +10,7 @@ import play.api.Logger
 import play.api.libs.json.Json
 import play.api.db.slick.Config.driver.simple._
 import scala.collection.JavaConverters._
+import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 
 case class Hull(geometry: Geometry) {
   
@@ -75,14 +76,18 @@ private object ConcaveHull {
   
   private val THRESHOLD = 2.0
   
-  private val SMOOTHING = 0.5 
+  private val POLYGON_SIMPLIFICATION_TOLERANCE = 1.0
+  
+  private val SMOOTHING = 0.8 
   
   private val factory = new GeometryFactory
   
   def compute(geometries: Seq[Geometry]): Option[Hull] = {
     if (geometries.size > 0) {
       val union = new GeometryCollection(geometries.toArray, factory).buffer(0)
-      Some(Hull(JTS.smooth(union, SMOOTHING)))
+      val smoothed = JTS.smooth(union, SMOOTHING)
+      val simplified = TopologyPreservingSimplifier.simplify(smoothed, POLYGON_SIMPLIFICATION_TOLERANCE)   
+      Some(Hull(simplified))
     } else {
       None
     }

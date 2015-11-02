@@ -7,8 +7,13 @@ import models.geo.Hull
 import play.api.db.slick._
 import scala.io.Source
 import scala.xml.{ XML, Node, NodeSeq, Text }
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.GregorianCalendar
 
 object TEIImporter extends AbstractImporter {
+
+  private val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
   
   /** Helper to clean up text extracted from XML **/
   private def trim(str: String): String = {
@@ -70,6 +75,14 @@ object TEIImporter extends AbstractImporter {
     val title = (teiXml \\ "teiHeader" \\ "title").text
     val homepage = (teiXml \\ "teiHeader" \\ "sourceDesc" \\ "link").head.attribute("target").map(_.text)
     val thingId = sha256(dataset.id + " " + title + " " + homepage)
+    val timestamp = 
+      (teiXml \\ "sourceDesc" \\ "date").flatMap(_.attribute("when")).flatten.map(_.text)
+        .headOption.map(iso => dateFormat.parse(iso))
+        .map(date => { 
+          val cal = Calendar.getInstance()
+          cal.setTime(date)
+          cal.get(Calendar.YEAR)
+        })
     
     // Places & geographic hull
     val places = 
@@ -89,8 +102,8 @@ object TEIImporter extends AbstractImporter {
         None, // Description
         None, // isPartOf
         homepage, 
-        None, // TODO temporal bounds start
-        None, // TODO temporal bounds end
+        timestamp,
+        timestamp,
         hull)
     
     // Fulltext
