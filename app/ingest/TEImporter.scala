@@ -75,14 +75,18 @@ object TEIImporter extends AbstractImporter {
     val title = (teiXml \\ "teiHeader" \\ "title").text
     val homepage = (teiXml \\ "teiHeader" \\ "sourceDesc" \\ "link").head.attribute("target").map(_.text)
     val thingId = sha256(dataset.id + " " + title + " " + homepage)
-    val timestamp = 
-      (teiXml \\ "sourceDesc" \\ "date").flatMap(_.attribute("when")).flatten.map(_.text)
-        .headOption.map(iso => dateFormat.parse(iso))
-        .map(date => { 
-          val cal = Calendar.getInstance()
-          cal.setTime(date)
-          cal.get(Calendar.YEAR)
-        })
+    val timestamp =
+      try {
+        (teiXml \\ "sourceDesc" \\ "date").flatMap(_.attribute("when")).flatten.map(_.text)
+          .headOption.map(iso => dateFormat.parse(iso))
+          .map(date => { 
+            val cal = Calendar.getInstance()
+            cal.setTime(date)
+            cal.get(Calendar.YEAR)
+          })
+      } catch {
+        case t: Throwable => None
+      }
     
     // Places & geographic hull
     val places = 

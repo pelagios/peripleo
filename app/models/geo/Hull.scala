@@ -14,7 +14,7 @@ import com.vividsolutions.jts.simplify.TopologyPreservingSimplifier
 
 case class Hull(geometry: Geometry) {
   
-  lazy val bounds: BoundingBox = {
+  val bounds: BoundingBox = {
     val envelope = geometry.getEnvelopeInternal()
     BoundingBox(envelope.getMinX, envelope.getMaxX, envelope.getMinY, envelope.getMaxY)
   }
@@ -60,13 +60,20 @@ object Hull {
 private object ConvexHull {
   
   def compute(geometries: Seq[Geometry]): Option[Hull] = {
-    if (geometries.size > 0) {
-      val factory = JTSFactoryFinder.getGeometryFactory()
-      val mergedGeometry = factory.buildGeometry(geometries.asJava).union
-      val cvGeometry = new JTSConvexHull(mergedGeometry).getConvexHull()
-      Some(Hull(cvGeometry))
-    } else {
-      None
+    try {
+      if (geometries.size > 0) {
+        val factory = JTSFactoryFinder.getGeometryFactory()
+        val mergedGeometry = factory.buildGeometry(geometries.asJava).union
+        val cvGeometry = new JTSConvexHull(mergedGeometry).getConvexHull()
+        Some(Hull(cvGeometry))
+      } else {
+        None
+      }
+    } catch {
+      case t: Throwable => {
+        Logger.warn(t.getMessage)
+        None
+      }
     }
   }
     
@@ -83,13 +90,20 @@ private object ConcaveHull {
   private val factory = new GeometryFactory
   
   def compute(geometries: Seq[Geometry]): Option[Hull] = {
-    if (geometries.size > 0) {
-      val union = new GeometryCollection(geometries.toArray, factory).buffer(0)
-      val smoothed = JTS.smooth(union, SMOOTHING)
-      val simplified = TopologyPreservingSimplifier.simplify(smoothed, POLYGON_SIMPLIFICATION_TOLERANCE)   
-      Some(Hull(simplified))
-    } else {
-      None
+    try {
+      if (geometries.size > 0) {
+        val union = new GeometryCollection(geometries.toArray, factory).buffer(0)
+        val smoothed = JTS.smooth(union, SMOOTHING)
+        val simplified = TopologyPreservingSimplifier.simplify(smoothed, POLYGON_SIMPLIFICATION_TOLERANCE)   
+        Some(Hull(simplified))
+      } else {
+        None
+      }
+    } catch {
+      case t: Throwable => {
+        Logger.warn(t.getMessage)
+        None
+      }
     }
   }
   
