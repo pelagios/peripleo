@@ -26,6 +26,8 @@ case class IndexedObject(private val doc: Document) {
     
   val description: Option[String] = Option(doc.get(IndexFields.DESCRIPTION))
   
+  val fulltext: Option[String] = Option(doc.get(IndexFields.ITEM_FULLTEXT))
+  
   val datasetPath: Option[Seq[(String, String)]] = Option(doc.get(IndexFields.DATASET_HIERARCHY))
     .map(_.split(IndexedObject.DATASET_PATH_SEPARATOR).map(titleAndId => {
       val tuple = titleAndId.split(IndexedObject.DATASET_NAME_SEPARATOR)

@@ -20,6 +20,8 @@ import org.apache.lucene.spatial.prefix.tree.GeohashPrefixTree
 import play.api.Logger
 import org.apache.lucene.spatial.prefix.tree.DateRangePrefixTree
 import org.apache.lucene.spatial.bbox.BBoxStrategy
+import org.apache.lucene.search.TermQuery
+import org.apache.lucene.index.Term
 
 private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxonomyDir: Path, annotationDir: Path, spellcheckDir: Path) {  
     
@@ -75,6 +77,20 @@ private[index] class IndexBase(placeIndexDir: Path, objectIndexDir: Path, taxono
     val searcherAndTaxonomy = placeSearcherManager.acquire()
     try {
       searcherAndTaxonomy.searcher.getIndexReader().numDocs()
+    } finally {
+      placeSearcherManager.release(searcherAndTaxonomy)
+    }
+  }
+  
+  def findById(id: String): Option[IndexedObject] = {
+    val q = new TermQuery(new Term(IndexFields.ID, id))
+    
+    val searcherAndTaxonomy = objectSearcherManager.acquire()
+    val searcher = searcherAndTaxonomy.searcher
+    try {
+      val topDocs = searcher.search(q, 1)
+    
+      topDocs.scoreDocs.map(scoreDoc => new IndexedObject(searcher.doc(scoreDoc.doc))).headOption
     } finally {
       placeSearcherManager.release(searcherAndTaxonomy)
     }

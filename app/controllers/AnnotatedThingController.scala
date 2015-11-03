@@ -1,12 +1,12 @@
 package controllers
 
 import controllers.common.JSONWrites._
+import global.Global
 import models.Associations
 import models.adjacency.PlaceAdjacencys
 import models.core.{ Annotations, AnnotatedThings }
 import play.api.db.slick._
-import play.api.libs.json.{ Json, JsString, Writes }
-
+import play.api.libs.json.{ Json, JsObject, JsString, Writes }
 
 object AnnotatedThingController extends AbstractController {
       
@@ -31,10 +31,19 @@ object AnnotatedThingController extends AbstractController {
   
   def getAnnotatedThing(id: String) = DBAction { implicit session =>
     val thing = AnnotatedThings.findById(id)
-    if (thing.isDefined)
-      jsonOk(Json.toJson(thing.get), session.request)
-    else
+    if (thing.isDefined) {
+      // Hack
+      val fulltext = Global.index.findById(id).flatMap(_.fulltext)
+      val json = 
+        if (fulltext.isDefined)
+          Json.toJson(thing.get).as[JsObject] ++ Json.obj("fulltext" -> fulltext.get)
+        else
+          Json.toJson(thing.get)
+          
+      jsonOk(json, session.request)
+    } else {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
+    }
   }  
   
   def listSubThings(id: String, limit: Int, offset: Int) = loggingAction { implicit session =>
