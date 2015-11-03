@@ -121,13 +121,17 @@ object DatasetAdminController extends BaseUploadController with Secured {
     val zipFile = new ZipFile(file)
     val entries = zipFile.entries.asScala.toSeq.filter(!_.getName.startsWith("__MACOSX"))
     entries.foreach(entry => {
-      Logger.info("Importing " + entry.getName)
-      if (entry.getName.endsWith(TEIXML))
-        TEIImporter.importTEI(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
-      else if (entry.getName.endsWith(CSV))
-        CSVImporter.importRecogitoCSV(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
-      else // Temporary hack! Everything un-identified is treated as TEI
-        TEIImporter.importTEI(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
+      try {
+        Logger.info("Importing " + entry.getName)
+        if (entry.getName.endsWith(TEIXML))
+          TEIImporter.importTEI(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
+        else if (entry.getName.endsWith(CSV))
+          CSVImporter.importRecogitoCSV(Source.fromInputStream(zipFile.getInputStream(entry), UTF8), dataset)
+        else 
+          Logger.warn("Skipping - no suitable importer found")
+      } catch {
+        case t: Throwable => Logger.warn(t.getMessage)
+      }
     })
   }
   
