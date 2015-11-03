@@ -68,11 +68,13 @@ trait ObjectReader extends AnnotationReader {
     }
   }
   
-  private def expandPlaceFilter(uri: String): Seq[String] = {
-    Global.index.findPlaceByAnyURI(uri) match {
-      case Some(place) => place.seedURI +: (place.alternativeURIs ++ place.matches).distinct
-      case None => Seq(uri)
-    }
+  private def expandPlaceFilter(uris: Seq[String]): Seq[String] = {
+    uris.flatMap(uri => {
+      Global.index.findPlaceByAnyURI(uri) match {
+        case Some(place) => place.seedURI +: (place.alternativeURIs ++ place.matches).distinct
+        case None => Seq(uri)
+      }
+    })
   }
   
   /** TODO make this more sophisticated **/
@@ -99,12 +101,14 @@ trait ObjectReader extends AnnotationReader {
 
     
     val rectangle = params.bbox.map(b => Index.spatialCtx.makeRectangle(b.minLon, b.maxLon, b.minLat, b.maxLat))
+    
+    val expandedPlaces = expandPlaceFilter(params.places)
         
     // The base query is the part of the query that is the same for search, time histogram and heatmap calculation
     val (baseQuery, valueSource) = prepareBaseQuery(
       params.objectTypes, params.excludeObjectTypes, params.datasets, params.excludeDatasets,
       params.gazetteers, params.excludeGazetteers, params.languages, params.excludeLanguages, 
-      params.places, rectangle, params.coord, params.radius, onlyWithImages)
+      expandedPlaces, rectangle, params.coord, params.radius, onlyWithImages)
       
     // Finalize search query and time histogram filter
     val (searchQuery, timeHistogramFilter) = {
@@ -174,7 +178,7 @@ trait ObjectReader extends AnnotationReader {
     try {   
       // Search & facet counts
       val (results, facets) = 
-        executeSearch(searchQuery, params.query, params.places, params.limit, params.offset, objectAndPlaceSearcher, objectSearcher.taxonomyReader,
+        executeSearch(searchQuery, params.query, expandedPlaces, params.limit, params.offset, objectAndPlaceSearcher, objectSearcher.taxonomyReader,
           valueSource, includeFacets, includeSnippets, annotationSearcher.searcher)
       
       // Top places
@@ -197,7 +201,7 @@ trait ObjectReader extends AnnotationReader {
         if (params.query.isDefined) {
           // If there is a query phrase, we include the annotation heatmap 
           calculateItemHeatmap(filter, rect, level, objectAndPlaceSearcher) +
-          calculateAnnotationHeatmap(params.query, params.datasets, params.excludeDatasets, params.from, params.to, params.places, rectangle,
+          calculateAnnotationHeatmap(params.query, params.datasets, params.excludeDatasets, params.from, params.to, expandedPlaces, rectangle,
             params.coord, params.radius, level, annotationSearcher)
         } else {
           // Otherwise, we only need the item-based heatmap
@@ -286,21 +290,12 @@ trait ObjectReader extends AnnotationReader {
     
     // Places filter
     if (places.size == 1) {
-      val alternatives = expandPlaceFilter(places.head)
-      if (alternatives.size == 1) {
-        q.add(new TermQuery(new Term(IndexFields.PLACE_URI, alternatives.head)), BooleanClause.Occur.MUST)
-      } else {
-        val placeQuery = new BooleanQuery()
-        alternatives.foreach(uri => 
-          placeQuery.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.SHOULD))
-        q.add(placeQuery, BooleanClause.Occur.MUST)
-      }
+      q.add(new TermQuery(new Term(IndexFields.PLACE_URI, places.head)), BooleanClause.Occur.MUST)
     } else if (places.size > 1) {
-      val alternatives = places.flatMap(p => expandPlaceFilter(p))
       val placeQuery = new BooleanQuery()
-      alternatives.foreach(uri => 
+      places.foreach(uri => 
         placeQuery.add(new TermQuery(new Term(IndexFields.PLACE_URI, uri)), BooleanClause.Occur.SHOULD))
-      q.add(placeQuery, BooleanClause.Occur.MUST)  
+      q.add(placeQuery, BooleanClause.Occur.MUST)
     }
       
     // Spatial filter
@@ -387,7 +382,7 @@ trait ObjectReader extends AnnotationReader {
       
       val previewSnippet = 
         if (includeSnippets && phrase.isDefined) {
-          val snippets = getSnippets(obj.identifier, phrase.get, places.headOption, 3, snippetSearcher)
+          val snippets = getSnippets(obj.identifier, phrase.get, places, 5, snippetSearcher)
           Some(snippets.map("<p class=\"snippet\">..." + _ + "...</p>").mkString(""))
         } else {
           None

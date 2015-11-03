@@ -40,7 +40,7 @@ trait AnnotationReader extends IndexBase {
       Global.index.findNetworkByPlaceURI(uri).map((_, count)) }.flatten
   }
   
-  def getSnippets(thingId: String, phrase: String, place: Option[String], limit: Int, searcher: IndexSearcher): Seq[String] = {
+  def getSnippets(thingId: String, phrase: String, places: Seq[String], limit: Int, searcher: IndexSearcher): Seq[String] = {
     DB.withSession { implicit session: Session =>
       val rootId = AnnotatedThings.getParentHierarchy(thingId).lastOption.getOrElse(thingId)
       val allIds = rootId +: AnnotatedThings.listChildrenRecursive(rootId)
@@ -64,8 +64,11 @@ trait AnnotationReader extends IndexBase {
             
       query.add(new MultiFieldQueryParser(fields, analyzer).parse(phrase), BooleanClause.Occur.MUST)  
       
-      if (place.isDefined)
-        query.add(new TermQuery(new Term(IndexFields.PLACE_URI, place.get)), BooleanClause.Occur.MUST)
+      if (places.size > 0) {
+        val q = new BooleanQuery()
+        places.foreach(uri => q.add(new TermQuery(new Term(IndexFields.PLACE_URI, Index.normalizeURI(uri))), BooleanClause.Occur.SHOULD))
+        query.add(q, BooleanClause.Occur.MUST)
+      }
       
       val topDocs = searcher.search(query, 3)
     
@@ -83,7 +86,7 @@ trait AnnotationReader extends IndexBase {
         
         listOfSegments :+ segmentsToKeep
       }).filter(_.size > 0)
-            
+                  
       snippetTuples.map(segments => { 
         val snippet = segments.mkString(" ")
         
