@@ -380,60 +380,20 @@ trait ObjectReader extends AnnotationReader {
 
     // Compute facets, optionally
     val facetTree = facets.map(new FacetTree(_))      
-    
-    /* Prepare snippet highlighter, optionally
-    val highlighter =
-      if (includeSnippets) {
-        val previewFormatter = new SimpleHTMLFormatter("<strong>", "</strong>")
-        val scorer = new QueryScorer(query)
-        val highlighter = new Highlighter(previewFormatter, scorer)
-        highlighter.setTextFragmenter(new SimpleFragmenter(PREVIEW_SNIPPET_SIZE))
-        highlighter.setMaxDocCharsToAnalyze(Integer.MAX_VALUE)  
-        Some(highlighter)
-      } else {
-        None
-      }
-      */
-       
+
     // Fetch result documents
     val results = topDocs.scoreDocs.drop(offset).map(scoreDoc => {      
-      val document = searcher.doc(scoreDoc.doc)
- 
-      // Fetch snippets, optionally
-      /*
-      val previewSnippet = highlighter.flatMap(h => {
-        Option(document.get(IndexFields.ITEM_FULLTEXT)).map(fulltext => {  
-          val stream = TokenSources.getAnyTokenStream(searcher.getIndexReader, scoreDoc.doc, IndexFields.ITEM_FULLTEXT, analyzer)
-          h.getBestFragments(stream, fulltext, PREVIEW_MAX_NUM_SNIPPETS, PREVIEW_SNIPPET_SEPARATOR)        
-        })
-      })
-      */
-      
-      /** HACK **/
+      val obj = new IndexedObject(searcher.doc(scoreDoc.doc))
       
       val previewSnippet = 
         if (includeSnippets && phrase.isDefined) {
-          
-          // if document hasFulltext
-          
-          Option(document.get(IndexFields.ID)) match {
-            
-            case Some(id) => {
-              val snippets = getSnippets(id, phrase.get, places.headOption, 3, snippetSearcher)
-              Some(snippets.map("<p class=\"snippet\">..." + _ + "...</p>").mkString(""))
-            }
-            
-            case None => None
-          }
-          
-          
+          val snippets = getSnippets(obj.identifier, phrase.get, places.headOption, 3, snippetSearcher)
+          Some(snippets.map("<p class=\"snippet\">..." + _ + "...</p>").mkString(""))
         } else {
           None
         }
-      
-      /** /HACK **/
-      
-      (new IndexedObject(document), previewSnippet) 
+
+      (obj, previewSnippet) 
     })
     
     (Page(results.toSeq, offset, limit, total), facetTree)

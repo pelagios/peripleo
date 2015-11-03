@@ -21,6 +21,7 @@ import org.apache.lucene.spatial.prefix.HeatmapFacetCounter
 import play.api.Play
 import play.api.Play.current
 import play.api.db.slick._
+import play.api.Logger
 
 trait AnnotationReader extends IndexBase {
   
@@ -68,18 +69,34 @@ trait AnnotationReader extends IndexBase {
       
       val topDocs = searcher.search(query, 3)
     
-      topDocs.scoreDocs.map(scoreDoc => { 
+      val snippetTuples = topDocs.scoreDocs.foldLeft(Seq.empty[Seq[String]])((listOfSegments, scoreDoc) => {
+        val allPreviousSegments = listOfSegments.flatten
+                
         val annotation = new IndexedAnnotation(searcher.doc(scoreDoc.doc))
-        val text = annotation.text 
+        val segments = Seq(annotation.prefix, annotation.quote, annotation.suffix).flatten
+               
+        // We don't want segments (prefix, quote, suffix) which are already in the segments list
+        val newSegments = segments.filter(str => !allPreviousSegments.exists(_.equals(str)))
+                 
+        // We don't want segments that don't contain the query phrase
+        val segmentsToKeep = newSegments.filter(_.toLowerCase.contains(phrase.toLowerCase))
+        
+        listOfSegments :+ segmentsToKeep
+      }).filter(_.size > 0)
+            
+      snippetTuples.map(segments => { 
+        val snippet = segments.mkString(" ")
         
         // Trim around the search term
-        val idx = text.indexOf(phrase)
+        val idx = snippet.toLowerCase.indexOf(phrase.toLowerCase)
         val start = Math.max(0, idx - 200)
-        val end = Math.min(text.size, idx + 200)
+        val end = Math.min(snippet.size, idx + 200)
         
-        text.substring(start, end).replace(phrase, "<strong>" + phrase + "</strong>")
-      })
-      
+        if (end > start)
+          Some(snippet.substring(start, end).replace(phrase, "<strong>" + phrase + "</strong>"))
+        else
+          None
+      }).flatten
     }
   }
   

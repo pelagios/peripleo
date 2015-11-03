@@ -18,6 +18,12 @@ class IndexedAnnotation(private val doc: Document) {
     
   val annotatedThing: String = doc.get(IndexFields.ANNOTATION_THING)
   
+  val prefix: Option[String] = Option(doc.get(IndexFields.ANNOTATION_FULLTEXT_PREFIX))
+  
+  val quote: Option[String] = Option(doc.get(IndexFields.ANNOTATION_QUOTE))
+  
+  val suffix: Option[String] = Option(doc.get(IndexFields.ANNOTATION_FULLTEXT_SUFFIX))
+  
   val text: String = Seq(
       Option(doc.get(IndexFields.ANNOTATION_FULLTEXT_PREFIX)),
       Option(doc.get(IndexFields.ANNOTATION_QUOTE)),
