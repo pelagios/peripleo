@@ -70,7 +70,7 @@ trait ObjectReader extends AnnotationReader {
   
   private def expandPlaceFilter(uri: String): Seq[String] = {
     Global.index.findPlaceByAnyURI(uri) match {
-      case Some(place) => place.seedURI +: place.alternativeURIs
+      case Some(place) => place.seedURI +: (place.alternativeURIs ++ place.matches).distinct
       case None => Seq(uri)
     }
   }
@@ -287,6 +287,7 @@ trait ObjectReader extends AnnotationReader {
     // Places filter
     if (places.size == 1) {
       val alternatives = expandPlaceFilter(places.head)
+      Logger.info("searching for matches on URIs: " + alternatives.mkString(", "))
       if (alternatives.size == 1) {
         q.add(new TermQuery(new Term(IndexFields.PLACE_URI, alternatives.head)), BooleanClause.Occur.MUST)
       } else {

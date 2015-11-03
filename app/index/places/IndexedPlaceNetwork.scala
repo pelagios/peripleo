@@ -38,6 +38,9 @@ class IndexedPlaceNetwork private[index] (private[index] val doc: Document) {
   
   /** The other place URIs in the network **/ 
   lazy val alternativeURIs: Seq[String] = doc.getValues(IndexFields.ID).toSeq.diff(Seq(seedURI))
+  
+  /** All close/exactMatch URIs defined by any of the places in this network **/
+  lazy val matches: Seq[String] = doc.getValues(IndexFields.PLACE_MATCH).toSeq
 
   /** The network title - identical to the title of the place that started the network **/
   val title: String = doc.get(IndexFields.TITLE)
