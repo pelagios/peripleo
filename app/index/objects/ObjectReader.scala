@@ -258,14 +258,17 @@ trait ObjectReader extends AnnotationReader {
     // Language filter
     applyFacetFilter(languages, excludeLanguages, IndexFields.LANGUAGE, q)
     
-    // Object type filter - note: if filter is set to specific type, we still want to include annotations
-    val correctedObjectTypes = 
-      if (objectTypes.size > 0)
-        objectTypes :+ IndexedObjectTypes.ANNOTATION
-      else
-        objectTypes
+    // Object type filter: if filter includes/excludes items, we also want include/exclude annotations!
+    def expandObjectTypes(args: Seq[IndexedObjectTypes.Value]) =
+      if (args.contains(IndexedObjectTypes.ANNOTATED_THING))
+        args :+ IndexedObjectTypes.ANNOTATION
+      else 
+        args
         
-    applyFacetFilter(correctedObjectTypes.map(_.toString), excludeObjectTypes.map(_.toString), IndexFields.OBJECT_TYPE, q)
+    applyFacetFilter(
+        expandObjectTypes(objectTypes).map(_.toString),
+        expandObjectTypes(excludeObjectTypes).map(_.toString),
+        IndexFields.OBJECT_TYPE, q)
     
     // Source (dataset/gazetteer) filter
     if (datasets.size > 0 || gazetteers.size > 0) {
