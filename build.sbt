@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "org.apache.lucene" % "lucene-facet" % "5.3.1",
   "org.apache.lucene" % "lucene-spatial" % "5.3.1",
   "org.apache.lucene" % "lucene-suggest" % "5.3.1",
-  "org.apache.lucene" % "lucene-highlighter" % "5.3.1"
+  "org.apache.lucene" % "lucene-highlighter" % "5.3.1",
   "com.vividsolutions" % "jts" % "1.13",
   "com.spatial4j" % "spatial4j" % "0.5",
   "org.geotools" % "gt-geojson" % "14.0",
