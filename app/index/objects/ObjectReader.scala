@@ -131,9 +131,7 @@ trait ObjectReader extends AnnotationReader {
         parser.setAutoGeneratePhraseQueries(true)
         baseSearchQuery.add(parser.parse(params.query.get), BooleanClause.Occur.MUST)  
       }
-      
-      // If the search 
-      
+            
       // ...but we only want to restrict the SEARCH by time interval - the histogram should count all the facets
       val timeHistogramFilter = 
         if (includeTimeHistogram)
