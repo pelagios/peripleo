@@ -27,12 +27,16 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             else
               marker = L.rectangle([[ bbox.min_lat, bbox.min_lon ],
                            [ bbox.max_lat, bbox.max_lon ]], BBOX_STYLE).addTo(bboxFeatures);
+
+            marker.on('click', function() {
+              eventBroker.fireEvent(Events.SELECT_RESULT, [ item ]);
+            });
           });
         };
 
     eventBroker.addHandler(Events.API_SEARCH_RESPONSE, onSearchResponse);
+    eventBroker.addHandler(Events.API_VIEW_UPDATE, onSearchResponse);
     eventBroker.addHandler(Events.API_NEXT_PAGE, onNextPage);
-
   };
 
   return ResultBBoxLayer;
