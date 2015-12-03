@@ -52,8 +52,11 @@ define(['peripleo-ui/events/events'], function(Events) {
         /** Flag indicating whether we're currently in 'serch' or 'subsearch' state **/
         currentSearchState = SearchState.SEARCH,
 
-        /** Flat indicating whether we're currently in exploration mode **/
+        /** Flag indicating whether we're currently in exploration mode **/
         explorationMode = false,
+
+        /** Flag indicating whether the user wants simplified geometry **/
+        bboxMode = false,
 
         /** Caches the query before exploration mode, in case user returns without changed query **/
         queryBeforeExplorationMode = false,
@@ -101,7 +104,10 @@ define(['peripleo-ui/events/events'], function(Events) {
 
         /** Builds the URL query string **/
         buildBaseQueryURL = function(params, searchState, withTimeHistogram) {
-          var url = '/peripleo/search?verbose=true&limit=' + SEARCH_RESULT_LIMIT;
+          var url = '/peripleo/search?limit=' + SEARCH_RESULT_LIMIT;
+
+          if (!bboxMode)
+            url += '&verbose=true';
 
           if (withTimeHistogram)
             url += '&time_histogram=true';
@@ -333,6 +339,10 @@ define(['peripleo-ui/events/events'], function(Events) {
 
     eventBroker.addHandler(Events.HIDE_FILTERS, function() {
       includeTimeHistogram = false;
+    });
+
+    eventBroker.addHandler(Events.TOGGLE_BBOX_MODE, function(enabled) {
+      bboxMode = enabled;
     });
 
     eventBroker.addHandler(Events.TOGGLE_HEATMAP, function(params) {
