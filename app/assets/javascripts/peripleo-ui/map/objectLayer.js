@@ -85,6 +85,9 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
         /** Flag indicating whether the user has stopped exploration mode **/
         stoppedExplorationMode = false,
 
+        /** Flag indicating whether the user has enabled BBOX display mode **/
+        isBBoxMode = false,
+
         /**
          * Creates a string representation of a GeoJSON geometry to be used as a
          * key in the marker index. (The only requirements are that the representation
@@ -332,8 +335,6 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
 
             currentSelection = false;
             eventBroker.fireEvent(Events.SELECT_MARKER, false);
-
-
           }
         },
 
@@ -345,14 +346,18 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
          */
         createMarker = function(obj, geomHash, radius) {
           var type = obj.geometry.type,
-              marker;
+              bbox = obj.geo_bounds, marker;
 
           if (type === 'Point') {
             marker = L.circleMarker([obj.geo_bounds.max_lat, obj.geo_bounds.max_lon], Styles.POINT_RED);
             marker.addTo(pointFeatures);
             marker.setRadius(radius);
           } else {
-            marker = L.geoJson(obj.geometry, Styles.POLY_RED);
+            if (isBBoxMode)
+              marker = L.rectangle([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]],
+                Styles.POLY_RED).addTo(shapeFeatures);
+            else
+              marker = L.geoJson(obj.geometry, Styles.POLY_RED);
             marker.addTo(shapeFeatures);
           }
 
@@ -452,6 +457,10 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
     });
     eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
       stoppedExplorationMode = true;
+    });
+    eventBroker.addHandler(Events.TOGGLE_BBOX_MODE, function(enabled) {
+      isBBoxMode = enabled;
+      // TODO redraw
     });
 
     HasEvents.apply(this);

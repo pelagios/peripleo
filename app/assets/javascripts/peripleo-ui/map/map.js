@@ -1,8 +1,7 @@
 /** The base map **/
 define(['peripleo-ui/events/events',
         'peripleo-ui/map/objectLayer',
-        'peripleo-ui/map/resultBBoxLayer',
-        'peripleo-ui/map/densityGrid'], function(Events, ObjectLayer, BBoxLayer, DensityGrid) {
+        'peripleo-ui/map/densityGrid'], function(Events, ObjectLayer, DensityGrid) {
 
   var Map = function(div, eventBroker) {
 
@@ -27,7 +26,18 @@ define(['peripleo-ui/events/events',
                  }),
 
           satellite : L.tileLayer('http://api.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q', {
-	                 attribution: '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox</a> <a href="http://www.openstreetmap.org/about/">&copy; OpenStreetMap</a>'
+	                 attribution: '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox</a> <a href="http://www.openstreetmap.org/about/">&copy; OpenStreetMap</a>',
+                   maxZoom:22
+                 }),
+
+          slo : L.tileLayer.wms('http://localhost:8080/geoserver/Obcine/wms', {
+                   layers: 'Obcine:Ob1994F',
+                   // layers: 'Obcine:P50007',
+                   format: 'image/png',
+                   transparent: 'true',
+                   opacity: 0.8,
+                   attribution: 'Test source',
+                   version: '1.1.1'
                  })
 
         },
@@ -46,9 +56,7 @@ define(['peripleo-ui/events/events',
           layers: [ currentLayer.layer ]
         }),
 
-        // objectLayer = new ObjectLayer(map, eventBroker),
-
-        bboxLayer = new BBoxLayer(map, eventBroker),
+        objectLayer = new ObjectLayer(map, eventBroker),
 
         densityGrid = new DensityGrid(map, eventBroker),
 
@@ -98,7 +106,7 @@ define(['peripleo-ui/events/events',
       eventBroker.fireEvent(Events.VIEW_CHANGED, getBounds());
     });
 
-    // objectLayer.on('highlight', zoomTo);
+    objectLayer.on('highlight', zoomTo);
 
     eventBroker.addHandler(Events.LOAD, function(initialSettings) {
       var b = (initialSettings.bbox) ? initialSettings.bbox : getBounds();

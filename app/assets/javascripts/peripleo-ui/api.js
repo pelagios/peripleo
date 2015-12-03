@@ -11,7 +11,7 @@ define(['peripleo-ui/events/events'], function(Events) {
       TOP_PLACES_MAX = 600,
 
       /** Number of search results to fetch **/
-      SEARCH_RESULT_LIMIT = 50,
+      SEARCH_RESULT_LIMIT = 20,
 
       /** Enum for search states **/
       SearchState = { SEARCH : 1, SUB_SEARCH : 2 };
