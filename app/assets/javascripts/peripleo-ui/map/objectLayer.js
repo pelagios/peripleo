@@ -416,6 +416,17 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
               }
             }
           });
+        },
+
+        redraw = function() {
+          shapeFeatures.clearLayers();
+          jQuery.each(markerIndex, function(geomHash, obj) {
+            var objects = obj._2;
+            if (obj._1.getLayers) { // GeoJSON!
+              obj._1 = createMarker(objects[0], geomHash);
+              obj._2 = objects; // TODO the side effect in createMarker needs to be cleaned up!
+            }
+          });
         };
 
     map.on('click', function(e) {
@@ -460,7 +471,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
     });
     eventBroker.addHandler(Events.TOGGLE_BBOX_MODE, function(enabled) {
       isBBoxMode = enabled;
-      // TODO redraw
+      redraw();
     });
 
     HasEvents.apply(this);
