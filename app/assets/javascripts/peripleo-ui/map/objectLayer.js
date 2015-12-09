@@ -305,7 +305,9 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
           objectIndex = {};
           markerIndex = {};
 
-          // Retain selection if any
+          clearSelection();
+
+          /* Retain selection if any
           if (currentSelection) {
             // Add selection to map
             selectedGeometry = currentSelection.objects[0].geometry;
@@ -324,7 +326,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             // Add selection to marker index
             markerIndex[createGeometryHash(selectedGeometry)] =
               { _1: selectedMarker, _2: currentSelection.objects };
-          }
+          }*/
         },
 
         /** Clears the current selection **/
