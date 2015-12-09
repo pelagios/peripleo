@@ -65,7 +65,7 @@ class GazetteerImporter(index: Index) {
     val (filename, is) = getFilenameAndInputStream(file, origFilename)
     
     // Shorthand for no. of places that equal approx. 1% of total places in dump
-    val onePercent = Math.round(totalPlacesInDump.toDouble / 100)  
+    val onePercent = totalPlacesInDump.toDouble / 100  
     
     // Mutable set for collecting prefixes
     val uriPrefixes = Set.empty[String] 
@@ -87,13 +87,15 @@ class GazetteerImporter(index: Index) {
         distinctNewPlaces += 1
         
       // Check if we should write a status update
+      Logger.info("Trying...")
       if ((placesIngested % onePercent == 0) && 
           (System.currentTimeMillis - lastStatusUpdateTime) > MIN_STATUS_UPDATE_WAIT_TIME) {
-          
+      
         val progress = placesIngested.toDouble / totalPlacesInDump
         updateImportStatus(gazetteerName, ImportStatus.IMPORTING, Some(progress), None, Some(placesIngested))
         lastStatusUpdateTime = System.currentTimeMillis
       }
+      Logger.info("Done")
     }
     
     val format = Scalagios.guessFormatFromFilename(filename)
