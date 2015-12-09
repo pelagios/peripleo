@@ -219,6 +219,8 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             } else {
               // Object isn't on the map - create temporarily
               marker = createMarker(objects[0], geomHash, SIZE_LARGE);
+              markerIndex[geomHash] = { _1: marker, _2: [obj] };
+
               removeOnDeselect = true;
             }
 
@@ -353,16 +355,16 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             marker.addTo(pointFeatures);
             marker.setRadius(radius);
           } else {
-            if (isBBoxMode)
+            if (isBBoxMode) {
               marker = L.rectangle([[bbox.min_lat, bbox.min_lon], [bbox.max_lat, bbox.max_lon]],
                 Styles.POLY_RED).addTo(shapeFeatures);
-            else
+            } else {
               marker = L.geoJson(obj.geometry, Styles.POLY_RED);
+            }
             marker.addTo(shapeFeatures);
           }
 
           marker.on('click', function(e) { selectByGeomHash(geomHash); });
-          markerIndex[geomHash] = { _1: marker, _2: [obj] };
 
           return marker;
         },
@@ -412,6 +414,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
                   marker = createMarker(obj, geomHash, size(obj.result_count));
                 }
 
+                markerIndex[geomHash] = { _1: marker, _2: [obj] };
                 objectIndex[id] = { _1: obj, _2: marker };
               }
             }
@@ -421,10 +424,13 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
         redraw = function() {
           shapeFeatures.clearLayers();
           jQuery.each(markerIndex, function(geomHash, obj) {
-            var objects = obj._2;
-            if (obj._1.getLayers) { // GeoJSON!
-              obj._1 = createMarker(objects[0], geomHash);
-              obj._2 = objects; // TODO the side effect in createMarker needs to be cleaned up!
+            var marker; // objects = obj._2;
+            if (!obj._1.setRadius) { // GeoJSON!
+              marker = createMarker(obj._2[0], geomHash);
+              markerIndex[geomHash] = { _1: marker, _2: obj._2 };
+              jQuery.each(obj._2, function(idx, obj) {
+                objectIndex[obj.identifier] = { _1: obj, _2: marker };
+              });
             }
           });
         };
@@ -469,9 +475,16 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
     eventBroker.addHandler(Events.STOP_EXPLORATION, function() {
       stoppedExplorationMode = true;
     });
-    eventBroker.addHandler(Events.TOGGLE_BBOX_MODE, function(enabled) {
-      isBBoxMode = enabled;
-      redraw();
+    eventBroker.addHandler(Events.TOGGLE_BBOX_MODE, function(evt) {
+      isBBoxMode = evt.enabled;
+      if (isBBoxMode) {
+        // Just redraw
+        redraw();
+      } else {
+        // TODO fetch detail data from server
+        redraw();
+      }
+
     });
 
     HasEvents.apply(this);

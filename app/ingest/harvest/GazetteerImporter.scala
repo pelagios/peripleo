@@ -87,7 +87,6 @@ class GazetteerImporter(index: Index) {
         distinctNewPlaces += 1
         
       // Check if we should write a status update
-      Logger.info("Trying...")
       if ((placesIngested % onePercent == 0) && 
           (System.currentTimeMillis - lastStatusUpdateTime) > MIN_STATUS_UPDATE_WAIT_TIME) {
       
@@ -95,7 +94,6 @@ class GazetteerImporter(index: Index) {
         updateImportStatus(gazetteerName, ImportStatus.IMPORTING, Some(progress), None, Some(placesIngested))
         lastStatusUpdateTime = System.currentTimeMillis
       }
-      Logger.info("Done")
     }
     
     val format = Scalagios.guessFormatFromFilename(filename)
