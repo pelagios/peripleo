@@ -232,6 +232,8 @@ trait PlaceWriter extends PlaceReader {
     val total = collector.getTotalHits
     val affectedNetworks = collector.topDocs(offset, batchSize).scoreDocs
       .map(scoreDoc => new IndexedPlaceNetwork(searcher.doc(scoreDoc.doc))).toSeq
+      
+    Logger.info("Updating " + affectedNetworks.size + " affected place records")
 
     // First, we delete all place networks from the affected batch      
     affectedNetworks.foreach(network => 

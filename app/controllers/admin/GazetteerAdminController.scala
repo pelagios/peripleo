@@ -24,7 +24,7 @@ object GazetteerAdminController extends BaseUploadController with Secured {
       
       Gazetteers.delete(gazetteer.get.name)
       
-      Global.index.deleteGazetter(gazetteer.get.name)
+      Global.index.deleteGazetter(gazetteer.get.name.toLowerCase)
       Logger.info("Done.")
       Status(200)
     } else {
