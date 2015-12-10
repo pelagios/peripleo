@@ -62,7 +62,7 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
 
         /** Conversion function: x offset to year **/
         xToYear = function(x) {
-          var duration = histogramRange.to - histogramRange.from,
+          var duration = histogramRange.to - histogramRange.from + 1,
               yearsPerPixel = duration / canvasWidth;
 
           return Math.round(histogramRange.from + x * yearsPerPixel);
@@ -70,7 +70,7 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
 
         /** Conversion function: year to x offset **/
         yearToX = function(year) {
-          var duration = histogramRange.to - histogramRange.from,
+          var duration = histogramRange.to - histogramRange.from + 1,
               pixelsPerYear = canvasWidth / duration;
 
           return Math.round((year - histogramRange.from) * pixelsPerYear);
@@ -82,9 +82,12 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
             var xFrom = Math.max(0, selectionBounds.position().left) - canvasOffset,
                 yearFrom = xToYear(xFrom),
 
-                xTo = Math.min(xFrom + selectionBounds.outerWidth(), canvasWidth + 2),
-                yearTo = xToYear(xTo);
+                xTo = Math.min(xFrom + selectionBounds.outerWidth(), canvasWidth),
+                yearTo = xToYear(xTo) - 1;
 
+            if (yearFrom > yearTo)
+              yearTo = yearFrom;
+              
             if (yearFrom > histogramRange.from || yearTo < histogramRange.to)
               selectionRange = { from: yearFrom, to: yearTo };
           }
@@ -192,14 +195,15 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
           selectionRange = { from: from, to: to };
 
           selectionNewFromX = Math.max(0, yearToX(from));
-          selectionNewToX = Math.min(yearToX(to), canvasWidth + 2);
+          selectionNewToX = Math.min(yearToX(to + 1), canvasWidth);
+
           if (selectionNewFromX > selectionNewToX)
             selectionNewFromX = selectionNewToX;
 
           selectionBounds.css('left', selectionNewFromX + canvasOffset);
           fromHandle.css('left', selectionNewFromX + canvasOffset - handleWidth);
 
-          selectionBounds.css('width', selectionNewToX - selectionNewFromX - 1);
+          selectionBounds.css('width', selectionNewToX - selectionNewFromX);
           toHandle.css('left', selectionNewToX + canvasOffset);
         },
 
@@ -214,10 +218,11 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
                   minYear = values[0].year,
                   maxYear = values[values.length - 1].year,
                   height = ctx.canvas.height - 1,
-                  xOffset = 5,
+                  xOffset = 4,
                   drawingAreaWidth = ctx.canvas.width - 2 * xOffset,
                   barSpacing = Math.round(drawingAreaWidth / values.length),
                   barWidth = barSpacing - 4;
+
 
               histogramRange = { from: minYear, to: maxYear };
 
@@ -274,7 +279,7 @@ define(['peripleo-ui/events/events', 'common/formatting', 'common/draggable'], f
     Draggable.makeXDraggable(selectionBounds, onDragBounds, onStopBounds, canvas);
 
     this.setSelection = setSelection;
-    this.update = update
+    this.update = update;
   };
 
   return TimeHistogram;
