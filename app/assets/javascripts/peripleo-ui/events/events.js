@@ -229,7 +229,12 @@ define(function() {
     /**
      * The user en- or disabled heatmap mode
      */
-    TOGGLE_HEATMAP : 'toggleHeatmap'
+    TOGGLE_HEATMAP : 'toggleHeatmap',
+
+    /**
+     * The user en- or disabled the sample raster overlay
+     */
+    TOGGLE_SAMPLE_RASTER : 'toggleSampleRaster'
 
   };
 

@@ -30,9 +30,8 @@ define(['peripleo-ui/events/events',
                    maxZoom:22
                  }),
 
-          slo : L.tileLayer.wms('http://localhost:8080/geoserver/Obcine/wms', {
-                   layers: 'Obcine:Ob1994F',
-                   // layers: 'Obcine:P50007',
+          sampleRaster : L.tileLayer.wms('/geoserver/peripleo/wms', {
+                   layers: 'peripleo:sample',
                    format: 'image/png',
                    transparent: 'true',
                    opacity: 0.8,
@@ -52,7 +51,8 @@ define(['peripleo-ui/events/events',
         map = new L.Map(div, {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
-          zoomControl: false,
+          zoomControl: false,                   // layers: 'Obcine:P50007',
+
           layers: [ currentLayer.layer ]
         }),
 
@@ -99,6 +99,13 @@ define(['peripleo-ui/events/events',
             map.panTo(center);
 
           map.fitBounds(bounds, { maxZoom: closeupZoom[currentLayer.name] });
+        },
+
+        toggleSampleRaster = function(show) {
+          if (show)
+            map.addLayer(Layers.sampleRaster);
+          else
+            map.removeLayer(Layers.sampleRaster);
         };
 
     /** Request count & histogram updates on every move **/
@@ -121,6 +128,10 @@ define(['peripleo-ui/events/events',
     eventBroker.addHandler(Events.CHANGE_LAYER, changeLayer);
     eventBroker.addHandler(Events.ZOOM_IN, function() { map.zoomIn(); });
     eventBroker.addHandler(Events.ZOOM_OUT, function() { map.zoomOut(); });
+
+    eventBroker.addHandler(Events.TOGGLE_SAMPLE_RASTER, function(evt) {
+      toggleSampleRaster(evt.enabled);
+    });
 
     this.setView = function(center, zoom) {
       map.panTo(center);

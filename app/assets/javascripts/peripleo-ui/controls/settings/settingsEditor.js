@@ -43,16 +43,22 @@ define(['peripleo-ui/events/events'], function(Events) {
           '     <li class="heatmap">' +
           '       <span class="icon activate-heatmap">&#xf096;</span>' +
           '       <span class="label">Show distribution of search results as heatmap <em>(experimental)</em></span>' +
-          '     </li>',
-          '   </ul>' +
+          '     </li>' +
 
+          '     <li class="sample-raster">' +
+          '       <span class="icon activate-sample-raster">&#xf096;</span>' +
+          '       <span class="label">Show sample raster overlay <em>(demo mode)</em></span>' +
+          '     </li>' +
+          '   </ul>' +
           '  </div>' +
           '</div>'
         ),
 
         btnClose = element.find('.close'),
+
         btnActivateBBoxMode = element.find('.activate-bbox-mode'),
         btnActivateHeatmap = element.find('.activate-heatmap'),
+        btnActivateSampleRaster = element.find('.activate-sample-raster'),
 
         show = function() {
           element.show();
@@ -92,6 +98,10 @@ define(['peripleo-ui/events/events'], function(Events) {
 
     btnActivateHeatmap.click(function() {
       toggleButton(btnActivateHeatmap, Events.TOGGLE_HEATMAP);
+    });
+
+    btnActivateSampleRaster.click(function() {
+      toggleButton(btnActivateSampleRaster, Events.TOGGLE_SAMPLE_RASTER);
     });
 
     eventBroker.addHandler(Events.EDIT_MAP_SETTINGS, show);

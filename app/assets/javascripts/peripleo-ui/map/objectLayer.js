@@ -306,27 +306,6 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
           markerIndex = {};
 
           clearSelection();
-
-          /* Retain selection if any
-          if (currentSelection) {
-            // Add selection to map
-            selectedGeometry = currentSelection.objects[0].geometry;
-            selectedMarker = currentSelection.marker;
-
-            if (selectedGeometry.type === 'Point')
-              selectedMarker.addTo(pointFeatures);
-            else
-              selectedMarker.addTo(shapeFeatures);
-
-            // Add selection to object index
-            jQuery.each(currentSelection.objects, function(idx, obj) {
-              objectIndex[obj.identifier] = { _1: obj, _2: selectedMarker };
-            });
-
-            // Add selection to marker index
-            markerIndex[createGeometryHash(selectedGeometry)] =
-              { _1: selectedMarker, _2: currentSelection.objects };
-          }*/
         },
 
         /** Clears the current selection **/
