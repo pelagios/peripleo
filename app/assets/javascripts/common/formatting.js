@@ -61,6 +61,10 @@ define(function() {
         /** Temporary hack for E-ARK demo **/
         prefix = 'obcine';
         gazId = uri.substr(uri.lastIndexOf('/') + 1);
+      } else if (uri.indexOf('http://earkdev.ait.ac.at/') === 0) {
+        /** Another temporary hack for E-ARK demo **/
+        prefix = 'earkdev';
+        gazId = uri.substr(uri.lastIndexOf('/') + 1);
       } else {
         // Bit of a hack...
         prefix = 'http';
@@ -68,7 +72,7 @@ define(function() {
       }
 
       /** Temporary hack for E-ARK demo **/
-      if (uri.indexOf('http://www.mygazetteer.org/place') === 0)
+      if (uri.indexOf('http://www.mygazetteer.org/place') === 0 || uri.indexOf('http://earkdev.ait.ac.at/') === 0)
         return '<a class="gazetteer-uri ' + prefix + gazId + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + gazId + '</a>';
       else
         return '<a class="gazetteer-uri ' + prefix + '" target="_blank" title="' + uri + '" href="' + uri + '">' + prefix + ':' + gazId + '</a>';
