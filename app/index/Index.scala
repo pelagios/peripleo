@@ -204,11 +204,14 @@ object Index {
   }
   
   def normalizeURI(uri: String) = {
-    val noFragment = if (uri.indexOf('#') > -1) uri.substring(0, uri.indexOf('#')) else uri
-    if (noFragment.endsWith("/"))
-      noFragment.substring(0, noFragment.size - 1)
+    // We remove '#this' suffixes
+    val noThis = if (uri.indexOf("#this") > -1) uri.substring(0, uri.indexOf("#this")) else uri
+      
+    // By convention, we remove trailing slash
+    if (noThis.endsWith("/"))
+      noThis.substring(0, noThis.size - 1)
     else 
-      noFragment
+      noThis
   }
   
 }
