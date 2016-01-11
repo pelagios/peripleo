@@ -30,13 +30,14 @@ define(['peripleo-ui/events/events',
                    maxZoom:22
                  }),
 
-          sampleRaster : L.tileLayer.wms('/geoserver/peripleo/wms', {
-                   layers: 'peripleo:sample',
+          sampleRaster : L.tileLayer.wms('http://localhost:8080/geoserver/peripleo/wms', {
+                   layers: 'peripleo:Grabungsbereiche',
                    format: 'image/png',
                    transparent: 'true',
-                   opacity: 0.8,
+                   opacity: 0.95,
                    attribution: 'Test source',
-                   version: '1.1.1'
+                   version: '1.1.1',
+                   maxZoom: 22
                  })
 
         },
