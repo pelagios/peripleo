@@ -1,15 +1,15 @@
 require(['peripleo-ui/controls/settings/settingsEditor',
          'peripleo-ui/controls/resultList',
          'peripleo-ui/controls/searchPanel',
-         'peripleo-ui/controls/toolbar', 
+         'peripleo-ui/controls/toolbar',
          'peripleo-ui/events/events',
          'peripleo-ui/events/eventBroker',
          'peripleo-ui/events/lifecycleWatcher',
          'peripleo-ui/map/map',
-         'peripleo-ui/api', 
+         'peripleo-ui/api',
          'peripleo-ui/urlBar'], function(SettingsEditor, ResultList, SearchPanel, Toolbar, Events, EventBroker, LifeCycleWatcher, Map, API, URLBar) {
-  
-  jQuery(document).ready(function() {  
+
+  jQuery(document).ready(function() {
         /** DOM element shorthands **/
     var mapDIV = document.getElementById('map'),
         controlsDIV = jQuery('#controls'),
@@ -17,7 +17,7 @@ require(['peripleo-ui/controls/settings/settingsEditor',
 
         /** Top-level components **/
         eventBroker = new EventBroker(),
-        lifeCycleWatcher = new LifeCycleWatcher(eventBroker);
+        lifeCycleWatcher = new LifeCycleWatcher(eventBroker),
         urlBar = new URLBar(eventBroker),
         api = new API(eventBroker),
         map = new Map(mapDIV, eventBroker),
@@ -25,11 +25,11 @@ require(['peripleo-ui/controls/settings/settingsEditor',
         searchPanel = new SearchPanel(controlsDIV, eventBroker),
         resultList = new ResultList(controlsDIV, eventBroker),
         settingsEditor = new SettingsEditor(eventBroker),
-        
+
         /** Resolve the URL bar **/
         initialSettings = urlBar.parseURLHash(window.location.hash),
-        
-        /** Is there an initially selected place? Fetch it now! **/       
+
+        /** Is there an initially selected place? Fetch it now! **/
         fetchInitiallySelectedPlace = function(encodedURL, zoomTo) {
           jQuery.getJSON('/peripleo/places/' + encodedURL, function(response) {
             eventBroker.fireEvent(Events.SELECT_RESULT, [ response ]);
@@ -37,29 +37,32 @@ require(['peripleo-ui/controls/settings/settingsEditor',
               map.zoomTo(response.geo_bounds);
           });
         },
-        
+
         /** Is there an initial query phrase? Fetch the results now **/
         runInitialQuery = function(query) {
           eventBroker.fireEvent(Events.SEARCH_CHANGED, { query: query });
         },
-        
+
         /** Initializes map center and zoom **/
         initializeMap = function(at) {
           map.setView([ at.lat, at.lng ], at.zoom);
         };
-            
+
+    eventBroker.fireEvent(Events.LOAD, initialSettings);
+
     if (initialSettings.at)
       initializeMap(initialSettings.at);
 
     if (initialSettings.query)
       runInitialQuery(initialSettings.query);
-    
+
     if (initialSettings.places)
       fetchInitiallySelectedPlace(initialSettings.places, !initialSettings.hasOwnProperty('at'));
-              
-    eventBroker.fireEvent(Events.LOAD, initialSettings);
-    
+
+    if (initialSettings.ex)
+      eventBroker.fireEvent(Events.START_EXPLORATION);
+
     delete initialSettings.at;
   });
-  
+
 });
