@@ -119,11 +119,17 @@ class DataHarvestWorker {
    
     // Assign a random (but unique) name, and keep the extension from the original file
     val voidFilename = { 
-      val extension = voidURL.substring(voidURL.lastIndexOf("."))
-      if (extension.indexOf("?") < 0)
-        "void_" + UUID.randomUUID.toString + extension
-      else
-        "void_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
+      // Hack
+      val hasExtension = voidURL.indexOf('.', voidURL.lastIndexOf('/')) > -1
+      if (hasExtension) {
+        val extension = voidURL.substring(voidURL.lastIndexOf("."))
+        if (extension.indexOf("?") < 0)
+          "void_" + UUID.randomUUID.toString + extension
+        else
+          "void_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
+      } else {
+        "void_" + UUID.randomUUID.toString + ".rdf"
+      }
     }
     val voidTempFile = downloadFile(voidURL, voidFilename)
     
@@ -135,11 +141,17 @@ class DataHarvestWorker {
 	  
 	    val dataDumps = getDataDumpURLs(datasets).par.map { case (url, dataset) => {
 	      val dumpFilename = {
-          val extension = url.substring(url.lastIndexOf("."))
-          if (extension.indexOf("?") < 0)
-            "data_" + UUID.randomUUID.toString + extension
-          else
-            "data_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
+	        //
+	        val hasExtension = voidURL.indexOf('.', voidURL.lastIndexOf('/')) > -1
+	        if (hasExtension) {
+            val extension = url.substring(url.lastIndexOf("."))
+            if (extension.indexOf("?") < 0)
+              "data_" + UUID.randomUUID.toString + extension
+            else
+              "data_" + UUID.randomUUID.toString + extension.substring(0, extension.indexOf("?"))
+	        } else {
+	          "data_" + UUID.randomUUID.toString + ".rdf"
+	        }
         }
 	      (url, downloadFile(url, dumpFilename))
 	    }}.seq
