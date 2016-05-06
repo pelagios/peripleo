@@ -219,7 +219,7 @@ define(['common/hasEvents', 'peripleo-ui/events/events'], function(HasEvents, Ev
             } else {
               // Object isn't on the map - create temporarily
               marker = createMarker(objects[0], geomHash, SIZE_LARGE);
-              markerIndex[geomHash] = { _1: marker, _2: [obj] };
+              markerIndex[geomHash] = { _1: marker, _2: objects };
 
               removeOnDeselect = true;
             }
