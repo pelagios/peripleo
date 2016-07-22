@@ -10,6 +10,8 @@ import play.api.Logger
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits._
+import play.api.mvc.AnyContent
+import play.api.mvc.BodyParsers
 
 object GazetteerAdminController extends BaseUploadController with Secured {
   
@@ -17,7 +19,7 @@ object GazetteerAdminController extends BaseUploadController with Secured {
     Ok(views.html.admin.gazetteers())
   }
   
-  def deleteGazetteer(name: String) = adminAction { username => implicit requestWithSession =>
+  def deleteGazetteer(name: String) = DBAction { implicit requestWithSession =>
     val gazetteer = Gazetteers.findByName(name)
     if (gazetteer.isDefined) {
       Logger.info("Deleting gazetteer: " + name)
@@ -32,7 +34,7 @@ object GazetteerAdminController extends BaseUploadController with Secured {
     }
   }
   
-  def uploadGazetteerDump = adminAction { username => implicit requestWithSession =>    
+  def uploadGazetteerDump = DBAction(BodyParsers.parse.anyContent){ implicit requestWithSession =>    
     val json = requestWithSession.request.body.asJson
     if (json.isDefined) {
       val url = (json.get \ "url").as[String]
