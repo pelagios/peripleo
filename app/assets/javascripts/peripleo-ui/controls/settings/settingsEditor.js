@@ -37,16 +37,13 @@ define(['peripleo-ui/events/events'], function(Events) {
         btnActivateHeatmap = element.find('.activate-heatmap'),
         btnActivateSampleRaster = element.find('.activate-sample-raster'),
 
-        show = function() {
+        initLayers = function() {
           var template =
                 '<li class="baselayer" >' +
                   '<div class="map-thumb-container"><img class="map-thumb"></div>' +
                   '<h2></h2>' +
                   '<p></p>' +
                 '</li>';
-
-          baseLayers.empty();
-          element.show();
 
           jQuery.getJSON('/peripleo/baselayers', function(data) {
             jQuery.each(data, function(idx, layer) {
@@ -60,6 +57,10 @@ define(['peripleo-ui/events/events'], function(Events) {
               baseLayers.append(li);
             });
           });
+        },
+
+        show = function() {
+          element.show();
         },
 
         close = function() {
@@ -77,6 +78,7 @@ define(['peripleo-ui/events/events'], function(Events) {
         };
 
     element.hide();
+    initLayers();
     jQuery(document.body).append(element);
 
     btnClose.click(close);
