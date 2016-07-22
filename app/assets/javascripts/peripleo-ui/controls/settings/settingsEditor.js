@@ -7,32 +7,7 @@ define(['peripleo-ui/events/events'], function(Events) {
           '  <div class="modal-editor" id="settings-editor">' +
           '   <span class="close icon">&#xf057;</span>' +
 
-          '   <ul id="baselayers">' +
-          '     <li class="baselayer" data-name="awmc">' +
-          '       <div class="map-thumb-container"><img class="map-thumb" src="http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/7/68/47.png"></div>' +
-          '       <h2>Empty Basemap</h2>' +
-          '       <p>Geographically accurate basemap of the ancient world by the <a href="http://awmc.unc.edu/wordpress/tiles/" target="_blank">Ancient World Mapping Centre</a>,' +
-          '         University of North Caronlina at Chapel Hill.</p>' +
-          '     </li>' +
-
-          '     <li class="baselayer" data-name="dare">' +
-          '       <div class="map-thumb-container"><img class="map-thumb" src="http://pelagios.org/tilesets/imperium/7/68/47.png"></div>' +
-          '       <h2>Ancient Places</h2>' +
-          '       <p>Roman Empire base map by the <a href="http://dare.ht.lu.se/" target="_blank">Digital Atlas of the Roman Empire</a>, Lund University, Sweden.</p>' +
-          '     </li>' +
-
-          '     <li class="baselayer" data-name="osm">' +
-          '       <div class="map-thumb-container"><img class="map-thumb" src="http://a.tile.openstreetmap.org/7/68/47.png"></div>' +
-          '       <h2>Modern Places</h2>' +
-          '       <p>Modern places and roads via <a href="http://www.openstreetmap.org" target="_blank">OpenStreetMap</a>.</p>' +
-          '     </li>' +
-
-          '     <li class="baselayer" data-name="satellite">' +
-          '       <div class="map-thumb-container"><img class="map-thumb" src="http://api.tiles.mapbox.com/v4/mapbox.satellite/7/68/47.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6IlhHVkZmaW8ifQ.hAMX5hSW-QnTeRCMAy9A8Q"></div>' +
-          '       <h2>Satellite</h2>' +
-          '       <p>Aerial imagery via <a href="https://www.mapbox.com/" target="_blank">Mapbox</a>.</p>' +
-          '     </li>' +
-          '   </ul>' +
+          '   <ul id="baselayers"></ul>' +
 
           '   <ul id="misc-settings">' +
           '     <li class="simplify-polys">' +
@@ -56,12 +31,35 @@ define(['peripleo-ui/events/events'], function(Events) {
 
         btnClose = element.find('.close'),
 
+        baseLayers = element.find('#baselayers'),
+
         btnActivateBBoxMode = element.find('.activate-bbox-mode'),
         btnActivateHeatmap = element.find('.activate-heatmap'),
         btnActivateSampleRaster = element.find('.activate-sample-raster'),
 
         show = function() {
+          var template =
+                '<li class="baselayer" >' +
+                  '<div class="map-thumb-container"><img class="map-thumb"></div>' +
+                  '<h2></h2>' +
+                  '<p></p>' +
+                '</li>';
+
+          baseLayers.empty();
           element.show();
+
+          jQuery.getJSON('/peripleo/baselayers', function(data) {
+            jQuery.each(data, function(idx, layer) {
+              var li = jQuery(template);
+
+              li.data('name', layer.name);
+              li.find('img').attr('src', layer.thumbnail);
+              li.find('h2').html(layer.title);
+              li.find('p').html(layer.description);
+
+              baseLayers.append(li);
+            });
+          });
         },
 
         close = function() {

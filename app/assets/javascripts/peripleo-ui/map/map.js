@@ -6,60 +6,35 @@ define(['peripleo-ui/events/events',
   var Map = function(div, eventBroker) {
 
         /** Map layers **/
-    var Layers = {
-
-          dare : L.tileLayer('http://pelagios.org/tilesets/imperium/{z}/{x}/{y}.png', {
-                   attribution: 'Tiles: <a href="http://imperium.ahlfeldt.se/">DARE 2014</a>',
-                   minZoom:3,
-                   maxZoom:11
-                 }),
-
-          awmc : L.tileLayer('http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png', {
-                   attribution: 'Tiles &copy; <a href="http://mapbox.com/" target="_blank">MapBox</a> | ' +
-                     'Data &copy; <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> and contributors, CC-BY-SA | '+
-                     'Tiles and Data &copy; 2013 <a href="http://www.awmc.unc.edu" target="_blank">AWMC</a> ' +
-                     '<a href="http://creativecommons.org/licenses/by-nc/3.0/deed.en_US" target="_blank">CC-BY-NC 3.0</a>'
-                 }),
-
-          osm  : L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	                 attribution: '&copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>'
-                 }),
-
-          satellite : L.tileLayer('http://api.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoicGVsYWdpb3MiLCJhIjoiMWRlODMzM2NkZWU3YzkxOGJkMDFiMmFiYjk3NWZkMmUifQ.cyqpSZvhsvBGEBwRfniVrg', {
-	                 attribution: '<a href="https://www.mapbox.com/about/maps/">&copy; Mapbox</a> <a href="http://www.openstreetmap.org/about/">&copy; OpenStreetMap</a>',
-                   maxZoom:22
-                 }),
-
-          sampleRaster : L.tileLayer.wms('http://localhost:8080/geoserver/peripleo/wms', {
-                   layers: 'peripleo:Grabungsbereiche',
-                   format: 'image/png',
-                   transparent: 'true',
-                   opacity: 0.95,
-                   attribution: 'Test source',
-                   version: '1.1.1',
-                   maxZoom: 22
-                 })
-
-        },
+    var Layers = {},
 
         /** Default "closeup" zoom levels per layer **/
-        closeupZoom = { dare: 11, awmc: 12, osm: 15, satellite: 17 },
+        closeupZoom = {},
 
         /** To keep track of current layer **/
-        currentLayer = { name: 'awmc', layer: Layers.awmc },
+        currentLayer,
 
         /** Map **/
         map = new L.Map(div, {
           center: new L.LatLng(41.893588, 12.488022),
           zoom: 3,
-          zoomControl: false,                   // layers: 'Obcine:P50007',
-
-          layers: [ currentLayer.layer ]
+          zoomControl: false
         }),
 
         objectLayer = new ObjectLayer(map, eventBroker),
 
         densityGrid = new DensityGrid(map, eventBroker),
+
+        initLayers = function() {
+          jQuery.getJSON('/peripleo/baselayers', function(data) {
+            jQuery.each(data, function(idx, layer) {
+              Layers[layer.name] = L.tileLayer(layer.path, layer.options);
+              closeupZoom[layer.name] = layer.closeup_zoom;
+            });
+
+            changeLayer(data[0].name);
+          });
+        },
 
         getBounds = function() {
           var b = map.getBounds(),
@@ -88,7 +63,8 @@ define(['peripleo-ui/events/events',
         changeLayer = function(name) {
           var layerToShow = Layers[name];
           if (layerToShow) {
-            map.removeLayer(currentLayer.layer);
+            if (currentLayer)
+              map.removeLayer(currentLayer.layer);
             currentLayer = { name: name, layer: layerToShow };
             map.addLayer(currentLayer.layer);
           }
@@ -108,6 +84,8 @@ define(['peripleo-ui/events/events',
           else
             map.removeLayer(Layers.sampleRaster);
         };
+
+    initLayers();
 
     /** Request count & histogram updates on every move **/
     map.on('move', function() {
