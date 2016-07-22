@@ -1,30 +1,44 @@
 [{
-  "name" : "example-wms",
-  "title" : "An Example WMS Layer",
-  "description" : "Just an example of how to configure a WMS layer (e.g. hosted on GeoServer).",
-  "thumbnail" : "http://www.example.com/thumbnails/wms-layer-thumbnail.jpg",
+  "name" : "awmc",
+  "title" : "Empty Basemap",
+  "description" : "Geographically accurate basemap of the ancient world by the <a href=\"http://awmc.unc.edu/wordpress/tiles/\" target=\"_blank\">Ancient World Mapping Centre</a>, University of North Caronlina at Chapel Hill.",
+  "thumbnail" : "http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/7/68/47.png",
   "closeup_zoom" : 12,
-  "path" : "http://www.our-geoserver.com/geoserver/my-workspace/wms",
+  "path" : "http://a.tiles.mapbox.com/v3/isawnyu.map-knmctlkh/{z}/{x}/{y}.png",
   "options" : {
-    "layers" : "my-workspace:my-layer",
-    "format" : "image/png",
-    "transparent" : true,
-    "opacity": 0.95,
-    "attribution" : "Data by us. Licensed CC-BY-SA",
-    "version" : "1.1.1",
-    "maxZoom": 22
+    "attribution" : "Tiles &copy; <a href=\"http://mapbox.com/\" target=\"_blank\">MapBox</a> | Data &copy; <a href=\"http://www.openstreetmap.org/\" target=\"_blank\">OpenStreetMap</a> and contributors, CC-BY-SA | Tiles and Data &copy; 2013 <a href=\"http://www.awmc.unc.edu\" target=\"_blank\">AWMC</a> <a href=\"http://creativecommons.org/licenses/by-nc/3.0/deed.en_US\" target=\"_blank\">CC-BY-NC 3.0</a>"
   }
 },{
-  "name" : "example-tms",
-  "title" : "An Example TMS Layer",
-  "description" : "Just an example of how to configure a TMS layer.",
-  "thumbnail" : "http://www.example.com/thumbnails/tms-layer-thumbnail.jpg",
+  "name" : "dare",
+  "title" : "Ancient Places",
+  "description" : "Roman Empire base map by the <a href=\"http://dare.ht.lu.se/\" target=\"_blank\">Digital Atlas of the Roman Empire</a>, Lund University, Sweden.",
+  "thumbnail" : "http://pelagios.org/tilesets/imperium/7/68/47.png",
   "closeup_zoom" : 11,
-  "path" : "http://www.example.com/layers/our-tms-layer/{z}/{x}/{y}.png",
+  "path" : "http://pelagios.org/tilesets/imperium/{z}/{x}/{y}.png",
   "options" : {
-    "attribution" : "Data by us. Licensed CC-BY-SA",
+    "attribution" : "Tiles: <a href=\"http://imperium.ahlfeldt.se/\">DARE 2014</a>",
     "minZoom" : 3,
-    "maxZoom" : 11,
-    "tms" : true
+    "maxZoom" : 11
+  }
+},{
+  "name" : "osm",
+  "title" : "Modern Places",
+  "description" : "Modern places and roads via <a href=\"http://www.openstreetmap.org\" target=\"_blank\">OpenStreetMap</a>.",
+  "thumbnail" : "http://a.tile.openstreetmap.org/7/68/47.png",
+  "closeup_zoom" : 15,
+  "path" : "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "options" : {
+    "attribution" : "&copy; <a href=\"http://openstreetmap.org\">OpenStreetMap</a> contributors, <a href=\"http://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA</a>"
+  }
+},{
+  "name" : "satellite",
+  "title" : "Satellite",
+  "description" : "Aerial imagery via <a href=\"https://www.mapbox.com/\" target=\"_blank\">Mapbox</a>.",
+  "thumbnail" : "http://api.tiles.mapbox.com/v4/mapbox.satellite/7/68/47.png?access_token=pk.eyJ1IjoicGVsYWdpb3MiLCJhIjoiMWRlODMzM2NkZWU3YzkxOGJkMDFiMmFiYjk3NWZkMmUifQ.cyqpSZvhsvBGEBwRfniVrg",
+  "closeup_zoom" : 17,
+  "path" : "http://api.tiles.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoicGVsYWdpb3MiLCJhIjoiMWRlODMzM2NkZWU3YzkxOGJkMDFiMmFiYjk3NWZkMmUifQ.cyqpSZvhsvBGEBwRfniVrg",
+  "options" : {
+    "attribution" : "<a href=\"https://www.mapbox.com/about/maps/\">&copy; Mapbox</a> <a href=\"http://www.openstreetmap.org/about/\">&copy; OpenStreetMap</a>",
+    "maxZoom" : 22
   }
 }]
