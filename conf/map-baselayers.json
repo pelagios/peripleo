@@ -1,7 +1,7 @@
 [{
   "path" : "http://pelagios.org/tilesets/imperium/{z}/{x}/{y}.png",
   "options" : {
-    "attribtion" : "Tiles: <a href=\"http://imperium.ahlfeldt.se/\">DARE 2014</a>",
+    "attribution" : "Tiles: <a href=\"http://imperium.ahlfeldt.se/\">DARE 2014</a>",
     "minZoom" : 3,
     "maxZoom" : 11
   }

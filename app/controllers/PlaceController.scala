@@ -11,6 +11,8 @@ import play.api.mvc.Action
 import play.api.db.slick._
 import play.api.libs.json.Json
 import play.api.Logger
+import scala.io.Source
+import play.api.libs.json.JsObject
 
 object PlaceController extends AbstractController {
   
@@ -78,6 +80,11 @@ object PlaceController extends AbstractController {
     } else {
       NotFound(Json.parse("{ \"message\": \"Not found\" }"))
     }
+  }
+  
+  def getMapBaseLayers() = loggingAction { implicit session =>
+    val json = Source.fromFile("conf/map-baselayers.json", "UTF-8").getLines().mkString("\n")
+    Ok(Json.prettyPrint(Json.parse(json))).withHeaders(("Content-Type", "application/json"))
   }
    
 }
