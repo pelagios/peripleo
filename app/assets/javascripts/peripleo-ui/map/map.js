@@ -32,7 +32,13 @@ define(['peripleo-ui/events/events',
               closeupZoom[layer.name] = layer.closeup_zoom;
             });
 
-            changeLayer(data[0].name);
+            if (currentLayer && currentLayer.name && Layers[currentLayer.name]) {
+              // Pre-set layer from the URL bar, and it's in the list
+              changeLayer(currentLayer.name);
+            } else {
+              // No pre-set layer - just use first from list
+              changeLayer(data[0].name);
+            }
           });
         },
 
@@ -63,10 +69,13 @@ define(['peripleo-ui/events/events',
         changeLayer = function(name) {
           var layerToShow = Layers[name];
           if (layerToShow) {
-            if (currentLayer)
+            if (currentLayer && currentLayer.layer)
               map.removeLayer(currentLayer.layer);
             currentLayer = { name: name, layer: layerToShow };
             map.addLayer(currentLayer.layer);
+          } else {
+            // Hack!
+            currentLayer = { name: name };
           }
         },
 
