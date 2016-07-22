@@ -5,13 +5,11 @@ import global.Global
 import ingest.harvest.GazetteerImporter
 import models.geo.{ Gazetteers, Gazetteer }
 import play.api.db.slick._
-import play.api.mvc.Controller
+import play.api.mvc.{ BodyParsers, Controller }
 import play.api.Logger
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.AnyContent
-import play.api.mvc.BodyParsers
 
 object GazetteerAdminController extends BaseUploadController with Secured {
   
@@ -19,7 +17,7 @@ object GazetteerAdminController extends BaseUploadController with Secured {
     Ok(views.html.admin.gazetteers())
   }
   
-  def deleteGazetteer(name: String) = DBAction { implicit requestWithSession =>
+  def deleteGazetteer(name: String) = DBAction { implicit requestWithSession => 
     val gazetteer = Gazetteers.findByName(name)
     if (gazetteer.isDefined) {
       Logger.info("Deleting gazetteer: " + name)
@@ -30,11 +28,11 @@ object GazetteerAdminController extends BaseUploadController with Secured {
       Logger.info("Done.")
       Status(200)
     } else {
-      NotFound
+      Status(404)
     }
   }
   
-  def uploadGazetteerDump = DBAction(BodyParsers.parse.anyContent){ implicit requestWithSession =>    
+  def uploadGazetteerDump = DBAction(BodyParsers.parse.anyContent) { implicit requestWithSession =>
     val json = requestWithSession.request.body.asJson
     if (json.isDefined) {
       val url = (json.get \ "url").as[String]
@@ -45,25 +43,33 @@ object GazetteerAdminController extends BaseUploadController with Secured {
       Ok(Json.parse("{ \"message\": \"Not implemented yet.\" }"))   
     } else {
       processUpload("rdf", requestWithSession, { filepart => {
-        // Original name of the uploaded file
-        val filename = filepart.filename
-        val gazetteerName = filename.substring(0, filename.indexOf("."))        
+
+		try{
+			// Original name of the uploaded file
+		    val filename = filepart.filename
+		    val gazetteerName = filename.substring(0, filename.indexOf("."))        
+		    
+		    // Play apparently removes the file after first read... But ingest will 
+		    // need to read the file twice (once to count the places, second to import 
+		    // them) so we create a copy here  
+		    val tempFile = filepart.ref.file
+		    val copy = new File(tempFile.getAbsolutePath + "_cp")
+		    Files.copyFile(tempFile, copy, true, true)
+		    
+		    val importer = new GazetteerImporter(Global.index)
+		    val future = importer.importDataFileAsync(copy.getAbsolutePath, gazetteerName, Some(filename))
+		    future.onComplete(_ => {
+		      Logger.info("Deleting file " + copy.getAbsolutePath)
+		      copy.delete() 
+		    })
+		} catch {
+		  	case e: Exception => println("exception caught: " + e);
+			Status(500)
+		}
         
-        // Play apparently removes the file after first read... But ingest will 
-        // need to read the file twice (once to count the places, second to import 
-        // them) so we create a copy here  
-        val tempFile = filepart.ref.file
-        val copy = new File(tempFile.getAbsolutePath + "_cp")
-        Files.copyFile(tempFile, copy, true, true)
-        
-        val importer = new GazetteerImporter(Global.index)
-        val future = importer.importDataFileAsync(copy.getAbsolutePath, gazetteerName, Some(filename))
-        future.onComplete(_ => {
-          Logger.info("Deleting file " + copy.getAbsolutePath)
-          copy.delete() 
-        })
-        
-        Redirect(routes.GazetteerAdminController.index).flashing("success" -> { "Import in progress." })      
+        Redirect(routes.GazetteerAdminController.index).flashing("success" -> { "Import in progress." })    
+		Status(201)
+  
       }})
     }
   }
