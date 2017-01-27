@@ -48,7 +48,7 @@
         // Helper function to load a page of items
         var loadDatasets = function(offset, pagesize, callback) {
           $.getJSON('@routes.DatasetController.listAll()?offset=' + offset + '&limit=' + pagesize, function(data) {
-            console.log(data);
+            // console.log(data);
             var table = $('#dataset-list tbody');
             table.html('');
             $.each(data.items, function(idx, item) {
@@ -70,7 +70,7 @@
           });        
         };
         
-        var pagesize = 20;
+        var pagesize = 100;
         loadDatasets(0, pagesize, function(data) {
           /*
           $('.pagination').pagination({
