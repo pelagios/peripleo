@@ -6,11 +6,11 @@ __or__
 
 __http://github.com/pelagios/peripleo2__ (source code)
 
-__The updated version features a partially backwards-compatible API. This means that most of the
-documentation below remains valid.__
+__The updated version features a partially backwards-compatible API ("legacy compatibility API").
+This means that most of the documentation below remains valid. Links and documentation text have
+been updated to reflect this.__
 
-__Links and documentation text have been updated to reflect this.__
-
+---
 
 
 # Peripleo
@@ -162,11 +162,14 @@ Note: items in Pelagios that are __not dated will not appear in the results__. E
 
 The API provides 'REST-style' access to entity metadata via the following URL paths:
 
-* [/peripleo/datasets](http://peripleo.pelagios.org/peripleo/datasets?prettyprint=true) - list all datasets
-* [/peripleo/datasets/{id}](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73?prettyprint=true) - get the dataset with the specified ID
-* [/peripleo/datasets/{id}/items](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/items?prettyprint=true) - list all items contained in this dataset
-* [/peripleo/datasets/{id}/places](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/places?prettyprint=true) - list all places related to the items in this dataset *)
-* [/peripleo/datasets/{id}/time](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/time?prettyprint=true) - get the 'temporal profile' of the dataset **)
+__UPDATE: not all methods were ported to the Peripleo v.2's legacy compatibility API. Do get in
+touch if you require further information.__
+
+* ~~[/peripleo/datasets](http://peripleo.pelagios.org/peripleo/datasets?prettyprint=true) - list all datasets~~
+* ~~[/peripleo/datasets/{id}](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73?prettyprint=true) - get the dataset with the specified ID~~
+* ~~[/peripleo/datasets/{id}/items](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/items?prettyprint=true) - list all items contained in this dataset~~
+* ~~[/peripleo/datasets/{id}/places](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/places?prettyprint=true) - list all places related to the items in this dataset *)~~
+* ~~[/peripleo/datasets/{id}/time](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/time?prettyprint=true) - get the 'temporal profile' of the dataset **)~~
 * [/peripleo/items/{id}](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f?prettyprint=true) - get the item with the specified ID
 * [/peripleo/items/{id}/items](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/items?prettyprint=true) - list sub-items to this item
 * [/peripleo/items/{id}/places](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/places?prettyprint=true) - list all places related to this item
