@@ -1,4 +1,4 @@
-__UPDATE: this version of Peripleo is deprecated. To visit the new, updated version, visit__
+__UPDATE: this version of Peripleo is deprecated. To visit the new, updated version, see__
 
 __http://peripleo.pelagios.org__
 
@@ -12,14 +12,13 @@ been updated to reflect this.__
 
 ---
 
-
 # Peripleo
 
 Peripleo (Greek for "to sail", "to swim around") is a search & browsing engine for data in the [Pelagios network](http://commons.pelagios.org). Peripleo is work in progress.
 
 ## Background - the Pelagios Initiative
 
-Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://pelagios.org/peripleo/pages/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73) to the [personal Flickr photostream](http://pelagios.org/peripleo/pages/datasets/ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
+Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __linking of online resources that document the past__, based on the __places they refer to__. From the [large epigraphic database](http://peripleo.pelagios.org/ui#selected=http%3A%2F%2Fedh-www.adw.uni-heidelberg.de) to the [small archive of historical photographs](http://peripleo.pelagios.org/ui#selected=node1c6fco9g2x1), each of our partner datasets represents one piece of the puzzle. Pelagios combines these pieces into a coherent whole that enables connection, exchange and discovery - just as the Mediterranean Sea did for the Ancient World.
 
 ## Peripleo
 
