@@ -1,3 +1,10 @@
+__UPDATE: This version of Peripleo is deprecated. To visit the new, updated version, visit
+
+http://peripleo.pelagios.org
+
+The updated version features a partially backwards-compatible API. That means that most of the
+documentation below remains valid. Links and documentation text have been updated to reflect this.__
+
 # Peripleo
 
 Peripleo (Greek for "to sail", "to swim around") is a search & browsing engine for data in the [Pelagios network](http://pelagios-project.blogspot.co.uk). Peripleo is work in progress.
@@ -18,7 +25,7 @@ The __Peripleo API__ provides machine access to our data. The 'mental model' beh
 * __Places__ to which these items are related, e.g. places mentioned in a text or the findspot of an artefact
 * __Datasets__ which are collections of items, e.g. a particular museum collection or data corpus published by an institution
 
-Datasets as well as items can be __hierarchical__. (E.g. the Pelagios 3 dataset is sub-divided into a corpus of 
+Datasets as well as items can be __hierarchical__. (E.g. the Pelagios 3 dataset is sub-divided into a corpus of
 Greek and Latin literary texts. Likewise, an item such as Herodotus' _The Histories_ can be subdivided into individual _Books_.)
 
 ## Response Format
@@ -54,10 +61,10 @@ appending a `prettyprint=true` parameter. Example:
 
 ## Searching the API
 
-The main feature you'll probably want to use is __search__. You can search the API by __keyword__, 
+The main feature you'll probably want to use is __search__. You can search the API by __keyword__,
 __place__ (gazetteer URIs), __space__ (geographic area), __time interval__, __dataset__,
-__object type__ (i.e. _place_, _item_ or _dataset_) - or any combination of those. A typical search result 
-record looks like this: 
+__object type__ (i.e. _place_, _item_ or _dataset_) - or any combination of those. A typical search result
+record looks like this:
 
 ```json
 {
@@ -77,7 +84,7 @@ record looks like this:
 }
 ```
 
-The `identifier`, `title` and `object_type` labels are always present. Depending on the object, the record can also 
+The `identifier`, `title` and `object_type` labels are always present. Depending on the object, the record can also
 include a short textual `description`, the bounds of the object in space and time (`geo_bounds` and `temporal_bounds`, respectively) and a lists of URLs to `depictions` (images).
 
 In case the result represents and item (rather than a place), the record can also include a `homepage` URL for the item, and the `dataset_path`, i.e. the hierarchy of datasets the item is in. In case the result reprents a place, the record will include a list of variant `names` and, potentially, a list of `matches` - additional identifier URIs, under the same place is registered in other gazetteers.
@@ -86,7 +93,7 @@ You can retrieve more information about a record (such as all places related to 
 
 The base URL for search is http://pelagios.org/peripleo/search, followed by any of these the filter parameters:
 
-#### query 
+#### query
 
 A keyword query. Per default, only exact matches are returned. Supports logical AND and OR operators, and trailing asterisk for prefix queries. (Note that logical operators need to be uppercase!) If you want to run a fuzzy search, which will also match similar - but not necessarily identical - terms, append a '~' to your query term. Examples:
 
@@ -126,7 +133,7 @@ of decimal (WGS-84 datum) numbers, according to the format `bbox={minLon},{maxLo
 
 #### lat, lon, radius
 
-Alternatively, you can restrict to a geographic area by specifying a center `lat`, `lon` coordinate for your 
+Alternatively, you can restrict to a geographic area by specifying a center `lat`, `lon` coordinate for your
 search, and a `radius` (in km). If you omit the radius, it will default to 10km. _Note: if you specify both a
 `bbox` parameter and a coordinate, coordinate and radius will be ignored, and the bounding box will take precedence._
 
@@ -135,7 +142,7 @@ search, and a `radius` (in km). If you omit the radius, it will default to 10km.
 #### from, to
 
 Restrict the results to a specific time interval. Both parameters take an integer number, which is interpreted as year. (Use negative
-numbers for BC years.) If you are interested in one specific year only, use the same value for `from` and `to`. 
+numbers for BC years.) If you are interested in one specific year only, use the same value for `from` and `to`.
 Note: items in Pelagios that are __not dated will not appear in the results__. Examples:
 
 [http://pelagios.org/peripleo/search?query=coin&from=-600&to=-500&types=item](http://pelagios.org/peripleo/search?query=coin&from=-600&to=-500&types=item&prettyprint=true)
@@ -161,7 +168,7 @@ The API provides 'REST-style' access to entity metadata via the following URL pa
 the full response. Usually, you will only need this if you retrieve many places in one request, by setting a high page size `limit`.
 
 **) The temporal profile is an aggregation of the date information of all items contained in the dataset. It consists of a start and end year for the
-dataset, and a 'histogram' that plots the number of items over the start-to-end time interval. 
+dataset, and a 'histogram' that plots the number of items over the start-to-end time interval.
 
 ## License
 
