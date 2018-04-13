@@ -1,6 +1,10 @@
-__UPDATE: This version of Peripleo is deprecated. To visit the new, updated version, visit__
+__UPDATE: this version of Peripleo is deprecated. To visit the new, updated version, visit__
 
-http://peripleo.pelagios.org
+__http://peripleo.pelagios.org__
+
+__or__
+
+__http://github.com/pelagios/peripleo2 (source code)__
 
 __The updated version features a partially backwards-compatible API. That means that most of the
 documentation below remains valid. Links and documentation text have been updated to reflect this.__
