@@ -13,7 +13,7 @@ __Links and documentation text have been updated to reflect this.__
 
 
 
-# Peripleo - NOTE: updated for backwards-compatible Peripleo v.2 API
+# Peripleo
 
 Peripleo (Greek for "to sail", "to swim around") is a search & browsing engine for data in the [Pelagios network](http://commons.pelagios.org). Peripleo is work in progress.
 
@@ -25,7 +25,7 @@ Pelagios (Greek for 'of the Sea') is a __community network__ that facilitates __
 
 An overview of Peripleo & what you can do with it is available at the [Pelagios project blog](http://pelagios-project.blogspot.co.uk/2015/07/peripleo-sneak-preview.html).
 
-## Peripleo API
+## Peripleo API - Updated for backwards-compatible Peripleo v.2 API
 
 The __Peripleo API__ provides machine access to our data. The 'mental model' behind Peripleo is simple! It consists of only three types of entities:
 
