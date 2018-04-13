@@ -7,7 +7,11 @@ __or__
 __http://github.com/pelagios/peripleo2__ (source code)
 
 __The updated version features a partially backwards-compatible API. This means that most of the
-documentation below remains valid. Links and documentation text have been updated to reflect this.__
+documentation below remains valid.__
+
+__Links and documentation text have been updated to reflect this.__
+
+
 
 # Peripleo
 
