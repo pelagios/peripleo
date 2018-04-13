@@ -120,10 +120,9 @@ Restrict the results to `place`, `dataset` or `item`. Allows multiple values, as
 
 #### datasets
 
-Restrict results to one or more specific datasets. (Separate multiple dataset IDs by comma.) E.g. find everything for 'mausoleum' in the [Following Hadrian](http://peripleo.pelagios.org/peripleo/pages/datasets/ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2)
-photo collection:
+Restrict results to one or more specific datasets. (Separate multiple dataset IDs by comma.) E.g. find everything for 'mausoleum' in the [Epigraphic Database Heidelberg](http://peripleo.pelagios.org/ui#selected=http%3A%2F%2Fedh-www.adw.uni-heidelberg.de):
 
-[http://peripleo.pelagios.org/peripleo/search?query=mausoleum&datasets=ca222503...](http://peripleo.pelagios.org/peripleo/search?query=mausoleum&datasets=ca22250344a3b20d3a79f33c39e703a7f2d9899bd3e3cf6057cd80530f0944e2&prettyprint==true)
+[http://peripleo.pelagios.org/peripleo/search?query=mausoleum&datasets=http%3A%2F%2Fedh-www...](http://peripleo.pelagios.org/peripleo/search?query=mausoleum&datasets=http%3A%2F%2Fedh-www.adw.uni-heidelberg.de&prettyprint==true)
 
 #### places
 
