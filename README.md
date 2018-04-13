@@ -162,7 +162,7 @@ Note: items in Pelagios that are __not dated will not appear in the results__. E
 
 The API provides 'REST-style' access to entity metadata via the following URL paths:
 
-__UPDATE: not all methods were ported to the Peripleo v.2's legacy compatibility API. Do get in
+__UPDATE: not all methods were ported to the Peripleo v.2 legacy compatibility API. Please get in
 touch if you require further information.__
 
 * ~~[/peripleo/datasets](http://peripleo.pelagios.org/peripleo/datasets?prettyprint=true) - list all datasets~~
@@ -170,16 +170,16 @@ touch if you require further information.__
 * ~~[/peripleo/datasets/{id}/items](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/items?prettyprint=true) - list all items contained in this dataset~~
 * ~~[/peripleo/datasets/{id}/places](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/places?prettyprint=true) - list all places related to the items in this dataset *)~~
 * ~~[/peripleo/datasets/{id}/time](http://peripleo.pelagios.org/peripleo/datasets/21b2d56d90bd192834aea9d8ad9d61b21a94d85f15f7cab1c458d4eebf599b73/time?prettyprint=true) - get the 'temporal profile' of the dataset **)~~
-* [/peripleo/items/{id}](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f?prettyprint=true) - get the item with the specified ID
-* [/peripleo/items/{id}/items](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/items?prettyprint=true) - list sub-items to this item
-* [/peripleo/items/{id}/places](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/places?prettyprint=true) - list all places related to this item
+* [/peripleo/items/{id}](http://peripleo.pelagios.org/peripleo/items/http%3A%2F%2Ffinds.org.uk%2Fdatabase%2Fartefacts%2Frecord%2Fid%2F506533?prettyprint=true) - get the item with the specified ID
+* ~~[/peripleo/items/{id}/items](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/items?prettyprint=true) - list sub-items to this item~~
+* ~~[/peripleo/items/{id}/places](http://peripleo.pelagios.org/peripleo/items/8ea5bcf2e508289842118a279f60197daf0f5b34b9293aab0593ac4b3d9d1a9f/places?prettyprint=true) - list all places related to this item~~
 * [/peripleo/places/{uri}](http://peripleo.pelagios.org/peripleo/places/http:%2F%2Fpleiades.stoa.org%2Fplaces%2F423025?prettyprint=true) - get information about the place with the (URL-escaped!) URI
 
-*) Append `verbose=false` as query parameter to receive a less verbose response. This response will have additional performance benefits and load faster than
-the full response. Usually, you will only need this if you retrieve many places in one request, by setting a high page size `limit`.
+~~*) Append `verbose=false` as query parameter to receive a less verbose response. This response will have additional performance benefits and load faster than
+the full response. Usually, you will only need this if you retrieve many places in one request, by setting a high page size `limit`.~~
 
-**) The temporal profile is an aggregation of the date information of all items contained in the dataset. It consists of a start and end year for the
-dataset, and a 'histogram' that plots the number of items over the start-to-end time interval.
+~~**) The temporal profile is an aggregation of the date information of all items contained in the dataset. It consists of a start and end year for the
+dataset, and a 'histogram' that plots the number of items over the start-to-end time interval.~~
 
 ## License
 
