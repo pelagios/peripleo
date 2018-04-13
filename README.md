@@ -13,9 +13,9 @@ __Links and documentation text have been updated to reflect this.__
 
 
 
-# Peripleo
+# Peripleo - NOTE: updated for backwards-compatible Peripleo v.2 API
 
-Peripleo (Greek for "to sail", "to swim around") is a search & browsing engine for data in the [Pelagios network](http://pelagios-project.blogspot.co.uk). Peripleo is work in progress.
+Peripleo (Greek for "to sail", "to swim around") is a search & browsing engine for data in the [Pelagios network](http://commons.pelagios.org). Peripleo is work in progress.
 
 ## Background - the Pelagios Initiative
 
