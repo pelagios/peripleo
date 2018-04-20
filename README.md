@@ -6,7 +6,7 @@ __or__
 
 __http://github.com/pelagios/peripleo2__ (source code)
 
-__HOWEVER:__ fret not! The new Peripleo version features a partially backwards-compatible API ("legacy
+__API USERS:__ fret not! The new Peripleo version features a partially backwards-compatible API ("legacy
 compatibility API"). __This means that most of the documentation below remains valid.__ Links and
 documentation text have been updated to reflect this.
 
